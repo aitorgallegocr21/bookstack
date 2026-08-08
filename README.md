@@ -1,59 +1,45 @@
-# Bookstack
+# 📚 BookStack
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.3.
+> Aplicación web moderna, minimalista y Local-First para el seguimiento de lectura, métricas avanzadas y gestión de biblioteca personal.
 
-## Development server
+![Angular](https://img.shields.io/badge/Angular-18%2B-DD0031?style=flat-square&logo=angular)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?style=flat-square&logo=tailwind-css)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
-To start a local development server, run:
+---
+
+## ✨ Características Principales
+
+- 📖 **Gestión de Biblioteca:** Registra y organiza tus libros por estado (*Pendiente*, *Leyendo*, *Completado*, *Abandonado*).
+- ⚡ **Búsqueda & Escáner ISBN:** Autocompletado de portadas y datos mediante la cámara del dispositivo o APIs públicas (Open Library / Google Books).
+- 📊 **Estadísticas Visuales:** Gráficos de velocidad de lectura, consumo de páginas por mes y hábitos de lectura.
+- 📱 **Soporte para Ebooks & Sagas:** Registro opcional de conteo de palabras/caracteres y organización por orden cronológico en sagas.
+- 🔒 **Privacidad Total (Local-First):** Tus datos nunca salen de tu navegador. Persistencia local con IndexedDB.
+
+---
+
+## 🛠️ Stack Tecnológico
+
+- **Frontend:** Angular v18+ (Standalone Components, Signals)
+- **Estilos:** Tailwind CSS v3
+- **Iconos:** `@lucide/angular`
+- **Escáner:** `html5-qrcode`
+- **Base de Datos Local:** IndexedDB
+
+---
+
+## 🚀 Instalación y Ejecución Local
 
 ```bash
+# 1. Clonar el repositorio
+git clone [https://github.com/TU_USUARIO/bookstack.git](https://github.com/TU_USUARIO/bookstack.git)
+
+# 2. Entrar al directorio
+cd bookstack
+
+# 3. Instalar dependencias
+npm install
+
+# 4. Iniciar el servidor de desarrollo
 ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

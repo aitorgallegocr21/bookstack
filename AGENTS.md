@@ -56,3 +56,15 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use the `providedIn: 'root'` option for singleton services
 - Prefer the `@Service` decorator over `@Injectable({providedIn: 'root'})` for new singleton services (Angular v22+)
 - Use the `inject()` function instead of constructor injection
+
+# BOOKSTACK - MULTI-AGENT INSTRUCTIONS
+
+Este repositorio utiliza un sistema de agentes especializados definido en la carpeta `.agent/`.
+Cualquier asistente de IA debe consultar `CONTEXT.md` para el estado del proyecto y aplicar el rol correspondiente según la tarea:
+
+1. **Arquitectura y Documentación:** `.agent/01_architect.md`
+2. **Desarrollo Frontend (Angular/Tailwind):** `.agent/02_frontend.md`
+3. **Revisión de Código y QA:** `.agent/03_reviewer.md`
+4. **Estrategia Git y GitHub:** `.agent/04_git_github.md`
+
+> **Instrucción general para la IA:** Lee siempre `CONTEXT.md` antes de proponer cambios o generar código.

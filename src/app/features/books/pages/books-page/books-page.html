@@ -10,12 +10,27 @@
   <section class="summary-grid" aria-label="Resumen de lectura">
     <article class="summary-card">
       <span class="summary-card__label">Libros</span>
-      <span class="summary-card__value">{{ totalBooks() }}</span>
+      <span class="summary-card__value">{{ stats().totalBooks }}</span>
     </article>
 
     <article class="summary-card">
       <span class="summary-card__label">Leyendo</span>
-      <span class="summary-card__value">{{ readingBooks() }}</span>
+      <span class="summary-card__value">{{ stats().readingBooks }}</span>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-card__label">Completados</span>
+      <span class="summary-card__value">{{ stats().completedBooks }}</span>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-card__label">Páginas acumuladas</span>
+      <span class="summary-card__value">{{ stats().totalPagesRead }}</span>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-card__label">Velocidad</span>
+      <span class="summary-card__value">{{ stats().averageReadingSpeedPagesPerHour }} pp/h</span>
     </article>
   </section>
 

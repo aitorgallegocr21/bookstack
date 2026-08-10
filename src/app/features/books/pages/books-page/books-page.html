@@ -132,10 +132,10 @@
   </section>
 
   @if (showEditor()) {
-    <app-book-editor [existingBook]="editorBook()" (close)="closeEditor()" />
+    <app-book-editor [existingBook]="editorBook()" (closed)="closeEditor()" />
   }
 
   @if (showReadingLogEditor() && readingLogBookId()) {
-    <app-reading-log-editor [bookId]="readingLogBookId()!" [existingLog]="editingReadingLog()" (close)="closeReadingLogEditor()" />
+    <app-reading-log-editor [bookId]="readingLogBookId()!" [existingLog]="editingReadingLog()" (closed)="closeReadingLogEditor()" />
   }
 </main>

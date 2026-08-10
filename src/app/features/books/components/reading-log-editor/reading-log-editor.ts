@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, inject, input, output, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ReadingLog } from '../../models/book.model';
 import { ReadingLogService } from '../../services/reading-log.service';
@@ -10,27 +10,37 @@ import { ReadingLogService } from '../../services/reading-log.service';
   templateUrl: './reading-log-editor.html',
   styleUrl: './reading-log-editor.css'
 })
-export class ReadingLogEditorComponent {
+export class ReadingLogEditorComponent implements OnInit {
   private readonly readingLogService = inject(ReadingLogService);
 
   readonly bookId = input.required<string>();
   readonly existingLog = input<ReadingLog | undefined>(undefined);
-  readonly close = output<void>();
+  readonly closed = output<void>();
   readonly saved = output<ReadingLog>();
 
   protected draft: ReadingLog;
 
   constructor() {
-    this.draft = this.emptyLog();
+    this.draft = {
+      id: '',
+      bookId: '',
+      date: new Date().toISOString().slice(0, 10),
+      pagesRead: 0,
+      timeSpentMinutes: 0,
+      notes: '',
+      createdAt: new Date().toISOString()
+    };
   }
 
-  protected ngOnInit(): void {
+  ngOnInit(): void {
     const selected = this.existingLog();
+    const requiredBookId = this.bookId();
+
     if (selected) {
       this.draft = { ...selected };
     } else {
-      this.draft = this.emptyLog();
-      this.draft.bookId = this.bookId();
+      this.draft = this.emptyLog(requiredBookId);
+      this.draft.bookId = requiredBookId;
     }
   }
 
@@ -54,17 +64,17 @@ export class ReadingLogEditorComponent {
     }
 
     this.saved.emit(normalized);
-    this.close.emit();
+    this.closed.emit();
   }
 
   protected cancel(): void {
-    this.close.emit();
+    this.closed.emit();
   }
 
-  private emptyLog(): ReadingLog {
+  private emptyLog(bookId: string = ''): ReadingLog {
     return {
       id: '',
-      bookId: this.bookId(),
+      bookId,
       date: new Date().toISOString().slice(0, 10),
       pagesRead: 0,
       timeSpentMinutes: 0,

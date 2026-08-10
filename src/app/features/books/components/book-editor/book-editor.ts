@@ -1,4 +1,4 @@
-import { Component, input, output, inject } from '@angular/core';
+import { Component, input, output, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Book, BookStatus } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
@@ -10,11 +10,11 @@ import { BooksService } from '../../services/books.service';
   templateUrl: './book-editor.html',
   styleUrl: './book-editor.css'
 })
-export class BookEditorComponent {
+export class BookEditorComponent implements OnInit {
   private readonly booksService = inject(BooksService);
 
   readonly existingBook = input<Book | undefined>(undefined);
-  readonly close = output<void>();
+  readonly closed = output<void>();
   readonly saved = output<Book>();
 
   protected readonly statusOptions: BookStatus[] = ['pending', 'reading', 'completed', 'abandoned'];
@@ -24,7 +24,7 @@ export class BookEditorComponent {
     this.draft = this.emptyBook();
   }
 
-  protected ngOnInit(): void {
+  ngOnInit(): void {
     const selected = this.existingBook();
     if (selected) {
       this.draft = { ...selected };
@@ -54,11 +54,11 @@ export class BookEditorComponent {
     }
 
     this.saved.emit(normalized);
-    this.close.emit();
+    this.closed.emit();
   }
 
   protected cancel(): void {
-    this.close.emit();
+    this.closed.emit();
   }
 
   private emptyBook(): Book {

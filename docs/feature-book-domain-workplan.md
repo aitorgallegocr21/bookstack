@@ -55,8 +55,16 @@ Objetivo: materializar el dominio, la semilla, los servicios de acceso, las mét
 Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y navegable desde la vista.
 
 7. Preparar almacenamiento con `IndexedDB` o una capa de fallback más robusta. [Pendiente]
-8. Crear componentes de detalle/edición de libro y registro de lectura. [En progreso: editor de creación/edición ya conectado y flujo de eliminación desde la lista]
+8. Crear componentes de detalle/edición de libro y registro de lectura. [Completado parcialmente: editor de creación/edición y borrado desde la lista ya conectados; registro de lectura como flujo a completar]
 9. Añadir la integración con mapas de lectura y UI de navegación del libro. [Pendiente]
+
+## Instrucciones próximas (orden de ejecución)
+1. Completar `ReadingLogService` con operaciones de lectura/edición/borrado para mantener la sesión de lectura como un registro vivo del dominio. [Completado: ya existe `getAll`, `getById`, `getByBookId`, `add`, `update`, `remove` y persistencia en `localStorage`]
+2. Añadir un componente visual del flujo de `ReadingLog` asociado al libro seleccionado: alta y consulta por libro. [Pendiente]
+3. Abrir una vista de detalle de libro por ruta, para que los datos del libro puedan entrar en una navegación más rica y no solo en una lista. [Pendiente]
+4. Definir una estrategia de persistencia avanzada con fallback para `IndexedDB` o un adapter de almacenamiento local. [Pendiente]
+5. Añadir pruebas de servicio/componentes para la feature de libros y logs para asegurar que el CRUD base no se rompe con cambios de UI y servicios. [Pendiente]
+6. Hacer una revisión de visual refinement situada en un segundo bloque, después de dejar cerrada la base funcional. [Pendiente]
 
 ## Regla de transición de feature
 - Si las tareas implican cambios de dominio, acceso a datos, estados derivados o persistencia mínima del flujo de lectura, se mantienen en esta feature.
@@ -72,4 +80,5 @@ Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y
 - 2026-08-10: se añade persistencia local con `localStorage` para `BooksService` y `ReadingLogService`.
 - 2026-08-10: se añade un `BookEditorComponent` y se conecta con `BooksPage` para abrir/editar libros desde la lista.
 - 2026-08-10: se añade el acceso de borrado desde la lista de `BooksPage`, conectando el botón con `BooksService.remove()` y la persistencia de `localStorage`.
+- 2026-08-10: se amplía `ReadingLogService` con las operaciones de listado, búsqueda por ID, borrado y edición para completar el acceso al dominio de sesiones de lectura.
 - 2026-08-10: se formaliza la separación entre `book-domain-model` como feature central y el siguiente bloque funcional para interacción CRUD / navegación del usuario.

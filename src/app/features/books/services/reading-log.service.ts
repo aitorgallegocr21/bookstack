@@ -8,6 +8,14 @@ export class ReadingLogService {
 
   readonly readingLogs = signal<ReadingLog[]>(this.loadReadingLogs());
 
+  getAll(): ReadingLog[] {
+    return this.readingLogs();
+  }
+
+  getById(id: string): ReadingLog | undefined {
+    return this.readingLogs().find((log) => log.id === id);
+  }
+
   getByBookId(bookId: string): ReadingLog[] {
     return this.readingLogs().filter((log) => log.bookId === bookId);
   }
@@ -15,6 +23,22 @@ export class ReadingLogService {
   add(log: ReadingLog): void {
     this.readingLogs.update((current) => {
       const next = [...current, log];
+      this.persistReadingLogs(next);
+      return next;
+    });
+  }
+
+  update(id: string, updatedLog: ReadingLog): void {
+    this.readingLogs.update((current) => {
+      const next = current.map((log) => (log.id === id ? updatedLog : log));
+      this.persistReadingLogs(next);
+      return next;
+    });
+  }
+
+  remove(id: string): void {
+    this.readingLogs.update((current) => {
+      const next = current.filter((log) => log.id !== id);
       this.persistReadingLogs(next);
       return next;
     });

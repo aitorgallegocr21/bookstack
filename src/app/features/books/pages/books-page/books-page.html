@@ -24,7 +24,7 @@
       <article class="book-card">
         <div class="book-card__cover">
           @if (book.coverUrl) {
-            <img [src]="book.coverUrl" [alt]="book.title" />
+            <img [src]="book.coverUrl" [alt]="book.title" [title]="book.title" />
           } @else {
             <div class="book-card__cover-placeholder">{{ book.title.slice(0, 1) }}</div>
           }

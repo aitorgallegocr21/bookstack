@@ -15,6 +15,8 @@ Mantener una hoja de ruta operativa para la elaboración del módulo de libros y
 - Se ha añadido el modelo de dominio de libros en `src/app/features/books/models/book.model.ts`.
 - Se ha añadido una semilla de ejemplo en `src/app/features/books/data/books.seed.ts`.
 - Se ha añadido el servicio `BooksService` en `src/app/features/books/services/books.service.ts`.
+- Se ha añadido una semilla de registros `ReadingLog` en `src/app/features/books/data/reading-logs.seed.ts`.
+- Se ha añadido el servicio `ReadingLogService` en `src/app/features/books/services/reading-log.service.ts`.
 - Se ha añadido la página de listado `BooksPage` y una primera versión del layout en `src/app/features/books/pages/books-page/books-page.html` y `books-page.css`.
 - Se ha conectado la ruta `/books` en `src/app/app.routes.ts` y el contexto raíz se apoya en un `RouterOutlet` público en `src/app/app.html`.
 
@@ -24,13 +26,15 @@ Mantener una hoja de ruta operativa para la elaboración del módulo de libros y
 - Este documento es el archivo operativo activo de la feature y no debe quedar obsoleto entre cambios del bloque.
 
 ## Siguientes pasos
-1. Revisar la ruta y el componente de entrada de la feature.
+1. Revisar la ruta y el componente de entrada de la feature. [Completado]
 2. Añadir un servicio local de estado para los libros. [Completado]
-3. Preparar almacenamiento local con `localStorage`/IndexedDB como fallback. [Pendiente]
-4. Crear componentes visuales de listado y detalle. [En progreso: listado base y layout mínimo]
-5. Añadir estadísticas derivadas y registros de lectura. [Pendiente]
+3. Añadir una capa de registros de lectura (`ReadingLog`) para preparar la capa de métricas. [Completado]
+4. Preparar almacenamiento local con `localStorage`/IndexedDB como fallback. [Pendiente]
+5. Crear componentes visuales de listado y detalle. [En progreso: listado base y layout mínimo]
+6. Añadir estadísticas derivadas y registros de lectura. [Pendiente]
 
 ## Registro de cambios relevantes
 - 2026-08-10: se crea el modelo base del dominio y la rama `feature/book-domain-model`.
 - 2026-08-10: se añade la semilla y el servicio local de libros.
+- 2026-08-10: se añade una semilla de registros de lectura y un servicio de acceso a esos logs.
 - 2026-08-10: se arma una ruta `/books` y una vista de `BooksPage` con un layout inicial.

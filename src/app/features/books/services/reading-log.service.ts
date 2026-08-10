@@ -1,12 +1,29 @@
 import { Injectable, signal } from '@angular/core';
 import { ReadingLog } from '../models/book.model';
 import { READING_LOGS_SEED } from '../data/reading-logs.seed';
+import { StorageAdapterService } from './storage-adapter.service';
 
 @Injectable({ providedIn: 'root' })
 export class ReadingLogService {
-  private readonly storageKey = 'bookstack.reading-logs';
+  private readonly storeName = 'readingLogs';
 
-  readonly readingLogs = signal<ReadingLog[]>(this.loadReadingLogs());
+  readonly readingLogs = signal<ReadingLog[]>([]);
+
+  constructor(private storage: StorageAdapterService) {
+    this.initReadingLogs();
+  }
+
+  private async initReadingLogs(): Promise<void> {
+    const storedLogs = await this.storage.getAll<ReadingLog>(this.storeName);
+    if (storedLogs.length === 0) {
+      for (const log of READING_LOGS_SEED) {
+        await this.storage.set(this.storeName, log);
+      }
+      this.readingLogs.set(READING_LOGS_SEED);
+    } else {
+      this.readingLogs.set(storedLogs);
+    }
+  }
 
   getAll(): ReadingLog[] {
     return this.readingLogs();
@@ -20,54 +37,20 @@ export class ReadingLogService {
     return this.readingLogs().filter((log) => log.bookId === bookId);
   }
 
-  add(log: ReadingLog): void {
-    this.readingLogs.update((current) => {
-      const next = [...current, log];
-      this.persistReadingLogs(next);
-      return next;
-    });
+  async add(log: ReadingLog): Promise<void> {
+    await this.storage.set(this.storeName, log);
+    this.readingLogs.update((current) => [...current, log]);
   }
 
-  update(id: string, updatedLog: ReadingLog): void {
-    this.readingLogs.update((current) => {
-      const next = current.map((log) => (log.id === id ? updatedLog : log));
-      this.persistReadingLogs(next);
-      return next;
-    });
+  async update(id: string, updatedLog: ReadingLog): Promise<void> {
+    await this.storage.set(this.storeName, updatedLog);
+    this.readingLogs.update((current) =>
+      current.map((log) => (log.id === id ? updatedLog : log))
+    );
   }
 
-  remove(id: string): void {
-    this.readingLogs.update((current) => {
-      const next = current.filter((log) => log.id !== id);
-      this.persistReadingLogs(next);
-      return next;
-    });
-  }
-
-  private loadReadingLogs(): ReadingLog[] {
-    if (typeof window === 'undefined' || !window.localStorage) {
-      return READING_LOGS_SEED;
-    }
-
-    const rawValue = window.localStorage.getItem(this.storageKey);
-
-    if (!rawValue) {
-      return READING_LOGS_SEED;
-    }
-
-    try {
-      const parsed = JSON.parse(rawValue) as ReadingLog[];
-      return parsed;
-    } catch {
-      return READING_LOGS_SEED;
-    }
-  }
-
-  private persistReadingLogs(readingLogs: ReadingLog[]): void {
-    if (typeof window === 'undefined' || !window.localStorage) {
-      return;
-    }
-
-    window.localStorage.setItem(this.storageKey, JSON.stringify(readingLogs));
+  async remove(id: string): Promise<void> {
+    await this.storage.remove(this.storeName, id);
+    this.readingLogs.update((current) => current.filter((log) => log.id !== id));
   }
 }

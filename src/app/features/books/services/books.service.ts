@@ -1,12 +1,29 @@
 import { Injectable, signal } from '@angular/core';
 import { Book } from '../models/book.model';
 import { BOOKS_SEED } from '../data/books.seed';
+import { StorageAdapterService } from './storage-adapter.service';
 
 @Injectable({ providedIn: 'root' })
 export class BooksService {
-  private readonly storageKey = 'bookstack.books';
+  private readonly storeName = 'books';
 
-  readonly books = signal<Book[]>(this.loadBooks());
+  readonly books = signal<Book[]>([]);
+
+  constructor(private storage: StorageAdapterService) {
+    this.initBooks();
+  }
+
+  private async initBooks(): Promise<void> {
+    const storedBooks = await this.storage.getAll<Book>(this.storeName);
+    if (storedBooks.length === 0) {
+      for (const book of BOOKS_SEED) {
+        await this.storage.set(this.storeName, book);
+      }
+      this.books.set(BOOKS_SEED);
+    } else {
+      this.books.set(storedBooks);
+    }
+  }
 
   getAll(): Book[] {
     return this.books();
@@ -16,54 +33,20 @@ export class BooksService {
     return this.books().find((book) => book.id === id);
   }
 
-  add(book: Book): void {
-    this.books.update((current) => {
-      const next = [...current, book];
-      this.persistBooks(next);
-      return next;
-    });
+  async add(book: Book): Promise<void> {
+    await this.storage.set(this.storeName, book);
+    this.books.update((current) => [...current, book]);
   }
 
-  update(id: string, updatedBook: Book): void {
-    this.books.update((current) => {
-      const next = current.map((book) => (book.id === id ? updatedBook : book));
-      this.persistBooks(next);
-      return next;
-    });
+  async update(id: string, updatedBook: Book): Promise<void> {
+    await this.storage.set(this.storeName, updatedBook);
+    this.books.update((current) =>
+      current.map((book) => (book.id === id ? updatedBook : book))
+    );
   }
 
-  remove(id: string): void {
-    this.books.update((current) => {
-      const next = current.filter((book) => book.id !== id);
-      this.persistBooks(next);
-      return next;
-    });
-  }
-
-  private loadBooks(): Book[] {
-    if (typeof window === 'undefined' || !window.localStorage) {
-      return BOOKS_SEED;
-    }
-
-    const rawValue = window.localStorage.getItem(this.storageKey);
-
-    if (!rawValue) {
-      return BOOKS_SEED;
-    }
-
-    try {
-      const parsed = JSON.parse(rawValue) as Book[];
-      return parsed;
-    } catch {
-      return BOOKS_SEED;
-    }
-  }
-
-  private persistBooks(books: Book[]): void {
-    if (typeof window === 'undefined' || !window.localStorage) {
-      return;
-    }
-
-    window.localStorage.setItem(this.storageKey, JSON.stringify(books));
+  async remove(id: string): Promise<void> {
+    await this.storage.remove(this.storeName, id);
+    this.books.update((current) => current.filter((book) => book.id !== id));
   }
 }

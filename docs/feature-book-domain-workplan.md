@@ -31,6 +31,8 @@ Mantener una hoja de ruta operativa para la elaboración del módulo de libros y
 - Se ha añadido persistencia local con `LocalStorage` dentro de `BooksService` y `ReadingLogService`.
 - Se ha añadido la página de listado `BooksPage` y una primera versión del layout en `src/app/features/books/pages/books-page/books-page.html` y `books-page.css`.
 - Se ha conectado la ruta `/books` en `src/app/app.routes.ts` y el contexto raíz se apoya en un `RouterOutlet` público en `src/app/app.html`.
+- Se ha añadido el componente `BookEditorComponent` para crear y editar libros mediante un modal de formulario en la vista principal.
+- Se ha conectado la acción de abrir/editar libro desde la lista con el editor del mismo `BooksPage`.
 
 ## Reglas de documentación para esta feature
 - Todo agente que trabaje en la feature debe leer este documento antes de iniciar.
@@ -53,7 +55,7 @@ Objetivo: materializar el dominio, la semilla, los servicios de acceso, las mét
 Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y navegable desde la vista.
 
 7. Preparar almacenamiento con `IndexedDB` o una capa de fallback más robusta. [Pendiente]
-8. Crear componentes de detalle/edición de libro y registro de lectura. [Pendiente]
+8. Crear componentes de detalle/edición de libro y registro de lectura. [En progreso: editor de creación/edición ya conectado]
 9. Añadir la integración con mapas de lectura y UI de navegación del libro. [Pendiente]
 
 ## Regla de transición de feature
@@ -68,4 +70,5 @@ Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y
 - 2026-08-10: se añade un servicio de cálculo de estadísticas sobre estado de libros y logs de lectura.
 - 2026-08-10: se arma una ruta `/books` y una vista de `BooksPage` con un layout inicial.
 - 2026-08-10: se añade persistencia local con `localStorage` para `BooksService` y `ReadingLogService`.
+- 2026-08-10: se añade un `BookEditorComponent` y se conecta con `BooksPage` para abrir/editar libros desde la lista.
 - 2026-08-10: se formaliza la separación entre `book-domain-model` como feature central y el siguiente bloque funcional para interacción CRUD / navegación del usuario.

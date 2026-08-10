@@ -55,7 +55,7 @@ Objetivo: materializar el dominio, la semilla, los servicios de acceso, las mét
 Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y navegable desde la vista.
 
 7. Preparar almacenamiento con `IndexedDB` o una capa de fallback más robusta. [Pendiente]
-8. Crear componentes de detalle/edición de libro y registro de lectura. [En progreso: editor de creación/edición ya conectado]
+8. Crear componentes de detalle/edición de libro y registro de lectura. [En progreso: editor de creación/edición ya conectado y flujo de eliminación desde la lista]
 9. Añadir la integración con mapas de lectura y UI de navegación del libro. [Pendiente]
 
 ## Regla de transición de feature
@@ -71,4 +71,5 @@ Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y
 - 2026-08-10: se arma una ruta `/books` y una vista de `BooksPage` con un layout inicial.
 - 2026-08-10: se añade persistencia local con `localStorage` para `BooksService` y `ReadingLogService`.
 - 2026-08-10: se añade un `BookEditorComponent` y se conecta con `BooksPage` para abrir/editar libros desde la lista.
+- 2026-08-10: se añade el acceso de borrado desde la lista de `BooksPage`, conectando el botón con `BooksService.remove()` y la persistencia de `localStorage`.
 - 2026-08-10: se formaliza la separación entre `book-domain-model` como feature central y el siguiente bloque funcional para interacción CRUD / navegación del usuario.

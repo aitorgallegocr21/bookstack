@@ -35,6 +35,10 @@ export class BooksPage {
     this.showEditor.set(true);
   }
 
+  protected deleteBook(bookId: string): void {
+    this.booksService.remove(bookId);
+  }
+
   protected closeEditor(): void {
     this.showEditor.set(false);
     this.editorBook.set(undefined);

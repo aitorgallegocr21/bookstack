@@ -61,9 +61,21 @@
   font-size: 0.7rem;
 }
 
+.danger-button {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  padding: 0.42rem 0.75rem;
+  font-weight: 700;
+  font-size: 0.7rem;
+}
+
 .book-card__actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 0.75rem;
 }
 

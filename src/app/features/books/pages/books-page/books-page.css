@@ -51,6 +51,58 @@
   background: white;
 }
 
+.analytics-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.analytics-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: white;
+}
+
+.analytics-card__title {
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.analytics-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.status-row,
+.month-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 40px;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+}
+
+.bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: #111827;
+  border-radius: inherit;
+}
+
+.bar-fill--blue {
+  background: #2563eb;
+}
+
 .summary-card__label {
   display: block;
   color: #6b7280;

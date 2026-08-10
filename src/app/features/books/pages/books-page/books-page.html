@@ -34,6 +34,44 @@
     </article>
   </section>
 
+  <section class="analytics-panel">
+    <article class="analytics-card">
+      <div class="analytics-card__title">
+        <span>Distribución por estado</span>
+      </div>
+      <div class="analytics-card__body">
+        @for (row of stats().statusDistribution; track row.status) {
+          <div class="status-row">
+            <span>{{ row.status }}</span>
+            <div class="bar-track">
+              <div class="bar-fill" [style.width.%]="stats().totalBooks > 0 ? (row.count / stats().totalBooks) * 100 : 0"></div>
+            </div>
+            <span>{{ row.count }}</span>
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="analytics-card">
+      <div class="analytics-card__title">
+        <span>Actividad mensual</span>
+      </div>
+      <div class="analytics-card__body charts">
+        @for (month of stats().monthlyPages; track month.month) {
+          <div class="month-row">
+            <span>{{ month.month }}</span>
+            <div class="bar-track">
+              <div class="bar-fill bar-fill--blue" [style.width.%]="month.pages > 0 ? month.pages : 0"></div>
+            </div>
+            <span>{{ month.pages }}</span>
+          </div>
+        } @empty {
+          <p class="empty-state">Sin registros mensuales</p>
+        }
+      </div>
+    </article>
+  </section>
+
   <section class="books-list" aria-label="Lista de libros">
     @for (book of books(); track book.id) {
       <article class="book-card">

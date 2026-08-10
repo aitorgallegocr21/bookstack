@@ -19,6 +19,7 @@ Mantener una hoja de ruta operativa para la elaboración del módulo de libros y
 - Se ha añadido el servicio `ReadingLogService` en `src/app/features/books/services/reading-log.service.ts`.
 - Se ha añadido el servicio `ReadingStatsService` en `src/app/features/books/services/reading-stats.service.ts`.
 - Se ha conectado el servicio de estadísticas al page component de listado para materializar un resumen derivado en la vista.
+- Se ha ampliado la visual del `BooksPage` con una sección de análisis y distribución por estado / actividad mensual.
 - Se ha añadido la página de listado `BooksPage` y una primera versión del layout en `src/app/features/books/pages/books-page/books-page.html` y `books-page.css`.
 - Se ha conectado la ruta `/books` en `src/app/app.routes.ts` y el contexto raíz se apoya en un `RouterOutlet` público en `src/app/app.html`.
 

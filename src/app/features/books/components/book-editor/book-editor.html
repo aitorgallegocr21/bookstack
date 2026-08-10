@@ -1,0 +1,65 @@
+<section class="book-editor" aria-label="Editor de libro">
+  <div class="book-editor__panel">
+    <header class="book-editor__header">
+      <div>
+        <span class="book-editor__eyebrow">Biblioteca</span>
+        <h2>{{ existingBook() ? 'Editar libro' : 'Añadir libro' }}</h2>
+      </div>
+      <button class="icon-button" type="button" (click)="cancel()" aria-label="Cerrar editor">×</button>
+    </header>
+
+    <form class="book-editor__form" (ngSubmit)="save()">
+      <label class="field">
+        <span>Título</span>
+        <input type="text" [(ngModel)]="draft.title" name="title" required />
+      </label>
+
+      <label class="field">
+        <span>Autor</span>
+        <input type="text" [(ngModel)]="draft.author" name="author" required />
+      </label>
+
+      <div class="field-grid">
+        <label class="field">
+          <span>Formato</span>
+          <select [(ngModel)]="draft.format" name="format">
+            <option value="Físico">Físico</option>
+            <option value="Ebook">Ebook</option>
+            <option value="Audiolibro">Audiolibro</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Estado</span>
+          <select [(ngModel)]="draft.status" name="status">
+            @for (status of statusOptions; track status) {
+              <option [value]="status">{{ status }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="field-grid">
+        <label class="field">
+          <span>Total páginas</span>
+          <input type="number" min="0" [(ngModel)]="draft.totalPages" name="totalPages" />
+        </label>
+
+        <label class="field">
+          <span>Página actual</span>
+          <input type="number" min="0" [(ngModel)]="draft.currentPage" name="currentPage" />
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Notas</span>
+        <textarea [(ngModel)]="draft.notes" name="notes" rows="4"></textarea>
+      </label>
+
+      <div class="book-editor__actions">
+        <button class="secondary-button" type="button" (click)="cancel()">Cancelar</button>
+        <button class="primary-button" type="submit">Guardar</button>
+      </div>
+    </form>
+  </div>
+</section>

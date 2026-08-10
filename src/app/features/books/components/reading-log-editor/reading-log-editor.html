@@ -1,0 +1,40 @@
+<section class="reading-log-editor" aria-label="Editor de registro de lectura">
+  <div class="reading-log-editor__panel">
+    <header class="reading-log-editor__header">
+      <div>
+        <span class="reading-log-editor__eyebrow">Sesión de lectura</span>
+        <h2>{{ existingLog() ? 'Editar sesión' : 'Registrar lectura' }}</h2>
+      </div>
+      <button class="icon-button" type="button" (click)="cancel()" aria-label="Cerrar editor">×</button>
+    </header>
+
+    <form class="reading-log-editor__form" (ngSubmit)="save()">
+      <div class="field-grid">
+        <label class="field">
+          <span>Fecha</span>
+          <input type="date" [(ngModel)]="draft.date" name="date" />
+        </label>
+
+        <label class="field">
+          <span>Páginas leídas</span>
+          <input type="number" min="0" [(ngModel)]="draft.pagesRead" name="pagesRead" />
+        </label>
+
+        <label class="field">
+          <span>Tiempo (min)</span>
+          <input type="number" min="0" [(ngModel)]="draft.timeSpentMinutes" name="timeSpentMinutes" />
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Notas</span>
+        <textarea [(ngModel)]="draft.notes" name="notes" rows="4"></textarea>
+      </label>
+
+      <div class="reading-log-editor__actions">
+        <button class="secondary-button" type="button" (click)="cancel()">Cancelar</button>
+        <button class="primary-button" type="submit">Guardar</button>
+      </div>
+    </form>
+  </div>
+</section>

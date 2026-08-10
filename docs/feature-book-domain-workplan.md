@@ -3,12 +3,19 @@
 ## Objetivo
 Mantener una hoja de ruta operativa para la elaboración del módulo de libros y sus datos.
 
+## Feature activo
+- Nombre: `book-domain-model`
+- Estado: `active`
+- Alcance: dominio de libros, semilla inicial, servicio de acceso, métricas y persistencia base `LocalStorage` del mismo bloque.
+- Principio: esta feature se considera cerrada si el trabajo no aporta contratos nuevos de modelo ni requiere nuevas interfaces de acceso al dominio.
+
 ## Estado actual
 - Base Angular generada por CLI.
 - Rama activa: `feature/book-domain-model`.
 - La feature de libros ya tiene una ruta mínima apuntando a `/books` y una vista de listado básica.
 - El dominio de libros está definido en el modelo y se sirve desde un `BooksService` con una semilla inicial.
 - Ya existe un primer servicio de persistencia en navegador mediante `localStorage` para libros y registros de lectura.
+- El bloque de tareas pendientes (`detalle/edición`, `registro de lectura`, `IndexedDB` y navegación/visual) se mantiene en el mismo ámbito funcional del dominio y no se trata como una feature paralela sin relación.
 
 ## Trabajo realizado
 - Rama de feature creada: `feature/book-domain-model`.
@@ -30,16 +37,29 @@ Mantener una hoja de ruta operativa para la elaboración del módulo de libros y
 - Si el cambio afecta al dominio, routing, servicio, componente visual o pruebas de la feature, debe actualizar este plan con el estado del trabajo.
 - Este documento es el archivo operativo activo de la feature y no debe quedar obsoleto entre cambios del bloque.
 
-## Siguientes pasos
+## Bloques de trabajo
+
+### Bloque 1 — Feature `book-domain-model` (activo / núcleo)
+Objetivo: materializar el dominio, la semilla, los servicios de acceso, las métricas y la persistencia base de la entidad libro.
+
 1. Revisar la ruta y el componente de entrada de la feature. [Completado]
 2. Añadir un servicio local de estado para los libros. [Completado]
 3. Añadir una capa de registros de lectura (`ReadingLog`) para preparar la capa de métricas. [Completado]
 4. Añadir un servicio de estadísticas derivadas sobre libros y logs. [Completado]
 5. Preparar almacenamiento local con `localStorage` como persistencia base. [Completado]
-6. Preparar almacenamiento con `IndexedDB` o una capa de fallback más robusta. [Pendiente]
-7. Crear el componente visual de listado de libros. [Completado]
+6. Crear el componente visual de listado de libros. [Completado]
+
+### Bloque 2 — Siguiente capa funcional (continuación del mismo feature)
+Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y navegable desde la vista.
+
+7. Preparar almacenamiento con `IndexedDB` o una capa de fallback más robusta. [Pendiente]
 8. Crear componentes de detalle/edición de libro y registro de lectura. [Pendiente]
 9. Añadir la integración con mapas de lectura y UI de navegación del libro. [Pendiente]
+
+## Regla de transición de feature
+- Si las tareas implican cambios de dominio, acceso a datos, estados derivados o persistencia mínima del flujo de lectura, se mantienen en esta feature.
+- Si las tareas empiezan a exigir formularios visuales, rutas varias, acciones de usuario, navegación distinta o un flujo de experiencia completo, se debe abrir un nuevo proyecto o subfeature rooteado en UI (`books-crud-ui`, `reading-log-flow`, etc.).
+- Esta regla evita que los cambios de UI y los cambios de contrato se mezclen en una única historia larga y poco trazable.
 
 ## Registro de cambios relevantes
 - 2026-08-10: se crea el modelo base del dominio y la rama `feature/book-domain-model`.
@@ -48,3 +68,4 @@ Mantener una hoja de ruta operativa para la elaboración del módulo de libros y
 - 2026-08-10: se añade un servicio de cálculo de estadísticas sobre estado de libros y logs de lectura.
 - 2026-08-10: se arma una ruta `/books` y una vista de `BooksPage` con un layout inicial.
 - 2026-08-10: se añade persistencia local con `localStorage` para `BooksService` y `ReadingLogService`.
+- 2026-08-10: se formaliza la separación entre `book-domain-model` como feature central y el siguiente bloque funcional para interacción CRUD / navegación del usuario.

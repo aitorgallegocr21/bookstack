@@ -1,0 +1,51 @@
+<main class="books-page">
+  <section class="books-page__header">
+    <div>
+      <p class="eyebrow">BookStack</p>
+      <h1>Mi biblioteca</h1>
+    </div>
+    <button class="primary-button" type="button">Añadir libro</button>
+  </section>
+
+  <section class="summary-grid" aria-label="Resumen de lectura">
+    <article class="summary-card">
+      <span class="summary-card__label">Libros</span>
+      <span class="summary-card__value">{{ totalBooks() }}</span>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-card__label">Leyendo</span>
+      <span class="summary-card__value">{{ readingBooks() }}</span>
+    </article>
+  </section>
+
+  <section class="books-list" aria-label="Lista de libros">
+    @for (book of books(); track book.id) {
+      <article class="book-card">
+        <div class="book-card__cover">
+          @if (book.coverUrl) {
+            <img [src]="book.coverUrl" [alt]="book.title" />
+          } @else {
+            <div class="book-card__cover-placeholder">{{ book.title.slice(0, 1) }}</div>
+          }
+        </div>
+        <div class="book-card__content">
+          <div class="book-card__top">
+            <div>
+              <h2>{{ book.title }}</h2>
+              <p class="book-card__author">{{ book.author }}</p>
+            </div>
+            <span class="status-badge status-badge--{{ book.status }}">{{ book.status }}</span>
+          </div>
+          <div class="book-card__meta">
+            <span>{{ book.totalPages }} páginas</span>
+            <span>{{ book.currentPage }} en curso</span>
+            <span>{{ book.format ?? 'Sin formato' }}</span>
+          </div>
+        </div>
+      </article>
+    } @empty {
+      <p class="empty-state">No hay libros todavía.</p>
+    }
+  </section>
+</main>

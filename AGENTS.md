@@ -68,3 +68,5 @@ Cualquier asistente de IA debe consultar `CONTEXT.md` para el estado del proyect
 4. **Estrategia Git y GitHub:** `.agent/04_git_github.md`
 
 > **Instrucción general para la IA:** Lee siempre `CONTEXT.md` antes de proponer cambios o generar código.
+> **Instrucción de continuidad de la feature:** Lee también `docs/*feature*` para identificar el estado operativo actual de la feature y para actualizarlo con cada cambio relevante que se aplique al proyecto.
+> **Regla de documentación:** Si el agente toca arquitectura, modelos de dominio, routing, servicios o UI de la feature, debe reflejar el estado actualizado en el plan de la feature y en el documento principal de contexto cuando se altere la especificación base.

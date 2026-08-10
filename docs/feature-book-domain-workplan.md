@@ -60,7 +60,7 @@ Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y
 
 ## Instrucciones próximas (orden de ejecución)
 1. Completar `ReadingLogService` con operaciones de lectura/edición/borrado para mantener la sesión de lectura como un registro vivo del dominio. [Completado: ya existe `getAll`, `getById`, `getByBookId`, `add`, `update`, `remove` y persistencia en `localStorage`]
-2. Añadir un componente visual del flujo de `ReadingLog` asociado al libro seleccionado: alta y consulta por libro. [Pendiente]
+2. Añadir un componente visual del flujo de `ReadingLog` asociado al libro seleccionado: alta y consulta por libro. [En progreso: componente editor de sesión de lectura creado y conectado al `BooksPage` desde cada tarjeta del listado]
 3. Abrir una vista de detalle de libro por ruta, para que los datos del libro puedan entrar en una navegación más rica y no solo en una lista. [Pendiente]
 4. Definir una estrategia de persistencia avanzada con fallback para `IndexedDB` o un adapter de almacenamiento local. [Pendiente]
 5. Añadir pruebas de servicio/componentes para la feature de libros y logs para asegurar que el CRUD base no se rompe con cambios de UI y servicios. [Pendiente]
@@ -81,4 +81,5 @@ Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y
 - 2026-08-10: se añade un `BookEditorComponent` y se conecta con `BooksPage` para abrir/editar libros desde la lista.
 - 2026-08-10: se añade el acceso de borrado desde la lista de `BooksPage`, conectando el botón con `BooksService.remove()` y la persistencia de `localStorage`.
 - 2026-08-10: se amplía `ReadingLogService` con las operaciones de listado, búsqueda por ID, borrado y edición para completar el acceso al dominio de sesiones de lectura.
+- 2026-08-10: se añade `ReadingLogEditorComponent` de alta y edición de sesiones de lectura, conectado a `BooksPage` para registrar un `ReadingLog` por una tarjeta de libro.
 - 2026-08-10: se formaliza la separación entre `book-domain-model` como feature central y el siguiente bloque funcional para interacción CRUD / navegación del usuario.

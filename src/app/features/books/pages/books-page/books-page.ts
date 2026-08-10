@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { BooksService } from '../../services/books.service';
 import { ReadingStatsService } from '../../services/reading-stats.service';
+import { ReadingLogService } from '../../services/reading-log.service';
 import { Book, ReadingLog } from '../../models/book.model';
 import { BookEditorComponent } from '../../components/book-editor/book-editor';
 import { ReadingLogEditorComponent } from '../../components/reading-log-editor/reading-log-editor';
@@ -15,8 +16,10 @@ import { ReadingLogEditorComponent } from '../../components/reading-log-editor/r
 export class BooksPage {
   private readonly booksService = inject(BooksService);
   private readonly readingStatsService = inject(ReadingStatsService);
+  private readonly readingLogService = inject(ReadingLogService);
 
   protected readonly books = this.booksService.books;
+  protected readonly readingLogs = this.readingLogService.readingLogs;
   protected readonly stats = computed(() => this.readingStatsService.getStats());
   protected readonly showEditor = signal(false);
   protected readonly editorBook = signal<Book | undefined>(undefined);
@@ -43,10 +46,14 @@ export class BooksPage {
     this.booksService.remove(bookId);
   }
 
-  protected openReadingLogEditor(book: Book): void {
+  protected openReadingLogEditor(book: Book, existingLog?: ReadingLog): void {
     this.readingLogBookId.set(book.id);
-    this.editingReadingLog.set(undefined);
+    this.editingReadingLog.set(existingLog);
     this.showReadingLogEditor.set(true);
+  }
+
+  protected deleteReadingLog(logId: string): void {
+    this.readingLogService.remove(logId);
   }
 
   protected closeReadingLogEditor(): void {
@@ -60,3 +67,4 @@ export class BooksPage {
     this.editorBook.set(undefined);
   }
 }
+

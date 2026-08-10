@@ -100,6 +100,30 @@
             <button class="ghost-button" type="button" (click)="openReadingLogEditor(book)">Registrar lectura</button>
             <button class="danger-button" type="button" (click)="deleteBook(book.id)">Eliminar</button>
           </div>
+          <section class="book-card__reading-log-panel">
+            <div class="book-card__reading-log-header">
+              <span>Sesiones de lectura</span>
+              <button class="ghost-button ghost-button--compact" type="button" (click)="openReadingLogEditor(book)">+</button>
+            </div>
+            @if (readingLogs().filter(log => log.bookId === book.id).length > 0) {
+              <ul class="reading-log-list">
+                @for (log of readingLogs().filter(log => log.bookId === book.id); track log.id) {
+                  <li class="reading-log-row">
+                    <span>{{ log.date }}</span>
+                    <span>{{ log.pagesRead }} páginas</span>
+                    <span>{{ log.timeSpentMinutes ?? 0 }} min</span>
+                    <span class="reading-log-row__notes">{{ log.notes || 'Sin notas' }}</span>
+                    <span class="reading-log-row__actions">
+                      <button class="ghost-button ghost-button--compact" type="button" (click)="openReadingLogEditor(book, log)">Editar</button>
+                      <button class="danger-button danger-button--compact" type="button" (click)="deleteReadingLog(log.id)">Borrar</button>
+                    </span>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <span class="empty-state empty-state--small">Sin sesiones registradas</span>
+            }
+          </section>
         </div>
       </article>
     } @empty {

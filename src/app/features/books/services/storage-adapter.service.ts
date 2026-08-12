@@ -6,10 +6,11 @@ import { Injectable } from '@angular/core';
 export class StorageAdapterService {
   private readonly dbName = 'bookstackDB';
   private readonly dbVersion = 1;
-  private readonly dbPromise: Promise<IDBDatabase>;
+  private dbPromise: Promise<IDBDatabase> | null = null;
 
-  constructor() {
-    this.dbPromise = this.initDB();
+  private getDB(): Promise<IDBDatabase> {
+    this.dbPromise ??= this.initDB();
+    return this.dbPromise;
   }
 
   private async initDB(): Promise<IDBDatabase> {
@@ -17,8 +18,9 @@ export class StorageAdapterService {
       const request = indexedDB.open(this.dbName, this.dbVersion);
 
       request.onerror = () => {
-        console.error('Failed to open IndexedDB');
-        reject(new Error('Failed to open IndexedDB'));
+        const error = request.error || new Error('Failed to open IndexedDB');
+        console.error('Failed to open IndexedDB:', error);
+        reject(error);
       };
 
       request.onsuccess = () => {
@@ -45,7 +47,7 @@ export class StorageAdapterService {
 
   async get<T>(storeName: string, key: string): Promise<T | null> {
     try {
-      const db = await this.dbPromise;
+      const db = await this.getDB();
       return new Promise((resolve) => {
         const transaction = db.transaction(storeName, 'readonly');
         const store = transaction.objectStore(storeName);
@@ -66,7 +68,7 @@ export class StorageAdapterService {
 
   async getAll<T>(storeName: string): Promise<T[]> {
     try {
-      const db = await this.dbPromise;
+      const db = await this.getDB();
       return new Promise((resolve) => {
         const transaction = db.transaction(storeName, 'readonly');
         const store = transaction.objectStore(storeName);
@@ -87,7 +89,7 @@ export class StorageAdapterService {
 
   async set<T extends { id: string }>(storeName: string, value: T): Promise<void> {
     try {
-      const db = await this.dbPromise;
+      const db = await this.getDB();
       await new Promise<void>((resolve, reject) => {
         const transaction = db.transaction(storeName, 'readwrite');
         const store = transaction.objectStore(storeName);
@@ -100,7 +102,7 @@ export class StorageAdapterService {
 
         request.onerror = () => {
           this.setToLocalStorage(storeName, value);
-          reject();
+          reject(request.error || new Error(`Failed to set item in store: ${storeName}`));
         };
       });
     } catch {
@@ -110,7 +112,7 @@ export class StorageAdapterService {
 
   async remove(storeName: string, key: string): Promise<void> {
     try {
-      const db = await this.dbPromise;
+      const db = await this.getDB();
       await new Promise<void>((resolve, reject) => {
         const transaction = db.transaction(storeName, 'readwrite');
         const store = transaction.objectStore(storeName);
@@ -123,7 +125,7 @@ export class StorageAdapterService {
 
         request.onerror = () => {
           this.removeFromLocalStorage(storeName, key);
-          reject();
+          reject(request.error || new Error(`Failed to remove item with key ${key} from store: ${storeName}`));
         };
       });
     } catch {

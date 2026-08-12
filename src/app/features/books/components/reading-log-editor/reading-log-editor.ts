@@ -5,9 +5,7 @@ import {
   output,
   effect,
   signal,
-  HostListener,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ReadingLog } from '../../models/book.model';
@@ -23,7 +21,6 @@ import { ReadingLogService } from '../../services/reading-log.service';
 })
 export class ReadingLogEditorComponent {
   private readonly readingLogService = inject(ReadingLogService);
-  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly bookId = input.required<string>();
   readonly existingLog = input<ReadingLog | undefined>(undefined);
@@ -43,13 +40,7 @@ export class ReadingLogEditorComponent {
       } else {
         this.draft = this.emptyLog(currentBookId);
       }
-      this.cdr.markForCheck();
     });
-  }
-
-  @HostListener('document:keydown.escape')
-  protected onEscape(): void {
-    this.cancel();
   }
 
   protected async save(): Promise<void> {
@@ -65,7 +56,7 @@ export class ReadingLogEditorComponent {
       bookId: this.bookId() || this.draft.bookId,
       pagesRead: Number(this.draft.pagesRead) || 0,
       timeSpentMinutes: Number(this.draft.timeSpentMinutes) || 0,
-      date: this.draft.date || new Date().toISOString().slice(0, 10),
+      date: this.draft.date || this.getTodayLocalDate(),
       createdAt: this.draft.createdAt || now
     };
 
@@ -95,11 +86,15 @@ export class ReadingLogEditorComponent {
     return {
       id: '',
       bookId,
-      date: new Date().toISOString().slice(0, 10),
+      date: this.getTodayLocalDate(),
       pagesRead: 0,
       timeSpentMinutes: 0,
       notes: '',
       createdAt: new Date().toISOString()
     };
+  }
+
+  private getTodayLocalDate(): string {
+    return new Date().toLocaleDateString('sv');
   }
 }

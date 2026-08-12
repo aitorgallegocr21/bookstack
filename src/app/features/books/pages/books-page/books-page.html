@@ -34,7 +34,7 @@
     </article>
   </section>
 
-  <section class="analytics-panel">
+  <section class="analytics-panel" aria-label="Estadísticas de lectura">
     <article class="analytics-card">
       <div class="analytics-card__title">
         <span>Distribución por estado</span>
@@ -44,7 +44,10 @@
           <div class="status-row">
             <span>{{ row.status }}</span>
             <div class="bar-track">
-              <div class="bar-fill" [style.width.%]="stats().totalBooks > 0 ? (row.count / stats().totalBooks) * 100 : 0"></div>
+              <div
+                class="bar-fill"
+                [style.width.%]="stats().totalBooks > 0 ? (row.count / stats().totalBooks) * 100 : 0"
+              ></div>
             </div>
             <span>{{ row.count }}</span>
           </div>
@@ -61,7 +64,10 @@
           <div class="month-row">
             <span>{{ month.month }}</span>
             <div class="bar-track">
-              <div class="bar-fill bar-fill--blue" [style.width.%]="month.pages > 0 ? month.pages : 0"></div>
+              <div
+                class="bar-fill bar-fill--blue"
+                [style.width.%]="(month.pages / maxMonthlyPages()) * 100"
+              ></div>
             </div>
             <span>{{ month.pages }}</span>
           </div>
@@ -74,10 +80,12 @@
 
   <section class="books-list" aria-label="Lista de libros">
     @for (book of books(); track book.id) {
+      @let bookLogs = (readingLogs() | logsByBook: book.id);
+
       <article class="book-card">
         <div class="book-card__cover">
           @if (book.coverUrl) {
-            <img [src]="book.coverUrl" [alt]="book.title" [title]="book.title" />
+            <img [src]="book.coverUrl" [alt]="'Portada de ' + book.title" />
           } @else {
             <div class="book-card__cover-placeholder">{{ book.title.slice(0, 1) }}</div>
           }
@@ -100,14 +108,19 @@
             <button class="ghost-button" type="button" (click)="openReadingLogEditor(book)">Registrar lectura</button>
             <button class="danger-button" type="button" (click)="deleteBook(book.id)">Eliminar</button>
           </div>
-          <section class="book-card__reading-log-panel">
+          <section class="book-card__reading-log-panel" aria-label="Sesiones de lectura del libro">
             <div class="book-card__reading-log-header">
               <span>Sesiones de lectura</span>
-              <button class="ghost-button ghost-button--compact" type="button" (click)="openReadingLogEditor(book)">+</button>
+              <button
+                class="ghost-button ghost-button--compact"
+                type="button"
+                (click)="openReadingLogEditor(book)"
+                [attr.aria-label]="'Añadir sesión de lectura a ' + book.title"
+              >+</button>
             </div>
-            @if (readingLogs().filter(log => log.bookId === book.id).length > 0) {
+            @if (bookLogs.length > 0) {
               <ul class="reading-log-list">
-                @for (log of readingLogs().filter(log => log.bookId === book.id); track log.id) {
+                @for (log of bookLogs; track log.id) {
                   <li class="reading-log-row">
                     <span>{{ log.date }}</span>
                     <span>{{ log.pagesRead }} páginas</span>
@@ -135,7 +148,11 @@
     <app-book-editor [existingBook]="editorBook()" (closed)="closeEditor()" />
   }
 
-  @if (showReadingLogEditor() && readingLogBookId()) {
-    <app-reading-log-editor [bookId]="readingLogBookId()!" [existingLog]="editingReadingLog()" (closed)="closeReadingLogEditor()" />
+  @if (showReadingLogEditor() && readingLogBookId(); as currentBookId) {
+    <app-reading-log-editor
+      [bookId]="currentBookId"
+      [existingLog]="editingReadingLog()"
+      (closed)="closeReadingLogEditor()"
+    />
   }
 </main>

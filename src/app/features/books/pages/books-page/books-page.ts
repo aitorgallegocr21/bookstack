@@ -1,17 +1,29 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  signal,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { BooksService } from '../../services/books.service';
 import { ReadingStatsService } from '../../services/reading-stats.service';
 import { ReadingLogService } from '../../services/reading-log.service';
 import { Book, ReadingLog } from '../../models/book.model';
 import { BookEditorComponent } from '../../components/book-editor/book-editor';
 import { ReadingLogEditorComponent } from '../../components/reading-log-editor/reading-log-editor';
+import { LogsByBookPipe } from './logs-by-book.pipe';
 
 @Component({
   selector: 'app-books-page',
   standalone: true,
-  imports: [BookEditorComponent, ReadingLogEditorComponent],
+  imports: [
+    BookEditorComponent,
+    ReadingLogEditorComponent,
+    LogsByBookPipe
+  ],
   templateUrl: './books-page.html',
-  styleUrl: './books-page.css'
+  styleUrl: './books-page.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BooksPage {
   private readonly booksService = inject(BooksService);
@@ -20,17 +32,21 @@ export class BooksPage {
 
   protected readonly books = this.booksService.books;
   protected readonly readingLogs = this.readingLogService.readingLogs;
-  protected readonly stats = computed(() => this.readingStatsService.getStats());
+  protected readonly stats = this.readingStatsService.stats;
+
   protected readonly showEditor = signal(false);
   protected readonly editorBook = signal<Book | undefined>(undefined);
   protected readonly showReadingLogEditor = signal(false);
   protected readonly readingLogBookId = signal<string | undefined>(undefined);
   protected readonly editingReadingLog = signal<ReadingLog | undefined>(undefined);
 
-  protected readonly totalBooks = computed(() => this.books().length);
-  protected readonly readingBooks = computed(
-    () => this.books().filter((book) => book.status === 'reading').length
-  );
+  protected readonly maxMonthlyPages = computed(() => {
+    const monthly = this.stats().monthlyPages;
+    if (monthly.length === 0) {
+      return 1;
+    }
+    return Math.max(...monthly.map((m) => m.pages), 1);
+  });
 
   protected openCreateEditor(): void {
     this.editorBook.set(undefined);
@@ -42,8 +58,17 @@ export class BooksPage {
     this.showEditor.set(true);
   }
 
-  protected deleteBook(bookId: string): void {
-    this.booksService.remove(bookId);
+  protected async deleteBook(bookId: string): Promise<void> {
+    const confirmed = window.confirm('¿Estás seguro de que deseas eliminar este libro? Se conservarán sus lecturas asociadas.');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await this.booksService.remove(bookId);
+    } catch (error) {
+      console.error('Error al eliminar el libro:', error);
+    }
   }
 
   protected openReadingLogEditor(book: Book, existingLog?: ReadingLog): void {
@@ -52,8 +77,17 @@ export class BooksPage {
     this.showReadingLogEditor.set(true);
   }
 
-  protected deleteReadingLog(logId: string): void {
-    this.readingLogService.remove(logId);
+  protected async deleteReadingLog(logId: string): Promise<void> {
+    const confirmed = window.confirm('¿Deseas borrar este registro de lectura?');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await this.readingLogService.remove(logId);
+    } catch (error) {
+      console.error('Error al borrar la sesión de lectura:', error);
+    }
   }
 
   protected closeReadingLogEditor(): void {
@@ -67,4 +101,3 @@ export class BooksPage {
     this.editorBook.set(undefined);
   }
 }
-

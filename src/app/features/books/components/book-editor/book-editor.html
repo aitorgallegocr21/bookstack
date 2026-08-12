@@ -1,11 +1,21 @@
-<section class="book-editor" aria-label="Editor de libro">
+<div
+  class="book-editor"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-title"
+>
   <div class="book-editor__panel">
     <header class="book-editor__header">
       <div>
         <span class="book-editor__eyebrow">Biblioteca</span>
-        <h2>{{ existingBook() ? 'Editar libro' : 'Añadir libro' }}</h2>
+        <h2 id="modal-title">{{ existingBook() ? 'Editar libro' : 'Añadir libro' }}</h2>
       </div>
-      <button class="icon-button" type="button" (click)="cancel()" aria-label="Cerrar editor">×</button>
+      <button
+        class="icon-button"
+        type="button"
+        (click)="cancel()"
+        aria-label="Cerrar editor"
+      >×</button>
     </header>
 
     <form class="book-editor__form" (ngSubmit)="save()">
@@ -58,8 +68,10 @@
 
       <div class="book-editor__actions">
         <button class="secondary-button" type="button" (click)="cancel()">Cancelar</button>
-        <button class="primary-button" type="submit">Guardar</button>
+        <button class="primary-button" type="submit" [disabled]="isSaving">
+          {{ isSaving ? 'Guardando...' : 'Guardar' }}
+        </button>
       </div>
     </form>
   </div>
-</section>
+</div>

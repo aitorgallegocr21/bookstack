@@ -5,6 +5,7 @@
   display: grid;
   place-items: center;
   padding: 1rem;
+  z-index: 50;
 }
 
 .book-editor__panel {
@@ -13,6 +14,7 @@
   border-radius: 1rem;
   padding: 1.5rem;
   border: 1px solid #e5e7eb;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .book-editor__header {
@@ -26,6 +28,7 @@
 .book-editor__header h2 {
   margin: 0.15rem 0 0;
   font-size: 1.4rem;
+  color: #111827;
 }
 
 .book-editor__eyebrow {
@@ -62,6 +65,13 @@
   color: #111827;
 }
 
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: 2px solid #111827;
+  outline-offset: -1px;
+}
+
 .field textarea {
   resize: vertical;
 }
@@ -86,6 +96,7 @@
   border-radius: 999px;
   padding: 0.72rem 1rem;
   font-weight: 800;
+  cursor: pointer;
 }
 
 .icon-button {
@@ -93,12 +104,29 @@
   color: #111827;
 }
 
+.icon-button:hover {
+  background: #e5e7eb;
+}
+
 .secondary-button {
   background: #e5e7eb;
   color: #111827;
 }
 
+.secondary-button:hover {
+  background: #d1d5db;
+}
+
 .primary-button {
   background: #111827;
   color: white;
+}
+
+.primary-button:hover {
+  background: #1f2937;
+}
+
+.primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

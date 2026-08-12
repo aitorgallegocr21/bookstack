@@ -9,7 +9,7 @@ export class BooksService {
 
   readonly books = signal<Book[]>([]);
 
-  constructor(private storage: StorageAdapterService) {
+  constructor(private readonly storage: StorageAdapterService) {
     this.initBooks();
   }
 

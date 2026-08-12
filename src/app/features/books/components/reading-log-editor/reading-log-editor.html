@@ -2,6 +2,7 @@
   class="reading-log-editor"
   open
   aria-labelledby="modal-title"
+  (cancel)="cancel()"
 >
   <div class="reading-log-editor__panel">
     <header class="reading-log-editor__header">
@@ -42,8 +43,8 @@
 
       <div class="reading-log-editor__actions">
         <button class="secondary-button" type="button" (click)="cancel()">Cancelar</button>
-        <button class="primary-button" type="submit" [disabled]="isSaving">
-          {{ isSaving ? 'Guardando...' : 'Guardar' }}
+        <button class="primary-button" type="submit" [disabled]="isSaving()">
+          {{ isSaving() ? 'Guardando...' : 'Guardar' }}
         </button>
       </div>
     </form>

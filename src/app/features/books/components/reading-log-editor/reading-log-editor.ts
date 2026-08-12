@@ -4,8 +4,10 @@ import {
   input,
   output,
   effect,
+  signal,
   HostListener,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  ChangeDetectorRef
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ReadingLog } from '../../models/book.model';
@@ -21,6 +23,7 @@ import { ReadingLogService } from '../../services/reading-log.service';
 })
 export class ReadingLogEditorComponent {
   private readonly readingLogService = inject(ReadingLogService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly bookId = input.required<string>();
   readonly existingLog = input<ReadingLog | undefined>(undefined);
@@ -28,7 +31,7 @@ export class ReadingLogEditorComponent {
   readonly saved = output<ReadingLog>();
 
   protected draft: ReadingLog = this.emptyLog();
-  protected isSaving = false;
+  protected readonly isSaving = signal(false);
 
   constructor() {
     effect(() => {
@@ -40,6 +43,7 @@ export class ReadingLogEditorComponent {
       } else {
         this.draft = this.emptyLog(currentBookId);
       }
+      this.cdr.markForCheck();
     });
   }
 
@@ -49,11 +53,11 @@ export class ReadingLogEditorComponent {
   }
 
   protected async save(): Promise<void> {
-    if (this.isSaving) {
+    if (this.isSaving()) {
       return;
     }
 
-    this.isSaving = true;
+    this.isSaving.set(true);
     const now = new Date().toISOString();
 
     const normalized: ReadingLog = {
@@ -79,7 +83,7 @@ export class ReadingLogEditorComponent {
     } catch (error) {
       console.error('Error guardando la sesión de lectura:', error);
     } finally {
-      this.isSaving = false;
+      this.isSaving.set(false);
     }
   }
 

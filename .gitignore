@@ -5,6 +5,10 @@
 /tmp
 /out-tsc
 /bazel-out
+/build
+
+# Angular CLI
+/.angular/
 
 # Node & Package Managers
 /node_modules
@@ -19,7 +23,7 @@ lerna-debug.log*
 *.err
 *.out
 
-# Environment variables and Secrets (Prevention)
+# Environment variables, Secrets & Certificates
 .env
 .env.local
 .env.development.local
@@ -27,15 +31,29 @@ lerna-debug.log*
 .env.production.local
 *.env
 *.pem
+*.key
+*.crt
+*.pfx
+*.p12
+
+# Database & Local Storage (Dev/Backend)
+*.sqlite
+*.sqlite3
+*.db
+/uploads/
 
 # IDEs and editors
 .idea/
+.vs/
 .project
 .classpath
 .c9/
 *.launch
 .settings/
 *.sublime-workspace
+*.swp
+*.swo
+*~
 
 # Visual Studio Code
 .vscode/*
@@ -47,7 +65,6 @@ lerna-debug.log*
 .history/*
 
 # Miscellaneous
-/.angular/cache
 .sass-cache/
 /connect.lock
 /coverage
@@ -55,6 +72,7 @@ lerna-debug.log*
 testem.log
 /typings
 __screenshots__/
+.storybook-build/
 
 # Linters and formatters cache
 .eslintcache
@@ -72,4 +90,3 @@ __screenshots__/
 ._*
 Thumbs.db
 desktop.ini
-

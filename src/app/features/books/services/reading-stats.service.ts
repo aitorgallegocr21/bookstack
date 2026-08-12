@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, computed } from '@angular/core';
 import { ReadingStats, BookStatus } from '../models/book.model';
 import { BooksService } from './books.service';
 import { ReadingLogService } from './reading-log.service';
@@ -8,8 +8,8 @@ export class ReadingStatsService {
   private readonly booksService = inject(BooksService);
   private readonly readingLogService = inject(ReadingLogService);
 
-  getStats(): ReadingStats {
-    const books = this.booksService.getAll();
+  readonly stats = computed<ReadingStats>(() => {
+    const books = this.booksService.books();
     const logs = this.readingLogService.readingLogs();
 
     const totalBooks = books.length;
@@ -54,6 +54,10 @@ export class ReadingStatsService {
       monthlyPages,
       statusDistribution
     };
+  });
+
+  getStats(): ReadingStats {
+    return this.stats();
   }
 
   private calculateDaySpan(startDates: string[]): number {

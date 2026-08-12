@@ -85,7 +85,7 @@ export class StorageAdapterService {
     }
   }
 
-  async set<T>(storeName: string, value: T): Promise<void> {
+  async set<T extends { id: string }>(storeName: string, value: T): Promise<void> {
     try {
       const db = await this.dbPromise;
       await new Promise<void>((resolve, reject) => {
@@ -133,15 +133,15 @@ export class StorageAdapterService {
 
   private getFromLocalStorage<T>(storeName: string, key: string): T | null {
     const data = localStorage.getItem(`${storeName}_${key}`);
-    return data ? JSON.parse(data) : null;
+    return data ? (JSON.parse(data) as T) : null;
   }
 
   private getAllFromLocalStorage<T>(storeName: string): T[] {
     const keys = Object.keys(localStorage).filter(k => k.startsWith(`${storeName}_`));
-    return keys.map(k => JSON.parse(localStorage.getItem(k) || '{}'));
+    return keys.map(k => JSON.parse(localStorage.getItem(k) || '{}') as T);
   }
 
-  private setToLocalStorage(storeName: string, value: any): void {
+  private setToLocalStorage<T extends { id: string }>(storeName: string, value: T): void {
     const key = `${storeName}_${value.id}`;
     localStorage.setItem(key, JSON.stringify(value));
   }

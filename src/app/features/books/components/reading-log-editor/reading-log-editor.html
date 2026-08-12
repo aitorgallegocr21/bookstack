@@ -1,23 +1,32 @@
-<section class="reading-log-editor" aria-label="Editor de registro de lectura">
+<dialog
+  class="reading-log-editor"
+  open
+  aria-labelledby="modal-title"
+>
   <div class="reading-log-editor__panel">
     <header class="reading-log-editor__header">
       <div>
         <span class="reading-log-editor__eyebrow">Sesión de lectura</span>
-        <h2>{{ existingLog() ? 'Editar sesión' : 'Registrar lectura' }}</h2>
+        <h2 id="modal-title">{{ existingLog() ? 'Editar sesión' : 'Registrar lectura' }}</h2>
       </div>
-      <button class="icon-button" type="button" (click)="cancel()" aria-label="Cerrar editor">×</button>
+      <button
+        class="icon-button"
+        type="button"
+        (click)="cancel()"
+        aria-label="Cerrar editor"
+      >×</button>
     </header>
 
     <form class="reading-log-editor__form" (ngSubmit)="save()">
       <div class="field-grid">
         <label class="field">
           <span>Fecha</span>
-          <input type="date" [(ngModel)]="draft.date" name="date" />
+          <input type="date" [(ngModel)]="draft.date" name="date" required />
         </label>
 
         <label class="field">
           <span>Páginas leídas</span>
-          <input type="number" min="0" [(ngModel)]="draft.pagesRead" name="pagesRead" />
+          <input type="number" min="0" [(ngModel)]="draft.pagesRead" name="pagesRead" required />
         </label>
 
         <label class="field">
@@ -33,8 +42,10 @@
 
       <div class="reading-log-editor__actions">
         <button class="secondary-button" type="button" (click)="cancel()">Cancelar</button>
-        <button class="primary-button" type="submit">Guardar</button>
+        <button class="primary-button" type="submit" [disabled]="isSaving">
+          {{ isSaving ? 'Guardando...' : 'Guardar' }}
+        </button>
       </div>
     </form>
   </div>
-</section>
+</dialog>

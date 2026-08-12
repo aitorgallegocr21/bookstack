@@ -1,4 +1,12 @@
-import { Component, inject, input, output, OnInit } from '@angular/core';
+import {
+  Component,
+  inject,
+  input,
+  output,
+  effect,
+  signal,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ReadingLog } from '../../models/book.model';
 import { ReadingLogService } from '../../services/reading-log.service';
@@ -8,9 +16,10 @@ import { ReadingLogService } from '../../services/reading-log.service';
   standalone: true,
   imports: [FormsModule],
   templateUrl: './reading-log-editor.html',
-  styleUrl: './reading-log-editor.css'
+  styleUrl: './reading-log-editor.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReadingLogEditorComponent implements OnInit {
+export class ReadingLogEditorComponent {
   private readonly readingLogService = inject(ReadingLogService);
 
   readonly bookId = input.required<string>();
@@ -18,53 +27,55 @@ export class ReadingLogEditorComponent implements OnInit {
   readonly closed = output<void>();
   readonly saved = output<ReadingLog>();
 
-  protected draft: ReadingLog;
+  protected draft: ReadingLog = this.emptyLog();
+  protected readonly isSaving = signal(false);
 
   constructor() {
-    this.draft = {
-      id: '',
-      bookId: '',
-      date: new Date().toISOString().slice(0, 10),
-      pagesRead: 0,
-      timeSpentMinutes: 0,
-      notes: '',
-      createdAt: new Date().toISOString()
-    };
+    effect(() => {
+      const selected = this.existingLog();
+      const currentBookId = this.bookId();
+
+      if (selected) {
+        this.draft = { ...selected };
+      } else {
+        this.draft = this.emptyLog(currentBookId);
+      }
+    });
   }
 
-  ngOnInit(): void {
-    const selected = this.existingLog();
-    const requiredBookId = this.bookId();
-
-    if (selected) {
-      this.draft = { ...selected };
-    } else {
-      this.draft = this.emptyLog(requiredBookId);
-      this.draft.bookId = requiredBookId;
+  protected async save(): Promise<void> {
+    if (this.isSaving()) {
+      return;
     }
-  }
 
-  protected save(): void {
+    this.isSaving.set(true);
     const now = new Date().toISOString();
+
     const normalized: ReadingLog = {
       ...this.draft,
       bookId: this.bookId() || this.draft.bookId,
       pagesRead: Number(this.draft.pagesRead) || 0,
       timeSpentMinutes: Number(this.draft.timeSpentMinutes) || 0,
-      date: this.draft.date || new Date().toISOString().slice(0, 10),
+      date: this.draft.date || this.getTodayLocalDate(),
       createdAt: this.draft.createdAt || now
     };
 
-    if (!normalized.id) {
-      normalized.id = this.makeId();
-      normalized.createdAt = now;
-      this.readingLogService.add(normalized);
-    } else {
-      this.readingLogService.update(normalized.id, normalized);
-    }
+    try {
+      if (!normalized.id) {
+        normalized.id = crypto.randomUUID();
+        normalized.createdAt = now;
+        await this.readingLogService.add(normalized);
+      } else {
+        await this.readingLogService.update(normalized.id, normalized);
+      }
 
-    this.saved.emit(normalized);
-    this.closed.emit();
+      this.saved.emit(normalized);
+      this.closed.emit();
+    } catch (error) {
+      console.error('Error guardando la sesión de lectura:', error);
+    } finally {
+      this.isSaving.set(false);
+    }
   }
 
   protected cancel(): void {
@@ -75,7 +86,7 @@ export class ReadingLogEditorComponent implements OnInit {
     return {
       id: '',
       bookId,
-      date: new Date().toISOString().slice(0, 10),
+      date: this.getTodayLocalDate(),
       pagesRead: 0,
       timeSpentMinutes: 0,
       notes: '',
@@ -83,11 +94,7 @@ export class ReadingLogEditorComponent implements OnInit {
     };
   }
 
-  private makeId(): string {
-    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-      return crypto.randomUUID();
-    }
-
-    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  private getTodayLocalDate(): string {
+    return new Date().toLocaleDateString('sv');
   }
 }

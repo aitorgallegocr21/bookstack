@@ -1,4 +1,12 @@
-import { Component, input, output, inject, OnInit } from '@angular/core';
+import {
+  Component,
+  input,
+  output,
+  inject,
+  effect,
+  signal,
+  ChangeDetectionStrategy
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Book, BookStatus } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
@@ -8,9 +16,10 @@ import { BooksService } from '../../services/books.service';
   standalone: true,
   imports: [FormsModule],
   templateUrl: './book-editor.html',
-  styleUrl: './book-editor.css'
+  styleUrl: './book-editor.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BookEditorComponent implements OnInit {
+export class BookEditorComponent {
   private readonly booksService = inject(BooksService);
 
   readonly existingBook = input<Book | undefined>(undefined);
@@ -18,20 +27,26 @@ export class BookEditorComponent implements OnInit {
   readonly saved = output<Book>();
 
   protected readonly statusOptions: BookStatus[] = ['pending', 'reading', 'completed', 'abandoned'];
-  protected draft: Book;
+  protected draft: Book = this.emptyBook();
+  protected readonly isSaving = signal(false);
 
   constructor() {
-    this.draft = this.emptyBook();
+    effect(() => {
+      const selected = this.existingBook();
+      if (selected) {
+        this.draft = { ...selected };
+      } else {
+        this.draft = this.emptyBook();
+      }
+    });
   }
 
-  ngOnInit(): void {
-    const selected = this.existingBook();
-    if (selected) {
-      this.draft = { ...selected };
+  protected async save(): Promise<void> {
+    if (!this.draft.title.trim() || !this.draft.author.trim() || this.isSaving()) {
+      return;
     }
-  }
 
-  protected save(): void {
+    this.isSaving.set(true);
     const now = new Date().toISOString();
 
     const normalized: Book = {
@@ -45,16 +60,22 @@ export class BookEditorComponent implements OnInit {
       createdAt: this.draft.createdAt || now
     };
 
-    if (!normalized.id) {
-      normalized.id = this.makeId();
-      normalized.createdAt = now;
-      this.booksService.add(normalized);
-    } else {
-      this.booksService.update(normalized.id, normalized);
-    }
+    try {
+      if (!normalized.id) {
+        normalized.id = crypto.randomUUID();
+        normalized.createdAt = now;
+        await this.booksService.add(normalized);
+      } else {
+        await this.booksService.update(normalized.id, normalized);
+      }
 
-    this.saved.emit(normalized);
-    this.closed.emit();
+      this.saved.emit(normalized);
+      this.closed.emit();
+    } catch (error) {
+      console.error('Error guardando el libro:', error);
+    } finally {
+      this.isSaving.set(false);
+    }
   }
 
   protected cancel(): void {
@@ -73,13 +94,5 @@ export class BookEditorComponent implements OnInit {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-  }
-
-  private makeId(): string {
-    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-      return crypto.randomUUID();
-    }
-
-    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 }

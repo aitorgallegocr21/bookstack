@@ -80,7 +80,7 @@
 
   <section class="books-list" aria-label="Lista de libros">
     @for (book of books(); track book.id) {
-      @let bookLogs = (readingLogs() | logsByBook: book.id);
+      @let bookLogs = logsByBookMap().get(book.id) ?? [];
 
       <article class="book-card">
         <div class="book-card__cover">

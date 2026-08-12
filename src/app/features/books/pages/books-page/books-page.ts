@@ -11,15 +11,13 @@ import { ReadingLogService } from '../../services/reading-log.service';
 import { Book, ReadingLog } from '../../models/book.model';
 import { BookEditorComponent } from '../../components/book-editor/book-editor';
 import { ReadingLogEditorComponent } from '../../components/reading-log-editor/reading-log-editor';
-import { LogsByBookPipe } from './logs-by-book.pipe';
 
 @Component({
   selector: 'app-books-page',
   standalone: true,
   imports: [
     BookEditorComponent,
-    ReadingLogEditorComponent,
-    LogsByBookPipe
+    ReadingLogEditorComponent
   ],
   templateUrl: './books-page.html',
   styleUrl: './books-page.css',
@@ -39,6 +37,23 @@ export class BooksPage {
   protected readonly showReadingLogEditor = signal(false);
   protected readonly readingLogBookId = signal<string | undefined>(undefined);
   protected readonly editingReadingLog = signal<ReadingLog | undefined>(undefined);
+
+  /**
+   * Agrupación reactiva O(N) de sesiones de lectura por ID de libro.
+   * Permite búsquedas O(1) instantáneas en la plantilla.
+   */
+  protected readonly logsByBookMap = computed(() => {
+    const map = new Map<string, ReadingLog[]>();
+    for (const log of this.readingLogs()) {
+      const list = map.get(log.bookId);
+      if (list) {
+        list.push(log);
+      } else {
+        map.set(log.bookId, [log]);
+      }
+    }
+    return map;
+  });
 
   protected readonly maxMonthlyPages = computed(() => {
     const monthly = this.stats().monthlyPages;

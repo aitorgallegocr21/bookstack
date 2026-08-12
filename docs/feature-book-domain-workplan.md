@@ -56,7 +56,7 @@ Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y
 8. Crear componentes de detalle/edición de libro y registro de lectura. [Completado: `BookEditorComponent` y `ReadingLogEditorComponent`]
 
 ## Instrucciones próximas (orden de ejecución)
-1. Abrir una vista de detalle de libro por ruta (`/books/:id`), para que los datos del libro puedan entrar en una navegación más rica y no solo en una lista. [Pendiente]
+1. ./feature-book-domain-workplan/SPEC-001.md [Pendiente]
 2. Añadir pruebas unitarias y de integración (Jest/Jasmine) para servicios (`BooksService`, `StorageAdapterService`) y componentes modales para asegurar la estabilidad del CRUD. [Pendiente]
 3. Realizar una revisión de refinamiento visual (Tailwind CSS, modo oscuro y micro-interacciones) para cerrar el bloque de experiencia de usuario. [Pendiente]
 

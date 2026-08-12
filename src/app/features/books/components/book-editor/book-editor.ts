@@ -4,7 +4,7 @@ import {
   output,
   inject,
   effect,
-  HostListener,
+  signal,
   ChangeDetectionStrategy
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -28,7 +28,7 @@ export class BookEditorComponent {
 
   protected readonly statusOptions: BookStatus[] = ['pending', 'reading', 'completed', 'abandoned'];
   protected draft: Book = this.emptyBook();
-  protected isSaving = false;
+  protected readonly isSaving = signal(false);
 
   constructor() {
     effect(() => {
@@ -41,17 +41,12 @@ export class BookEditorComponent {
     });
   }
 
-  @HostListener('document:keydown.escape')
-  protected onEscape(): void {
-    this.cancel();
-  }
-
   protected async save(): Promise<void> {
-    if (!this.draft.title.trim() || !this.draft.author.trim() || this.isSaving) {
+    if (!this.draft.title.trim() || !this.draft.author.trim() || this.isSaving()) {
       return;
     }
 
-    this.isSaving = true;
+    this.isSaving.set(true);
     const now = new Date().toISOString();
 
     const normalized: Book = {
@@ -79,7 +74,7 @@ export class BookEditorComponent {
     } catch (error) {
       console.error('Error guardando el libro:', error);
     } finally {
-      this.isSaving = false;
+      this.isSaving.set(false);
     }
   }
 

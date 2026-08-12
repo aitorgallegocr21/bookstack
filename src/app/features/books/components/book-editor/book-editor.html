@@ -2,6 +2,7 @@
   class="book-editor"
   open
   aria-labelledby="modal-title"
+  (cancel)="cancel()"
 >
   <div class="book-editor__panel">
     <header class="book-editor__header">
@@ -67,8 +68,8 @@
 
       <div class="book-editor__actions">
         <button class="secondary-button" type="button" (click)="cancel()">Cancelar</button>
-        <button class="primary-button" type="submit" [disabled]="isSaving">
-          {{ isSaving ? 'Guardando...' : 'Guardar' }}
+        <button class="primary-button" type="submit" [disabled]="isSaving()">
+          {{ isSaving() ? 'Guardando...' : 'Guardar' }}
         </button>
       </div>
     </form>

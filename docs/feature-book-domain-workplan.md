@@ -54,7 +54,6 @@ Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y
 
 7. Preparar almacenamiento con `IndexedDB` o una capa de fallback más robusta. [Completado: `StorageAdapterService`]
 8. Crear componentes de detalle/edición de libro y registro de lectura. [Completado: `BookEditorComponent` y `ReadingLogEditorComponent`]
-9. Añadir la integración con mapas de lectura y UI de navegación del libro. [Pendiente]
 
 ## Instrucciones próximas (orden de ejecución)
 1. Abrir una vista de detalle de libro por ruta (`/books/:id`), para que los datos del libro puedan entrar en una navegación más rica y no solo en una lista. [Pendiente]

@@ -6,33 +6,31 @@ Mantener una hoja de ruta operativa para la elaboración del módulo de libros y
 ## Feature activo
 - Nombre: `book-domain-model`
 - Estado: `active`
-- Alcance: dominio de libros, semilla inicial, servicio de acceso, métricas y persistencia base `LocalStorage` del mismo bloque.
+- Alcance: dominio de libros, semilla inicial, servicio de acceso, métricas y persistencia base con `IndexedDB` y fallback a `LocalStorage`.
 - Principio: esta feature se considera cerrada si el trabajo no aporta contratos nuevos de modelo ni requiere nuevas interfaces de acceso al dominio.
 
 ## Estado actual
-- Base Angular generada por CLI.
+- Base Angular v18+ configurada con componentes Standalone (`standalone: true`).
 - Rama activa: `feature/book-domain-model`.
-- La feature de libros ya tiene una ruta mínima apuntando a `/books` y una vista de listado básica.
-- El dominio de libros está definido en el modelo y se sirve desde un `BooksService` con una semilla inicial.
-- Ya existe un primer servicio de persistencia en navegador mediante `localStorage` para libros y registros de lectura.
-- El bloque de tareas pendientes (`detalle/edición`, `registro de lectura`, `IndexedDB` y navegación/visual) se mantiene en el mismo ámbito funcional del dominio y no se trata como una feature paralela sin relación.
+- Enrutamiento optimizado mediante carga perezosa (`loadComponent`) con entrada en `/books` y fallback `**`.
+- Estrategia de detección de cambios `ChangeDetectionStrategy.OnPush` aplicada de forma global en componentes y páginas.
+- El dominio de libros está definido con TypeScript estricto en `models/book.model.ts` y se sirve reactivamente mediante Signals desde `BooksService` y `ReadingLogService`.
+- Motor de persistencia *Local-First* completado mediante `StorageAdapterService` apoyado en `IndexedDB` con fallback a `LocalStorage`.
+- Métricas y analíticas reactivas memoizadas mediante `computed()` en `ReadingStatsService`.
+- Componentes modales editores (`BookEditorComponent` y `ReadingLogEditorComponent`) totalmente integrados y accesibles mediante el elemento HTML5 nativo `<dialog>`.
 
 ## Trabajo realizado
 - Rama de feature creada: `feature/book-domain-model`.
 - Carpeta base de feature creada en `src/app/features/books`.
-- Se ha añadido el modelo de dominio de libros en `src/app/features/books/models/book.model.ts`.
-- Se ha añadido una semilla de ejemplo en `src/app/features/books/data/books.seed.ts`.
-- Se ha añadido el servicio `BooksService` en `src/app/features/books/services/books.service.ts`.
-- Se ha añadido una semilla de registros `ReadingLog` en `src/app/features/books/data/reading-logs.seed.ts`.
-- Se ha añadido el servicio `ReadingLogService` en `src/app/features/books/services/reading-log.service.ts`.
-- Se ha añadido el servicio `ReadingStatsService` en `src/app/features/books/services/reading-stats.service.ts`.
-- Se ha conectado el servicio de estadísticas al page component de listado para materializar un resumen derivado en la vista.
-- Se ha ampliado la visual del `BooksPage` con una sección de análisis y distribución por estado / actividad mensual.
-- Se ha añadido persistencia local con `LocalStorage` dentro de `BooksService` y `ReadingLogService`.
-- Se ha añadido la página de listado `BooksPage` y una primera versión del layout en `src/app/features/books/pages/books-page/books-page.html` y `books-page.css`.
-- Se ha conectado la ruta `/books` en `src/app/app.routes.ts` y el contexto raíz se apoya en un `RouterOutlet` público en `src/app/app.html`.
-- Se ha añadido el componente `BookEditorComponent` para crear y editar libros mediante un modal de formulario en la vista principal.
-- Se ha conectado la acción de abrir/editar libro desde la lista con el editor del mismo `BooksPage`.
+- Añadido el modelo de dominio de libros en `src/app/features/books/models/book.model.ts`.
+- Añadida semilla de ejemplo en `src/app/features/books/data/books.seed.ts` y de logs en `data/reading-logs.seed.ts`.
+- Añadidos los servicios de estado reactivo `BooksService`, `ReadingLogService` y `ReadingStatsService`.
+- Implementado el adaptador de almacenamiento `StorageAdapterService` con `IndexedDB` y `LocalStorage`.
+- Creada la página principal `BooksPage` con resumen de lectura, distribución por estados y gráfica de actividad mensual.
+- Creados los componentes modales `BookEditorComponent` y `ReadingLogEditorComponent` con gestión de formularios, validación asíncrona y accesibilidad `<dialog>`.
+- Refactorizada la enrutación global en `app.routes.ts` y `app.config.ts` (`withComponentInputBinding`).
+- Corregidos errores de análisis estático SonarQube (`S6671` e inicialización asíncrona en constructores).
+- Optimizada la plantilla de `BooksPage` eliminando pipes innecesarios e implementando agrupación $O(1)$ con `logsByBookMap`.
 
 ## Reglas de documentación para esta feature
 - Todo agente que trabaje en la feature debe leer este documento antes de iniciar.
@@ -51,36 +49,21 @@ Objetivo: materializar el dominio, la semilla, los servicios de acceso, las mét
 5. Preparar almacenamiento local con `localStorage` como persistencia base. [Completado]
 6. Crear el componente visual de listado de libros. [Completado]
 
-### Bloque 2 — Siguiente capa funcional (continuación del mismo feature)
+### Bloque 2 — Siguiente capa funcional (interacción y persistencia avanzada)
 Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y navegable desde la vista.
 
-7. Preparar almacenamiento con `IndexedDB` o una capa de fallback más robusta. [Pendiente]
-8. Crear componentes de detalle/edición de libro y registro de lectura. [Completado parcialmente: editor de creación/edición y borrado desde la lista ya conectados; registro de lectura como flujo a completar]
+7. Preparar almacenamiento con `IndexedDB` o una capa de fallback más robusta. [Completado: `StorageAdapterService`]
+8. Crear componentes de detalle/edición de libro y registro de lectura. [Completado: `BookEditorComponent` y `ReadingLogEditorComponent`]
 9. Añadir la integración con mapas de lectura y UI de navegación del libro. [Pendiente]
 
 ## Instrucciones próximas (orden de ejecución)
-1. Completar `ReadingLogService` con operaciones de lectura/edición/borrado para mantener la sesión de lectura como un registro vivo del dominio. [Completado: ya existe `getAll`, `getById`, `getByBookId`, `add`, `update`, `remove` y persistencia en `localStorage`]
-2. Añadir un componente visual del flujo de `ReadingLog` asociado al libro seleccionado: alta y consulta por libro. [Completado: componente editor conectado y lista visible de sesiones por libro en `BooksPage`]
-3. Abrir una vista de detalle de libro por ruta, para que los datos del libro puedan entrar en una navegación más rica y no solo en una lista. [Pendiente]
-4. Definir una estrategia de persistencia avanzada con fallback para `IndexedDB` o un adapter de almacenamiento local. [Pendiente]
-5. Añadir pruebas de servicio/componentes para la feature de libros y logs para asegurar que el CRUD base no se rompe con cambios de UI y servicios. [Pendiente]
-6. Hacer una revisión de visual refinement situada en un segundo bloque, después de dejar cerrada la base funcional. [Pendiente]
-
-## Regla de transición de feature
-- Si las tareas implican cambios de dominio, acceso a datos, estados derivados o persistencia mínima del flujo de lectura, se mantienen en esta feature.
-- Si las tareas empiezan a exigir formularios visuales, rutas varias, acciones de usuario, navegación distinta o un flujo de experiencia completo, se debe abrir un nuevo proyecto o subfeature rooteado en UI (`books-crud-ui`, `reading-log-flow`, etc.).
-- Esta regla evita que los cambios de UI y los cambios de contrato se mezclen en una única historia larga y poco trazable.
+1. Abrir una vista de detalle de libro por ruta (`/books/:id`), para que los datos del libro puedan entrar en una navegación más rica y no solo en una lista. [Pendiente]
+2. Añadir pruebas unitarias y de integración (Jest/Jasmine) para servicios (`BooksService`, `StorageAdapterService`) y componentes modales para asegurar la estabilidad del CRUD. [Pendiente]
+3. Realizar una revisión de refinamiento visual (Tailwind CSS, modo oscuro y micro-interacciones) para cerrar el bloque de experiencia de usuario. [Pendiente]
 
 ## Registro de cambios relevantes
-- 2026-08-10: se crea el modelo base del dominio y la rama `feature/book-domain-model`.
-- 2026-08-10: se añade la semilla y el servicio local de libros.
-- 2026-08-10: se añade una semilla de registros de lectura y un servicio de acceso a esos logs.
-- 2026-08-10: se añade un servicio de cálculo de estadísticas sobre estado de libros y logs de lectura.
-- 2026-08-10: se arma una ruta `/books` y una vista de `BooksPage` con un layout inicial.
-- 2026-08-10: se añade persistencia local con `localStorage` para `BooksService` y `ReadingLogService`.
-- 2026-08-10: se añade un `BookEditorComponent` y se conecta con `BooksPage` para abrir/editar libros desde la lista.
-- 2026-08-10: se añade el acceso de borrado desde la lista de `BooksPage`, conectando el botón con `BooksService.remove()` y la persistencia de `localStorage`.
-- 2026-08-10: se amplía `ReadingLogService` con las operaciones de listado, búsqueda por ID, borrado y edición para completar el acceso al dominio de sesiones de lectura.
-- 2026-08-10: se añade `ReadingLogEditorComponent` de alta y edición de sesiones de lectura, conectado a `BooksPage` para registrar un `ReadingLog` por una tarjeta de libro.
-- 2026-08-10: se hace visible el historial de lectura dentro de cada libro gracias al acceso a `ReadingLogService.readingLogs()` en `BooksPage`, con edición y borrado por sesión dentro de la misma lista.
-- 2026-08-10: se formaliza la separación entre `book-domain-model` como feature central y el siguiente bloque funcional para interacción CRUD / navegación del usuario.
+- 2026-08-10: Se crea el modelo base del dominio y la rama `feature/book-domain-model`.
+- 2026-08-10: Se añaden semillas, servicios de libros, logs y cálculo de estadísticas.
+- 2026-08-10: Se arman las vistas de `BooksPage`, `BookEditorComponent` y `ReadingLogEditorComponent`.
+- 2026-08-12: Auditoría de QA y Rendimiento Angular. Se aplica `OnPush` global, Signals reactivos (`computed`), carga perezosa en rutas y la estrategia de persistencia `StorageAdapterService` (`IndexedDB` + `LocalStorage`).
+- 2026-08-12: Refactorización de accesibilidad modal a la etiqueta nativa `<dialog>` (SonarQube `Web:S6819`), resolución de advertencias de SonarQube (`S6671`) e implementación de agrupación reactiva $O(1)$ (`logsByBookMap`) en la vista principal.

@@ -1,69 +1,69 @@
 import { Injectable, signal } from '@angular/core';
+import { from } from 'rxjs';
 import { Book } from '../models/book.model';
-import { BOOKS_SEED } from '../data/books.seed';
+import { StorageAdapterService } from './storage-adapter.service';
 
 @Injectable({ providedIn: 'root' })
 export class BooksService {
-  private readonly storageKey = 'bookstack.books';
+  private readonly storeName = 'books';
+  private initPromise: Promise<void> | null = null;
 
-  readonly books = signal<Book[]>(this.loadBooks());
+  readonly books = signal<Book[]>([]);
 
-  getAll(): Book[] {
+  constructor(private readonly storage: StorageAdapterService) {
+    this.initDataStream();
+  }
+
+  private initDataStream(): void {
+    from(this.storage.getAll<Book>(this.storeName)).subscribe({
+      next: (storedBooks) => this.books.set(storedBooks),
+      error: (error) => {
+        console.error('Error inicializando la lista de libros:', error);
+        this.books.set([]);
+      }
+    });
+  }
+
+  private ensureInitialized(): Promise<void> {
+    this.initPromise ??= this.storage
+      .getAll<Book>(this.storeName)
+      .then((storedBooks) => {
+        this.books.set(storedBooks);
+      })
+      .catch((error) => {
+        console.error('Error inicializando la lista de libros:', error);
+        this.books.set([]);
+      });
+    return this.initPromise;
+  }
+
+  async getAll(): Promise<Book[]> {
+    await this.ensureInitialized();
     return this.books();
   }
 
-  getById(id: string): Book | undefined {
+  async getById(id: string): Promise<Book | undefined> {
+    await this.ensureInitialized();
     return this.books().find((book) => book.id === id);
   }
 
-  add(book: Book): void {
-    this.books.update((current) => {
-      const next = [...current, book];
-      this.persistBooks(next);
-      return next;
-    });
+  async add(book: Book): Promise<void> {
+    await this.ensureInitialized();
+    await this.storage.set(this.storeName, book);
+    this.books.update((current) => [...current, book]);
   }
 
-  update(id: string, updatedBook: Book): void {
-    this.books.update((current) => {
-      const next = current.map((book) => (book.id === id ? updatedBook : book));
-      this.persistBooks(next);
-      return next;
-    });
+  async update(id: string, updatedBook: Book): Promise<void> {
+    await this.ensureInitialized();
+    await this.storage.set(this.storeName, updatedBook);
+    this.books.update((current) =>
+      current.map((b) => (b.id === id ? updatedBook : b))
+    );
   }
 
-  remove(id: string): void {
-    this.books.update((current) => {
-      const next = current.filter((book) => book.id !== id);
-      this.persistBooks(next);
-      return next;
-    });
-  }
-
-  private loadBooks(): Book[] {
-    if (typeof window === 'undefined' || !window.localStorage) {
-      return BOOKS_SEED;
-    }
-
-    const rawValue = window.localStorage.getItem(this.storageKey);
-
-    if (!rawValue) {
-      return BOOKS_SEED;
-    }
-
-    try {
-      const parsed = JSON.parse(rawValue) as Book[];
-      return parsed;
-    } catch {
-      return BOOKS_SEED;
-    }
-  }
-
-  private persistBooks(books: Book[]): void {
-    if (typeof window === 'undefined' || !window.localStorage) {
-      return;
-    }
-
-    window.localStorage.setItem(this.storageKey, JSON.stringify(books));
+  async remove(id: string): Promise<void> {
+    await this.ensureInitialized();
+    await this.storage.remove(this.storeName, id);
+    this.books.update((current) => current.filter((b) => b.id !== id));
   }
 }

@@ -11,13 +11,15 @@ import { ReadingLogService } from '../../services/reading-log.service';
 import { Book, ReadingLog } from '../../models/book.model';
 import { BookEditorComponent } from '../../components/book-editor/book-editor';
 import { ReadingLogEditorComponent } from '../../components/reading-log-editor/reading-log-editor';
+import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
 
 @Component({
   selector: 'app-books-page',
   standalone: true,
   imports: [
     BookEditorComponent,
-    ReadingLogEditorComponent
+    ReadingLogEditorComponent,
+    BookDetailModalComponent
   ],
   templateUrl: './books-page.html',
   styleUrl: './books-page.css',
@@ -32,11 +34,15 @@ export class BooksPage {
   protected readonly readingLogs = this.readingLogService.readingLogs;
   protected readonly stats = this.readingStatsService.stats;
 
+  // Signals de estado local
   protected readonly showEditor = signal(false);
   protected readonly editorBook = signal<Book | undefined>(undefined);
   protected readonly showReadingLogEditor = signal(false);
   protected readonly readingLogBookId = signal<string | undefined>(undefined);
   protected readonly editingReadingLog = signal<ReadingLog | undefined>(undefined);
+
+  // SPEC-001: Señal para gestionar el libro seleccionado para vista detallada y edición
+  protected readonly selectedBookId = signal<string | null>(null);
 
   /**
    * Agrupación reactiva O(N) de sesiones de lectura por ID de libro.
@@ -71,6 +77,14 @@ export class BooksPage {
   protected openEditEditor(book: Book): void {
     this.editorBook.set(book);
     this.showEditor.set(true);
+  }
+
+  protected openBookDetail(bookId: string): void {
+    this.selectedBookId.set(bookId);
+  }
+
+  protected closeBookDetail(): void {
+    this.selectedBookId.set(null);
   }
 
   protected async deleteBook(bookId: string): Promise<void> {

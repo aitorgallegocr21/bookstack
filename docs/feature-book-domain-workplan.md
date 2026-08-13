@@ -17,7 +17,12 @@ Mantener una hoja de ruta operativa para la elaboración del módulo de libros y
 - El dominio de libros está definido con TypeScript estricto en `models/book.model.ts` y se sirve reactivamente mediante Signals desde `BooksService` y `ReadingLogService`.
 - Motor de persistencia *Local-First* completado mediante `StorageAdapterService` apoyado en `IndexedDB` con fallback a `LocalStorage`.
 - Métricas y analíticas reactivas memoizadas mediante `computed()` en `ReadingStatsService`.
-- Componentes modales editores (`BookEditorComponent` y `ReadingLogEditorComponent`) totalmente integrados y accesibles mediante el elemento HTML5 nativo `<dialog>`.
+- Arquitectura modal totalmente modularizada y desacoplada en 3 componentes independientes con Tailwind CSS:
+  1. `BookCreateModalComponent`: Formulario exclusivo de alta rápida de nuevos libros.
+  2. `BookEditModalComponent`: Formulario exclusivo de actualización de metadatos para libros existentes.
+  3. `BookDetailModalComponent`: Visor exclusivo de ficha, progreso de lectura e historial de sesiones.
+- Se ha eliminado el componente obsoleto `BookEditorComponent` para evitar código redundante.
+- Accesibilidad (a11y) y semántica HTML5 nativa verificada al 100% sin advertencias en SonarQube ni Microsoft Edge Tools (cumplimiento WCAG).
 
 ## Trabajo realizado
 - Rama de feature creada: `feature/book-domain-model`.
@@ -27,9 +32,11 @@ Mantener una hoja de ruta operativa para la elaboración del módulo de libros y
 - Añadidos los servicios de estado reactivo `BooksService`, `ReadingLogService` y `ReadingStatsService`.
 - Implementado el adaptador de almacenamiento `StorageAdapterService` con `IndexedDB` y `LocalStorage`.
 - Creada la página principal `BooksPage` con resumen de lectura, distribución por estados y gráfica de actividad mensual.
-- Creados los componentes modales `BookEditorComponent` y `ReadingLogEditorComponent` con gestión de formularios, validación asíncrona y accesibilidad `<dialog>`.
+- Creado el componente modal `ReadingLogEditorComponent` para gestión de sesiones de lectura.
+- Implementados los 3 modales desacoplados (`BookCreateModalComponent`, `BookEditModalComponent` y `BookDetailModalComponent`) integrados en `BooksPage`.
+- Eliminado el componente herencia `BookEditorComponent`.
 - Refactorizada la enrutación global en `app.routes.ts` y `app.config.ts` (`withComponentInputBinding`).
-- Corregidos errores de análisis estático SonarQube (`S6671` e inicialización asíncrona en constructores).
+- Corregidos errores de análisis estático SonarQube (`S6671`, `Web:S6853`, `Web:MouseEventWithoutKeyboardEquivalentCheck`) y reglas `axe/forms` de Edge Tools.
 - Optimizada la plantilla de `BooksPage` eliminando pipes innecesarios e implementando agrupación $O(1)$ con `logsByBookMap`.
 
 ## Reglas de documentación para esta feature
@@ -53,13 +60,13 @@ Objetivo: materializar el dominio, la semilla, los servicios de acceso, las mét
 Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y navegable desde la vista.
 
 7. Preparar almacenamiento con `IndexedDB` o una capa de fallback más robusta. [Completado: `StorageAdapterService`]
-8. Crear componentes de detalle/edición de libro y registro de lectura. [Completado: `BookEditorComponent` y `ReadingLogEditorComponent`]
-9. Añadir la integración con mapas de lectura y UI de navegación del libro. [Pendiente]
+8. Crear componentes de detalle/edición de libro y registro de lectura. [Completado: `BookCreateModalComponent`, `BookEditModalComponent`, `BookDetailModalComponent` y `ReadingLogEditorComponent`]
 
 ## Instrucciones próximas (orden de ejecución)
-1. Abrir una vista de detalle de libro por ruta (`/books/:id`), para que los datos del libro puedan entrar en una navegación más rica y no solo en una lista. [Pendiente]
-2. Añadir pruebas unitarias y de integración (Jest/Jasmine) para servicios (`BooksService`, `StorageAdapterService`) y componentes modales para asegurar la estabilidad del CRUD. [Pendiente]
-3. Realizar una revisión de refinamiento visual (Tailwind CSS, modo oscuro y micro-interacciones) para cerrar el bloque de experiencia de usuario. [Pendiente]
+1. ./feature-book-domain-workplan/SPEC-001.md [Completado]
+2. ./feature-book-domain-workplan/SPEC-002.md [Completado]
+3. Arreglar Esc y X de componente de Registrar lectura (+) en página.
+4. Realizar una revisión de refinamiento visual (Tailwind CSS, modo oscuro y micro-interacciones) para cerrar el bloque de experiencia de usuario. [Pendiente]
 
 ## Registro de cambios relevantes
 - 2026-08-10: Se crea el modelo base del dominio y la rama `feature/book-domain-model`.
@@ -67,3 +74,6 @@ Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y
 - 2026-08-10: Se arman las vistas de `BooksPage`, `BookEditorComponent` y `ReadingLogEditorComponent`.
 - 2026-08-12: Auditoría de QA y Rendimiento Angular. Se aplica `OnPush` global, Signals reactivos (`computed`), carga perezosa en rutas y la estrategia de persistencia `StorageAdapterService` (`IndexedDB` + `LocalStorage`).
 - 2026-08-12: Refactorización de accesibilidad modal a la etiqueta nativa `<dialog>` (SonarQube `Web:S6819`), resolución de advertencias de SonarQube (`S6671`) e implementación de agrupación reactiva $O(1)$ (`logsByBookMap`) en la vista principal.
+- 2026-08-12: Implementación de SPEC-001: Modal Unificado de Detalle y Edición de Libro (`BookDetailModalComponent`).
+- 2026-08-13: Implementación de SPEC-002: Desacoplamiento arquitectónico en 3 Modales Independientes (`BookCreateModalComponent`, `BookEditModalComponent`, `BookDetailModalComponent`) con orquestación en `BooksPage`.
+- 2026-08-13: Eliminación del componente obsoleto `BookEditorComponent` y resolución integral de avisos de accesibilidad WCAG/a11y en plantillas HTML (`label` + `input`, elementos de formulario, sustitución de `<div role="button">` por `<button type="button">`).

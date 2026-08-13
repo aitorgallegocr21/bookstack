@@ -9,14 +9,18 @@ import { BooksService } from '../../services/books.service';
 import { ReadingStatsService } from '../../services/reading-stats.service';
 import { ReadingLogService } from '../../services/reading-log.service';
 import { Book, ReadingLog } from '../../models/book.model';
-import { BookEditorComponent } from '../../components/book-editor/book-editor';
+import { BookCreateModalComponent } from '../../components/book-create-modal/book-create-modal';
+import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
+import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
 import { ReadingLogEditorComponent } from '../../components/reading-log-editor/reading-log-editor';
 
 @Component({
   selector: 'app-books-page',
   standalone: true,
   imports: [
-    BookEditorComponent,
+    BookCreateModalComponent,
+    BookEditModalComponent,
+    BookDetailModalComponent,
     ReadingLogEditorComponent
   ],
   templateUrl: './books-page.html',
@@ -32,15 +36,18 @@ export class BooksPage {
   protected readonly readingLogs = this.readingLogService.readingLogs;
   protected readonly stats = this.readingStatsService.stats;
 
-  protected readonly showEditor = signal(false);
-  protected readonly editorBook = signal<Book | undefined>(undefined);
-  protected readonly showReadingLogEditor = signal(false);
+  // Signals para control de los 3 Modales Independientes
+  protected readonly showCreateModal = signal<boolean>(false);
+  protected readonly selectedBookForDetailId = signal<string | null>(null);
+  protected readonly selectedBookForEditId = signal<string | null>(null);
+
+  // Modales de registros de lectura
+  protected readonly showReadingLogEditor = signal<boolean>(false);
   protected readonly readingLogBookId = signal<string | undefined>(undefined);
   protected readonly editingReadingLog = signal<ReadingLog | undefined>(undefined);
 
   /**
    * Agrupación reactiva O(N) de sesiones de lectura por ID de libro.
-   * Permite búsquedas O(1) instantáneas en la plantilla.
    */
   protected readonly logsByBookMap = computed(() => {
     const map = new Map<string, ReadingLog[]>();
@@ -63,14 +70,34 @@ export class BooksPage {
     return Math.max(...monthly.map((m) => m.pages), 1);
   });
 
-  protected openCreateEditor(): void {
-    this.editorBook.set(undefined);
-    this.showEditor.set(true);
+  // Métodos de apertura y cierre
+  protected openCreateModal(): void {
+    this.showCreateModal.set(true);
   }
 
-  protected openEditEditor(book: Book): void {
-    this.editorBook.set(book);
-    this.showEditor.set(true);
+  protected closeCreateModal(): void {
+    this.showCreateModal.set(false);
+  }
+
+  protected openDetailModal(bookId: string): void {
+    this.selectedBookForDetailId.set(bookId);
+  }
+
+  protected closeDetailModal(): void {
+    this.selectedBookForDetailId.set(null);
+  }
+
+  protected openEditModal(bookId: string): void {
+    this.selectedBookForEditId.set(bookId);
+  }
+
+  protected closeEditModal(): void {
+    this.selectedBookForEditId.set(null);
+  }
+
+  protected handleEditRequestedFromDetail(bookId: string): void {
+    this.closeDetailModal();
+    this.openEditModal(bookId);
   }
 
   protected async deleteBook(bookId: string): Promise<void> {
@@ -92,6 +119,12 @@ export class BooksPage {
     this.showReadingLogEditor.set(true);
   }
 
+  protected closeReadingLogEditor(): void {
+    this.showReadingLogEditor.set(false);
+    this.readingLogBookId.set(undefined);
+    this.editingReadingLog.set(undefined);
+  }
+
   protected async deleteReadingLog(logId: string): Promise<void> {
     const confirmed = window.confirm('¿Deseas borrar este registro de lectura?');
     if (!confirmed) {
@@ -103,16 +136,5 @@ export class BooksPage {
     } catch (error) {
       console.error('Error al borrar la sesión de lectura:', error);
     }
-  }
-
-  protected closeReadingLogEditor(): void {
-    this.showReadingLogEditor.set(false);
-    this.readingLogBookId.set(undefined);
-    this.editingReadingLog.set(undefined);
-  }
-
-  protected closeEditor(): void {
-    this.showEditor.set(false);
-    this.editorBook.set(undefined);
   }
 }

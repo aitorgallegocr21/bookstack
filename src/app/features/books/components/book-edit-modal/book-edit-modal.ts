@@ -6,7 +6,8 @@ import {
   output,
   signal,
   computed,
-  effect
+  effect,
+  HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -59,7 +60,8 @@ export class BookEditModalComponent {
   });
 
   constructor() {
-    // Sincroniza automáticamente los valores del formulario cuando se carga el libro
+    // SOLUCIÓN ÓPTIMA: Se sincronizan los valores del formulario mediante effect()
+    // Se ejecuta automáticamente cuando los inputs están ligados y listos.
     effect(() => {
       const currentBook = this.book();
       if (currentBook) {
@@ -75,6 +77,12 @@ export class BookEditModalComponent {
         });
       }
     });
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  protected handleEscape(event: Event): void {
+    event.preventDefault();
+    this.cancel();
   }
 
   protected async save(): Promise<void> {

@@ -5,7 +5,8 @@ import {
   input,
   output,
   signal,
-  computed
+  computed,
+  HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BooksService } from '../../services/books.service';
@@ -25,16 +26,13 @@ export class BookDetailModalComponent {
   private readonly booksService = inject(BooksService);
   private readonly readingLogService = inject(ReadingLogService);
 
-  // Inputs y Outputs
   readonly bookId = input.required<string>();
   readonly closed = output<void>();
   readonly editRequested = output<string>();
 
-  // Estados locales
   protected readonly showLogEditor = signal<boolean>(false);
   protected readonly editingLog = signal<ReadingLog | undefined>(undefined);
 
-  // Signals computados declarativos
   protected readonly book = computed<Book | undefined>(() => {
     return this.booksService.books().find((b) => b.id === this.bookId());
   });
@@ -52,6 +50,12 @@ export class BookDetailModalComponent {
     if (!currentBook || currentBook.totalPages <= 0) return 0;
     return Math.min(100, Math.round((currentBook.currentPage / currentBook.totalPages) * 100));
   });
+
+  @HostListener('document:keydown.escape', ['$event'])
+  protected handleEscape(event: Event): void {
+    event.preventDefault();
+    this.cancel();
+  }
 
   protected onRequestEdit(): void {
     this.editRequested.emit(this.bookId());
@@ -96,6 +100,10 @@ export class BookDetailModalComponent {
       default:
         return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
     }
+  }
+
+  protected cancel(): void {
+    this.closed.emit();
   }
 
   protected getStatusLabel(status: BookStatus): string {

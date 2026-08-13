@@ -193,7 +193,7 @@
   @if (selectedBookForDetailId(); as detailBookId) {
     <app-book-detail-modal
       [bookId]="detailBookId"
-      (close)="closeDetailModal()"
+      (closed)="closeDetailModal()"
       (editRequested)="handleEditRequestedFromDetail($event)"
     />
   }

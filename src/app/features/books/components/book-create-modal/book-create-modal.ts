@@ -3,7 +3,8 @@ import {
   ChangeDetectionStrategy,
   inject,
   output,
-  signal
+  signal,
+  HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -22,14 +23,11 @@ export class BookCreateModalComponent {
   private readonly booksService = inject(BooksService);
   private readonly fb = inject(FormBuilder);
 
-  // Eventos de salida con Signals nativos de Angular 18+
   readonly closed = output<void>();
   readonly saved = output<Book>();
 
-  // Estado de envío
   protected readonly isSaving = signal<boolean>(false);
 
-  // Opciones de estado inicial
   protected readonly statusOptions: { value: BookStatus; label: string }[] = [
     { value: 'pending', label: 'Pendiente' },
     { value: 'reading', label: 'Leyendo' },
@@ -37,7 +35,6 @@ export class BookCreateModalComponent {
     { value: 'abandoned', label: 'Abandonado' }
   ];
 
-  // Formulario reactivo con validaciones estrictas
   protected readonly createForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(1)]],
     author: ['', [Validators.required, Validators.minLength(1)]],
@@ -47,6 +44,12 @@ export class BookCreateModalComponent {
     coverUrl: [''],
     notes: ['']
   });
+
+  @HostListener('document:keydown.escape', ['$event'])
+  protected handleEscape(event: Event): void {
+    event.preventDefault();
+    this.cancel();
+  }
 
   protected async save(): Promise<void> {
     if (this.createForm.invalid || this.isSaving()) return;

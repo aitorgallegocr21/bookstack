@@ -57,7 +57,7 @@ Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y
 
 ## Instrucciones próximas (orden de ejecución)
 1. ./feature-book-domain-workplan/SPEC-001.md [Completado]
-2. ./feature-book-domain-workplan/SPEC-002.md [Pendiente]
+2. ./feature-book-domain-workplan/SPEC-002.md [Completado]
 3. Realizar una revisión de refinamiento visual (Tailwind CSS, modo oscuro y micro-interacciones) para cerrar el bloque de experiencia de usuario. [Pendiente]
 
 ## Registro de cambios relevantes

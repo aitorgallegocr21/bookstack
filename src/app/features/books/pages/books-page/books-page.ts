@@ -34,19 +34,18 @@ export class BooksPage {
   protected readonly readingLogs = this.readingLogService.readingLogs;
   protected readonly stats = this.readingStatsService.stats;
 
-  // Signals de estado local
+  // Estado local reactivo
   protected readonly showEditor = signal(false);
   protected readonly editorBook = signal<Book | undefined>(undefined);
   protected readonly showReadingLogEditor = signal(false);
   protected readonly readingLogBookId = signal<string | undefined>(undefined);
   protected readonly editingReadingLog = signal<ReadingLog | undefined>(undefined);
 
-  // SPEC-001: Señal para gestionar el libro seleccionado para vista detallada y edición
+  // Signal unificado para el modal de detalle y edición
   protected readonly selectedBookId = signal<string | null>(null);
 
   /**
    * Agrupación reactiva O(N) de sesiones de lectura por ID de libro.
-   * Permite búsquedas O(1) instantáneas en la plantilla.
    */
   protected readonly logsByBookMap = computed(() => {
     const map = new Map<string, ReadingLog[]>();
@@ -71,11 +70,6 @@ export class BooksPage {
 
   protected openCreateEditor(): void {
     this.editorBook.set(undefined);
-    this.showEditor.set(true);
-  }
-
-  protected openEditEditor(book: Book): void {
-    this.editorBook.set(book);
     this.showEditor.set(true);
   }
 

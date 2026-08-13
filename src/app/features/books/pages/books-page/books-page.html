@@ -4,7 +4,7 @@
       <p class="eyebrow">BookStack</p>
       <h1>Mi biblioteca</h1>
     </div>
-    <button class="primary-button" type="button" (click)="openCreateEditor()">Añadir libro</button>
+    <button class="primary-button" type="button" (click)="openCreateModal()">Añadir libro</button>
   </section>
 
   <section class="summary-grid" aria-label="Resumen de lectura">
@@ -46,7 +46,9 @@
             <div class="bar-track">
               <div
                 class="bar-fill"
-                [style.width.%]="stats().totalBooks > 0 ? (row.count / stats().totalBooks) * 100 : 0"
+                [style.width.%]="
+                  stats().totalBooks > 0 ? (row.count / stats().totalBooks) * 100 : 0
+                "
               ></div>
             </div>
             <span>{{ row.count }}</span>
@@ -83,17 +85,30 @@
       @let bookLogs = logsByBookMap().get(book.id) ?? [];
 
       <article class="book-card">
-        <div class="book-card__cover cursor-pointer hover:opacity-90 transition-opacity" (click)="openBookDetail(book.id)">
+        <button
+          type="button"
+          class="book-card__cover p-0 border-0 bg-transparent text-left cursor-pointer hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-slate-900/20 rounded-xl"
+          [attr.aria-label]="'Ver detalles de ' + book.title"
+          (click)="openDetailModal(book.id)"
+        >
           @if (book.coverUrl) {
             <img [src]="book.coverUrl" [alt]="'Portada de ' + book.title" />
           } @else {
             <div class="book-card__cover-placeholder">{{ book.title.slice(0, 1) }}</div>
           }
-        </div>
+        </button>
         <div class="book-card__content">
           <div class="book-card__top">
             <div>
-              <h2 class="cursor-pointer hover:underline" (click)="openBookDetail(book.id)">{{ book.title }}</h2>
+              <h2>
+                <button
+                  type="button"
+                  class="cursor-pointer hover:underline text-left bg-transparent border-0 p-0 text-inherit font-inherit"
+                  (click)="openDetailModal(book.id)"
+                >
+                  {{ book.title }}
+                </button>
+              </h2>
               <p class="book-card__author">{{ book.author }}</p>
             </div>
             <span class="status-badge status-badge--{{ book.status }}">{{ book.status }}</span>
@@ -104,8 +119,15 @@
             <span>{{ book.format ?? 'Sin formato' }}</span>
           </div>
           <div class="book-card__actions">
-            <button class="ghost-button" type="button" (click)="openBookDetail(book.id)">Ver detalle / Editar</button>
-            <button class="danger-button" type="button" (click)="deleteBook(book.id)">Eliminar</button>
+            <button class="ghost-button" type="button" (click)="openDetailModal(book.id)">
+              Ver detalle
+            </button>
+            <button class="ghost-button" type="button" (click)="openEditModal(book.id)">
+              Editar
+            </button>
+            <button class="danger-button" type="button" (click)="deleteBook(book.id)">
+              Eliminar
+            </button>
           </div>
           <section class="book-card__reading-log-panel" aria-label="Sesiones de lectura del libro">
             <div class="book-card__reading-log-header">
@@ -115,7 +137,9 @@
                 type="button"
                 (click)="openReadingLogEditor(book)"
                 [attr.aria-label]="'Añadir sesión de lectura a ' + book.title"
-              >+</button>
+              >
+                +
+              </button>
             </div>
             @if (bookLogs.length > 0) {
               <ul class="reading-log-list">
@@ -126,8 +150,20 @@
                     <span>{{ log.timeSpentMinutes ?? 0 }} min</span>
                     <span class="reading-log-row__notes">{{ log.notes || 'Sin notas' }}</span>
                     <span class="reading-log-row__actions">
-                      <button class="ghost-button ghost-button--compact" type="button" (click)="openReadingLogEditor(book, log)">Editar</button>
-                      <button class="danger-button danger-button--compact" type="button" (click)="deleteReadingLog(log.id)">Borrar</button>
+                      <button
+                        class="ghost-button ghost-button--compact"
+                        type="button"
+                        (click)="openReadingLogEditor(book, log)"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        class="danger-button danger-button--compact"
+                        type="button"
+                        (click)="deleteReadingLog(log.id)"
+                      >
+                        Borrar
+                      </button>
                     </span>
                   </li>
                 }
@@ -143,25 +179,31 @@
     }
   </section>
 
-  <!-- Modal dedicado únicamente a la CREACIÓN de nuevos libros -->
-  @if (showEditor()) {
-    <app-book-editor [existingBook]="editorBook()" (closed)="closeEditor()" />
+  <!-- 1. Modal para ALTA / CREACIÓN de nuevo libro -->
+  @if (showCreateModal()) {
+    <app-book-create-modal (closed)="closeCreateModal()" />
   }
 
-  <!-- Modal para la edición/creación rápida de registros de lectura -->
+  <!-- 2. Modal para EDICIÓN de libro existente -->
+  @if (selectedBookForEditId(); as editBookId) {
+    <app-book-edit-modal [bookId]="editBookId" (closed)="closeEditModal()" />
+  }
+
+  <!-- 3. Modal para DETALLE / CONSULTA de libro existente -->
+  @if (selectedBookForDetailId(); as detailBookId) {
+    <app-book-detail-modal
+      [bookId]="detailBookId"
+      (close)="closeDetailModal()"
+      (editRequested)="handleEditRequestedFromDetail($event)"
+    />
+  }
+
+  <!-- Modal para la edición/creación de registros de lectura -->
   @if (showReadingLogEditor() && readingLogBookId(); as currentBookId) {
     <app-reading-log-editor
       [bookId]="currentBookId"
       [existingLog]="editingReadingLog()"
       (closed)="closeReadingLogEditor()"
-    />
-  }
-
-  <!-- Modal unificado de Detalle y Edición para libros existentes -->
-  @if (selectedBookId(); as activeBookId) {
-    <app-book-detail-modal
-      [bookId]="activeBookId"
-      (close)="closeBookDetail()"
     />
   }
 </main>

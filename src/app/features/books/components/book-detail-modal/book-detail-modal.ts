@@ -5,19 +5,18 @@ import {
   input,
   output,
   signal,
-  computed,
-  HostListener
+  computed
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BooksService } from '../../services/books.service';
 import { ReadingLogService } from '../../services/reading-log.service';
 import { Book, BookStatus, ReadingLog } from '../../models/book.model';
+import { ReadingLogEditorComponent } from '../reading-log-editor/reading-log-editor';
 
 @Component({
   selector: 'app-book-detail-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReadingLogEditorComponent],
   templateUrl: './book-detail-modal.html',
   styleUrl: './book-detail-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,19 +24,17 @@ import { Book, BookStatus, ReadingLog } from '../../models/book.model';
 export class BookDetailModalComponent {
   private readonly booksService = inject(BooksService);
   private readonly readingLogService = inject(ReadingLogService);
-  private readonly fb = inject(FormBuilder);
 
   // Inputs y Outputs
   readonly bookId = input.required<string>();
   readonly closed = output<void>();
+  readonly editRequested = output<string>();
 
-  // Estados locales con Signals
-  protected readonly mode = signal<'view' | 'edit'>('view');
+  // Estados locales
   protected readonly showLogEditor = signal<boolean>(false);
   protected readonly editingLog = signal<ReadingLog | undefined>(undefined);
-  protected readonly isSaving = signal<boolean>(false);
 
-  // Búsqueda y reactividad declarativa
+  // Signals computados declarativos
   protected readonly book = computed<Book | undefined>(() => {
     return this.booksService.books().find((b) => b.id === this.bookId());
   });
@@ -56,70 +53,8 @@ export class BookDetailModalComponent {
     return Math.min(100, Math.round((currentBook.currentPage / currentBook.totalPages) * 100));
   });
 
-  // Formulario reactivo tipado
-  protected readonly editForm = this.fb.group({
-    title: ['', [Validators.required]],
-    author: ['', [Validators.required]],
-    totalPages: [1, [Validators.required, Validators.min(1)]],
-    currentPage: [0, [Validators.required, Validators.min(0)]],
-    status: ['pending' as BookStatus, [Validators.required]],
-    format: [''],
-    coverUrl: [''],
-    notes: [''],
-  });
-
-  @HostListener('document:keydown.escape')
-  protected handleEscapeKey(): void {
-    this.closed.emit();
-  }
-
-  protected setMode(newMode: 'view' | 'edit'): void {
-    if (newMode === 'edit') {
-      const currentBook = this.book();
-      if (currentBook) {
-        this.editForm.patchValue({
-          title: currentBook.title,
-          author: currentBook.author,
-          totalPages: currentBook.totalPages,
-          currentPage: currentBook.currentPage,
-          status: currentBook.status,
-          format: currentBook.format || '',
-          coverUrl: currentBook.coverUrl || '',
-          notes: currentBook.notes || '',
-        });
-      }
-    }
-    this.mode.set(newMode);
-  }
-
-  protected async saveBookChanges(): Promise<void> {
-    const currentBook = this.book();
-    if (this.editForm.invalid || !currentBook || this.isSaving()) return;
-
-    this.isSaving.set(true);
-    const val = this.editForm.value;
-
-    const updatedBook: Book = {
-      ...currentBook,
-      title: val.title!.trim(),
-      author: val.author!.trim(),
-      totalPages: Number(val.totalPages) || 1,
-      currentPage: Number(val.currentPage) || 0,
-      status: val.status as BookStatus,
-      format: val.format?.trim() || undefined,
-      coverUrl: val.coverUrl?.trim() || undefined,
-      notes: val.notes?.trim() || undefined,
-      updatedAt: new Date().toISOString(),
-    };
-
-    try {
-      await this.booksService.update(currentBook.id, updatedBook);
-      this.mode.set('view');
-    } catch (error) {
-      console.error('Error actualizando el libro:', error);
-    } finally {
-      this.isSaving.set(false);
-    }
+  protected onRequestEdit(): void {
+    this.editRequested.emit(this.bookId());
   }
 
   protected openLogEditor(existingLog?: ReadingLog): void {
@@ -152,14 +87,14 @@ export class BookDetailModalComponent {
   protected getStatusBadgeClass(status: BookStatus): string {
     switch (status) {
       case 'reading':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
       case 'completed':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800';
       case 'abandoned':
-        return 'bg-red-50 text-red-700 border-red-200';
+        return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800';
       case 'pending':
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200';
+        return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
     }
   }
 

@@ -87,7 +87,7 @@ export class BookCreateModalComponent {
     this.closed.emit();
   }
 
-  protected onBackdropClick(event: MouseEvent): void {
+  protected onBackdropClick(event: Event): void {
     if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
       this.cancel();
     }

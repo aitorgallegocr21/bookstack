@@ -5,10 +5,11 @@ import {
   signal,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { BooksService } from '../../services/books.service';
 import { ReadingStatsService } from '../../services/reading-stats.service';
 import { ReadingLogService } from '../../services/reading-log.service';
-import { Book, ReadingLog } from '../../models/book.model';
+import { Book, BookStatus, ReadingLog } from '../../models/book.model';
 import { BookCreateModalComponent } from '../../components/book-create-modal/book-create-modal';
 import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
 import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
@@ -18,6 +19,7 @@ import { ReadingLogEditorComponent } from '../../components/reading-log-editor/r
   selector: 'app-books-page',
   standalone: true,
   imports: [
+    CommonModule,
     BookCreateModalComponent,
     BookEditModalComponent,
     BookDetailModalComponent,
@@ -135,6 +137,23 @@ export class BooksPage {
       await this.readingLogService.remove(logId);
     } catch (error) {
       console.error('Error al borrar la sesión de lectura:', error);
+    }
+  }
+
+  /**
+   * Helper puro para resolver las clases de insignia de estado de manera consistente.
+   */
+  protected getStatusBadgeClass(status: BookStatus): string {
+    switch (status) {
+      case 'reading':
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'completed':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'abandoned':
+        return 'bg-red-50 text-red-700 border-red-200';
+      case 'pending':
+      default:
+        return 'bg-slate-50 text-slate-700 border-slate-200';
     }
   }
 }

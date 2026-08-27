@@ -1,139 +1,170 @@
-<main class="books-page">
-  <section class="books-page__header">
+<main class="max-w-6xl mx-auto p-4 sm:p-8 space-y-8">
+  <!-- Encabezado -->
+  <section class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <p class="eyebrow">BookStack</p>
-      <h1>Mi biblioteca</h1>
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">BookStack</p>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Mi biblioteca</h1>
     </div>
-    <button class="primary-button" type="button" (click)="openCreateModal()">Añadir libro</button>
+    <button
+      type="button"
+      (click)="openCreateModal()"
+      class="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm transition-colors"
+    >
+      Añadir libro
+    </button>
   </section>
 
-  <section class="summary-grid" aria-label="Resumen de lectura">
-    <article class="summary-card">
-      <span class="summary-card__label">Libros</span>
-      <span class="summary-card__value">{{ stats().totalBooks }}</span>
+  <!-- Métricas Rápidas -->
+  <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4" aria-label="Resumen de lectura">
+    <article class="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col gap-1 shadow-sm">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Libros</span>
+      <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">{{ stats().totalBooks }}</span>
     </article>
 
-    <article class="summary-card">
-      <span class="summary-card__label">Leyendo</span>
-      <span class="summary-card__value">{{ stats().readingBooks }}</span>
+    <article class="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col gap-1 shadow-sm">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Leyendo</span>
+      <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">{{ stats().readingBooks }}</span>
     </article>
 
-    <article class="summary-card">
-      <span class="summary-card__label">Completados</span>
-      <span class="summary-card__value">{{ stats().completedBooks }}</span>
+    <article class="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col gap-1 shadow-sm">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Completados</span>
+      <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">{{ stats().completedBooks }}</span>
     </article>
 
-    <article class="summary-card">
-      <span class="summary-card__label">Páginas acumuladas</span>
-      <span class="summary-card__value">{{ stats().totalPagesRead }}</span>
+    <article class="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col gap-1 shadow-sm">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Páginas</span>
+      <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">{{ stats().totalPagesRead }}</span>
     </article>
 
-    <article class="summary-card">
-      <span class="summary-card__label">Velocidad</span>
-      <span class="summary-card__value">{{ stats().averageReadingSpeedPagesPerHour }} pp/h</span>
+    <article class="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col gap-1 shadow-sm col-span-2 sm:col-span-1">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Velocidad</span>
+      <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">{{ stats().averageReadingSpeedPagesPerHour }} <span class="text-sm font-semibold text-slate-500">pp/h</span></span>
     </article>
   </section>
 
-  <section class="analytics-panel" aria-label="Estadísticas de lectura">
-    <article class="analytics-card">
-      <div class="analytics-card__title">
-        <span>Distribución por estado</span>
-      </div>
-      <div class="analytics-card__body">
+  <!-- Panel Analítico -->
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-4" aria-label="Estadísticas de lectura">
+    <article class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
+      <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Distribución por estado</h3>
+      <div class="space-y-3">
         @for (row of stats().statusDistribution; track row.status) {
-          <div class="status-row">
-            <span>{{ row.status }}</span>
-            <div class="bar-track">
+          <div class="grid grid-cols-[6rem_1fr_2.5rem] items-center gap-3 text-xs font-semibold text-slate-600">
+            <span class="truncate capitalize">{{ row.status }}</span>
+            <div class="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
               <div
-                class="bar-fill"
-                [style.width.%]="
-                  stats().totalBooks > 0 ? (row.count / stats().totalBooks) * 100 : 0
-                "
+                class="h-full bg-slate-900 rounded-full transition-all duration-300"
+                [style.width.%]="stats().totalBooks > 0 ? (row.count / stats().totalBooks) * 100 : 0"
               ></div>
             </div>
-            <span>{{ row.count }}</span>
+            <span class="text-right text-slate-900 font-bold">{{ row.count }}</span>
           </div>
         }
       </div>
     </article>
 
-    <article class="analytics-card">
-      <div class="analytics-card__title">
-        <span>Actividad mensual</span>
-      </div>
-      <div class="analytics-card__body charts">
+    <article class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
+      <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Actividad mensual</h3>
+      <div class="space-y-3">
         @for (month of stats().monthlyPages; track month.month) {
-          <div class="month-row">
-            <span>{{ month.month }}</span>
-            <div class="bar-track">
+          <div class="grid grid-cols-[6rem_1fr_2.5rem] items-center gap-3 text-xs font-semibold text-slate-600">
+            <span class="truncate">{{ month.month }}</span>
+            <div class="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
               <div
-                class="bar-fill bar-fill--blue"
+                class="h-full bg-blue-600 rounded-full transition-all duration-300"
                 [style.width.%]="(month.pages / maxMonthlyPages()) * 100"
               ></div>
             </div>
-            <span>{{ month.pages }}</span>
+            <span class="text-right text-slate-900 font-bold">{{ month.pages }}</span>
           </div>
         } @empty {
-          <p class="empty-state">Sin registros mensuales</p>
+          <p class="text-xs text-slate-400 italic text-center py-4">Sin registros mensuales</p>
         }
       </div>
     </article>
   </section>
 
-  <section class="books-list" aria-label="Lista de libros">
+  <!-- Lista de Libros -->
+  <section class="space-y-4" aria-label="Lista de libros">
     @for (book of books(); track book.id) {
       @let bookLogs = logsByBookMap().get(book.id) ?? [];
 
-      <article class="book-card">
+      <article class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-5">
         <button
           type="button"
-          class="book-card__cover p-0 border-0 bg-transparent text-left cursor-pointer hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-slate-900/20 rounded-xl"
+          class="w-full sm:w-20 h-28 flex-shrink-0 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-slate-900/20"
           [attr.aria-label]="'Ver detalles de ' + book.title"
           (click)="openDetailModal(book.id)"
         >
           @if (book.coverUrl) {
-            <img [src]="book.coverUrl" [alt]="'Portada de ' + book.title" />
+            <img [src]="book.coverUrl" [alt]="'Portada de ' + book.title" class="w-full h-full object-cover" />
           } @else {
-            <div class="book-card__cover-placeholder">{{ book.title.slice(0, 1) }}</div>
+            <div class="w-full h-full flex items-center justify-center font-extrabold text-2xl text-slate-700">
+              {{ book.title.slice(0, 1) }}
+            </div>
           }
         </button>
-        <div class="book-card__content">
-          <div class="book-card__top">
-            <div>
-              <h2>
-                <button
-                  type="button"
-                  class="cursor-pointer hover:underline text-left bg-transparent border-0 p-0 text-inherit font-inherit"
-                  (click)="openDetailModal(book.id)"
-                >
-                  {{ book.title }}
-                </button>
-              </h2>
-              <p class="book-card__author">{{ book.author }}</p>
+
+        <div class="flex-1 flex flex-col justify-between space-y-3">
+          <div>
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h2>
+                  <button
+                    type="button"
+                    class="text-left font-bold text-lg text-slate-900 hover:underline cursor-pointer"
+                    (click)="openDetailModal(book.id)"
+                  >
+                    {{ book.title }}
+                  </button>
+                </h2>
+                <p class="text-sm font-medium text-slate-500">{{ book.author }}</p>
+              </div>
+
+              <span
+                class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full border"
+                [ngClass]="getStatusBadgeClass(book.status)"
+              >
+                {{ book.status }}
+              </span>
             </div>
-            <span class="status-badge status-badge--{{ book.status }}">{{ book.status }}</span>
+
+            <div class="flex flex-wrap gap-4 mt-2 text-xs font-semibold text-slate-500">
+              <span>{{ book.totalPages }} páginas</span>
+              <span>{{ book.currentPage }} en curso</span>
+              <span>{{ book.format ?? 'Sin formato' }}</span>
+            </div>
           </div>
-          <div class="book-card__meta">
-            <span>{{ book.totalPages }} páginas</span>
-            <span>{{ book.currentPage }} en curso</span>
-            <span>{{ book.format ?? 'Sin formato' }}</span>
-          </div>
-          <div class="book-card__actions">
-            <button class="ghost-button" type="button" (click)="openDetailModal(book.id)">
+
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button
+              type="button"
+              (click)="openDetailModal(book.id)"
+              class="px-3 py-1.5 rounded-full border border-slate-300 hover:bg-slate-100 text-slate-800 font-bold text-xs transition-colors"
+            >
               Ver detalle
             </button>
-            <button class="ghost-button" type="button" (click)="openEditModal(book.id)">
+            <button
+              type="button"
+              (click)="openEditModal(book.id)"
+              class="px-3 py-1.5 rounded-full border border-slate-300 hover:bg-slate-100 text-slate-800 font-bold text-xs transition-colors"
+            >
               Editar
             </button>
-            <button class="danger-button" type="button" (click)="deleteBook(book.id)">
+            <button
+              type="button"
+              (click)="deleteBook(book.id)"
+              class="px-3 py-1.5 rounded-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-bold text-xs transition-colors"
+            >
               Eliminar
             </button>
           </div>
-          <section class="book-card__reading-log-panel" aria-label="Sesiones de lectura del libro">
-            <div class="book-card__reading-log-header">
+
+          <!-- Panel de Sesiones de Lectura -->
+          <section class="border-t border-slate-100 pt-3 space-y-2" aria-label="Sesiones de lectura del libro">
+            <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-600">
               <span>Sesiones de lectura</span>
               <button
-                class="ghost-button ghost-button--compact"
+                class="px-2 py-0.5 rounded-md hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors"
                 type="button"
                 (click)="openReadingLogEditor(book)"
                 [attr.aria-label]="'Añadir sesión de lectura a ' + book.title"
@@ -141,55 +172,42 @@
                 +
               </button>
             </div>
+
             @if (bookLogs.length > 0) {
-              <ul class="reading-log-list">
+              <ul class="space-y-1.5">
                 @for (log of bookLogs; track log.id) {
-                  <li class="reading-log-row">
-                    <span>{{ log.date }}</span>
-                    <span>{{ log.pagesRead }} páginas</span>
-                    <span>{{ log.timeSpentMinutes ?? 0 }} min</span>
-                    <span class="reading-log-row__notes">{{ log.notes || 'Sin notas' }}</span>
-                    <span class="reading-log-row__actions">
-                      <button
-                        class="ghost-button ghost-button--compact"
-                        type="button"
-                        (click)="openReadingLogEditor(book, log)"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        class="danger-button danger-button--compact"
-                        type="button"
-                        (click)="deleteReadingLog(log.id)"
-                      >
-                        Borrar
-                      </button>
-                    </span>
+                  <li class="flex flex-wrap items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100 text-xs gap-2">
+                    <span class="font-bold text-slate-800">{{ log.date }} — {{ log.pagesRead }} págs. ({{ log.timeSpentMinutes ?? 0 }} min)</span>
+                    <span class="italic text-slate-500 truncate flex-1 min-w-[120px]">{{ log.notes || 'Sin notas' }}</span>
+                    <div class="flex items-center gap-1">
+                      <button class="px-2 py-0.5 rounded hover:bg-slate-200 text-slate-700 font-semibold" type="button" (click)="openReadingLogEditor(book, log)">Editar</button>
+                      <button class="px-2 py-0.5 rounded hover:bg-red-100 text-red-700 font-semibold" type="button" (click)="deleteReadingLog(log.id)">Borrar</button>
+                    </div>
                   </li>
                 }
               </ul>
             } @else {
-              <span class="empty-state empty-state--small">Sin sesiones registradas</span>
+              <span class="text-xs text-slate-400 italic">Sin sesiones registradas</span>
             }
           </section>
         </div>
       </article>
     } @empty {
-      <p class="empty-state">No hay libros todavía.</p>
+      <p class="p-6 text-center text-xs text-slate-400 italic bg-white rounded-2xl border border-dashed border-slate-200">
+        No hay libros todavía.
+      </p>
     }
   </section>
 
-  <!-- 1. Modal para ALTA / CREACIÓN de nuevo libro -->
+  <!-- Modales -->
   @if (showCreateModal()) {
     <app-book-create-modal (closed)="closeCreateModal()" />
   }
 
-  <!-- 2. Modal para EDICIÓN de libro existente -->
   @if (selectedBookForEditId(); as editBookId) {
     <app-book-edit-modal [bookId]="editBookId" (closed)="closeEditModal()" />
   }
 
-  <!-- 3. Modal para DETALLE / CONSULTA de libro existente -->
   @if (selectedBookForDetailId(); as detailBookId) {
     <app-book-detail-modal
       [bookId]="detailBookId"
@@ -198,7 +216,6 @@
     />
   }
 
-  <!-- Modal para la edición/creación de registros de lectura -->
   @if (showReadingLogEditor() && readingLogBookId(); as currentBookId) {
     <app-reading-log-editor
       [bookId]="currentBookId"

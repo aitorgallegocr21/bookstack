@@ -65,7 +65,7 @@ Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y
 ## Instrucciones próximas (orden de ejecución)
 1. ./feature-book-domain-workplan/SPEC-001.md [Completado]
 2. ./feature-book-domain-workplan/SPEC-002.md [Completado]
-3. Arreglar Esc y X de componente de Registrar lectura (+) en página. [Pendiente]
+3. Arreglar Esc y X de componente de Registrar lectura (+) y Editar sesión de lectura en página. [Pendiente]
 4. Ver Warning al hacer ng build del archivo book-page.css [Pendiente]
 5. Realizar una revisión de refinamiento visual (Tailwind CSS, modo oscuro y micro-interacciones) para cerrar el bloque de experiencia de usuario. [Pendiente]
 

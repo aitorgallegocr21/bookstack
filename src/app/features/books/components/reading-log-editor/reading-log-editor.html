@@ -3,6 +3,8 @@
   open
   aria-labelledby="modal-title"
   (cancel)="cancel()"
+  (click)="onBackdropClick($event)"
+  (keydown)="onBackdropClick($event)"
 >
   <div class="reading-log-editor__panel">
     <header class="reading-log-editor__header">

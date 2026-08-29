@@ -9,6 +9,13 @@ export interface BookFormat {
   name: string;
 }
 
+export interface BookSeries {
+  id: string;
+  name: string;
+  volumeNumber?: number;
+  notes?: string;
+}
+
 export interface SeriesInfo {
   seriesName: string;
   orderInSeries: number;
@@ -21,25 +28,57 @@ export interface Book {
   isbn?: string;
   title: string;
   author: string;
+  publisher?: string;
+  publicationYear?: number;
 
   totalPages: number;
   currentPage: number;
   totalWords?: number;
   totalCharacters?: number;
   currentWords?: number;
+  totalChapters?: number;
+  currentChapter?: number;
 
   status: BookStatus;
+  format?: BookFormat | string;
+  series?: BookSeries;
   seriesInfo?: SeriesInfo;
   coverUrl?: string;
   rating?: number;
   genre?: string[];
-  format?: string;
 
   startDate?: string;
   endDate?: string;
   notes?: string;
 
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface BookCreateDto {
+  title: string;
+  author: string;
+  isbn?: string;
+  publisher?: string;
+  publicationYear?: number;
+  totalPages: number;
+  currentPage: number;
+  totalCharacters?: number;
+  totalChapters?: number;
+  currentChapter?: number;
+  status: BookStatus;
+  format?: BookFormat | string;
+  series?: BookSeries;
+  coverUrl?: string;
+  rating?: number;
+  genre?: string[];
+  startDate?: string;
+  endDate?: string;
+  notes?: string;
+}
+
+export interface BookUpdateDto extends Partial<BookCreateDto> {
+  id: string;
   updatedAt: string;
 }
 

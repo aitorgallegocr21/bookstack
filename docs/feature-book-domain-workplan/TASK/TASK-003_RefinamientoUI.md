@@ -9,10 +9,10 @@
 - [x] 1.1 Agregar constantes `BOOK_STATUS_LABELS` y `BOOK_STATUS_CONFIG` en `src/app/features/books/models/book.model.ts` con traducciones al español ('Pendiente', 'Leyendo', 'Completado', 'Abandonado') y paleta clara de badges.
 
 ### Fase 2: Adaptabilidad y Modo Claro en Modales
-- [ ] 2.1 Refactorizar `BookCreateModalComponent` (`.html` y `.ts`):
-  - [ ] Implementar contenedor `max-h-[90dvh] flex flex-col` con cabecera/pie fijos y cuerpo scrollable (`overflow-y-auto`).
-  - [ ] Sustituir clases oscuras (`bg-slate-900`, etc.) por paleta clara (`bg-white`, `border-slate-200`, `text-slate-900`, `bg-slate-50`).
-  - [ ] Configurar rejilla adaptativa (`grid-cols-1 sm:grid-cols-2`).
+- [x] 2.1 Refactorizar `BookCreateModalComponent` (`.html` y `.ts`):
+  - [x] Implementar contenedor `max-h-[90dvh] flex flex-col` con cabecera/pie fijos y cuerpo scrollable (`overflow-y-auto`).
+  - [x] Sustituir clases oscuras (`bg-slate-900`, etc.) por paleta clara (`bg-white`, `border-slate-200`, `text-slate-900`, `bg-slate-50`).
+  - [x] Configurar rejilla adaptativa (`grid-cols-1 sm:grid-cols-2`).
 - [ ] 2.2 Refactorizar `BookEditModalComponent` (`.html` y `.ts`):
   - [ ] Aplicar la misma estructura de scroll interno y paleta clara.
 - [ ] 2.3 Refactorizar `BookDetailModalComponent` (`.html` y `.ts`):

@@ -3,10 +3,8 @@ import {
   ChangeDetectionStrategy,
   inject,
   output,
-  signal,
-  HostListener
+  signal
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BooksService } from '../../services/books.service';
 import { Book, BookStatus } from '../../models/book.model';
@@ -14,10 +12,13 @@ import { Book, BookStatus } from '../../models/book.model';
 @Component({
   selector: 'app-book-create-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './book-create-modal.html',
   styleUrl: './book-create-modal.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown.escape)': 'handleEscape()'
+  }
 })
 export class BookCreateModalComponent {
   private readonly booksService = inject(BooksService);
@@ -45,9 +46,7 @@ export class BookCreateModalComponent {
     notes: ['']
   });
 
-  @HostListener('document:keydown.escape', ['$event'])
-  protected handleEscape(event: Event): void {
-    event.preventDefault();
+  protected handleEscape(): void {
     this.cancel();
   }
 

@@ -15,8 +15,8 @@
   - [x] Configurar rejilla adaptativa (`grid-cols-1 sm:grid-cols-2`).
 - [x] 2.2 Refactorizar `BookEditModalComponent` (`.html` y `.ts`):
   - [x] Aplicar la misma estructura de scroll interno y paleta clara.
-- [ ] 2.3 Refactorizar `BookDetailModalComponent` (`.html` y `.ts`):
-  - [ ] Reemplazar paleta oscura por paleta clara y garantizar scroll si el contenido desborda.
+- [x] 2.3 Refactorizar `BookDetailModalComponent` (`.html` y `.ts`):
+  - [x] Reemplazar paleta oscura por paleta clara y garantizar scroll si el contenido desborda.
 - [ ] 2.4 Refactorizar `ReadingLogEditorComponent` (`.html` y `.ts`):
   - [ ] Aplicar estilos claros en inputs de fecha, páginas y comentarios.
 

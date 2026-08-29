@@ -17,8 +17,8 @@
   - [x] Aplicar la misma estructura de scroll interno y paleta clara.
 - [x] 2.3 Refactorizar `BookDetailModalComponent` (`.html` y `.ts`):
   - [x] Reemplazar paleta oscura por paleta clara y garantizar scroll si el contenido desborda.
-- [ ] 2.4 Refactorizar `ReadingLogEditorComponent` (`.html` y `.ts`):
-  - [ ] Aplicar estilos claros en inputs de fecha, páginas y comentarios.
+- [x] 2.4 Refactorizar `ReadingLogEditorComponent` (`.html` y `.ts`):
+  - [x] Aplicar estilos claros en inputs de fecha, páginas y comentarios.
 
 ### Fase 3: Localización en Vista Principal
 - [ ] 3.1 Actualizar widget de distribución por estado en `BooksPageComponent` (`books-page.html`):

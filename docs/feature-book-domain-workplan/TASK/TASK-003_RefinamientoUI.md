@@ -21,10 +21,10 @@
   - [x] Aplicar estilos claros en inputs de fecha, páginas y comentarios.
 
 ### Fase 3: Localización en Vista Principal
-- [ ] 3.1 Actualizar widget de distribución por estado en `BooksPageComponent` (`books-page.html`):
-  - [ ] Mostrar los 4 estados con sus etiquetas en español y colores semánticos claros.
-- [ ] 3.2 Actualizar tabla y listado de libros en `BooksPageComponent`:
-  - [ ] Renderizar los badges de estado en español usando `BOOK_STATUS_CONFIG` o `BOOK_STATUS_LABELS`.
+- [x] 3.1 Actualizar widget de distribución por estado en `BooksPageComponent` (`books-page.html`):
+  - [x] Mostrar los 4 estados con sus etiquetas en español y colores semánticos claros.
+- [x] 3.2 Actualizar tabla y listado de libros en `BooksPageComponent`:
+  - [x] Renderizar los badges de estado en español usando `BOOK_STATUS_CONFIG` o `BOOK_STATUS_LABELS`.
 
 ### Fase 4: Micro-interacciones y Feedback Visual
 - [ ] 4.1 Añadir transiciones (`transition-all duration-200`) y estados hover sutiles en tarjetas de estadísticas y distribución.

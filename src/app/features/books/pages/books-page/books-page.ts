@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
 import { BooksService } from '../../services/books.service';
 import { ReadingStatsService } from '../../services/reading-stats.service';
 import { ReadingLogService } from '../../services/reading-log.service';
-import { Book, BookStatus, ReadingLog } from '../../models/book.model';
+import { Book, BookStatus, ReadingLog, BOOK_STATUS_CONFIG, BOOK_STATUS_LABELS } from '../../models/book.model';
 import { BookCreateModalComponent } from '../../components/book-create-modal/book-create-modal';
 import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
 import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
@@ -33,6 +33,10 @@ export class BooksPage {
   private readonly booksService = inject(BooksService);
   private readonly readingStatsService = inject(ReadingStatsService);
   private readonly readingLogService = inject(ReadingLogService);
+
+  // Exportar constantes de presentación para uso en templates
+  protected readonly BOOK_STATUS_CONFIG = BOOK_STATUS_CONFIG;
+  protected readonly BOOK_STATUS_LABELS = BOOK_STATUS_LABELS;
 
   protected readonly books = this.booksService.books;
   protected readonly readingLogs = this.readingLogService.readingLogs;
@@ -142,18 +146,16 @@ export class BooksPage {
 
   /**
    * Helper puro para resolver las clases de insignia de estado de manera consistente.
+   * Utiliza la configuración centralizada de BOOK_STATUS_CONFIG.
    */
   protected getStatusBadgeClass(status: BookStatus): string {
-    switch (status) {
-      case 'reading':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'completed':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'abandoned':
-        return 'bg-red-50 text-red-700 border-red-200';
-      case 'pending':
-      default:
-        return 'bg-slate-50 text-slate-700 border-slate-200';
-    }
+    return BOOK_STATUS_CONFIG[status].badgeClass;
+  }
+
+  /**
+   * Helper para obtener el color de la barra de progreso según el estado.
+   */
+  protected getStatusBarColor(status: BookStatus): string {
+    return BOOK_STATUS_CONFIG[status].dotClass.replace('bg-', '');
   }
 }

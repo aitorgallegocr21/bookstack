@@ -13,8 +13,8 @@
   - [x] Implementar contenedor `max-h-[90dvh] flex flex-col` con cabecera/pie fijos y cuerpo scrollable (`overflow-y-auto`).
   - [x] Sustituir clases oscuras (`bg-slate-900`, etc.) por paleta clara (`bg-white`, `border-slate-200`, `text-slate-900`, `bg-slate-50`).
   - [x] Configurar rejilla adaptativa (`grid-cols-1 sm:grid-cols-2`).
-- [ ] 2.2 Refactorizar `BookEditModalComponent` (`.html` y `.ts`):
-  - [ ] Aplicar la misma estructura de scroll interno y paleta clara.
+- [x] 2.2 Refactorizar `BookEditModalComponent` (`.html` y `.ts`):
+  - [x] Aplicar la misma estructura de scroll interno y paleta clara.
 - [ ] 2.3 Refactorizar `BookDetailModalComponent` (`.html` y `.ts`):
   - [ ] Reemplazar paleta oscura por paleta clara y garantizar scroll si el contenido desborda.
 - [ ] 2.4 Refactorizar `ReadingLogEditorComponent` (`.html` y `.ts`):

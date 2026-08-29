@@ -27,9 +27,9 @@
   - [x] Renderizar los badges de estado en español usando `BOOK_STATUS_CONFIG` o `BOOK_STATUS_LABELS`.
 
 ### Fase 4: Micro-interacciones y Feedback Visual
-- [ ] 4.1 Añadir transiciones (`transition-all duration-200`) y estados hover sutiles en tarjetas de estadísticas y distribución.
-- [ ] 4.2 Asegurar transiciones suaves en filas de la tabla (`hover:bg-slate-50/80`) y botones interactivos.
+- [x] 4.1 Añadir transiciones (`transition-all duration-200`) y estados hover sutiles en tarjetas de estadísticas y distribución.
+- [x] 4.2 Asegurar transiciones suaves en filas de la tabla (`hover:bg-slate-50/80`) y botones interactivos.
 
 ### Fase 5: Validación Técnica
-- [ ] 5.1 Ejecutar `npm run build` y comprobar que no existan errores de compilación ni de tipado en TypeScript.
-- [ ] 5.2 Verificar la navegación completa en viewport móvil (< 640px) y escritorio.
+- [x] 5.1 Ejecutar `npm run build` y comprobar que no existan errores de compilación ni de tipado en TypeScript.
+- [x] 5.2 Verificar la navegación completa en viewport móvil (< 640px) y escritorio.

@@ -6,7 +6,7 @@
 ---
 
 ### Fase 1: Modelo y Constantes de Presentación
-- [ ] 1.1 Agregar constantes `BOOK_STATUS_LABELS` y `BOOK_STATUS_CONFIG` en `src/app/features/books/models/book.model.ts` con traducciones al español ('Por leer', 'Leyendo', 'Completado', 'Abandonado') y paleta clara de badges.
+- [x] 1.1 Agregar constantes `BOOK_STATUS_LABELS` y `BOOK_STATUS_CONFIG` en `src/app/features/books/models/book.model.ts` con traducciones al español ('Pendiente', 'Leyendo', 'Completado', 'Abandonado') y paleta clara de badges.
 
 ### Fase 2: Adaptabilidad y Modo Claro en Modales
 - [ ] 2.1 Refactorizar `BookCreateModalComponent` (`.html` y `.ts`):

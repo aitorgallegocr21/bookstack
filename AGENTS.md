@@ -53,7 +53,7 @@ Activa el rol correspondiente según la fase del trabajo:
 
 ## 4. Ciclo de Trabajo Obligatorio
 
-1. **Requisitos (SPEC):** Define el alcance, entradas, salidas y criterios de aceptación en `docs/feature-*/SPEC-XXX.md`.
+1. **Requisitos (SPEC):** Define el alcance, entradas, salidas y criterios de aceptación en `docs/feature-*/SPEC/SPEC-XXX.md`.
 2. **Planificación (TASK):** Desglosa la SPEC en tareas atómicas y secuenciales en un plan de trabajo.
 3. **Ejecución (Coding):** El agente de Frontend implementa una única tarea atómica a la vez.
 4. **Verificación:** Ejecuta linters y tests antes de finalizar la tarea.

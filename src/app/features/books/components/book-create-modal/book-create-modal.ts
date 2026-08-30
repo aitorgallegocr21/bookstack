@@ -8,6 +8,7 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BooksService } from '../../services/books.service';
 import { Book, BookStatus } from '../../models/book.model';
+import { ImageOptimizerService } from '../../services/image-optimizer.service';
 
 @Component({
   selector: 'app-book-create-modal',
@@ -22,12 +23,15 @@ import { Book, BookStatus } from '../../models/book.model';
 })
 export class BookCreateModalComponent {
   private readonly booksService = inject(BooksService);
+  private readonly imageOptimizerService = inject(ImageOptimizerService);
   private readonly fb = inject(FormBuilder);
 
   readonly closed = output<void>();
   readonly saved = output<Book>();
 
   protected readonly isSaving = signal<boolean>(false);
+  protected readonly coverMode = signal<'url' | 'upload'>('url');
+  protected readonly coverPreview = signal<string>('');
 
   protected readonly statusOptions: { value: BookStatus; label: string }[] = [
     { value: 'pending', label: 'Pendiente' },
@@ -39,33 +43,124 @@ export class BookCreateModalComponent {
   protected readonly createForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(1)]],
     author: ['', [Validators.required, Validators.minLength(1)]],
+    isbn: [''],
+    publisher: [''],
+    publicationYear: [null],
     totalPages: [0, [Validators.required, Validators.min(0)]],
+    currentPage: [0, [Validators.min(0)]],
+    totalCharacters: [0, [Validators.min(0)]],
+    totalChapters: [0, [Validators.min(0)]],
+    currentChapter: [0, [Validators.min(0)]],
     format: ['Físico'],
     status: ['pending' as BookStatus, [Validators.required]],
     coverUrl: [''],
-    notes: ['']
+    startDate: [''],
+    endDate: [''],
+    rating: [0, [Validators.min(0), Validators.max(5)]],
+    notes: [''],
+    seriesEnabled: [false],
+    seriesName: [''],
+    seriesVolumeNumber: [null],
+    coverSource: ['url']
   });
 
   protected handleEscape(): void {
     this.cancel();
   }
 
+  protected onStatusChange(status: BookStatus): void {
+    if (status !== 'completed') {
+      return;
+    }
+
+    const totalPages = Number(this.createForm.get('totalPages')?.value) || 0;
+    const currentPage = Number(this.createForm.get('currentPage')?.value) || 0;
+    const totalChapters = Number(this.createForm.get('totalChapters')?.value) || 0;
+    const currentChapter = Number(this.createForm.get('currentChapter')?.value) || 0;
+
+    this.createForm.patchValue({
+      currentPage: currentPage === 0 ? totalPages : currentPage,
+      currentChapter: currentChapter === 0 ? totalChapters : currentChapter,
+      endDate: this.createForm.get('endDate')?.value || this.getTodayIso()
+    });
+  }
+
+  protected onCoverModeChange(mode: 'url' | 'upload'): void {
+    this.coverMode.set(mode);
+    this.createForm.patchValue({ coverSource: mode });
+
+    if (mode === 'url') {
+      this.createForm.patchValue({ coverUrl: this.coverPreview() || '' });
+      return;
+    }
+
+    if (!this.coverPreview()) {
+      this.createForm.patchValue({ coverUrl: '' });
+    }
+  }
+
+  protected async onCoverSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const optimizedCover = await this.imageOptimizerService.optimize(file);
+      this.coverPreview.set(optimizedCover);
+      this.createForm.patchValue({ coverUrl: optimizedCover });
+      this.coverMode.set('upload');
+    } catch (error) {
+      console.error('Error al optimizar la portada:', error);
+      this.coverPreview.set('');
+      this.createForm.patchValue({ coverUrl: '' });
+    } finally {
+      input.value = '';
+    }
+  }
+
+  protected clearCover(): void {
+    this.coverPreview.set('');
+    this.createForm.patchValue({ coverUrl: '' });
+  }
+
   protected async save(): Promise<void> {
     if (this.createForm.invalid || this.isSaving()) return;
 
     this.isSaving.set(true);
-    const val = this.createForm.value;
+    const val = this.createForm.getRawValue();
     const now = new Date().toISOString();
+
+    const hasSeries = Boolean(val.seriesEnabled) && Boolean(val.seriesName?.trim());
+    const series = hasSeries
+      ? {
+          id: crypto.randomUUID(),
+          name: val.seriesName!.trim(),
+          volumeNumber: val.seriesVolumeNumber ? Number(val.seriesVolumeNumber) : undefined
+        }
+      : undefined;
 
     const newBook: Book = {
       id: crypto.randomUUID(),
       title: val.title!.trim(),
       author: val.author!.trim(),
+      isbn: val.isbn?.trim() || undefined,
+      publisher: val.publisher?.trim() || undefined,
+      publicationYear: val.publicationYear ? Number(val.publicationYear) : undefined,
       totalPages: Number(val.totalPages) || 0,
-      currentPage: 0,
+      currentPage: Number(val.currentPage) || 0,
+      totalCharacters: val.totalCharacters ? Number(val.totalCharacters) : undefined,
+      totalChapters: val.totalChapters ? Number(val.totalChapters) : undefined,
+      currentChapter: val.currentChapter ? Number(val.currentChapter) : undefined,
       status: val.status as BookStatus,
       format: val.format?.trim() || 'Físico',
-      coverUrl: val.coverUrl?.trim() || undefined,
+      series,
+      coverUrl: val.coverUrl?.trim() || this.coverPreview() || undefined,
+      rating: val.rating ? Number(val.rating) : undefined,
+      startDate: val.startDate || undefined,
+      endDate: val.endDate || undefined,
       notes: val.notes?.trim() || undefined,
       createdAt: now,
       updatedAt: now
@@ -90,5 +185,9 @@ export class BookCreateModalComponent {
     if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
       this.cancel();
     }
+  }
+
+  private getTodayIso(): string {
+    return new Date().toISOString().slice(0, 10);
   }
 }

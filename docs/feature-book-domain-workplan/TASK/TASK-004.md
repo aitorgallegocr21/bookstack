@@ -7,7 +7,7 @@
 
 ### Fase 1: Modelo y Servicios Base
 - [x] 1.1 Actualizar `src/app/features/books/models/book.model.ts` con la interfaz `BookSeries`, nuevos atributos opcionales en `Book` y DTOs actualizados.
-- [ ] 1.2 Crear el servicio `ImageOptimizerService` en `src/app/features/books/services/image-optimizer.service.ts` con compresión Canvas a WebP/JPEG ($\le 400\text{px}$, calidad 0.75).
+- [x] 1.2 Crear el servicio `ImageOptimizerService` en `src/app/features/books/services/image-optimizer.service.ts` con compresión Canvas a WebP/JPEG ($\le 400\text{px}$, calidad 0.75).
 
 ### Fase 2: Automatización y Pipeline de Portadas en Modales
 - [ ] 2.1 Refactorizar `BookCreateModalComponent` (`.html`, `.ts`, `.css`):

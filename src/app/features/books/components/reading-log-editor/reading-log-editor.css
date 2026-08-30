@@ -13,10 +13,23 @@ dialog.reading-log-editor {
   backdrop-filter: blur(4px);
   max-width: 100vw;
   max-height: 100vh;
+  animation: fadeIn 0.2s ease-out forwards;
 }
 
-dialog.reading-log-editor[open] {
+.dialog.reading-log-editor[open] {
   display: grid;
+}
+
+.reading-log-editor.modal-backdrop--closing {
+  animation: fadeOut 0.18s ease-in forwards;
+}
+
+.reading-log-editor .modal-panel {
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.reading-log-editor.modal-backdrop--closing .modal-panel {
+  animation: scaleDown 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 dialog.reading-log-editor::backdrop {
@@ -37,4 +50,36 @@ dialog.reading-log-editor::backdrop {
 .reading-log-editor input:focus,
 .reading-log-editor textarea:focus {
   box-shadow: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes scaleDown {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
 }

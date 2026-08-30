@@ -30,6 +30,7 @@ export class BookCreateModalComponent {
   readonly saved = output<Book>();
 
   protected readonly isSaving = signal<boolean>(false);
+  protected readonly isClosing = signal<boolean>(false);
   protected readonly coverMode = signal<'url' | 'upload'>('url');
   protected readonly coverPreview = signal<string>('');
 
@@ -69,20 +70,39 @@ export class BookCreateModalComponent {
   }
 
   protected onStatusChange(status: BookStatus): void {
-    if (status !== 'completed') {
-      return;
-    }
-
     const totalPages = Number(this.createForm.get('totalPages')?.value) || 0;
     const currentPage = Number(this.createForm.get('currentPage')?.value) || 0;
     const totalChapters = Number(this.createForm.get('totalChapters')?.value) || 0;
     const currentChapter = Number(this.createForm.get('currentChapter')?.value) || 0;
-
-    this.createForm.patchValue({
-      currentPage: currentPage === 0 ? totalPages : currentPage,
-      currentChapter: currentChapter === 0 ? totalChapters : currentChapter,
-      endDate: this.createForm.get('endDate')?.value || this.getTodayIso()
+    const nextValues = this.getCompletedAutofillValues({
+      status,
+      totalPages,
+      currentPage,
+      totalChapters,
+      currentChapter,
+      endDate: this.createForm.get('endDate')?.value || ''
     });
+
+    this.createForm.patchValue(nextValues);
+  }
+
+  private getCompletedAutofillValues(values: {
+    status: BookStatus | null;
+    totalPages: number;
+    currentPage: number;
+    totalChapters: number;
+    currentChapter: number;
+    endDate: string | null;
+  }): Partial<{ currentPage: number; currentChapter: number; endDate: string }> {
+    if (values.status !== 'completed') {
+      return {};
+    }
+
+    return {
+      currentPage: Math.max(values.currentPage, values.totalPages),
+      currentChapter: Math.max(values.currentChapter, values.totalChapters),
+      endDate: values.endDate || this.getTodayIso()
+    };
   }
 
   protected onCoverModeChange(mode: 'url' | 'upload'): void {
@@ -128,6 +148,24 @@ export class BookCreateModalComponent {
 
   protected async save(): Promise<void> {
     if (this.createForm.invalid || this.isSaving()) return;
+
+    const status = this.createForm.get('status')?.value as BookStatus | null;
+    const totalPages = Number(this.createForm.get('totalPages')?.value) || 0;
+    const currentPage = Number(this.createForm.get('currentPage')?.value) || 0;
+    const totalChapters = Number(this.createForm.get('totalChapters')?.value) || 0;
+    const currentChapter = Number(this.createForm.get('currentChapter')?.value) || 0;
+    const endDate = this.createForm.get('endDate')?.value || '';
+
+    this.createForm.patchValue(
+      this.getCompletedAutofillValues({
+        status,
+        totalPages,
+        currentPage,
+        totalChapters,
+        currentChapter,
+        endDate
+      })
+    );
 
     this.isSaving.set(true);
     const val = this.createForm.getRawValue();
@@ -178,7 +216,12 @@ export class BookCreateModalComponent {
   }
 
   protected cancel(): void {
-    this.closed.emit();
+    if (this.isClosing()) {
+      return;
+    }
+
+    this.isClosing.set(true);
+    window.setTimeout(() => this.closed.emit(), 180);
   }
 
   protected onBackdropClick(event: Event): void {

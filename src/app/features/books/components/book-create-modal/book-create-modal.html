@@ -1,5 +1,6 @@
 <div
   class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+  [class.modal-backdrop--closing]="isClosing()"
   tabindex="-1"
   aria-labelledby="create-modal-title"
   (click)="onBackdropClick($event)"

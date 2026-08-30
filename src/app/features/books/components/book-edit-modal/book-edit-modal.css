@@ -6,13 +6,69 @@
   animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.modal-backdrop > div {
+.modal-backdrop--closing {
+  animation: fadeOut 0.18s ease-in forwards;
+}
+
+.modal-panel {
   animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.modal-backdrop--closing .modal-panel {
+  animation: scaleDown 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.field-select,
+.field-input,
+.field-textarea {
+  width: 100%;
+  border: 1px solid rgb(226 232 240);
+  background: rgb(255, 255, 255);
+  color: rgb(15 23 42);
+  border-radius: 0.875rem;
+  padding: 0.7rem 0.875rem;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.field-select:focus,
+.field-input:focus,
+.field-textarea:focus {
+  outline: none;
+  border-color: rgb(59 130 246);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.select-wrap {
+  position: relative;
+}
+
+.select-wrap::after {
+  content: '';
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid rgb(100 116 139);
+  border-bottom: 2px solid rgb(100 116 139);
+  transform: translateY(-65%) rotate(45deg);
+  pointer-events: none;
+}
+
+.field-select {
+  appearance: none;
+  padding-right: 2.4rem;
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 @keyframes scaleUp {
@@ -23,5 +79,16 @@
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes scaleDown {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
   }
 }

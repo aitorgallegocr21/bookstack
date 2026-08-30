@@ -30,6 +30,7 @@ export class ReadingLogEditorComponent {
 
   protected draft: ReadingLog = this.emptyLog();
   protected readonly isSaving = signal(false);
+  protected readonly isClosing = signal(false);
 
   constructor() {
     effect(() => {
@@ -92,7 +93,12 @@ export class ReadingLogEditorComponent {
   }
 
   protected cancel(): void {
-    this.closed.emit();
+    if (this.isClosing()) {
+      return;
+    }
+
+    this.isClosing.set(true);
+    window.setTimeout(() => this.closed.emit(), 180);
   }
 
   private emptyLog(bookId: string = ''): ReadingLog {

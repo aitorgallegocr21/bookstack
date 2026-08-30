@@ -31,6 +31,7 @@ export class BookDetailModalComponent {
 
   protected readonly showLogEditor = signal<boolean>(false);
   protected readonly editingLog = signal<ReadingLog | undefined>(undefined);
+  protected readonly isClosing = signal<boolean>(false);
 
   protected readonly book = computed<Book | undefined>(() => {
     return this.booksService.books().find((b) => b.id === this.bookId());
@@ -77,7 +78,7 @@ export class BookDetailModalComponent {
 
   protected onBackdropClick(event: Event): void {
     if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
-      this.closed.emit();
+      this.cancel();
     }
   }
 
@@ -96,7 +97,12 @@ export class BookDetailModalComponent {
   }
 
   protected cancel(): void {
-    this.closed.emit();
+    if (this.isClosing()) {
+      return;
+    }
+
+    this.isClosing.set(true);
+    window.setTimeout(() => this.closed.emit(), 180);
   }
 
   protected getStatusLabel(status: BookStatus): string {

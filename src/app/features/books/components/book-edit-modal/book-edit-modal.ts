@@ -12,7 +12,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BooksService } from '../../services/books.service';
-import { Book, BookStatus } from '../../models/book.model';
+import { Book, BookFormat, BookStatus } from '../../models/book.model';
 
 @Component({
   selector: 'app-book-edit-modal',
@@ -47,6 +47,14 @@ export class BookEditModalComponent {
     { value: 'abandoned', label: 'Abandonado' }
   ];
 
+  private normalizeFormatValue(format?: BookFormat | string | null): string {
+    if (typeof format === 'string') {
+      return format.trim() || 'Físico';
+    }
+
+    return format?.name?.trim() || 'Físico';
+  }
+
   // Formulario reactivo tipado
   protected readonly editForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(1)]],
@@ -71,7 +79,7 @@ export class BookEditModalComponent {
           totalPages: currentBook.totalPages,
           currentPage: currentBook.currentPage,
           status: currentBook.status,
-          format: currentBook.format || 'Físico',
+          format: this.normalizeFormatValue(currentBook.format),
           coverUrl: currentBook.coverUrl || '',
           notes: currentBook.notes || ''
         });
@@ -99,7 +107,7 @@ export class BookEditModalComponent {
       totalPages: Number(val.totalPages) || 0,
       currentPage: Number(val.currentPage) || 0,
       status: val.status as BookStatus,
-      format: val.format?.trim() || 'Físico',
+      format: this.normalizeFormatValue(val.format),
       coverUrl: val.coverUrl?.trim() || undefined,
       notes: val.notes?.trim() || undefined,
       updatedAt: new Date().toISOString()

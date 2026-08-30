@@ -15,10 +15,10 @@
   - [x] Implementar animaciones de transición de backdrop y modal.
   - [x] Agregar selector dual de portada (URL externa / Subir archivo local con compresión).
   - [x] Incorporar campos extendidos: ISBN, Editorial, Año, Capítulos, Caracteres, Fechas y Saga/Serie.
-  - [ ] Implementar autocompletado de páginas/capítulos/fechas al cambiar estado a `COMPLETED`.
+  - [x] Implementar autocompletado de páginas/capítulos/fechas al cambiar estado a `COMPLETED`.
   - [ ] Estilizar `<select>` de estado y formato.
-- [ ] 2.2 Refactorizar `BookEditModalComponent` (`.html`, `.ts`, `.css`):
-  - [ ] Replicar la estructura de campos extendidos, portadas locales y autocompletado en `COMPLETED`.
+- [x] 2.2 Refactorizar `BookEditModalComponent` (`.html`, `.ts`, `.css`):
+  - [x] Replicar la estructura de campos extendidos, portadas locales y autocompletado en `COMPLETED`.
 - [ ] 2.3 Actualizar `BookDetailModalComponent` (`.html`, `.ts`):
   - [ ] Mostrar los nuevos metadatos si están presentes (Saga, ISBN, Editorial, Fechas, Capítulos).
 

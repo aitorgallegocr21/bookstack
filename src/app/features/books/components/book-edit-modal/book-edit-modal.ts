@@ -6,12 +6,12 @@ import {
   output,
   signal,
   computed,
-  effect,
-  HostListener
+  effect
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BooksService } from '../../services/books.service';
+import { ImageOptimizerService } from '../../services/image-optimizer.service';
 import { Book, BookFormat, BookStatus } from '../../models/book.model';
 
 @Component({
@@ -24,6 +24,7 @@ import { Book, BookFormat, BookStatus } from '../../models/book.model';
 })
 export class BookEditModalComponent {
   private readonly booksService = inject(BooksService);
+  private readonly imageOptimizerService = inject(ImageOptimizerService);
   private readonly fb = inject(FormBuilder);
 
   // Inputs y Outputs reactivos nativos de Angular 18+
@@ -34,6 +35,8 @@ export class BookEditModalComponent {
   // Estado local
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
+  protected readonly coverMode = signal<'url' | 'upload'>('url');
+  protected readonly coverPreview = signal<string>('');
 
   // Búsqueda declarativa del libro actual mediante Signal computed
   protected readonly book = computed<Book | undefined>(() => {
@@ -60,17 +63,25 @@ export class BookEditModalComponent {
   protected readonly editForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(1)]],
     author: ['', [Validators.required, Validators.minLength(1)]],
+    isbn: [''],
+    publisher: [''],
+    publicationYear: [null as number | null],
     totalPages: [0, [Validators.required, Validators.min(0)]],
     currentPage: [0, [Validators.required, Validators.min(0)]],
+    totalCharacters: [0, [Validators.min(0)]],
     totalChapters: [0, [Validators.min(0)]],
     currentChapter: [0, [Validators.min(0)]],
-    totalCharacters: [0, [Validators.min(0)]],
-    status: ['pending' as BookStatus, [Validators.required]],
     format: ['Físico'],
+    status: ['pending' as BookStatus, [Validators.required]],
     coverUrl: [''],
     startDate: [''],
     endDate: [''],
-    notes: ['']
+    rating: [0, [Validators.min(0), Validators.max(5)]],
+    notes: [''],
+    seriesEnabled: [false],
+    seriesName: [''],
+    seriesVolumeNumber: [null as number | null],
+    coverSource: ['url']
   });
 
   constructor() {
@@ -86,9 +97,15 @@ export class BookEditModalComponent {
           endDate: currentBook.endDate || ''
         });
 
+        this.coverPreview.set(currentBook.coverUrl || '');
+        const hasSeries = Boolean(currentBook.series);
+
         this.editForm.patchValue({
           title: currentBook.title,
           author: currentBook.author,
+          isbn: currentBook.isbn || '',
+          publisher: currentBook.publisher || '',
+          publicationYear: currentBook.publicationYear || null,
           totalPages: currentBook.totalPages,
           currentPage: completedValues.currentPage ?? currentBook.currentPage,
           totalChapters: currentBook.totalChapters ?? 0,
@@ -98,28 +115,77 @@ export class BookEditModalComponent {
           format: this.normalizeFormatValue(currentBook.format),
           coverUrl: currentBook.coverUrl || '',
           startDate: currentBook.startDate || '',
+          endDate: completedValues.endDate ?? (currentBook.endDate || ''),
+          rating: currentBook.rating || 0,
           notes: currentBook.notes || '',
-          endDate: completedValues.endDate ?? (currentBook.endDate || '')
+          seriesEnabled: hasSeries,
+          seriesName: currentBook.series?.name || '',
+          seriesVolumeNumber: currentBook.series?.volumeNumber || null,
+          coverSource: 'url'
         });
       }
     });
   }
 
   protected onStatusChange(status: BookStatus): void {
-    const values = this.editForm.getRawValue();
+    const totalPages = Number(this.editForm.get('totalPages')?.value) || 0;
+    const currentPage = Number(this.editForm.get('currentPage')?.value) || 0;
+    const totalChapters = Number(this.editForm.get('totalChapters')?.value) || 0;
+    const currentChapter = Number(this.editForm.get('currentChapter')?.value) || 0;
     const nextValues = this.getCompletedAutofillValues({
       status,
-      totalPages: Number(values.totalPages) || 0,
-      currentPage: Number(values.currentPage) || 0,
-      totalChapters: Number(values.totalChapters) || 0,
-      currentChapter: Number(values.currentChapter) || 0,
-      endDate: values.endDate || ''
+      totalPages,
+      currentPage,
+      totalChapters,
+      currentChapter,
+      endDate: this.editForm.get('endDate')?.value || ''
     });
 
     this.editForm.patchValue({
       ...nextValues,
       status
     });
+  }
+
+  protected onCoverModeChange(mode: 'url' | 'upload'): void {
+    this.coverMode.set(mode);
+    this.editForm.patchValue({ coverSource: mode });
+
+    if (mode === 'url') {
+      this.editForm.patchValue({ coverUrl: this.coverPreview() || '' });
+      return;
+    }
+
+    if (!this.coverPreview()) {
+      this.editForm.patchValue({ coverUrl: '' });
+    }
+  }
+
+  protected async onCoverSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const optimizedCover = await this.imageOptimizerService.optimize(file);
+      this.coverPreview.set(optimizedCover);
+      this.editForm.patchValue({ coverUrl: optimizedCover });
+      this.coverMode.set('upload');
+    } catch (error) {
+      console.error('Error al optimizar la portada:', error);
+      this.coverPreview.set('');
+      this.editForm.patchValue({ coverUrl: '' });
+    } finally {
+      input.value = '';
+    }
+  }
+
+  protected clearCover(): void {
+    this.coverPreview.set('');
+    this.editForm.patchValue({ coverUrl: '' });
   }
 
   private getCompletedAutofillValues(values: {
@@ -139,12 +205,6 @@ export class BookEditModalComponent {
       currentChapter: Math.max(values.currentChapter, values.totalChapters),
       endDate: values.endDate || this.getTodayIso()
     };
-  }
-
-  @HostListener('document:keydown.escape', ['$event'])
-  protected handleEscape(event: Event): void {
-    event.preventDefault();
-    this.cancel();
   }
 
   protected async save(): Promise<void> {
@@ -170,20 +230,34 @@ export class BookEditModalComponent {
     );
 
     this.isSaving.set(true);
-    const val = this.editForm.value;
+    const val = this.editForm.getRawValue();
+
+    const hasSeries = Boolean(val.seriesEnabled) && Boolean(val.seriesName?.trim());
+    const series = hasSeries
+      ? {
+          id: currentBook.series?.id || crypto.randomUUID(),
+          name: val.seriesName!.trim(),
+          volumeNumber: val.seriesVolumeNumber ? Number(val.seriesVolumeNumber) : undefined
+        }
+      : undefined;
 
     const updatedBook: Book = {
       ...currentBook,
       title: val.title!.trim(),
       author: val.author!.trim(),
+      isbn: val.isbn?.trim() || undefined,
+      publisher: val.publisher?.trim() || undefined,
+      publicationYear: val.publicationYear ? Number(val.publicationYear) : undefined,
       totalPages: Number(val.totalPages) || 0,
       currentPage: Number(val.currentPage) || 0,
-      totalChapters: Number(val.totalChapters) || 0,
-      currentChapter: Number(val.currentChapter) || 0,
-      totalCharacters: Number(val.totalCharacters) || 0,
+      totalCharacters: val.totalCharacters ? Number(val.totalCharacters) : undefined,
+      totalChapters: val.totalChapters ? Number(val.totalChapters) : undefined,
+      currentChapter: val.currentChapter ? Number(val.currentChapter) : undefined,
       status: val.status as BookStatus,
       format: this.normalizeFormatValue(val.format),
-      coverUrl: val.coverUrl?.trim() || undefined,
+      series,
+      coverUrl: val.coverUrl?.trim() || this.coverPreview() || undefined,
+      rating: val.rating ? Number(val.rating) : undefined,
       startDate: val.startDate || undefined,
       endDate: val.endDate || undefined,
       notes: val.notes?.trim() || undefined,
@@ -214,6 +288,10 @@ export class BookEditModalComponent {
     if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
       this.cancel();
     }
+  }
+
+  protected handleEscape(): void {
+    this.cancel();
   }
 
   private getTodayIso(): string {

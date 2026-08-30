@@ -4,152 +4,253 @@
   tabindex="-1"
   aria-labelledby="edit-modal-title"
   (click)="onBackdropClick($event)"
-  (keydown)="onBackdropClick($event)"
+  (keydown.escape)="handleEscape()"
 >
-  <div class="modal-panel relative w-full max-w-lg max-h-[90dvh] overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-2xl flex flex-col">
-
-    @if (book(); as currentBook) {
-      <div class="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
-        <div>
-          <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Edición</span>
-          <h2 id="edit-modal-title" class="text-xl font-bold text-slate-900 leading-tight">Editar datos del libro</h2>
-        </div>
-
-        <button
-          type="button"
-          (click)="cancel()"
-          class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 rounded-lg transition-colors"
-          aria-label="Cerrar modal"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
+  <div class="modal-panel relative w-full max-w-2xl max-h-[90dvh] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+    <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4">
+      <div>
+        <p class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400">Biblioteca</p>
+        <h2 id="edit-modal-title" class="text-xl font-bold text-slate-900">Editar datos del libro</h2>
       </div>
 
-      <form [formGroup]="editForm" (ngSubmit)="save()" class="flex-1 overflow-y-auto p-6 space-y-4">
-        <div>
-          <label for="edit-book-title" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
-            Título <span class="text-red-500">*</span>
-          </label>
-          <input
-            id="edit-book-title"
-            type="text"
-            formControlName="title"
-            placeholder="Título del libro"
-            class="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/20"
-          />
-        </div>
+      <button
+        type="button"
+        (click)="cancel()"
+        class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-700"
+        aria-label="Cerrar modal"
+      >
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
 
-        <div>
-          <label for="edit-book-author" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
-            Autor <span class="text-red-500">*</span>
-          </label>
-          <input
-            id="edit-book-author"
-            type="text"
-            formControlName="author"
-            placeholder="Autor del libro"
-            class="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/20"
-          />
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label for="edit-book-format" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Formato</label>
-            <div class="select-wrap">
-              <select
-                id="edit-book-format"
-                title="Formato del libro"
-                formControlName="format"
-                class="field-select"
-              >
-                <option value="Físico">Físico</option>
-                <option value="Ebook">Ebook</option>
-                <option value="Audiolibro">Audiolibro</option>
-              </select>
+    @if (book(); as currentBook) {
+      <form [formGroup]="editForm" (ngSubmit)="save()" class="modal-form flex max-h-[calc(90dvh-76px)] flex-col">
+        <div class="space-y-5 overflow-y-auto p-6">
+          <section class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-2.5 w-2.5 rounded-full bg-blue-500"></span>
+              <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700">Información básica</h3>
             </div>
-          </div>
 
-          <div>
-            <label for="edit-book-status" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Estado</label>
-            <div class="select-wrap">
-              <select
-                id="edit-book-status"
-                title="Estado del libro"
-                formControlName="status"
-                class="field-select"
-                (change)="onStatusChange($any($event.target).value)"
-              >
-                @for (opt of statusOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
+            <div>
+              <label for="edit-book-title" class="field-label">
+                Título <span class="text-red-500">*</span>
+              </label>
+              <input id="edit-book-title" type="text" formControlName="title" placeholder="Ej. El problema de los tres cuerpos" class="field-input" />
             </div>
-          </div>
+
+            <div>
+              <label for="edit-book-author" class="field-label">
+                Autor <span class="text-red-500">*</span>
+              </label>
+              <input id="edit-book-author" type="text" formControlName="author" placeholder="Ej. Cixin Liu" class="field-input" />
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label for="edit-book-isbn" class="field-label">ISBN</label>
+                <input id="edit-book-isbn" type="text" formControlName="isbn" placeholder="978-84-..." class="field-input" />
+              </div>
+              <div>
+                <label for="edit-book-publication-year" class="field-label">Año</label>
+                <input id="edit-book-publication-year" type="number" min="0" formControlName="publicationYear" placeholder="2025" class="field-input" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label for="edit-book-publisher" class="field-label">Editorial</label>
+                <input id="edit-book-publisher" type="text" formControlName="publisher" placeholder="Nombre de la editorial" class="field-input" />
+              </div>
+              <div>
+                <label for="edit-book-format" class="field-label">Formato</label>
+                <div class="select-wrap">
+                  <select id="edit-book-format" title="Formato del libro" formControlName="format" class="field-select">
+                    <option value="Físico">Físico</option>
+                    <option value="Ebook">Ebook</option>
+                    <option value="Audiolibro">Audiolibro</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+              <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700">Progreso y formato</h3>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label for="edit-book-status" class="field-label">Estado</label>
+                <div class="select-wrap">
+                  <select
+                    id="edit-book-status"
+                    title="Estado del libro"
+                    formControlName="status"
+                    class="field-select"
+                    (change)="onStatusChange($any($event.target).value)"
+                  >
+                    @for (opt of statusOptions; track opt.value) {
+                      <option [value]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label for="edit-book-rating" class="field-label">Valoración</label>
+                <input id="edit-book-rating" type="number" min="0" max="5" step="0.5" formControlName="rating" placeholder="0 - 5" class="field-input" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label for="edit-book-total-pages" class="field-label">Páginas totales</label>
+                <input id="edit-book-total-pages" type="number" min="0" formControlName="totalPages" class="field-input" />
+              </div>
+              <div>
+                <label for="edit-book-current-pages" class="field-label">Páginas leídas</label>
+                <input id="edit-book-current-pages" type="number" min="0" formControlName="currentPage" class="field-input" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label for="edit-book-total-chapters" class="field-label">Capítulos totales</label>
+                <input id="edit-book-total-chapters" type="number" min="0" formControlName="totalChapters" class="field-input" />
+              </div>
+              <div>
+                <label for="edit-book-current-chapter" class="field-label">Capítulos leídos</label>
+                <input id="edit-book-current-chapter" type="number" min="0" formControlName="currentChapter" class="field-input" />
+              </div>
+            </div>
+
+            <div>
+              <label for="edit-book-total-characters" class="field-label">Total de caracteres</label>
+              <input id="edit-book-total-characters" type="number" min="0" formControlName="totalCharacters" class="field-input" />
+            </div>
+          </section>
+
+          <section class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-2.5 w-2.5 rounded-full bg-violet-500"></span>
+              <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700">Saga / serie</h3>
+            </div>
+
+            <label class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+              <input type="checkbox" formControlName="seriesEnabled" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+              Pertenece a una saga
+            </label>
+
+            @if (editForm.get('seriesEnabled')?.value) {
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="edit-book-series-name" class="field-label">Nombre de serie</label>
+                  <input id="edit-book-series-name" type="text" formControlName="seriesName" placeholder="Ej. Trilogía de la Fundación" class="field-input" />
+                </div>
+                <div>
+                  <label for="edit-book-series-volume" class="field-label">Número de volumen</label>
+                  <input id="edit-book-series-volume" type="number" min="1" formControlName="seriesVolumeNumber" placeholder="1" class="field-input" />
+                </div>
+              </div>
+            }
+          </section>
+
+          <section class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+              <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700">Fechas y portada</h3>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label for="edit-book-start-date" class="field-label">Fecha inicio</label>
+                <input id="edit-book-start-date" type="date" formControlName="startDate" class="field-input" />
+              </div>
+              <div>
+                <label for="edit-book-end-date" class="field-label">Fecha fin</label>
+                <input id="edit-book-end-date" type="date" formControlName="endDate" class="field-input" />
+              </div>
+            </div>
+
+            <div>
+              <label class="field-label">Portada</label>
+              <div class="flex gap-2 rounded-xl border border-slate-200 bg-white p-1">
+                <button
+                  type="button"
+                  class="flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                  [class.bg-slate-900]="coverMode() === 'url'"
+                  [class.text-white]="coverMode() === 'url'"
+                  [class.text-slate-600]="coverMode() !== 'url'"
+                  [class.hover:bg-slate-100]="coverMode() !== 'url'"
+                  (click)="onCoverModeChange('url')"
+                >
+                  URL web
+                </button>
+                <button
+                  type="button"
+                  class="flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                  [class.bg-slate-900]="coverMode() === 'upload'"
+                  [class.text-white]="coverMode() === 'upload'"
+                  [class.text-slate-600]="coverMode() !== 'upload'"
+                  [class.hover:bg-slate-100]="coverMode() !== 'upload'"
+                  (click)="onCoverModeChange('upload')"
+                >
+                  Subir archivo
+                </button>
+              </div>
+            </div>
+
+            @if (coverMode() === 'url') {
+              <div>
+                <label for="edit-book-cover-url" class="field-label">URL de portada</label>
+                <input id="edit-book-cover-url" type="url" formControlName="coverUrl" placeholder="https://..." class="field-input" />
+              </div>
+            } @else {
+              <div class="space-y-3">
+                <label for="edit-book-cover-file" class="field-label">Archivo local</label>
+                <input id="edit-book-cover-file" type="file" accept="image/png,image/jpeg,image/webp,image/avif" class="field-file" (change)="onCoverSelected($event)" />
+              </div>
+            }
+
+            @if (coverPreview() || editForm.get('coverUrl')?.value) {
+              <div class="rounded-2xl border border-slate-200 bg-white p-3">
+                <div class="mb-2 flex items-center justify-between">
+                  <span class="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Previsualización</span>
+                  <button type="button" (click)="clearCover()" class="text-xs font-medium text-rose-600 hover:text-rose-700">Eliminar</button>
+                </div>
+                <img
+                  [src]="coverPreview() || editForm.get('coverUrl')?.value"
+                  alt="Previsualización de la portada"
+                  class="h-40 w-full rounded-xl object-cover shadow-sm"
+                />
+              </div>
+            }
+          </section>
+
+          <section class="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-2.5 w-2.5 rounded-full bg-rose-500"></span>
+              <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700">Notas</h3>
+            </div>
+
+            <textarea
+              formControlName="notes"
+              rows="3"
+              placeholder="Sinopsis, expectativas o notas personales..."
+              class="field-textarea"
+            ></textarea>
+          </section>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label for="edit-book-total-pages" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Total Páginas</label>
-            <input
-              id="edit-book-total-pages"
-              type="number"
-              formControlName="totalPages"
-              min="0"
-              placeholder="0"
-              class="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/20"
-            />
-          </div>
-
-          <div>
-            <label for="edit-book-current-page" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Página Actual</label>
-            <input
-              id="edit-book-current-page"
-              type="number"
-              formControlName="currentPage"
-              min="0"
-              placeholder="0"
-              class="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/20"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label for="edit-book-cover-url" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">URL de Portada</label>
-          <input
-            id="edit-book-cover-url"
-            type="url"
-            formControlName="coverUrl"
-            placeholder="https://..."
-            class="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/20"
-          />
-        </div>
-
-        <div>
-          <label for="edit-book-notes" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Notas / Observaciones</label>
-          <textarea
-            id="edit-book-notes"
-            formControlName="notes"
-            rows="3"
-            placeholder="Notas del libro..."
-            class="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/20 resize-none"
-          ></textarea>
-        </div>
-
-        <div class="flex-shrink-0 flex items-center justify-end gap-3 pt-4 border-t border-slate-200 bg-white px-6 py-4">
-          <button
-            type="button"
-            (click)="cancel()"
-            class="px-4 py-2 rounded-full border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs transition-colors"
-          >
+        <div class="flex items-center justify-end gap-3 border-t border-slate-200 bg-white px-6 py-4">
+          <button type="button" (click)="cancel()" class="rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100">
             Cancelar
           </button>
-          <button
-            type="submit"
-            [disabled]="editForm.invalid || isSaving()"
-            class="px-5 py-2 rounded-full bg-slate-900 hover:bg-slate-800 text-white disabled:opacity-50 font-bold text-xs transition-colors shadow-sm"
-          >
+          <button type="submit" [disabled]="editForm.invalid || isSaving()" class="rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:opacity-50">
             {{ isSaving() ? 'Guardando...' : 'Guardar cambios' }}
           </button>
         </div>

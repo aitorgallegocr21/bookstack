@@ -3,7 +3,7 @@
 }
 
 .modal-backdrop {
-  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.2s ease-out forwards;
 }
 
 .modal-backdrop--closing {
@@ -18,12 +18,29 @@
   animation: scaleDown 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-.field-select,
+.modal-form {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(148 163 184) transparent;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(71 85 105);
+}
+
 .field-input,
-.field-textarea {
+.field-textarea,
+.field-select,
+.field-file {
   width: 100%;
   border: 1px solid rgb(226 232 240);
-  background: rgb(255, 255, 255);
+  background: rgb(255 255 255);
   color: rgb(15 23 42);
   border-radius: 0.875rem;
   padding: 0.7rem 0.875rem;
@@ -31,12 +48,18 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-.field-select:focus,
 .field-input:focus,
-.field-textarea:focus {
+.field-textarea:focus,
+.field-select:focus,
+.field-file:focus {
   outline: none;
   border-color: rgb(59 130 246);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.field-textarea {
+  resize: vertical;
+  min-height: 120px;
 }
 
 .select-wrap {
@@ -59,6 +82,11 @@
 .field-select {
   appearance: none;
   padding-right: 2.4rem;
+}
+
+.field-file {
+  padding: 0.75rem 0.9rem;
+  background: rgb(255 255 255);
 }
 
 @keyframes fadeIn {

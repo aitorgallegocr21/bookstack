@@ -6,7 +6,6 @@ import {
   output,
   signal,
   computed,
-  HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BooksService } from '../../services/books.service';
@@ -32,6 +31,7 @@ export class BookDetailModalComponent {
 
   protected readonly showLogEditor = signal<boolean>(false);
   protected readonly editingLog = signal<ReadingLog | undefined>(undefined);
+  protected readonly isClosing = signal<boolean>(false);
 
   protected readonly book = computed<Book | undefined>(() => {
     return this.booksService.books().find((b) => b.id === this.bookId());
@@ -50,12 +50,6 @@ export class BookDetailModalComponent {
     if (!currentBook || currentBook.totalPages <= 0) return 0;
     return Math.min(100, Math.round((currentBook.currentPage / currentBook.totalPages) * 100));
   });
-
-  @HostListener('document:keydown.escape', ['$event'])
-  protected handleEscape(event: Event): void {
-    event.preventDefault();
-    this.cancel();
-  }
 
   protected onRequestEdit(): void {
     this.editRequested.emit(this.bookId());
@@ -84,26 +78,31 @@ export class BookDetailModalComponent {
 
   protected onBackdropClick(event: Event): void {
     if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
-      this.closed.emit();
+      this.cancel();
     }
   }
 
   protected getStatusBadgeClass(status: BookStatus): string {
     switch (status) {
       case 'reading':
-        return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
+        return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'completed':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'abandoned':
-        return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800';
+        return 'bg-red-50 text-red-700 border-red-200';
       case 'pending':
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+        return 'bg-slate-100 text-slate-700 border-slate-200';
     }
   }
 
   protected cancel(): void {
-    this.closed.emit();
+    if (this.isClosing()) {
+      return;
+    }
+
+    this.isClosing.set(true);
+    window.setTimeout(() => this.closed.emit(), 180);
   }
 
   protected getStatusLabel(status: BookStatus): string {
@@ -113,5 +112,31 @@ export class BookDetailModalComponent {
       case 'abandoned': return 'Abandonado';
       case 'pending': return 'Pendiente';
     }
+  }
+
+  protected getSeriesLabel(book?: Book): string {
+    if (!book?.series?.name) {
+      return '';
+    }
+
+    const volume = book.series.volumeNumber ? ` · Vol. ${book.series.volumeNumber}` : '';
+    return `${book.series.name}${volume}`;
+  }
+
+  protected formatDate(date?: string): string {
+    if (!date) {
+      return '';
+    }
+
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) {
+      return date;
+    }
+
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    }).format(parsed);
   }
 }

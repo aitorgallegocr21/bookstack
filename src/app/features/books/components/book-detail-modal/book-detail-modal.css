@@ -2,14 +2,20 @@
   display: block;
 }
 
-/* Animación de entrada suave para el fondo translúcido */
 .modal-backdrop {
   animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Animación de escala y elevación para la tarjeta modal */
-.modal-backdrop > div {
+.modal-backdrop--closing {
+  animation: fadeOut 0.18s ease-in forwards;
+}
+
+.modal-panel {
   animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.modal-backdrop--closing .modal-panel {
+  animation: scaleDown 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @keyframes fadeIn {
@@ -21,6 +27,15 @@
   }
 }
 
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes scaleUp {
   from {
     opacity: 0;
@@ -28,6 +43,18 @@
   }
   to {
     opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes scaleDown {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
   }
 }
 

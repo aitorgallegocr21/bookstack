@@ -5,10 +5,11 @@ import {
   signal,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { BooksService } from '../../services/books.service';
 import { ReadingStatsService } from '../../services/reading-stats.service';
 import { ReadingLogService } from '../../services/reading-log.service';
-import { Book, ReadingLog } from '../../models/book.model';
+import { Book, BookStatus, ReadingLog, BOOK_STATUS_CONFIG, BOOK_STATUS_LABELS } from '../../models/book.model';
 import { BookCreateModalComponent } from '../../components/book-create-modal/book-create-modal';
 import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
 import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
@@ -18,6 +19,7 @@ import { ReadingLogEditorComponent } from '../../components/reading-log-editor/r
   selector: 'app-books-page',
   standalone: true,
   imports: [
+    CommonModule,
     BookCreateModalComponent,
     BookEditModalComponent,
     BookDetailModalComponent,
@@ -31,6 +33,10 @@ export class BooksPage {
   private readonly booksService = inject(BooksService);
   private readonly readingStatsService = inject(ReadingStatsService);
   private readonly readingLogService = inject(ReadingLogService);
+
+  // Exportar constantes de presentación para uso en templates
+  protected readonly BOOK_STATUS_CONFIG = BOOK_STATUS_CONFIG;
+  protected readonly BOOK_STATUS_LABELS = BOOK_STATUS_LABELS;
 
   protected readonly books = this.booksService.books;
   protected readonly readingLogs = this.readingLogService.readingLogs;
@@ -136,5 +142,20 @@ export class BooksPage {
     } catch (error) {
       console.error('Error al borrar la sesión de lectura:', error);
     }
+  }
+
+  /**
+   * Helper puro para resolver las clases de insignia de estado de manera consistente.
+   * Utiliza la configuración centralizada de BOOK_STATUS_CONFIG.
+   */
+  protected getStatusBadgeClass(status: BookStatus): string {
+    return BOOK_STATUS_CONFIG[status].badgeClass;
+  }
+
+  /**
+   * Helper para obtener el color de la barra de progreso según el estado.
+   */
+  protected getStatusBarColor(status: BookStatus): string {
+    return BOOK_STATUS_CONFIG[status].dotClass.replace('bg-', '');
   }
 }

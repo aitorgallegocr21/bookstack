@@ -5,6 +5,7 @@ import {
   output,
   effect,
   signal,
+  HostListener,
   ChangeDetectionStrategy
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -29,6 +30,7 @@ export class ReadingLogEditorComponent {
 
   protected draft: ReadingLog = this.emptyLog();
   protected readonly isSaving = signal(false);
+  protected readonly isClosing = signal(false);
 
   constructor() {
     effect(() => {
@@ -41,6 +43,18 @@ export class ReadingLogEditorComponent {
         this.draft = this.emptyLog(currentBookId);
       }
     });
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  protected handleEscape(event: Event): void {
+    event.preventDefault();
+    this.cancel();
+  }
+
+  protected onBackdropClick(event: Event): void {
+    if (event.target === event.currentTarget) {
+      this.cancel();
+    }
   }
 
   protected async save(): Promise<void> {
@@ -79,7 +93,12 @@ export class ReadingLogEditorComponent {
   }
 
   protected cancel(): void {
-    this.closed.emit();
+    if (this.isClosing()) {
+      return;
+    }
+
+    this.isClosing.set(true);
+    window.setTimeout(() => this.closed.emit(), 180);
   }
 
   private emptyLog(bookId: string = ''): ReadingLog {

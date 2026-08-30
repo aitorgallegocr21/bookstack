@@ -1,72 +1,60 @@
-You are an expert in TypeScript, Angular, and scalable web application development. You write functional, maintainable, performant, and accessible code following Angular and TypeScript best practices.
+# Directrices Globales de Desarrollo y Agentes IA
 
-## TypeScript Best Practices
+Este repositorio utiliza una arquitectura multi-agente modular y desarrollo guiado por especificaciones.
 
-- Use strict type checking
-- Prefer type inference when the type is obvious
-- Avoid the `any` type; use `unknown` when type is uncertain
+---
 
-## Angular Best Practices
+## 1. Identidad y Principios Inviolables
+- **Calidad de Código:** Escribe código TypeScript/Angular funcional, tipado de forma estricta, mantenible, accesible y performante.
+- **Prohibiciones Absolutas:**
+  - PROHIBIDO el uso de `any` (usa tipos explícitos, genéricos o `unknown`).
+  - PROHIBIDO modificar archivos fuera del alcance definido en la tarea activa (`TASK`).
+  - PROHIBIDO dejar código simulado o comentarios tipo `// TODO`. Implementaciones completas y funcionales.
+  - PROHIBIDO instalar dependencias (`npm i`) sin aprobación explícita.
+- **Acceso a Contexto Just-In-Time (JIT):**
+  - Consulta `CONTEXT.md` para el mapa técnico y arquitectónico.
+  - Lee únicamente los archivos fuente relevantes para la tarea asignada.
 
-- Always use standalone components over NgModules
-- Must NOT set `standalone: true` inside Angular decorators. It's the default in Angular v20+.
-- Do NOT set `changeDetection: ChangeDetectionStrategy.OnPush` explicitly. `OnPush` is the default in Angular v22+.
-- Use signals for state management
-- Implement lazy loading for feature routes
-- Do NOT use the `@HostBinding` and `@HostListener` decorators. Put host bindings inside the `host` object of the `@Component` or `@Directive` decorator instead
-- Use `NgOptimizedImage` for all static images.
-  - `NgOptimizedImage` does not work for inline base64 images.
+---
 
-## Accessibility Requirements
+## 2. Convenciones de Desarrollo (Angular v18+)
 
-- It MUST pass all AXE checks.
-- It MUST follow all WCAG AA minimums, including focus management, color contrast, and ARIA attributes.
+### Componentes y Vistas
+- **Standalone:** Todos los componentes, directivas y pipes son Standalone por defecto.
+- **Control Flow:** Uso obligatorio de `@if`, `@for (track item.id)` y `@switch`. Prohibido el uso de `*ngIf`, `*ngFor`.
+- **Signal Inputs/Outputs:** Usa `input()`, `output()` y `model()` en lugar de los decoradores `@Input()`, `@Output()`.
+- **Host Bindings:** Usa el objeto `host: { ... }` del decorador `@Component` / `@Directive`. Prohibido `@HostBinding` y `@HostListener`.
+- **Imágenes:** Usa `NgOptimizedImage` para imágenes estáticas (no aplica a base64).
+- **Estilos:** Tailwind CSS. Prohibido `ngClass` o `ngStyle`; usa bindings nativos `[class]` y `[style]`.
 
-### Components
+### Reactividad y Estado
+- **Signals:** Estado local gestionado con `signal()`, derivadas con `computed()` y efectos con `effect()`.
+- **Inmutabilidad:** Actualiza signals usando `.set()` o `.update()`. Prohibido mutar estado directamente.
+- **Servicios:** Registro mediante `@Injectable({ providedIn: 'root' })` e inyección de dependencias con `inject()`.
 
-- Keep components small and focused on a single responsibility
-- Use `input()` and `output()` functions instead of decorators
-- Use `model()` for two-way bound properties with `[(prop)]` syntax instead of pairing `input()` with `output()`
-- Use `computed()` for derived state
-- Use `linkedSignal()` for state derived from multiple reactive sources that must stay synchronized
-- Prefer inline templates for small components
-- Prefer Signal Forms (`@angular/forms/signals`) for new forms. They are stable in Angular v22+ and provide signal-based state, type-safe field access, and schema-based validation
-- When not using Signal Forms, prefer Reactive forms instead of Template-driven ones
-- Do NOT use `ngClass`, use `class` bindings instead
-- Do NOT use `ngStyle`, use `style` bindings instead
-- When using external templates/styles, use paths relative to the component TS file.
+### Accesibilidad (a11y)
+- Cumplimiento estricto de **WCAG AA** y validación con reglas AXE.
+- HTML semántico obligatorio (`<main>`, `<section>`, `<article>`, `<button>`, `<header>`).
 
-## State Management
+---
 
-- Use signals for local component state
-- Use `computed()` for derived state
-- Keep state transformations pure and predictable
-- Do NOT use `mutate` on signals, use `update` or `set` instead
+## 3. Orquestación Multi-Agente (.agent/)
 
-## Templates
+Activa el rol correspondiente según la fase del trabajo:
 
-- Keep templates simple and avoid complex logic
-- Use native control flow (`@if`, `@for`, `@switch`) instead of `*ngIf`, `*ngFor`, `*ngSwitch`
-- Use the async pipe to handle observables
-- Do not assume globals like (`new Date()`) are available.
+| Rol | Archivo de Instrucciones | Responsabilidad Principal |
+| :--- | :--- | :--- |
+| **Arquitecto** | `.agent/01_architect.md` | Diseño técnico, redacción de `SPEC.md` y desglose de `TASK.md`. |
+| **Frontend** | `.agent/02_frontend.md` | Implementación de componentes, templates Tailwind y servicios en Angular. |
+| **Reviewer** | `.agent/03_reviewer.md` | Auditoría de código, verificación de estándares y cobertura de tests. |
+| **Git / GitHub** | `.agent/04_git_github.md` | Control de versiones, Conventional Commits y preparación de PRs. |
 
-## Services
+---
 
-- Design services around a single responsibility
-- Use the `providedIn: 'root'` option for singleton services
-- Prefer the `@Service` decorator over `@Injectable({providedIn: 'root'})` for new singleton services (Angular v22+)
-- Use the `inject()` function instead of constructor injection
+## 4. Ciclo de Trabajo Obligatorio
 
-# BOOKSTACK - MULTI-AGENT INSTRUCTIONS
-
-Este repositorio utiliza un sistema de agentes especializados definido en la carpeta `.agent/`.
-Cualquier asistente de IA debe consultar `CONTEXT.md` para el estado del proyecto y aplicar el rol correspondiente según la tarea:
-
-1. **Arquitectura y Documentación:** `.agent/01_architect.md`
-2. **Desarrollo Frontend (Angular/Tailwind):** `.agent/02_frontend.md`
-3. **Revisión de Código y QA:** `.agent/03_reviewer.md`
-4. **Estrategia Git y GitHub:** `.agent/04_git_github.md`
-
-> **Instrucción general para la IA:** Lee siempre `CONTEXT.md` antes de proponer cambios o generar código.
-> **Instrucción de continuidad de la feature:** Lee siempre el plan operativo activo en `docs/feature-book-domain-workplan.md` para identificar el estado operativo actual de la feature y para actualizarlo con cada cambio relevante que se aplique al proyecto.
-> **Regla de documentación:** Si el agente toca arquitectura, modelos de dominio, routing, servicios o UI de la feature, debe reflejar el estado actualizado en `docs/feature-book-domain-workplan.md` y en el documento principal de contexto cuando se altere la especificación base.
+1. **Requisitos (SPEC):** Define el alcance, entradas, salidas y criterios de aceptación en `docs/feature-*/SPEC/SPEC-XXX.md`.
+2. **Planificación (TASK):** Desglosa la SPEC en tareas atómicas y secuenciales en un plan de trabajo.
+3. **Ejecución (Coding):** El agente de Frontend implementa una única tarea atómica a la vez.
+4. **Verificación:** Ejecuta linters y tests antes de finalizar la tarea.
+5. **Commit:** Aplica Conventional Commits (`feat:`, `fix:`, `refactor:`, `test:`).

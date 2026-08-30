@@ -113,4 +113,30 @@ export class BookDetailModalComponent {
       case 'pending': return 'Pendiente';
     }
   }
+
+  protected getSeriesLabel(book?: Book): string {
+    if (!book?.series?.name) {
+      return '';
+    }
+
+    const volume = book.series.volumeNumber ? ` · Vol. ${book.series.volumeNumber}` : '';
+    return `${book.series.name}${volume}`;
+  }
+
+  protected formatDate(date?: string): string {
+    if (!date) {
+      return '';
+    }
+
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) {
+      return date;
+    }
+
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    }).format(parsed);
+  }
 }

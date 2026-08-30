@@ -19,8 +19,8 @@
   - [ ] Estilizar `<select>` de estado y formato.
 - [x] 2.2 Refactorizar `BookEditModalComponent` (`.html`, `.ts`, `.css`):
   - [x] Replicar la estructura de campos extendidos, portadas locales y autocompletado en `COMPLETED`.
-- [ ] 2.3 Actualizar `BookDetailModalComponent` (`.html`, `.ts`):
-  - [ ] Mostrar los nuevos metadatos si están presentes (Saga, ISBN, Editorial, Fechas, Capítulos).
+- [x] 2.3 Actualizar `BookDetailModalComponent` (`.html`, `.ts`):
+  - [x] Mostrar los nuevos metadatos si están presentes (Saga, ISBN, Editorial, Fechas, Capítulos).
 
 ### Fase 3: Modernización de UI en Página Principal
 - [ ] 3.1 Rediseñar el botón "+ Añadir libro" en `BooksPageComponent` (`books-page.html`).

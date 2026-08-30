@@ -96,6 +96,77 @@
           </div>
         </div>
 
+        <section class="pt-4 border-t border-slate-100 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Detalles del libro
+            </h3>
+          </div>
+
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            @if (currentBook.isbn) {
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">ISBN</p>
+                <p class="mt-1 text-sm font-semibold text-slate-800">{{ currentBook.isbn }}</p>
+              </div>
+            }
+
+            @if (currentBook.publisher) {
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Editorial</p>
+                <p class="mt-1 text-sm font-semibold text-slate-800">{{ currentBook.publisher }}</p>
+              </div>
+            }
+
+            @if (currentBook.publicationYear) {
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Año</p>
+                <p class="mt-1 text-sm font-semibold text-slate-800">{{ currentBook.publicationYear }}</p>
+              </div>
+            }
+
+            @if (getSeriesLabel(currentBook)) {
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Saga / serie</p>
+                <p class="mt-1 text-sm font-semibold text-slate-800">{{ getSeriesLabel(currentBook) }}</p>
+              </div>
+            }
+
+            @if (currentBook.totalChapters !== undefined || currentBook.currentChapter !== undefined) {
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Capítulos</p>
+                <p class="mt-1 text-sm font-semibold text-slate-800">
+                  {{ currentBook.currentChapter ?? 0 }} / {{ currentBook.totalChapters ?? 0 }}
+                </p>
+              </div>
+            }
+
+            @if (currentBook.totalCharacters !== undefined) {
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Caracteres</p>
+                <p class="mt-1 text-sm font-semibold text-slate-800">{{ currentBook.totalCharacters }}</p>
+              </div>
+            }
+
+            @if (currentBook.startDate || currentBook.endDate) {
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 sm:col-span-2">
+                <p class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Fechas de lectura</p>
+                <p class="mt-1 text-sm font-semibold text-slate-800">
+                  @if (currentBook.startDate) {
+                    <span>Inicio: {{ formatDate(currentBook.startDate) }}</span>
+                  }
+                  @if (currentBook.startDate && currentBook.endDate) {
+                    <span class="mx-2 text-slate-400">•</span>
+                  }
+                  @if (currentBook.endDate) {
+                    <span>Fin: {{ formatDate(currentBook.endDate) }}</span>
+                  }
+                </p>
+              </div>
+            }
+          </div>
+        </section>
+
         <div class="pt-4 border-t border-slate-100 space-y-3">
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">

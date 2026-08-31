@@ -107,17 +107,21 @@
     @for (book of books(); track book.id) {
       @let bookLogs = logsByBookMap().get(book.id) ?? [];
 
-      <article class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+      <article class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col gap-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md sm:flex-row sm:items-start">
         <button
           type="button"
-          class="w-full sm:w-20 h-28 flex-shrink-0 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 cursor-pointer transition-all duration-200 hover:opacity-90 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+          class="group relative w-24 shrink-0 self-start overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm transition-all duration-200 hover:scale-[1.02] hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-slate-900/20 sm:w-28"
           [attr.aria-label]="'Ver detalles de ' + book.title"
           (click)="openDetailModal(book.id)"
         >
           @if (book.coverUrl) {
-            <img [src]="book.coverUrl" [alt]="'Portada de ' + book.title" class="w-full h-full object-cover" />
+            <img
+              [src]="book.coverUrl"
+              [alt]="'Portada de ' + book.title"
+              class="block aspect-[2/3] w-full object-cover"
+            />
           } @else {
-            <div class="w-full h-full flex items-center justify-center font-extrabold text-2xl text-slate-700">
+            <div class="flex aspect-[2/3] w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-100 font-extrabold text-2xl text-slate-700">
               {{ book.title.slice(0, 1) }}
             </div>
           }

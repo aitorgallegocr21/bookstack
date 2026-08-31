@@ -16,8 +16,8 @@
 - [x] 2.3 Actualizar badge de puntuación en `BooksPageComponent` (`★ X/10`).
 
 ### Fase 3: Aspect Ratio Vertical (2:3) de Portadas y Vista Móvil
-- [ ] 3.1 Refactorizar maquetación móvil de tarjetas de libros en `BooksPageComponent` aplicando `aspect-[2/3]` con `object-cover`.
-- [ ] 3.2 Corregir el previsualizador de portada en `BookCreateModalComponent` y `BookEditModalComponent` a contenedor con relación de aspecto $2:3$.
+- [x] 3.1 Refactorizar maquetación móvil de tarjetas de libros en `BooksPageComponent` aplicando `aspect-[2/3]` con `object-cover`.
+- [x] 3.2 Corregir el previsualizador de portada en `BookCreateModalComponent` y `BookEditModalComponent` a contenedor con relación de aspecto $2:3$.
 
 ### Fase 4: Sesiones de Lectura Colapsables y Botón de Registro
 - [ ] 4.1 Rediseñar el botón "+ Registrar lectura" en la ficha de cada libro con estilos destacados.

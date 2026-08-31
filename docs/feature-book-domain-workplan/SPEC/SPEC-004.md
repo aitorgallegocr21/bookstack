@@ -63,11 +63,11 @@ Crear `src/app/features/books/services/image-optimizer.service.ts`:
 
 ## 3. Criterios de Aceptación
 
-- [ ] Todos los modales presentan esquinas perfectamente redondeadas (`rounded-2xl`) en la parte superior e inferior sin desbordamientos.
-- [ ] Los modales abren y cierran con transiciones de escala y opacidad suaves.
-- [ ] Los botones de acción en tabla y cabecera cuentan con un diseño moderno, ergonómico y alineado con la paleta clara.
+- [x] Todos los modales presentan esquinas perfectamente redondeadas (`rounded-2xl`) en la parte superior e inferior sin desbordamientos.
+- [x] Los modales abren y cierran con transiciones de escala y opacidad suaves.
+- [x] Los botones de acción en tabla y cabecera cuentan con un diseño moderno, ergonómico y alineado con la paleta clara.
 - [ ] Los campos desplegables (`<select>`) lucen modernos y homogéneos.
-- [ ] Es posible capturar y visualizar todos los nuevos campos de metadatos (ISBN, saga, capítulos, fechas, etc.).
-- [ ] Se puede subir una imagen desde el equipo, la cual es comprimida en cliente a $\le 60\text{KB}$ antes de almacenarse.
-- [ ] Al seleccionar el estado "Completado", el progreso de páginas y capítulos se actualiza automáticamente al 100%.
-- [ ] La aplicación compila limpiamente (`npm run build`).
+- [x] Es posible capturar y visualizar todos los nuevos campos de metadatos (ISBN, saga, capítulos, fechas, etc.).
+- [x] Se puede subir una imagen desde el equipo, la cual es comprimida en cliente a $\le 60\text{KB}$ antes de almacenarse.
+- [x] Al seleccionar el estado "Completado", el progreso de páginas y capítulos se actualiza automáticamente al 100%.
+- [x] La aplicación compila limpiamente (`npm run build`).

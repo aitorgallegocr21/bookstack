@@ -27,6 +27,6 @@
 - [x] 3.2 Rediseñar los botones de acción ("Ver detalle", "Editar", "Eliminar") en la tabla de libros con botones de icono ergonómicos y tooltips.
 
 ### Fase 4: Validación y Compilación
-- [ ] 4.1 Probar subida de imagen pesada (> 3MB) y verificar en consola/inspección que el Base64 almacenado es ligero (< 60KB).
-- [ ] 4.2 Probar flujo de cambio a estado "Completado" y verificar sincronización automática de páginas.
-- [ ] 4.3 Ejecutar `npm run build` y validar ausencia de errores de tipado o estilos rotos.
+- [x] 4.1 Probar subida de imagen pesada (> 3MB) y verificar en consola/inspección que el Base64 almacenado es ligero (< 60KB).
+- [x] 4.2 Probar flujo de cambio a estado "Completado" y verificar sincronización automática de páginas.
+- [x] 4.3 Ejecutar `npm run build` y validar ausencia de errores de tipado o estilos rotos.

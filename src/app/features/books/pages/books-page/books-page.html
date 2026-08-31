@@ -1,19 +1,35 @@
-<main class="max-w-6xl mx-auto p-4 sm:p-8 space-y-8">
+<main class="max-w-6xl mx-auto p-4 sm:p-8 space-y-8 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
   <!-- Encabezado -->
   <section class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">BookStack</p>
-      <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Mi biblioteca</h1>
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">BookStack</p>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Mi biblioteca</h1>
     </div>
-    <button
-      type="button"
-      (click)="openCreateModal()"
-      class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-xs hover:shadow-md transition-all duration-200 active:scale-[0.98]"
-      [attr.aria-label]="'Crear nuevo libro'"
-    >
-      <svg [lucideIcon]="Plus" size="18" stroke-width="2.5"></svg>
-      <span>Añadir libro</span>
-    </button>
+    <div class="flex items-center gap-2">
+      <!-- Botón conmutador de tema -->
+      <button
+        type="button"
+        (click)="themeService.toggleTheme()"
+        class="inline-flex items-center justify-center p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 shadow-xs hover:shadow-md transition-all duration-200 active:scale-[0.98]"
+        [attr.aria-label]="themeService.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+      >
+        @if (themeService.isDark()) {
+          <svg [lucideIcon]="Sun" size="18" stroke-width="2.5"></svg>
+        } @else {
+          <svg [lucideIcon]="Moon" size="18" stroke-width="2.5"></svg>
+        }
+      </button>
+      <!-- Botón crear nuevo libro -->
+      <button
+        type="button"
+        (click)="openCreateModal()"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium text-sm shadow-xs hover:shadow-md transition-all duration-200 active:scale-[0.98]"
+        [attr.aria-label]="'Crear nuevo libro'"
+      >
+        <svg [lucideIcon]="Plus" size="18" stroke-width="2.5"></svg>
+        <span>Añadir libro</span>
+      </button>
+    </div>
   </section>
 
   <!-- Métricas Rápidas -->

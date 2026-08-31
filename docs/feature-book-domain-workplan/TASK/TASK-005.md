@@ -8,7 +8,7 @@
 ### Fase 1: Motor de Theming y Configuración Base
 - [x] 1.1 Configurar `darkMode: 'class'` en `tailwind.config.js`.
 - [x] 1.2 Crear `ThemeService` en `src/app/core/services/theme.service.ts` con Signals (`theme`, `isDark`), persistencia en `LocalStorage` (`bookstack_theme_v1`) y manipulación del DOM.
-- [ ] 1.3 Incorporar botón conmutador Sol/Luna en la cabecera de `BooksPageComponent` (`books-page.html` y `.ts`).
+- [x] 1.3 Incorporar botón conmutador Sol/Luna en la cabecera de `BooksPageComponent` (`books-page.html` y `.ts`).
 
 ### Fase 2: Modelo de Dominio y Calificación 0-10
 - [ ] 2.1 Actualizar `Book.rating` en `src/app/features/books/models/book.model.ts` para soportar rango `0 - 10`.

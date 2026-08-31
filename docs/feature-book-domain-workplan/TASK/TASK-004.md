@@ -23,8 +23,8 @@
   - [x] Mostrar los nuevos metadatos si están presentes (Saga, ISBN, Editorial, Fechas, Capítulos).
 
 ### Fase 3: Modernización de UI en Página Principal
-- [ ] 3.1 Rediseñar el botón "+ Añadir libro" en `BooksPageComponent` (`books-page.html`).
-- [ ] 3.2 Rediseñar los botones de acción ("Ver detalle", "Editar", "Eliminar") en la tabla de libros con botones de icono ergonómicos y tooltips.
+- [x] 3.1 Rediseñar el botón "+ Añadir libro" en `BooksPageComponent` (`books-page.html`).
+- [x] 3.2 Rediseñar los botones de acción ("Ver detalle", "Editar", "Eliminar") en la tabla de libros con botones de icono ergonómicos y tooltips.
 
 ### Fase 4: Validación y Compilación
 - [ ] 4.1 Probar subida de imagen pesada (> 3MB) y verificar en consola/inspección que el Base64 almacenado es ligero (< 60KB).

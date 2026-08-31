@@ -6,6 +6,7 @@ import {
   ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideDynamicIcon, LucidePlus, LucideEye, LucideEdit2, LucideTrash2 } from '@lucide/angular';
 import { BooksService } from '../../services/books.service';
 import { ReadingStatsService } from '../../services/reading-stats.service';
 import { ReadingLogService } from '../../services/reading-log.service';
@@ -20,11 +21,12 @@ import { ReadingLogEditorComponent } from '../../components/reading-log-editor/r
   standalone: true,
   imports: [
     CommonModule,
+    LucideDynamicIcon,
     BookCreateModalComponent,
     BookEditModalComponent,
     BookDetailModalComponent,
     ReadingLogEditorComponent
-  ],
+],
   templateUrl: './books-page.html',
   styleUrl: './books-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -34,9 +36,13 @@ export class BooksPage {
   private readonly readingStatsService = inject(ReadingStatsService);
   private readonly readingLogService = inject(ReadingLogService);
 
-  // Exportar constantes de presentación para uso en templates
+  // Exportar constantes de presentación y iconos para uso en templates
   protected readonly BOOK_STATUS_CONFIG = BOOK_STATUS_CONFIG;
   protected readonly BOOK_STATUS_LABELS = BOOK_STATUS_LABELS;
+  protected readonly Plus = LucidePlus;
+  protected readonly Eye = LucideEye;
+  protected readonly Edit2 = LucideEdit2;
+  protected readonly Trash2 = LucideTrash2;
 
   protected readonly books = this.booksService.books;
   protected readonly readingLogs = this.readingLogService.readingLogs;

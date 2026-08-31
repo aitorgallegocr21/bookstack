@@ -5,17 +5,17 @@
   aria-labelledby="create-modal-title"
   (click)="onBackdropClick($event)"
 >
-  <div class="modal-panel relative w-full max-w-2xl max-h-[90dvh] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-    <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4">
+  <div class="modal-panel relative w-full max-w-2xl max-h-[90dvh] overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-2xl">
+    <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800 px-6 py-4">
       <div>
-        <p class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400">Biblioteca</p>
-        <h2 id="create-modal-title" class="text-xl font-bold text-slate-900">Añadir nuevo libro</h2>
+        <p class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Biblioteca</p>
+        <h2 id="create-modal-title" class="text-xl font-bold text-slate-900 dark:text-slate-100">Añadir nuevo libro</h2>
       </div>
 
       <button
         type="button"
         (click)="cancel()"
-        class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-700"
+        class="rounded-lg p-1.5 text-slate-400 dark:text-slate-500 transition-colors hover:bg-slate-200/60 dark:hover:bg-slate-700/60 hover:text-slate-700 dark:hover:text-slate-300"
         aria-label="Cerrar modal"
       >
         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,10 +26,10 @@
 
     <form [formGroup]="createForm" (ngSubmit)="save()" class="modal-form flex max-h-[calc(90dvh-76px)] flex-col">
       <div class="space-y-5 overflow-y-auto p-6">
-        <section class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+        <section class="space-y-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-4">
           <div class="flex items-center gap-2">
             <span class="inline-flex h-2.5 w-2.5 rounded-full bg-blue-500"></span>
-            <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700">Información básica</h3>
+            <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700 dark:text-slate-300">Información básica</h3>
           </div>
 
           <div>
@@ -75,10 +75,10 @@
           </div>
         </section>
 
-        <section class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+        <section class="space-y-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-4">
           <div class="flex items-center gap-2">
             <span class="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-            <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700">Progreso y formato</h3>
+            <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700 dark:text-slate-300">Progreso y formato</h3>
           </div>
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -132,14 +132,14 @@
           </div>
         </section>
 
-        <section class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+        <section class="space-y-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-4">
           <div class="flex items-center gap-2">
             <span class="inline-flex h-2.5 w-2.5 rounded-full bg-violet-500"></span>
-            <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700">Saga / serie</h3>
+            <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700 dark:text-slate-300">Saga / serie</h3>
           </div>
 
-          <label class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
-            <input type="checkbox" formControlName="seriesEnabled" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+          <label class="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-300">
+            <input type="checkbox" formControlName="seriesEnabled" class="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500" />
             Pertenece a una saga
           </label>
 
@@ -157,10 +157,10 @@
           }
         </section>
 
-        <section class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+        <section class="space-y-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-4">
           <div class="flex items-center gap-2">
             <span class="inline-flex h-2.5 w-2.5 rounded-full bg-amber-500"></span>
-            <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700">Fechas y portada</h3>
+            <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700 dark:text-slate-300">Fechas y portada</h3>
           </div>
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -176,14 +176,17 @@
 
           <div>
             <label class="field-label">Portada</label>
-            <div class="flex gap-2 rounded-xl border border-slate-200 bg-white p-1">
+            <div class="flex gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 p-1">
               <button
                 type="button"
                 class="flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
                 [class.bg-slate-900]="coverMode() === 'url'"
+                [class.dark:bg-slate-700]="coverMode() === 'url'"
                 [class.text-white]="coverMode() === 'url'"
                 [class.text-slate-600]="coverMode() !== 'url'"
+                [class.dark:text-slate-400]="coverMode() !== 'url'"
                 [class.hover:bg-slate-100]="coverMode() !== 'url'"
+                [class.dark:hover:bg-slate-700/60]="coverMode() !== 'url'"
                 (click)="onCoverModeChange('url')"
               >
                 URL web
@@ -192,9 +195,12 @@
                 type="button"
                 class="flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
                 [class.bg-slate-900]="coverMode() === 'upload'"
+                [class.dark:bg-slate-700]="coverMode() === 'upload'"
                 [class.text-white]="coverMode() === 'upload'"
                 [class.text-slate-600]="coverMode() !== 'upload'"
+                [class.dark:text-slate-400]="coverMode() !== 'upload'"
                 [class.hover:bg-slate-100]="coverMode() !== 'upload'"
+                [class.dark:hover:bg-slate-700/60]="coverMode() !== 'upload'"
                 (click)="onCoverModeChange('upload')"
               >
                 Subir archivo
@@ -231,10 +237,10 @@
           }
         </section>
 
-        <section class="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+        <section class="space-y-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-4">
           <div class="flex items-center gap-2">
             <span class="inline-flex h-2.5 w-2.5 rounded-full bg-rose-500"></span>
-            <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700">Notas</h3>
+            <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700 dark:text-slate-300">Notas</h3>
           </div>
 
           <textarea
@@ -246,11 +252,11 @@
         </section>
       </div>
 
-      <div class="flex items-center justify-end gap-3 border-t border-slate-200 bg-white px-6 py-4">
-        <button type="button" (click)="cancel()" class="rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100">
+      <div class="flex items-center justify-end gap-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-4">
+        <button type="button" (click)="cancel()" class="rounded-full border border-slate-300 dark:border-slate-700 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800">
           Cancelar
         </button>
-        <button type="submit" [disabled]="createForm.invalid || isSaving()" class="rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:opacity-50">
+        <button type="submit" [disabled]="createForm.invalid || isSaving()" class="rounded-full bg-slate-900 dark:bg-blue-600 px-5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 dark:hover:bg-blue-700 disabled:opacity-50">
           {{ isSaving() ? 'Guardando...' : 'Añadir libro' }}
         </button>
       </div>

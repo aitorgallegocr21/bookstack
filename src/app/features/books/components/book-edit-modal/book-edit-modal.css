@@ -29,6 +29,12 @@
   color: rgb(71 85 105);
 }
 
+@media (prefers-color-scheme: dark) {
+  .field-label {
+    color: rgb(148 163 184);
+  }
+}
+
 .field-input,
 .field-textarea,
 .field-select,
@@ -41,6 +47,17 @@
   padding: 0.7rem 0.875rem;
   font-size: 0.875rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  .field-input,
+  .field-textarea,
+  .field-select,
+  .field-file {
+    border-color: rgb(71 85 105);
+    background: rgb(30 41 59);
+    color: rgb(226 232 240);
+  }
 }
 
 .field-input:focus,
@@ -75,6 +92,13 @@
   transition: border-color 0.2s ease;
 }
 
+@media (prefers-color-scheme: dark) {
+  .select-wrap::after {
+    border-right-color: rgb(148 163 184);
+    border-bottom-color: rgb(148 163 184);
+  }
+}
+
 .field-select {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -85,9 +109,23 @@
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
+@media (prefers-color-scheme: dark) {
+  .field-select {
+    background: linear-gradient(180deg, rgb(30 41 59) 0%, rgb(15 23 42) 100%);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.04);
+  }
+}
+
 .select-wrap:hover .field-select,
 .select-wrap:focus-within .field-select {
   border-color: rgb(148 163 184);
+}
+
+@media (prefers-color-scheme: dark) {
+  .select-wrap:hover .field-select,
+  .select-wrap:focus-within .field-select {
+    border-color: rgb(148 163 184);
+  }
 }
 
 .select-wrap:focus-within::after {

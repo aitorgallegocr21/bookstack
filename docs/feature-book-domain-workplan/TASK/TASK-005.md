@@ -6,7 +6,7 @@
 ---
 
 ### Fase 1: Motor de Theming y Configuración Base
-- [ ] 1.1 Configurar `darkMode: 'class'` en `tailwind.config.js`.
+- [x] 1.1 Configurar `darkMode: 'class'` en `tailwind.config.js`.
 - [ ] 1.2 Crear `ThemeService` en `src/app/core/services/theme.service.ts` con Signals (`theme`, `isDark`), persistencia en `LocalStorage` (`bookstack_theme_v1`) y manipulación del DOM.
 - [ ] 1.3 Incorporar botón conmutador Sol/Luna en la cabecera de `BooksPageComponent` (`books-page.html` y `.ts`).
 

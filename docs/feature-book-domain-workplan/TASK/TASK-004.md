@@ -1,7 +1,7 @@
 # TASK-004: Implementación de Dominio Extendido, Portadas Locales y Pulido UI
 
 - **Especificación asociada:** `docs/feature-book-domain-workplan/SPEC-004.md`
-- **Estado:** EN PROCESO
+- **Estado:** COMPLETADO
 
 ---
 
@@ -10,13 +10,13 @@
 - [x] 1.2 Crear el servicio `ImageOptimizerService` en `src/app/features/books/services/image-optimizer.service.ts` con compresión Canvas a WebP/JPEG ($\le 400\text{px}$, calidad 0.75).
 
 ### Fase 2: Automatización y Pipeline de Portadas en Modales
-- [ ] 2.1 Refactorizar `BookCreateModalComponent` (`.html`, `.ts`, `.css`):
+- [x] 2.1 Refactorizar `BookCreateModalComponent` (`.html`, `.ts`, `.css`):
   - [x] Corregir bordes superiores (`rounded-2xl overflow-hidden` en tarjeta).
   - [x] Implementar animaciones de transición de backdrop y modal.
   - [x] Agregar selector dual de portada (URL externa / Subir archivo local con compresión).
   - [x] Incorporar campos extendidos: ISBN, Editorial, Año, Capítulos, Caracteres, Fechas y Saga/Serie.
   - [x] Implementar autocompletado de páginas/capítulos/fechas al cambiar estado a `COMPLETED`.
-  - [ ] Estilizar `<select>` de estado y formato.
+  - [x] Estilizar `<select>` de estado y formato.
 - [x] 2.2 Refactorizar `BookEditModalComponent` (`.html`, `.ts`, `.css`):
   - [x] Replicar la estructura de campos extendidos, portadas locales y autocompletado en `COMPLETED`.
 - [x] 2.3 Actualizar `BookDetailModalComponent` (`.html`, `.ts`):

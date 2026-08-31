@@ -18,11 +18,6 @@
   animation: scaleDown 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-.modal-form {
-  scrollbar-width: thin;
-  scrollbar-color: rgb(148 163 184) transparent;
-}
-
 .field-label {
   display: block;
   margin-bottom: 0.5rem;
@@ -69,19 +64,34 @@
 .select-wrap::after {
   content: '';
   position: absolute;
-  right: 0.9rem;
+  right: 1rem;
   top: 50%;
-  width: 0.55rem;
-  height: 0.55rem;
+  width: 0.6rem;
+  height: 0.6rem;
   border-right: 2px solid rgb(100 116 139);
   border-bottom: 2px solid rgb(100 116 139);
-  transform: translateY(-65%) rotate(45deg);
+  transform: translateY(-75%) rotate(45deg);
   pointer-events: none;
+  transition: border-color 0.2s ease;
 }
 
 .field-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
-  padding-right: 2.4rem;
+  background: linear-gradient(180deg, rgb(255 255 255) 0%, rgb(248 250 252) 100%);
+  cursor: pointer;
+  padding-right: 2.7rem;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.select-wrap:hover .field-select,
+.select-wrap:focus-within .field-select {
+  border-color: rgb(148 163 184);
+}
+
+.select-wrap:focus-within::after {
+  border-color: rgb(59 130 246);
 }
 
 .field-file {

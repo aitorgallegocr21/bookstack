@@ -69,6 +69,9 @@ export class BooksPage {
   protected readonly readingLogBookId = signal<string | undefined>(undefined);
   protected readonly editingReadingLog = signal<ReadingLog | undefined>(undefined);
 
+  // Signal para rastrear qué libros tienen sesiones expandidas
+  protected readonly expandedBookIds = signal<Set<string>>(new Set());
+
   /**
    * Agrupación reactiva O(N) de sesiones de lectura por ID de libro.
    */
@@ -84,6 +87,50 @@ export class BooksPage {
     }
     return map;
   });
+
+  /**
+   * Obtiene las sesiones visibles para un libro (máx 2 si no está expandido).
+   */
+  protected getVisibleLogs(bookId: string): ReadingLog[] {
+    const allLogs = this.logsByBookMap().get(bookId) ?? [];
+    const isExpanded = this.expandedBookIds().has(bookId);
+    return isExpanded ? allLogs : allLogs.slice(0, 2);
+  }
+
+  /**
+   * Retorna true si hay más sesiones para mostrar (más de 2).
+   */
+  protected hasMoreLogs(bookId: string): boolean {
+    const allLogs = this.logsByBookMap().get(bookId) ?? [];
+    return allLogs.length > 2;
+  }
+
+  /**
+   * Retorna el contador de sesiones ocultas.
+   */
+  protected getHiddenLogsCount(bookId: string): number {
+    const allLogs = this.logsByBookMap().get(bookId) ?? [];
+    const isExpanded = this.expandedBookIds().has(bookId);
+    if (isExpanded || allLogs.length <= 2) {
+      return 0;
+    }
+    return allLogs.length - 2;
+  }
+
+  /**
+   * Alterna la expansión de sesiones para un libro.
+   */
+  protected toggleLogsExpanded(bookId: string): void {
+    this.expandedBookIds.update((set) => {
+      const newSet = new Set(set);
+      if (newSet.has(bookId)) {
+        newSet.delete(bookId);
+      } else {
+        newSet.add(bookId);
+      }
+      return newSet;
+    });
+  }
 
   protected readonly maxMonthlyPages = computed(() => {
     const monthly = this.stats().monthlyPages;

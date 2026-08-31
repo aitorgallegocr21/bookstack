@@ -105,8 +105,6 @@
   <!-- Lista de Libros -->
   <section class="space-y-4" aria-label="Lista de libros">
     @for (book of books(); track book.id) {
-      @let bookLogs = logsByBookMap().get(book.id) ?? [];
-
       <article class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col gap-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md sm:flex-row sm:items-start">
         <button
           type="button"
@@ -204,34 +202,67 @@
           </div>
 
           <!-- Panel de Sesiones de Lectura -->
-          <section class="border-t border-slate-100 pt-3 space-y-2" aria-label="Sesiones de lectura del libro">
-            <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-600">
-              <span>Sesiones de lectura</span>
+          <section class="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-3" aria-label="Sesiones de lectura del libro">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Sesiones de lectura</h3>
               <button
-                class="px-2 py-0.5 rounded-md hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors"
                 type="button"
                 (click)="openReadingLogEditor(book)"
-                [attr.aria-label]="'Añadir sesión de lectura a ' + book.title"
+                class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-xs font-semibold shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98] whitespace-nowrap"
+                [attr.aria-label]="'Registrar nueva sesión de lectura para ' + book.title"
+                title="Registrar nueva sesión"
               >
-                +
+                <svg [lucideIcon]="Plus" size="16" stroke-width="2.5"></svg>
+                <span>Registrar lectura</span>
               </button>
             </div>
 
-            @if (bookLogs.length > 0) {
-              <ul class="space-y-1.5">
-                @for (log of bookLogs; track log.id) {
-                  <li class="flex flex-wrap items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100 text-xs gap-2 transition-all duration-200 hover:bg-slate-50/80 hover:border-slate-200">
-                    <span class="font-bold text-slate-800">{{ log.date }} — {{ log.pagesRead }} págs. ({{ log.timeSpentMinutes ?? 0 }} min)</span>
-                    <span class="italic text-slate-500 truncate flex-1 min-w-[120px]">{{ log.notes || 'Sin notas' }}</span>
-                    <div class="flex items-center gap-1">
-                      <button class="px-2 py-0.5 rounded hover:bg-slate-200 text-slate-700 font-semibold transition-all duration-200 active:scale-[0.98]" type="button" (click)="openReadingLogEditor(book, log)">Editar</button>
-                      <button class="px-2 py-0.5 rounded hover:bg-red-100 text-red-700 font-semibold transition-all duration-200 active:scale-[0.98]" type="button" (click)="deleteReadingLog(log.id)">Borrar</button>
+            @if ((logsByBookMap().get(book.id) ?? []).length > 0) {
+              <ul class="space-y-2">
+                @for (log of getVisibleLogs(book.id); track log.id) {
+                  <li class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-xs transition-all duration-200 hover:bg-slate-100/80 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600">
+                    <div class="flex-1 min-w-0">
+                      <span class="font-bold text-slate-800 dark:text-slate-200">{{ log.date }} — {{ log.pagesRead }} págs. ({{ log.timeSpentMinutes ?? 0 }} min)</span>
+                      <p class="italic text-slate-600 dark:text-slate-400 truncate mt-1">{{ log.notes || 'Sin notas' }}</p>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                      <button
+                        class="px-2.5 py-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-all duration-200 active:scale-[0.98]"
+                        type="button"
+                        (click)="openReadingLogEditor(book, log)"
+                        [attr.aria-label]="'Editar registro de ' + log.date"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        class="px-2.5 py-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-700 dark:text-red-400 font-semibold text-xs transition-all duration-200 active:scale-[0.98]"
+                        type="button"
+                        (click)="deleteReadingLog(log.id)"
+                        [attr.aria-label]="'Eliminar registro de ' + log.date"
+                      >
+                        Borrar
+                      </button>
                     </div>
                   </li>
                 }
               </ul>
+
+              @if (hasMoreLogs(book.id)) {
+                <button
+                  type="button"
+                  (click)="toggleLogsExpanded(book.id)"
+                  class="w-full mt-2 px-3 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline transition-colors duration-200"
+                  [attr.aria-expanded]="expandedBookIds().has(book.id)"
+                >
+                  @if (expandedBookIds().has(book.id)) {
+                    <span>Ver menos</span>
+                  } @else {
+                    <span>Ver más ({{ getHiddenLogsCount(book.id) }} sesiones más)</span>
+                  }
+                </button>
+              }
             } @else {
-              <span class="text-xs text-slate-400 italic">Sin sesiones registradas</span>
+              <p class="text-xs text-slate-400 dark:text-slate-500 italic">Sin sesiones registradas</p>
             }
           </section>
         </div>

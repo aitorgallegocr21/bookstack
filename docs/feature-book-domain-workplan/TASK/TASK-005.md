@@ -11,9 +11,9 @@
 - [x] 1.3 Incorporar botón conmutador Sol/Luna en la cabecera de `BooksPageComponent` (`books-page.html` y `.ts`).
 
 ### Fase 2: Modelo de Dominio y Calificación 0-10
-- [ ] 2.1 Actualizar `Book.rating` en `src/app/features/books/models/book.model.ts` para soportar rango `0 - 10`.
-- [ ] 2.2 Actualizar input y visualización de valoración en `BookCreateModalComponent`, `BookEditModalComponent` y `BookDetailModalComponent` a escala 0-10.
-- [ ] 2.3 Actualizar badge de puntuación en `BooksPageComponent` (`★ X/10`).
+- [x] 2.1 Actualizar `Book.rating` en `src/app/features/books/models/book.model.ts` para soportar rango `0 - 10`.
+- [x] 2.2 Actualizar input y visualización de valoración en `BookCreateModalComponent`, `BookEditModalComponent` y `BookDetailModalComponent` a escala 0-10.
+- [x] 2.3 Actualizar badge de puntuación en `BooksPageComponent` (`★ X/10`).
 
 ### Fase 3: Aspect Ratio Vertical (2:3) de Portadas y Vista Móvil
 - [ ] 3.1 Refactorizar maquetación móvil de tarjetas de libros en `BooksPageComponent` aplicando `aspect-[2/3]` con `object-cover`.

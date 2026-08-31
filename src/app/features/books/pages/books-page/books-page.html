@@ -152,6 +152,12 @@
               <span>{{ book.currentPage }} en curso</span>
               <span>{{ book.format ?? 'Sin formato' }}</span>
             </div>
+
+            @if (book.rating !== undefined && book.rating !== null) {
+              <div class="mt-3 inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
+                {{ getRatingBadge(book.rating) }}
+              </div>
+            }
           </div>
 
           <div class="flex items-center justify-end gap-1 pt-2">

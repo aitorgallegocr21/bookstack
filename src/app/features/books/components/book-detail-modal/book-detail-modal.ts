@@ -10,7 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { BooksService } from '../../services/books.service';
 import { ReadingLogService } from '../../services/reading-log.service';
-import { Book, BookStatus, ReadingLog } from '../../models/book.model';
+import { Book, BookStatus, ReadingLog, BOOK_RATING_MAX } from '../../models/book.model';
 import { ReadingLogEditorComponent } from '../reading-log-editor/reading-log-editor';
 
 @Component({
@@ -121,6 +121,14 @@ export class BookDetailModalComponent {
 
     const volume = book.series.volumeNumber ? ` · Vol. ${book.series.volumeNumber}` : '';
     return `${book.series.name}${volume}`;
+  }
+
+  protected getRatingBadge(rating?: number): string {
+    if (rating === undefined || rating === null || Number.isNaN(rating)) {
+      return 'Sin valoración';
+    }
+
+    return `★ ${Math.min(BOOK_RATING_MAX, Math.max(0, rating)).toFixed(1).replace(/\.0$/, '')}/10`;
   }
 
   protected formatDate(date?: string): string {

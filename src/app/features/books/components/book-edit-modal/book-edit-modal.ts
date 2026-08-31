@@ -12,7 +12,13 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BooksService } from '../../services/books.service';
 import { ImageOptimizerService } from '../../services/image-optimizer.service';
-import { Book, BookFormat, BookStatus } from '../../models/book.model';
+import {
+  Book,
+  BookFormat,
+  BookStatus,
+  BOOK_RATING_MAX,
+  BOOK_RATING_MIN
+} from '../../models/book.model';
 
 @Component({
   selector: 'app-book-edit-modal',
@@ -76,7 +82,7 @@ export class BookEditModalComponent {
     coverUrl: [''],
     startDate: [''],
     endDate: [''],
-    rating: [0, [Validators.min(0), Validators.max(5)]],
+    rating: [0, [Validators.min(BOOK_RATING_MIN), Validators.max(BOOK_RATING_MAX)]],
     notes: [''],
     seriesEnabled: [false],
     seriesName: [''],
@@ -241,6 +247,11 @@ export class BookEditModalComponent {
         }
       : undefined;
 
+    const rawRating = val.rating;
+    const normalizedRating = typeof rawRating === 'number' && Number.isFinite(rawRating)
+      ? Math.min(BOOK_RATING_MAX, Math.max(BOOK_RATING_MIN, rawRating))
+      : undefined;
+
     const updatedBook: Book = {
       ...currentBook,
       title: val.title!.trim(),
@@ -257,7 +268,7 @@ export class BookEditModalComponent {
       format: this.normalizeFormatValue(val.format),
       series,
       coverUrl: val.coverUrl?.trim() || this.coverPreview() || undefined,
-      rating: val.rating ? Number(val.rating) : undefined,
+      rating: normalizedRating,
       startDate: val.startDate || undefined,
       endDate: val.endDate || undefined,
       notes: val.notes?.trim() || undefined,

@@ -11,7 +11,14 @@ import { BooksService } from '../../services/books.service';
 import { ReadingStatsService } from '../../services/reading-stats.service';
 import { ReadingLogService } from '../../services/reading-log.service';
 import { ThemeService } from '../../../../core/services/theme.service';
-import { Book, BookStatus, ReadingLog, BOOK_STATUS_CONFIG, BOOK_STATUS_LABELS } from '../../models/book.model';
+import {
+  Book,
+  BookStatus,
+  ReadingLog,
+  BOOK_STATUS_CONFIG,
+  BOOK_STATUS_LABELS,
+  BOOK_RATING_MAX
+} from '../../models/book.model';
 import { BookCreateModalComponent } from '../../components/book-create-modal/book-create-modal';
 import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
 import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
@@ -160,6 +167,15 @@ export class BooksPage {
    */
   protected getStatusBadgeClass(status: BookStatus): string {
     return BOOK_STATUS_CONFIG[status].badgeClass;
+  }
+
+  protected getRatingBadge(rating?: number): string {
+    if (rating === undefined || rating === null || Number.isNaN(rating)) {
+      return 'Sin valoración';
+    }
+
+    const normalized = Math.min(BOOK_RATING_MAX, Math.max(0, rating));
+    return `★ ${normalized.toFixed(1).replace(/\.0$/, '')}/10`;
   }
 
   /**

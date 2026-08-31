@@ -58,6 +58,12 @@
                   "{{ currentBook.notes }}"
                 </p>
               }
+
+              @if (currentBook.rating !== undefined && currentBook.rating !== null) {
+                <div class="mt-3 inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
+                  {{ getRatingBadge(currentBook.rating) }}
+                </div>
+              }
             </div>
 
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">

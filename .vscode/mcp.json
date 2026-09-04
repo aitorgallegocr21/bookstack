@@ -1,8 +1,11 @@
 {
   "servers": {
     "angular-cli": {
-      "command": "npx",
-      "args": ["-y", "@angular/cli", "mcp"]
+      "command": "/run/user/1000/fnm_multishells/16828_1788531990388/bin/npx",
+      "args": ["-y", "@angular/cli", "mcp"],
+      "env": {
+        "PATH": "/run/user/1000/fnm_multishells/21208_1788532311127/bin",
+      }
     }
   }
 }

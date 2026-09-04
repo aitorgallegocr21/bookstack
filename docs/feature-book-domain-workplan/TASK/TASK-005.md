@@ -25,7 +25,7 @@
 
 ### Fase 5: Auditoría y Aplicación de Clases Dark en Toda la UI
 - [x] 5.1 Aplicar clases `dark:` en `BooksPageComponent` (fondo, tarjetas de estadísticas, tablas, filtros, distribución).
-- [ ] 5.2 Aplicar clases `dark:` en `BookCreateModalComponent` y `BookEditModalComponent`.
+- [x] 5.2 Aplicar clases `dark:` en `BookCreateModalComponent` y `BookEditModalComponent`.
 - [ ] 5.3 Aplicar clases `dark:` en `BookDetailModalComponent` y `ReadingLogEditorComponent`.
 
 ### Fase 6: Validación y Build

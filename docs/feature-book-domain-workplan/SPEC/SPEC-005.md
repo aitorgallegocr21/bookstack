@@ -59,10 +59,10 @@
 
 ## 3. Criterios de Aceptación (DoD)
 
-- [ ] `ThemeService` alterna limpiamente entre modo claro y oscuro, persistiendo la preferencia en `LocalStorage` y aplicando `class="dark"` en `<html>`.
-- [ ] El botón conmutador Sol/Luna en la cabecera responde con transiciones suaves.
-- [ ] Todos los componentes y modales cuentan con soporte visual completo para modo oscuro y modo claro sin textos ilegibles ni contrastes rotos.
-- [ ] Las portadas mantienen rigurosamente el aspect ratio 2:3 en dispositivos móviles y modales sin estirarse.
-- [ ] La lista de sesiones de lectura en la vista principal es colapsable y el botón de registro tiene diseño ergonómico.
-- [ ] La valoración admite rango de 0 a 10 y se visualiza con formato `★ X/10`.
-- [ ] `npm run build` compila con 0 errores de TypeScript y CSS.
+- [x] `ThemeService` alterna limpiamente entre modo claro y oscuro, persistiendo la preferencia en `LocalStorage` y aplicando `class="dark"` en `<html>`.
+- [x] El botón conmutador Sol/Luna en la cabecera responde con transiciones suaves.
+- [x] Todos los componentes y modales cuentan con soporte visual completo para modo oscuro y modo claro sin textos ilegibles ni contrastes rotos.
+- [x] Las portadas mantienen rigurosamente el aspect ratio 2:3 en dispositivos móviles y modales sin estirarse.
+- [x] La lista de sesiones de lectura en la vista principal es colapsable y el botón de registro tiene diseño ergonómico.
+- [x] La valoración admite rango de 0 a 10 y se visualiza con formato `★ X/10`.
+- [x] `npm run build` compila con 0 errores de TypeScript y CSS.

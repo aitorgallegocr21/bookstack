@@ -26,9 +26,9 @@
 ### Fase 5: Auditoría y Aplicación de Clases Dark en Toda la UI
 - [x] 5.1 Aplicar clases `dark:` en `BooksPageComponent` (fondo, tarjetas de estadísticas, tablas, filtros, distribución).
 - [x] 5.2 Aplicar clases `dark:` en `BookCreateModalComponent` y `BookEditModalComponent`.
-- [ ] 5.3 Aplicar clases `dark:` en `BookDetailModalComponent` y `ReadingLogEditorComponent`.
+- [x] 5.3 Aplicar clases `dark:` en `BookDetailModalComponent` y `ReadingLogEditorComponent`.
 
 ### Fase 6: Validación y Build
-- [ ] 6.1 Validar persistencia de tema tras recargar el navegador.
-- [ ] 6.2 Comprobar responsive en pantallas $<640\text{px}$ y validar aspect ratio de portadas.
-- [ ] 6.3 Ejecutar `npm run build` y asegurar compilación limpia sin advertencias.
+- [x] 6.1 Validar persistencia de tema tras recargar el navegador.
+- [x] 6.2 Comprobar responsive en pantallas $<640\text{px}$ y validar aspect ratio de portadas.
+- [x] 6.3 Ejecutar `npm run build` y asegurar compilación limpia sin advertencias.

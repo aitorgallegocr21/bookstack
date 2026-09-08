@@ -37,7 +37,7 @@
         <div class="flex flex-col gap-6 sm:flex-row sm:items-start">
           <div class="w-28 shrink-0 self-start overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:w-32">
             @if (currentBook.coverUrl) {
-              <img [src]="currentBook.coverUrl" [alt]="'Portada de ' + currentBook.title" class="block aspect-[2/3] w-full object-cover" />
+              <img [src]="currentBook.coverUrl" [alt]="'Portada de ' + currentBook.title" decoding="async" class="block aspect-[2/3] w-full object-cover" />
             } @else {
               <div class="flex aspect-[2/3] w-full items-center justify-center bg-slate-100 text-3xl font-extrabold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
                 {{ currentBook.title.slice(0, 1) }}

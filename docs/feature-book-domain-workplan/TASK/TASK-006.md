@@ -12,12 +12,12 @@
   - [x] Eliminar `transition-all` en contenedores de diálogo y campos de formulario, asegurando transiciones aisladas (`transition-colors`, `transition-opacity`).
 
 ### Fase 2: Optimización del Pipeline de Portadas e Imágenes
-- [ ] 2.1 Actualizar etiquetas `<img>` en la vista móvil de `books-page.html`:
-  - [ ] Añadir `loading="lazy"` y `decoding="async"`.
-- [ ] 2.2 Actualizar etiquetas `<img>` en la tabla de escritorio de `books-page.html`:
-  - [ ] Añadir `loading="lazy"` y `decoding="async"`.
-- [ ] 2.3 Actualizar previsualizadores de portada en modales de creación, edición y detalle:
-  - [ ] Añadir `decoding="async"`.
+- [x] 2.1 Actualizar etiquetas `<img>` en la vista móvil de `books-page.html`:
+  - [x] Añadir `loading="lazy"` y `decoding="async"`.
+- [x] 2.2 Actualizar etiquetas `<img>` en la tabla de escritorio de `books-page.html`:
+  - [x] Añadir `loading="lazy"` y `decoding="async"`.
+- [x] 2.3 Actualizar previsualizadores de portada en modales de creación, edición y detalle:
+  - [x] Añadir `decoding="async"`.
 
 ### Fase 3: Aislamiento Gráfico con CSS Containment
 - [ ] 3.1 Agregar clases de contención en `books-page.css`:

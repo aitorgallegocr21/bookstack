@@ -230,6 +230,7 @@
                 <img
                   [src]="coverPreview() || createForm.get('coverUrl')?.value"
                   alt="Previsualización de la portada"
+                  decoding="async"
                   class="aspect-[2/3] w-full object-cover"
                 />
               </div>

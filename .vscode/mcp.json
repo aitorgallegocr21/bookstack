@@ -1,10 +1,10 @@
 {
   "servers": {
     "angular-cli": {
-      "command": "/run/user/1000/fnm_multishells/16828_1788531990388/bin/npx",
+      "command": "/home/aitorgallegoo_cr/.local/share/fnm/node-versions/v24.19.0/installation/bin/npx",
       "args": ["-y", "@angular/cli", "mcp"],
       "env": {
-        "PATH": "/run/user/1000/fnm_multishells/21208_1788532311127/bin",
+        "PATH": "/home/aitorgallegoo_cr/.local/share/fnm/node-versions/v24.19.0/installation/bin",
       }
     }
   }

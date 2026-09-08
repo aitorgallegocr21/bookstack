@@ -6,10 +6,10 @@
 ---
 
 ### Fase 1: Limpieza de Transiciones Ineficientes (Layout Thrashing)
-- [ ] 1.1 Auditar `src/app/features/books/pages/books-page/books-page.html`:
-  - [ ] Reemplazar todas las ocurrencias de `transition-all` en tarjetas de estadísticas, lista móvil, tabla de escritorio y contenedores por `transition-colors`, `transition-opacity` o `transition-shadow`.
-- [ ] 1.2 Auditar modales (`book-create-modal.html`, `book-edit-modal.html`, `book-detail-modal.html`, `reading-log-editor.html`):
-  - [ ] Eliminar `transition-all` en contenedores de diálogo y campos de formulario, asegurando transiciones aisladas (`transition-colors`, `transition-opacity`).
+- [x] 1.1 Auditar `src/app/features/books/pages/books-page/books-page.html`:
+  - [x] Reemplazar todas las ocurrencias de `transition-all` en tarjetas de estadísticas, lista móvil, tabla de escritorio y contenedores por `transition-colors`, `transition-opacity` o `transition-shadow`.
+- [x] 1.2 Auditar modales (`book-create-modal.html`, `book-edit-modal.html`, `book-detail-modal.html`, `reading-log-editor.html`):
+  - [x] Eliminar `transition-all` en contenedores de diálogo y campos de formulario, asegurando transiciones aisladas (`transition-colors`, `transition-opacity`).
 
 ### Fase 2: Optimización del Pipeline de Portadas e Imágenes
 - [ ] 2.1 Actualizar etiquetas `<img>` en la vista móvil de `books-page.html`:

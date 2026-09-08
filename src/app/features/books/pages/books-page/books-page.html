@@ -10,7 +10,7 @@
       <button
         type="button"
         (click)="themeService.toggleTheme()"
-        class="inline-flex items-center justify-center p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 shadow-xs hover:shadow-md transition-all duration-200 active:scale-[0.98]"
+        class="inline-flex items-center justify-center p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 shadow-xs hover:shadow-md transition-colors transition-shadow duration-200 active:scale-[0.98]"
         [attr.aria-label]="themeService.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
       >
         @if (themeService.isDark()) {
@@ -23,7 +23,7 @@
       <button
         type="button"
         (click)="openCreateModal()"
-        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium text-sm shadow-xs hover:shadow-md transition-all duration-200 active:scale-[0.98]"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium text-sm shadow-xs hover:shadow-md transition-colors transition-shadow duration-200 active:scale-[0.98]"
         [attr.aria-label]="'Crear nuevo libro'"
       >
         <svg [lucideIcon]="Plus" size="18" stroke-width="2.5"></svg>
@@ -34,27 +34,27 @@
 
   <!-- Métricas Rápidas -->
   <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4" aria-label="Resumen de lectura">
-    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
+    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
       <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Libros</span>
       <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">{{ stats().totalBooks }}</span>
     </article>
 
-    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
+    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
       <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Leyendo</span>
       <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">{{ stats().readingBooks }}</span>
     </article>
 
-    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
+    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
       <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Completados</span>
       <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">{{ stats().completedBooks }}</span>
     </article>
 
-    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
+    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
       <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Páginas</span>
       <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">{{ stats().totalPagesRead }}</span>
     </article>
 
-    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm col-span-2 sm:col-span-1 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
+    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm col-span-2 sm:col-span-1 transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
       <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Velocidad</span>
       <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">{{ stats().averageReadingSpeedPagesPerHour }} <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">pp/h</span></span>
     </article>
@@ -62,7 +62,7 @@
 
   <!-- Panel Analítico -->
   <section class="grid grid-cols-1 md:grid-cols-2 gap-4" aria-label="Estadísticas de lectura">
-    <article class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
+    <article class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
       <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">Distribución por estado</h3>
       <div class="space-y-3">
         @for (row of stats().statusDistribution; track row.status) {
@@ -70,7 +70,7 @@
             <span class="truncate">{{ BOOK_STATUS_LABELS[row.status] }}</span>
             <div class="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
-                class="rounded-full transition-all duration-300"
+                class="rounded-full transition-[width] duration-300"
                 [class]="'h-full ' + BOOK_STATUS_CONFIG[row.status].dotClass"
                 [style.width.%]="stats().totalBooks > 0 ? (row.count / stats().totalBooks) * 100 : 0"
               ></div>
@@ -81,7 +81,7 @@
       </div>
     </article>
 
-    <article class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
+    <article class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
       <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">Actividad mensual</h3>
       <div class="space-y-3">
         @for (month of stats().monthlyPages; track month.month) {
@@ -89,7 +89,7 @@
             <span class="truncate">{{ month.month }}</span>
             <div class="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
-                class="h-full bg-blue-600 rounded-full transition-all duration-300"
+                class="h-full bg-blue-600 rounded-full transition-[width] duration-300"
                 [style.width.%]="(month.pages / maxMonthlyPages()) * 100"
               ></div>
             </div>
@@ -105,10 +105,10 @@
   <!-- Lista de Libros -->
   <section class="space-y-4" aria-label="Lista de libros">
     @for (book of books(); track book.id) {
-      <article class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md sm:flex-row sm:items-start">
+      <article class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-5 transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md sm:flex-row sm:items-start">
         <button
           type="button"
-          class="group relative w-24 shrink-0 self-start overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shadow-sm transition-all duration-200 hover:scale-[1.02] hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-slate-900/20 dark:focus:ring-slate-100/20 sm:w-28"
+          class="group relative w-24 shrink-0 self-start overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shadow-sm transition-opacity duration-200 hover:scale-[1.02] hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-slate-900/20 dark:focus:ring-slate-100/20 sm:w-28"
           [attr.aria-label]="'Ver detalles de ' + book.title"
           (click)="openDetailModal(book.id)"
         >
@@ -166,7 +166,7 @@
             <button
               type="button"
               (click)="openDetailModal(book.id)"
-              class="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all duration-200 active:scale-[0.95] group relative"
+              class="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors duration-200 active:scale-[0.95] group relative"
               [attr.aria-label]="'Ver detalles de ' + book.title"
               title="Ver detalles"
             >
@@ -178,7 +178,7 @@
             <button
               type="button"
               (click)="openEditModal(book.id)"
-              class="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-all duration-200 active:scale-[0.95] group relative"
+              class="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors duration-200 active:scale-[0.95] group relative"
               [attr.aria-label]="'Editar ' + book.title"
               title="Editar"
             >
@@ -190,7 +190,7 @@
             <button
               type="button"
               (click)="deleteBook(book.id)"
-              class="p-2 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all duration-200 active:scale-[0.95] group relative"
+              class="p-2 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors duration-200 active:scale-[0.95] group relative"
               [attr.aria-label]="'Eliminar ' + book.title"
               title="Eliminar"
             >
@@ -208,7 +208,7 @@
               <button
                 type="button"
                 (click)="openReadingLogEditor(book)"
-                class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-xs font-semibold shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98] whitespace-nowrap"
+                class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-xs font-semibold shadow-sm hover:shadow-md transition-colors transition-shadow duration-200 active:scale-[0.98] whitespace-nowrap"
                 [attr.aria-label]="'Registrar nueva sesión de lectura para ' + book.title"
                 title="Registrar nueva sesión"
               >
@@ -220,14 +220,14 @@
             @if ((logsByBookMap().get(book.id) ?? []).length > 0) {
               <ul class="space-y-2">
                 @for (log of getVisibleLogs(book.id); track log.id) {
-                  <li class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-xs transition-all duration-200 hover:bg-slate-100/80 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600">
+                  <li class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-xs transition-colors duration-200 hover:bg-slate-100/80 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600">
                     <div class="flex-1 min-w-0">
                       <span class="font-bold text-slate-800 dark:text-slate-200">{{ log.date }} — {{ log.pagesRead }} págs. ({{ log.timeSpentMinutes ?? 0 }} min)</span>
                       <p class="italic text-slate-600 dark:text-slate-400 truncate mt-1">{{ log.notes || 'Sin notas' }}</p>
                     </div>
                     <div class="flex items-center gap-1 shrink-0">
                       <button
-                        class="px-2.5 py-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-all duration-200 active:scale-[0.98]"
+                        class="px-2.5 py-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs transition-colors duration-200 active:scale-[0.98]"
                         type="button"
                         (click)="openReadingLogEditor(book, log)"
                         [attr.aria-label]="'Editar registro de ' + log.date"
@@ -235,7 +235,7 @@
                         Editar
                       </button>
                       <button
-                        class="px-2.5 py-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-700 dark:text-red-400 font-semibold text-xs transition-all duration-200 active:scale-[0.98]"
+                        class="px-2.5 py-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-red-700 dark:text-red-400 font-semibold text-xs transition-colors duration-200 active:scale-[0.98]"
                         type="button"
                         (click)="deleteReadingLog(log.id)"
                         [attr.aria-label]="'Eliminar registro de ' + log.date"

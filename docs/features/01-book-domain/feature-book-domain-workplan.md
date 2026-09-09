@@ -5,7 +5,8 @@ Mantener una hoja de ruta operativa para la elaboración del módulo de libros y
 
 ## Feature activo
 - Nombre: `book-domain-model`
-- Estado: `active`
+- Estado: `completado`
+- Fecha de cierre: Septiembre 2026
 - Alcance: dominio de libros, semilla inicial, servicio de acceso, métricas y persistencia base con `IndexedDB` y fallback a `LocalStorage`.
 - Principio: esta feature se considera cerrada si el trabajo no aporta contratos nuevos de modelo ni requiere nuevas interfaces de acceso al dominio.
 
@@ -67,8 +68,8 @@ Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y
 2. ./feature-book-domain-workplan/SPEC-002.md [Completado]
 3. Arreglar Esc y X de componente de Registrar lectura (+) y Editar sesión de lectura en página. [Completado]
 4. Ver Warning al hacer ng build del archivo book-page.css [Completado]
-5. Realizar una revisión de refinamiento visual (Tailwind CSS, modo oscuro y micro-interacciones) para cerrar el bloque de experiencia de usuario. [Pendiente]
-6. Realizar una optimización y refactorización del código y de los estilos Tailwind. [Pendiente]
+5. Realizar una revisión de refinamiento visual (Tailwind CSS, modo oscuro y micro-interacciones) para cerrar el bloque de experiencia de usuario. [Completado: TASK-003 / TASK-005]
+6. Realizar una optimización y refactorización del código y de los estilos Tailwind. [Completado: TASK-006; build sin warnings de presupuesto CSS]
 
 ## Registro de cambios relevantes
 - 2026-08-10: Se crea el modelo base del dominio y la rama `feature/book-domain-model`.
@@ -79,3 +80,4 @@ Objetivo: cerrar la operación en el cliente para que el libro sea interactivo y
 - 2026-08-12: Implementación de SPEC-001: Modal Unificado de Detalle y Edición de Libro (`BookDetailModalComponent`).
 - 2026-08-13: Implementación de SPEC-002: Desacoplamiento arquitectónico en 3 Modales Independientes (`BookCreateModalComponent`, `BookEditModalComponent`, `BookDetailModalComponent`) con orquestación en `BooksPage`.
 - 2026-08-13: Eliminación del componente obsoleto `BookEditorComponent` y resolución integral de avisos de accesibilidad WCAG/a11y en plantillas HTML (`label` + `input`, elementos de formulario, sustitución de `<div role="button">` por `<button type="button">`).
+- 2026-09-09: Cierre documental de TASK-003, TASK-005 y TASK-006; optimización de estilos de modales y compilación verificada sin errores ni warnings de presupuesto.

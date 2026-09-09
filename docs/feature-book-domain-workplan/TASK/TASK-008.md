@@ -13,8 +13,8 @@
   - [x] Al editar un log: aplicar la diferencia `(newPages - oldPages)`.
 
 ### Fase 2: Formateador Universal de Fechas
-- [ ] 2.1 Crear `src/app/core/utils/date-formatter.ts` con funciones de formato `es-ES`.
-- [ ] 2.2 Aplicar `formatSpanishDate` en `BooksPageComponent`, `BookDetailModalComponent` y `ReadingLogEditorComponent`.
+- [x] 2.1 Crear `src/app/core/utils/date-formatter.ts` con funciones de formato `es-ES`.
+- [x] 2.2 Aplicar `formatSpanishDate` en las fechas visibles de `BookDetailModalComponent` y `ReadingLogEditorComponent` ( `BooksPageComponent` no renderiza fechas actualmente).
 
 ### Fase 3: Theming, Micro-animación de Switch y Contraste
 - [ ] 3.1 Añadir micro-animación de rotación y escala al botón Sol/Luna en la cabecera de `BooksPageComponent`.

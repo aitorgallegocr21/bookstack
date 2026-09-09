@@ -12,6 +12,7 @@ import { BooksService } from '../../services/books.service';
 import { ReadingLogService } from '../../services/reading-log.service';
 import { Book, BookStatus, ReadingLog, BOOK_RATING_MAX } from '../../models/book.model';
 import { ReadingLogEditorComponent } from '../reading-log-editor/reading-log-editor';
+import { formatSpanishDate } from '../../../../core/utils/date-formatter';
 
 @Component({
   selector: 'app-book-detail-modal',
@@ -142,19 +143,6 @@ export class BookDetailModalComponent {
   }
 
   protected formatDate(date?: string): string {
-    if (!date) {
-      return '';
-    }
-
-    const parsed = new Date(date);
-    if (Number.isNaN(parsed.getTime())) {
-      return date;
-    }
-
-    return new Intl.DateTimeFormat('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }).format(parsed);
+    return formatSpanishDate(date);
   }
 }

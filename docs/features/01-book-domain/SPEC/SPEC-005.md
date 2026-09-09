@@ -1,6 +1,6 @@
 # SPEC-005: Sesiones de Lectura Colapsables, Aspect Ratio 2:3, Puntuación 0-10 y Theming Oscuro/Claro
 
-- **Estado:** PENDIENTE DE IMPLEMENTACIÓN
+- **Estado:** COMPLETADO
 - **Fecha:** Agosto 2026
 - **Área:** Frontend / UI / UX / Theming / State Management
 - **Archivos Afectados:**

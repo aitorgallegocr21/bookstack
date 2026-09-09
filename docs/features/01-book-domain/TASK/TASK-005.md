@@ -1,7 +1,7 @@
 # TASK-005: Checklist de Implementación Sesiones, Portadas, Rating 0-10 y Modo Oscuro
 
 - **Especificación asociada:** `docs/feature-book-domain-workplan/SPEC/SPEC-005.md`
-- **Estado:** EN PROCESO
+- **Estado:** COMPLETADO
 
 ---
 

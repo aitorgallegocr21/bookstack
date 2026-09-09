@@ -140,12 +140,17 @@
               <h3 class="text-sm font-bold uppercase tracking-[0.16em] text-slate-700 dark:text-slate-300">Saga / serie</h3>
             </div>
 
-            <label class="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-300">
-              <input type="checkbox" formControlName="seriesEnabled" class="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500" />
-              Pertenece a una saga
+            <label for="edit-book-series-enabled" class="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-300">
+              <span>Pertenece a una saga</span>
+              <span class="relative inline-flex shrink-0 items-center">
+                <input id="edit-book-series-enabled" type="checkbox" formControlName="seriesEnabled" class="peer sr-only" />
+                <span class="h-6 w-11 rounded-full bg-slate-300 transition-colors peer-checked:bg-blue-600 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2 dark:bg-slate-600 dark:peer-checked:bg-blue-500"></span>
+                <span class="pointer-events-none absolute left-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5 dark:bg-slate-100"></span>
+              </span>
             </label>
 
-            @if (editForm.get('seriesEnabled')?.value) {
+            <div class="series-fields" [class.series-fields--open]="editForm.get('seriesEnabled')?.value">
+              <div class="min-h-0 overflow-hidden">
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label for="edit-book-series-name" class="field-label">Nombre de serie</label>
@@ -156,7 +161,8 @@
                   <input id="edit-book-series-volume" type="number" min="1" formControlName="seriesVolumeNumber" placeholder="1" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
                 </div>
               </div>
-            }
+              </div>
+            </div>
           </section>
 
           <section class="space-y-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-4">
@@ -216,10 +222,21 @@
                 <input id="edit-book-cover-url" type="url" formControlName="coverUrl" placeholder="https://..." class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
               </div>
             } @else {
-              <div class="space-y-3">
-                <label for="edit-book-cover-file" class="field-label">Archivo local</label>
-                <input id="edit-book-cover-file" type="file" accept="image/png,image/jpeg,image/webp,image/avif" class="field-file bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 file:text-slate-700 dark:file:text-slate-200" (change)="onCoverSelected($event)" />
-              </div>
+                <div
+                  class="cover-dropzone"
+                  [class.cover-dropzone--active]="isDraggingCover()"
+                  (dragover)="onCoverDragOver($event)"
+                  (dragleave)="onCoverDragLeave($event)"
+                  (drop)="onCoverDrop($event)"
+                >
+                  <input id="edit-book-cover-file" type="file" accept="image/png,image/jpeg,image/webp,image/avif" class="sr-only" (change)="onCoverSelected($event)" />
+                  <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Arrastra una imagen aquí</span>
+                  <span class="text-xs text-slate-500 dark:text-slate-400">PNG, JPG, WebP o AVIF</span>
+                  <label for="edit-book-cover-file" class="cover-file-button">Elegir archivo</label>
+                  @if (coverFileName()) {
+                    <span class="cover-file-badge" title="Archivo seleccionado">{{ coverFileName() }}</span>
+                  }
+                </div>
             }
 
             @if (coverPreview() || editForm.get('coverUrl')?.value) {

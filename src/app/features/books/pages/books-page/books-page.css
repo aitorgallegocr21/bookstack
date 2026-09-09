@@ -10,3 +10,35 @@
 .book-reading-log-item {
   contain: paint;
 }
+
+.theme-icon-enter {
+  animation: theme-icon-enter 300ms ease-out;
+}
+
+@media (max-width: 359px) {
+  .book-card-item > div:last-child {
+    width: 100%;
+  }
+
+  .book-card-item > div:last-child > div:last-child > div {
+    flex-shrink: 0;
+  }
+}
+
+@keyframes theme-icon-enter {
+  from {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.65);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-icon-enter {
+    animation: none;
+  }
+}

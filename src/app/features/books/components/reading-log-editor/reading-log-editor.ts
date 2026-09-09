@@ -11,6 +11,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ReadingLog } from '../../models/book.model';
 import { ReadingLogService } from '../../services/reading-log.service';
+import { formatSpanishDate } from '../../../../core/utils/date-formatter';
 
 @Component({
   selector: 'app-reading-log-editor',
@@ -99,6 +100,10 @@ export class ReadingLogEditorComponent {
 
     this.isClosing.set(true);
     window.setTimeout(() => this.closed.emit(), 180);
+  }
+
+  protected formatDate(date?: string): string {
+    return formatSpanishDate(date);
   }
 
   private emptyLog(bookId: string = ''): ReadingLog {

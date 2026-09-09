@@ -135,9 +135,87 @@
   background: rgb(255 255 255);
 }
 
+.cover-dropzone {
+  display: flex;
+  min-height: 9rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px dashed rgb(148 163 184);
+  border-radius: 1rem;
+  padding: 1rem;
+  text-align: center;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.cover-dropzone:hover,
+.cover-dropzone--active {
+  border-color: rgb(59 130 246);
+  background: rgba(239, 246, 255, 0.8);
+  transform: translateY(-1px);
+}
+
+.cover-file-button {
+  cursor: pointer;
+  border-radius: 999px;
+  background: rgb(15 23 42);
+  padding: 0.55rem 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.cover-file-button:hover {
+  background: rgb(30 41 59);
+}
+
+.cover-file-badge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 999px;
+  background: rgb(219 234 254);
+  padding: 0.3rem 0.65rem;
+  font-size: 0.7rem;
+  color: rgb(30 64 175);
+}
+
+.series-fields {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
+}
+
+.series-fields--open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
 :host-context(.dark) .field-file {
   background: rgb(30 41 59);
   color: rgb(241 245 249);
+}
+
+:host-context(.dark) .cover-dropzone:hover,
+:host-context(.dark) .cover-dropzone--active {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+:host-context(.dark) .cover-file-button {
+  background: rgb(37 99 235);
+}
+
+:host-context(.dark) .cover-file-button:hover {
+  background: rgb(29 78 216);
+}
+
+:host-context(.dark) .cover-file-badge {
+  background: rgb(30 58 138);
+  color: rgb(191 219 254);
 }
 
 :host-context(.dark) .field-file::file-selector-button {

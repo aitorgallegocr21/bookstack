@@ -38,6 +38,8 @@ export class BookCreateModalComponent {
   protected readonly isClosing = signal<boolean>(false);
   protected readonly coverMode = signal<'url' | 'upload'>('url');
   protected readonly coverPreview = signal<string>('');
+  protected readonly coverFileName = signal<string>('');
+  protected readonly isDraggingCover = signal<boolean>(false);
 
   protected readonly statusOptions: { value: BookStatus; label: string }[] = [
     { value: 'pending', label: 'Pendiente' },
@@ -132,6 +134,33 @@ export class BookCreateModalComponent {
       return;
     }
 
+    await this.processCoverFile(file);
+    input.value = '';
+  }
+
+  protected onCoverDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.isDraggingCover.set(true);
+  }
+
+  protected onCoverDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.isDraggingCover.set(false);
+  }
+
+  protected async onCoverDrop(event: DragEvent): Promise<void> {
+    event.preventDefault();
+    this.isDraggingCover.set(false);
+    const file = event.dataTransfer?.files[0];
+
+    if (file) {
+      await this.processCoverFile(file);
+    }
+  }
+
+  private async processCoverFile(file: File): Promise<void> {
+    this.coverFileName.set(file.name);
+
     try {
       const optimizedCover = await this.imageOptimizerService.optimize(file);
       this.coverPreview.set(optimizedCover);
@@ -140,14 +169,14 @@ export class BookCreateModalComponent {
     } catch (error) {
       console.error('Error al optimizar la portada:', error);
       this.coverPreview.set('');
+      this.coverFileName.set('');
       this.createForm.patchValue({ coverUrl: '' });
-    } finally {
-      input.value = '';
     }
   }
 
   protected clearCover(): void {
     this.coverPreview.set('');
+    this.coverFileName.set('');
     this.createForm.patchValue({ coverUrl: '' });
   }
 

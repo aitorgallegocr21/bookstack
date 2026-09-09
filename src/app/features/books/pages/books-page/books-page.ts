@@ -23,6 +23,7 @@ import { BookCreateModalComponent } from '../../components/book-create-modal/boo
 import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
 import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
 import { ReadingLogEditorComponent } from '../../components/reading-log-editor/reading-log-editor';
+import { formatSpanishMonth } from '../../../../core/utils/date-formatter';
 
 @Component({
   selector: 'app-books-page',
@@ -223,6 +224,10 @@ export class BooksPage {
 
     const normalized = Math.min(BOOK_RATING_MAX, Math.max(0, rating));
     return `★ ${normalized.toFixed(1).replace(/\.0$/, '')}/10`;
+  }
+
+  protected formatMonth(month: string): string {
+    return formatSpanishMonth(month);
   }
 
   /**

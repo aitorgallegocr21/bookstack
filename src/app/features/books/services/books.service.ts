@@ -61,6 +61,40 @@ export class BooksService {
     );
   }
 
+  async applyReadingDelta(bookId: string, deltaPages: number): Promise<void> {
+    await this.ensureInitialized();
+
+    if (!Number.isFinite(deltaPages) || deltaPages === 0) {
+      return;
+    }
+
+    const book = this.books().find((currentBook) => currentBook.id === bookId);
+    if (!book) {
+      return;
+    }
+
+    const totalPages = Math.max(0, book.totalPages);
+    const currentPage = Math.min(totalPages, Math.max(0, book.currentPage));
+    const nextPage = Math.min(totalPages, Math.max(0, currentPage + deltaPages));
+    const nextStatus = nextPage >= totalPages && totalPages > 0
+      ? 'completed'
+      : book.status === 'completed' || (deltaPages > 0 && book.status === 'pending')
+        ? 'reading'
+        : book.status;
+
+    const updatedBook: Book = {
+      ...book,
+      currentPage: nextPage,
+      status: nextStatus,
+      updatedAt: new Date().toISOString()
+    };
+
+    await this.storage.set(this.storeName, updatedBook);
+    this.books.update((current) =>
+      current.map((currentBook) => (currentBook.id === bookId ? updatedBook : currentBook))
+    );
+  }
+
   async remove(id: string): Promise<void> {
     await this.ensureInitialized();
     await this.storage.remove(this.storeName, id);

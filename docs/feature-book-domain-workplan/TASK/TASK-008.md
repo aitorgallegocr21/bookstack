@@ -6,11 +6,11 @@
 ---
 
 ### Fase 1: Sincronización Automática de Sesiones y Progreso
-- [ ] 1.1 Implementar método `applyReadingDelta(bookId: string, deltaPages: number)` en `BooksService` (`books.service.ts`).
-- [ ] 1.2 Conectar `ReadingLogService` (`reading-log.service.ts`) o `ReadingLogEditorComponent` para invocar `applyReadingDelta`:
-  - [ ] Al crear un log: sumar `log.pagesRead`.
-  - [ ] Al eliminar un log: restar `log.pagesRead`.
-  - [ ] Al editar un log: aplicar la diferencia `(newPages - oldPages)`.
+- [x] 1.1 Implementar método `applyReadingDelta(bookId: string, deltaPages: number)` en `BooksService` (`books.service.ts`).
+- [x] 1.2 Conectar `ReadingLogService` (`reading-log.service.ts`) o `ReadingLogEditorComponent` para invocar `applyReadingDelta`:
+  - [x] Al crear un log: sumar `log.pagesRead`.
+  - [x] Al eliminar un log: restar `log.pagesRead`.
+  - [x] Al editar un log: aplicar la diferencia `(newPages - oldPages)`.
 
 ### Fase 2: Formateador Universal de Fechas
 - [ ] 2.1 Crear `src/app/core/utils/date-formatter.ts` con funciones de formato `es-ES`.

@@ -24,8 +24,8 @@
   - [x] Textos secundarios: `text-slate-700 dark:text-slate-300`.
 
 ### Fase 4: Ergonomía de Formularios y Modales
-- [ ] 4.1 Rediseñar el selector de archivo de imagen de portada en `BookCreateModalComponent` y `BookEditModalComponent` con botón estilizado y badge de archivo.
-- [ ] 4.2 Convertir el checkbox de saga en un Switch toggle deslizante moderno con animación fluida de apertura/cierre.
+- [x] 4.1 Rediseñar el selector de archivo de imagen de portada en `BookCreateModalComponent` y `BookEditModalComponent` con botón estilizado y badge de archivo.
+- [x] 4.2 Convertir el checkbox de saga en un Switch toggle deslizante moderno con animación fluida de apertura/cierre.
 
 ### Fase 5: Responsividad Extrema (<360px)
 - [ ] 5.1 Aplicar reglas de reajuste en tarjetas de libro (`books-page.html`) para pantallas de ancho $<360\text{px}$ evitando desbordamientos de botones y texto.

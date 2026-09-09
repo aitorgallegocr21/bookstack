@@ -1,5 +1,5 @@
 <dialog
-  class="reading-log-editor fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+  class="reading-log-editor fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm dark:bg-slate-950/80"
   [class.modal-backdrop--closing]="isClosing()"
   open
   aria-labelledby="modal-title"
@@ -8,11 +8,11 @@
   (click)="onBackdropClick($event)"
   (keydown)="onBackdropClick($event)"
 >
-  <div class="modal-panel relative w-full max-w-xl max-h-[90dvh] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl flex flex-col">
-    <header class="flex-shrink-0 flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4 sm:px-6">
+  <div class="modal-panel relative flex max-h-[90dvh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+    <header class="flex flex-shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-950/60 sm:px-6">
       <div>
-        <span class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400">Sesión de lectura</span>
-        <h2 id="modal-title" class="mt-1 text-xl font-bold leading-tight text-slate-900">
+        <span class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Sesión de lectura</span>
+        <h2 id="modal-title" class="mt-1 text-xl font-bold leading-tight text-slate-900 dark:text-slate-100">
           {{ existingLog() ? 'Editar sesión' : 'Registrar lectura' }}
         </h2>
       </div>
@@ -20,7 +20,7 @@
       <button
         type="button"
         (click)="cancel()"
-        class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-600"
+        class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
         aria-label="Cerrar editor"
       >
         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -32,56 +32,56 @@
     <form class="flex-1 overflow-y-auto space-y-4 p-5 sm:p-6" (ngSubmit)="save()">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label class="block">
-          <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600">Fecha</span>
+          <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-400">Fecha</span>
           <input
             type="date"
             [(ngModel)]="draft.date"
             name="date"
             required
-            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
           />
         </label>
 
         <label class="block">
-          <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600">Páginas leídas</span>
+          <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-400">Páginas leídas</span>
           <input
             type="number"
             min="0"
             [(ngModel)]="draft.pagesRead"
             name="pagesRead"
             required
-            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
           />
         </label>
       </div>
 
       <label class="block">
-        <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600">Tiempo (min)</span>
+        <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-400">Tiempo (min)</span>
         <input
           type="number"
           min="0"
           [(ngModel)]="draft.timeSpentMinutes"
           name="timeSpentMinutes"
-          class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+          class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
         />
       </label>
 
       <label class="block">
-        <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600">Notas</span>
+        <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-400">Notas</span>
         <textarea
           [(ngModel)]="draft.notes"
           name="notes"
           rows="4"
-          class="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+          class="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
         ></textarea>
       </label>
 
-      <div class="flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
-        <button class="rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100" type="button" (click)="cancel()">
+      <div class="flex items-center justify-end gap-3 border-t border-slate-200 pt-4 dark:border-slate-800">
+        <button class="rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" type="button" (click)="cancel()">
           Cancelar
         </button>
         <button
-          class="rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+          class="rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
           type="submit"
           [disabled]="isSaving()"
         >

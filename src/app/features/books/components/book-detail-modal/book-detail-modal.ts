@@ -10,7 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { BooksService } from '../../services/books.service';
 import { ReadingLogService } from '../../services/reading-log.service';
-import { Book, BookStatus, ReadingLog } from '../../models/book.model';
+import { Book, BookStatus, ReadingLog, BOOK_RATING_MAX } from '../../models/book.model';
 import { ReadingLogEditorComponent } from '../reading-log-editor/reading-log-editor';
 
 @Component({
@@ -32,6 +32,7 @@ export class BookDetailModalComponent {
   protected readonly showLogEditor = signal<boolean>(false);
   protected readonly editingLog = signal<ReadingLog | undefined>(undefined);
   protected readonly isClosing = signal<boolean>(false);
+  protected readonly showAllLogs = signal<boolean>(false);
 
   protected readonly book = computed<Book | undefined>(() => {
     return this.booksService.books().find((b) => b.id === this.bookId());
@@ -43,6 +44,11 @@ export class BookDetailModalComponent {
       .readingLogs()
       .filter((log) => log.bookId === id)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  });
+
+  protected readonly visibleBookLogs = computed<ReadingLog[]>(() => {
+    const logs = this.bookLogs();
+    return this.showAllLogs() ? logs : logs.slice(0, 2);
   });
 
   protected readonly progressPercentage = computed(() => {
@@ -63,6 +69,10 @@ export class BookDetailModalComponent {
   protected closeLogEditor(): void {
     this.showLogEditor.set(false);
     this.editingLog.set(undefined);
+  }
+
+  protected toggleLogsExpanded(): void {
+    this.showAllLogs.update((isExpanded) => !isExpanded);
   }
 
   protected async deleteLog(logId: string): Promise<void> {
@@ -121,6 +131,14 @@ export class BookDetailModalComponent {
 
     const volume = book.series.volumeNumber ? ` · Vol. ${book.series.volumeNumber}` : '';
     return `${book.series.name}${volume}`;
+  }
+
+  protected getRatingBadge(rating?: number): string {
+    if (rating === undefined || rating === null || Number.isNaN(rating)) {
+      return 'Sin valoración';
+    }
+
+    return `★ ${Math.min(BOOK_RATING_MAX, Math.max(0, rating)).toFixed(1).replace(/\.0$/, '')}/10`;
   }
 
   protected formatDate(date?: string): string {

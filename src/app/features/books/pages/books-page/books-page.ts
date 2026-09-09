@@ -6,10 +6,19 @@ import {
   ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideDynamicIcon, LucidePlus, LucideEye, LucideEdit2, LucideTrash2, LucideSun, LucideMoon } from '@lucide/angular';
 import { BooksService } from '../../services/books.service';
 import { ReadingStatsService } from '../../services/reading-stats.service';
 import { ReadingLogService } from '../../services/reading-log.service';
-import { Book, BookStatus, ReadingLog, BOOK_STATUS_CONFIG, BOOK_STATUS_LABELS } from '../../models/book.model';
+import { ThemeService } from '../../../../core/services/theme.service';
+import {
+  Book,
+  BookStatus,
+  ReadingLog,
+  BOOK_STATUS_CONFIG,
+  BOOK_STATUS_LABELS,
+  BOOK_RATING_MAX
+} from '../../models/book.model';
 import { BookCreateModalComponent } from '../../components/book-create-modal/book-create-modal';
 import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
 import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
@@ -20,11 +29,12 @@ import { ReadingLogEditorComponent } from '../../components/reading-log-editor/r
   standalone: true,
   imports: [
     CommonModule,
+    LucideDynamicIcon,
     BookCreateModalComponent,
     BookEditModalComponent,
     BookDetailModalComponent,
     ReadingLogEditorComponent
-  ],
+],
   templateUrl: './books-page.html',
   styleUrl: './books-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -33,10 +43,17 @@ export class BooksPage {
   private readonly booksService = inject(BooksService);
   private readonly readingStatsService = inject(ReadingStatsService);
   private readonly readingLogService = inject(ReadingLogService);
+  protected readonly themeService = inject(ThemeService);
 
-  // Exportar constantes de presentación para uso en templates
+  // Exportar constantes de presentación y iconos para uso en templates
   protected readonly BOOK_STATUS_CONFIG = BOOK_STATUS_CONFIG;
   protected readonly BOOK_STATUS_LABELS = BOOK_STATUS_LABELS;
+  protected readonly Plus = LucidePlus;
+  protected readonly Eye = LucideEye;
+  protected readonly Edit2 = LucideEdit2;
+  protected readonly Trash2 = LucideTrash2;
+  protected readonly Sun = LucideSun;
+  protected readonly Moon = LucideMoon;
 
   protected readonly books = this.booksService.books;
   protected readonly readingLogs = this.readingLogService.readingLogs;
@@ -51,6 +68,9 @@ export class BooksPage {
   protected readonly showReadingLogEditor = signal<boolean>(false);
   protected readonly readingLogBookId = signal<string | undefined>(undefined);
   protected readonly editingReadingLog = signal<ReadingLog | undefined>(undefined);
+
+  // Signal para rastrear qué libros tienen sesiones expandidas
+  protected readonly expandedBookIds = signal<Set<string>>(new Set());
 
   /**
    * Agrupación reactiva O(N) de sesiones de lectura por ID de libro.
@@ -67,6 +87,50 @@ export class BooksPage {
     }
     return map;
   });
+
+  /**
+   * Obtiene las sesiones visibles para un libro (máx 2 si no está expandido).
+   */
+  protected getVisibleLogs(bookId: string): ReadingLog[] {
+    const allLogs = this.logsByBookMap().get(bookId) ?? [];
+    const isExpanded = this.expandedBookIds().has(bookId);
+    return isExpanded ? allLogs : allLogs.slice(0, 2);
+  }
+
+  /**
+   * Retorna true si hay más sesiones para mostrar (más de 2).
+   */
+  protected hasMoreLogs(bookId: string): boolean {
+    const allLogs = this.logsByBookMap().get(bookId) ?? [];
+    return allLogs.length > 2;
+  }
+
+  /**
+   * Retorna el contador de sesiones ocultas.
+   */
+  protected getHiddenLogsCount(bookId: string): number {
+    const allLogs = this.logsByBookMap().get(bookId) ?? [];
+    const isExpanded = this.expandedBookIds().has(bookId);
+    if (isExpanded || allLogs.length <= 2) {
+      return 0;
+    }
+    return allLogs.length - 2;
+  }
+
+  /**
+   * Alterna la expansión de sesiones para un libro.
+   */
+  protected toggleLogsExpanded(bookId: string): void {
+    this.expandedBookIds.update((set) => {
+      const newSet = new Set(set);
+      if (newSet.has(bookId)) {
+        newSet.delete(bookId);
+      } else {
+        newSet.add(bookId);
+      }
+      return newSet;
+    });
+  }
 
   protected readonly maxMonthlyPages = computed(() => {
     const monthly = this.stats().monthlyPages;
@@ -150,6 +214,15 @@ export class BooksPage {
    */
   protected getStatusBadgeClass(status: BookStatus): string {
     return BOOK_STATUS_CONFIG[status].badgeClass;
+  }
+
+  protected getRatingBadge(rating?: number): string {
+    if (rating === undefined || rating === null || Number.isNaN(rating)) {
+      return 'Sin valoración';
+    }
+
+    const normalized = Math.min(BOOK_RATING_MAX, Math.max(0, rating));
+    return `★ ${normalized.toFixed(1).replace(/\.0$/, '')}/10`;
   }
 
   /**

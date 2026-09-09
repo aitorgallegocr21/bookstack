@@ -23,6 +23,10 @@ export interface SeriesInfo {
   sequelBookId?: string;
 }
 
+export const BOOK_RATING_MIN = 0;
+export const BOOK_RATING_MAX = 10;
+export const BOOK_RATING_STEP = 0.5;
+
 export interface Book {
   id: string;
   isbn?: string;

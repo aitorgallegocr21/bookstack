@@ -29,7 +29,7 @@
   color: rgb(71 85 105);
 }
 
-:where(.dark) .field-label {
+:host-context(.dark) .field-label {
   color: rgb(148 163 184);
 }
 
@@ -47,13 +47,20 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-:where(.dark) .field-input,
-:where(.dark) .field-textarea,
-:where(.dark) .field-select,
-:where(.dark) .field-file {
+:host-context(.dark) .field-input,
+:host-context(.dark) .field-textarea,
+:host-context(.dark) .field-select,
+:host-context(.dark) .field-file {
   border-color: rgb(71 85 105);
   background: rgb(30 41 59);
-  color: rgb(226 232 240);
+  color: rgb(241 245 249);
+  caret-color: rgb(241 245 249);
+}
+
+:host-context(.dark) .field-input::placeholder,
+:host-context(.dark) .field-textarea::placeholder {
+  color: rgb(148 163 184);
+  opacity: 1;
 }
 
 .field-input:focus,
@@ -88,7 +95,7 @@
   transition: border-color 0.2s ease;
 }
 
-:where(.dark) .select-wrap::after {
+:host-context(.dark) .select-wrap::after {
   border-right-color: rgb(148 163 184);
   border-bottom-color: rgb(148 163 184);
 }
@@ -103,9 +110,15 @@
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
-:where(.dark) .field-select {
+:host-context(.dark) .field-select {
   background: linear-gradient(180deg, rgb(30 41 59) 0%, rgb(15 23 42) 100%);
+  color: rgb(241 245 249);
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.04);
+}
+
+:host-context(.dark) .field-select option {
+  background: rgb(30 41 59);
+  color: rgb(241 245 249);
 }
 
 .select-wrap:hover .field-select,
@@ -120,6 +133,15 @@
 .field-file {
   padding: 0.75rem 0.9rem;
   background: rgb(255 255 255);
+}
+
+:host-context(.dark) .field-file {
+  background: rgb(30 41 59);
+  color: rgb(241 245 249);
+}
+
+:host-context(.dark) .field-file::file-selector-button {
+  color: rgb(226 232 240);
 }
 
 @keyframes fadeIn {

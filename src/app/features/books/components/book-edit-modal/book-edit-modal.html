@@ -38,39 +38,39 @@
               <label for="edit-book-title" class="field-label">
                 Título <span class="text-red-500">*</span>
               </label>
-              <input id="edit-book-title" type="text" formControlName="title" placeholder="Ej. El problema de los tres cuerpos" class="field-input" />
+              <input id="edit-book-title" type="text" formControlName="title" placeholder="Ej. El problema de los tres cuerpos" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
             </div>
 
             <div>
               <label for="edit-book-author" class="field-label">
                 Autor <span class="text-red-500">*</span>
               </label>
-              <input id="edit-book-author" type="text" formControlName="author" placeholder="Ej. Cixin Liu" class="field-input" />
+              <input id="edit-book-author" type="text" formControlName="author" placeholder="Ej. Cixin Liu" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
             </div>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label for="edit-book-isbn" class="field-label">ISBN</label>
-                <input id="edit-book-isbn" type="text" formControlName="isbn" placeholder="978-84-..." class="field-input" />
+                <input id="edit-book-isbn" type="text" formControlName="isbn" placeholder="978-84-..." class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
               </div>
               <div>
                 <label for="edit-book-publication-year" class="field-label">Año</label>
-                <input id="edit-book-publication-year" type="number" min="0" formControlName="publicationYear" placeholder="2025" class="field-input" />
+                <input id="edit-book-publication-year" type="number" min="0" formControlName="publicationYear" placeholder="2025" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
               </div>
             </div>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label for="edit-book-publisher" class="field-label">Editorial</label>
-                <input id="edit-book-publisher" type="text" formControlName="publisher" placeholder="Nombre de la editorial" class="field-input" />
+                <input id="edit-book-publisher" type="text" formControlName="publisher" placeholder="Nombre de la editorial" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
               </div>
               <div>
                 <label for="edit-book-format" class="field-label">Formato</label>
                 <div class="select-wrap">
                   <select id="edit-book-format" title="Formato del libro" formControlName="format" class="field-select">
-                    <option value="Físico">Físico</option>
-                    <option value="Ebook">Ebook</option>
-                    <option value="Audiolibro">Audiolibro</option>
+                    <option class="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100" value="Físico">Físico</option>
+                    <option class="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100" value="Ebook">Ebook</option>
+                    <option class="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100" value="Audiolibro">Audiolibro</option>
                   </select>
                 </div>
               </div>
@@ -95,42 +95,42 @@
                     (change)="onStatusChange($any($event.target).value)"
                   >
                     @for (opt of statusOptions; track opt.value) {
-                      <option [value]="opt.value">{{ opt.label }}</option>
+                      <option class="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100" [value]="opt.value">{{ opt.label }}</option>
                     }
                   </select>
                 </div>
               </div>
               <div>
                 <label for="edit-book-rating" class="field-label">Valoración</label>
-                <input id="edit-book-rating" type="number" min="0" max="10" step="0.5" formControlName="rating" placeholder="0 - 10" class="field-input" />
+                <input id="edit-book-rating" type="number" min="0" max="10" step="0.5" formControlName="rating" placeholder="0 - 10" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
               </div>
             </div>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label for="edit-book-total-pages" class="field-label">Páginas totales</label>
-                <input id="edit-book-total-pages" type="number" min="0" formControlName="totalPages" class="field-input" />
+                <input id="edit-book-total-pages" type="number" min="0" formControlName="totalPages" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
               </div>
               <div>
                 <label for="edit-book-current-pages" class="field-label">Páginas leídas</label>
-                <input id="edit-book-current-pages" type="number" min="0" formControlName="currentPage" class="field-input" />
+                <input id="edit-book-current-pages" type="number" min="0" formControlName="currentPage" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
               </div>
             </div>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label for="edit-book-total-chapters" class="field-label">Capítulos totales</label>
-                <input id="edit-book-total-chapters" type="number" min="0" formControlName="totalChapters" class="field-input" />
+                <input id="edit-book-total-chapters" type="number" min="0" formControlName="totalChapters" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
               </div>
               <div>
                 <label for="edit-book-current-chapter" class="field-label">Capítulos leídos</label>
-                <input id="edit-book-current-chapter" type="number" min="0" formControlName="currentChapter" class="field-input" />
+                <input id="edit-book-current-chapter" type="number" min="0" formControlName="currentChapter" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
               </div>
             </div>
 
             <div>
               <label for="edit-book-total-characters" class="field-label">Total de caracteres</label>
-              <input id="edit-book-total-characters" type="number" min="0" formControlName="totalCharacters" class="field-input" />
+              <input id="edit-book-total-characters" type="number" min="0" formControlName="totalCharacters" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
             </div>
           </section>
 
@@ -149,11 +149,11 @@
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label for="edit-book-series-name" class="field-label">Nombre de serie</label>
-                  <input id="edit-book-series-name" type="text" formControlName="seriesName" placeholder="Ej. Trilogía de la Fundación" class="field-input" />
+                  <input id="edit-book-series-name" type="text" formControlName="seriesName" placeholder="Ej. Trilogía de la Fundación" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
                 </div>
                 <div>
                   <label for="edit-book-series-volume" class="field-label">Número de volumen</label>
-                  <input id="edit-book-series-volume" type="number" min="1" formControlName="seriesVolumeNumber" placeholder="1" class="field-input" />
+                  <input id="edit-book-series-volume" type="number" min="1" formControlName="seriesVolumeNumber" placeholder="1" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
                 </div>
               </div>
             }
@@ -168,11 +168,11 @@
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label for="edit-book-start-date" class="field-label">Fecha inicio</label>
-                <input id="edit-book-start-date" type="date" formControlName="startDate" class="field-input" />
+                <input id="edit-book-start-date" type="date" formControlName="startDate" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
               </div>
               <div>
                 <label for="edit-book-end-date" class="field-label">Fecha fin</label>
-                <input id="edit-book-end-date" type="date" formControlName="endDate" class="field-input" />
+                <input id="edit-book-end-date" type="date" formControlName="endDate" class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
               </div>
             </div>
 
@@ -213,12 +213,12 @@
             @if (coverMode() === 'url') {
               <div>
                 <label for="edit-book-cover-url" class="field-label">URL de portada</label>
-                <input id="edit-book-cover-url" type="url" formControlName="coverUrl" placeholder="https://..." class="field-input" />
+                <input id="edit-book-cover-url" type="url" formControlName="coverUrl" placeholder="https://..." class="field-input bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800" />
               </div>
             } @else {
               <div class="space-y-3">
                 <label for="edit-book-cover-file" class="field-label">Archivo local</label>
-                <input id="edit-book-cover-file" type="file" accept="image/png,image/jpeg,image/webp,image/avif" class="field-file" (change)="onCoverSelected($event)" />
+                <input id="edit-book-cover-file" type="file" accept="image/png,image/jpeg,image/webp,image/avif" class="field-file bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 file:text-slate-700 dark:file:text-slate-200" (change)="onCoverSelected($event)" />
               </div>
             }
 
@@ -250,7 +250,7 @@
               formControlName="notes"
               rows="3"
               placeholder="Sinopsis, expectativas o notas personales..."
-              class="field-textarea"
+              class="field-textarea bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800"
             ></textarea>
           </section>
         </div>

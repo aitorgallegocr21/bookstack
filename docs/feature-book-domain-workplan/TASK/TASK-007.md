@@ -1,7 +1,7 @@
 # TASK-007: Checklist de Implementación Media-Object, Layout Ultra-Wide y Theming de Formularios
 
 - **Especificación asociada:** `docs/feature-book-domain-workplan/SPEC/SPEC-007.md`
-- **Estado:** EN PROCESO
+- **Estado:** COMPLETADO
 
 ---
 
@@ -22,11 +22,11 @@
 - [x] 3.1 Verificar y refinar `BookDetailModalComponent` (`book-detail-modal.html` y `.ts`) para albergar el historial de sesiones con acordeón ("Ver más / Ver menos").
 
 ### Fase 4: Modo Oscuro Estricto en Formularios y Modales
-- [ ] 4.1 Actualizar inputs, selects, textareas y options en `src/app/features/books/components/book-create-modal/book-create-modal.html` con clases `dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100`.
-- [ ] 4.2 Actualizar inputs, selects, textareas y options en `src/app/features/books/components/book-edit-modal/book-edit-modal.html` con la misma paleta oscura.
-- [ ] 4.3 Verificar contraste de placeholders y textos de ayuda en modo oscuro.
+- [x] 4.1 Actualizar inputs, selects, textareas y options en `src/app/features/books/components/book-create-modal/book-create-modal.html` con clases `dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100`.
+- [x] 4.2 Actualizar inputs, selects, textareas y options en `src/app/features/books/components/book-edit-modal/book-edit-modal.html` con la misma paleta oscura.
+- [x] 4.3 Verificar contraste de placeholders y textos de ayuda en modo oscuro.
 
 ### Fase 5: Validación Técnica y Build
-- [ ] 5.1 Probar visualización en viewport móvil (<640px) y ultra-ancho (>1440px).
-- [ ] 5.2 Conmutar modo claro/oscuro y validar ausencia de elementos blancos residuales en formularios y fondos.
-- [ ] 5.3 Ejecutar `npm run build` y asegurar 0 errores.
+- [x] 5.1 Probar visualización en viewport móvil (<640px) y ultra-ancho (>1440px).
+- [x] 5.2 Conmutar modo claro/oscuro y validar ausencia de elementos blancos residuales en formularios y fondos.
+- [x] 5.3 Ejecutar `npm run build` y asegurar 0 errores.

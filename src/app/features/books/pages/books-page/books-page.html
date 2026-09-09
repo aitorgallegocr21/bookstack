@@ -1,8 +1,8 @@
-<main class="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen space-y-8 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+<main class="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen space-y-8 bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
   <!-- Encabezado -->
   <section class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-      <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1">BookStack</p>
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-slate-300 mb-1">BookStack</p>
       <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Mi biblioteca</h1>
     </div>
     <div class="flex items-center gap-2">
@@ -10,13 +10,13 @@
       <button
         type="button"
         (click)="themeService.toggleTheme()"
-        class="inline-flex items-center justify-center p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 shadow-xs hover:shadow-md transition-colors transition-shadow duration-200 active:scale-[0.98]"
+        class="inline-flex items-center justify-center p-2.5 rounded-xl border border-slate-300/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 shadow-sm hover:shadow-md transition-colors transition-shadow duration-200 active:scale-[0.98]"
         [attr.aria-label]="themeService.isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
       >
         @if (themeService.isDark()) {
-          <svg [lucideIcon]="Sun" size="18" stroke-width="2.5"></svg>
+          <svg class="theme-icon-enter" [lucideIcon]="Sun" size="18" stroke-width="2.5"></svg>
         } @else {
-          <svg [lucideIcon]="Moon" size="18" stroke-width="2.5"></svg>
+          <svg class="theme-icon-enter" [lucideIcon]="Moon" size="18" stroke-width="2.5"></svg>
         }
       </button>
       <!-- Botón crear nuevo libro -->
@@ -34,39 +34,39 @@
 
   <!-- Métricas Rápidas -->
   <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" aria-label="Resumen de lectura">
-    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
-      <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Libros</span>
+    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300/80 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-400 dark:hover:border-slate-700 hover:shadow-md">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Libros</span>
       <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">{{ stats().totalBooks }}</span>
     </article>
 
-    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
-      <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Leyendo</span>
+    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300/80 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-400 dark:hover:border-slate-700 hover:shadow-md">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Leyendo</span>
       <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">{{ stats().readingBooks }}</span>
     </article>
 
-    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
-      <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Completados</span>
+    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300/80 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-400 dark:hover:border-slate-700 hover:shadow-md">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Completados</span>
       <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">{{ stats().completedBooks }}</span>
     </article>
 
-    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
-      <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Páginas</span>
+    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300/80 dark:border-slate-800 flex flex-col gap-1 shadow-sm transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-400 dark:hover:border-slate-700 hover:shadow-md">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Páginas</span>
       <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">{{ stats().totalPagesRead }}</span>
     </article>
 
-    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-1 shadow-sm col-span-2 sm:col-span-1 transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
-      <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Velocidad</span>
-      <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">{{ stats().averageReadingSpeedPagesPerHour }} <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">pp/h</span></span>
+    <article class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300/80 dark:border-slate-800 flex flex-col gap-1 shadow-sm col-span-2 sm:col-span-1 transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-400 dark:hover:border-slate-700 hover:shadow-md">
+      <span class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Velocidad</span>
+      <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">{{ stats().averageReadingSpeedPagesPerHour }} <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">pp/h</span></span>
     </article>
   </section>
 
   <!-- Panel Analítico -->
   <section class="grid grid-cols-1 md:grid-cols-2 gap-4" aria-label="Estadísticas de lectura">
-    <article class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
+    <article class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-400 dark:hover:border-slate-700 hover:shadow-md">
       <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">Distribución por estado</h3>
       <div class="space-y-3">
         @for (row of stats().statusDistribution; track row.status) {
-          <div class="grid grid-cols-[6rem_1fr_2.5rem] items-center gap-3 text-xs font-semibold text-slate-600 dark:text-slate-400 transition-colors duration-200 hover:text-slate-800 dark:hover:text-slate-300">
+          <div class="grid grid-cols-[6rem_1fr_2.5rem] items-center gap-3 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors duration-200 hover:text-slate-900 dark:hover:text-slate-100">
             <span class="truncate">{{ BOOK_STATUS_LABELS[row.status] }}</span>
             <div class="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
@@ -81,11 +81,11 @@
       </div>
     </article>
 
-    <article class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md">
+    <article class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-300/80 dark:border-slate-800 shadow-sm space-y-4 transition-colors transition-shadow duration-200 hover:-translate-y-0.5 hover:border-slate-400 dark:hover:border-slate-700 hover:shadow-md">
       <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">Actividad mensual</h3>
       <div class="space-y-3">
         @for (month of stats().monthlyPages; track month.month) {
-          <div class="grid grid-cols-[6rem_1fr_2.5rem] items-center gap-3 text-xs font-semibold text-slate-600 dark:text-slate-400 transition-colors duration-200 hover:text-slate-800 dark:hover:text-slate-300">
+          <div class="grid grid-cols-[6rem_1fr_2.5rem] items-center gap-3 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors duration-200 hover:text-slate-900 dark:hover:text-slate-100">
             <span class="truncate">{{ formatMonth(month.month) }}</span>
             <div class="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
@@ -105,10 +105,10 @@
   <!-- Lista de Libros -->
   <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4" aria-label="Lista de libros">
     @for (book of books(); track book.id) {
-      <article class="book-card-item flex min-w-0 gap-3.5 rounded-2xl border border-slate-200 bg-white p-3 shadow-xs transition-colors hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
+      <article class="book-card-item flex min-w-0 gap-3.5 rounded-2xl border border-slate-300/80 bg-white p-3 shadow-sm transition-colors hover:border-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700">
         <button
           type="button"
-          class="group relative aspect-[2/3] w-20 shrink-0 self-start overflow-hidden rounded-lg border border-slate-200 bg-slate-100 shadow-sm transition-opacity duration-200 hover:scale-[1.02] hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-slate-900/20 dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-slate-100/20 sm:w-24"
+          class="group relative aspect-[2/3] w-20 shrink-0 self-start overflow-hidden rounded-lg border border-slate-300/80 bg-slate-100 shadow-sm transition-opacity duration-200 hover:scale-[1.02] hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-slate-900/20 dark:border-slate-700 dark:bg-slate-800 dark:focus:ring-slate-100/20 sm:w-24"
           [attr.aria-label]="'Ver detalles de ' + book.title"
           (click)="openDetailModal(book.id)"
         >
@@ -148,9 +148,9 @@
               </span>
             </div>
 
-            <p class="truncate text-xs text-slate-600 dark:text-slate-400">{{ book.author }}</p>
+            <p class="truncate text-xs text-slate-700 dark:text-slate-300">{{ book.author }}</p>
 
-            <div class="flex min-w-0 flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+            <div class="flex min-w-0 flex-wrap gap-x-3 gap-y-1 text-xs text-slate-700 dark:text-slate-300">
               <span class="truncate">{{ book.format ?? 'Sin formato' }}</span>
               <span>{{ book.totalPages }} págs.</span>
               @if (book.rating !== undefined && book.rating !== null) {
@@ -166,7 +166,7 @@
                   [style.width.%]="book.totalPages > 0 ? (book.currentPage / book.totalPages) * 100 : 0"
                 ></div>
               </div>
-              <div class="flex justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <div class="flex justify-between gap-2 text-xs text-slate-700 dark:text-slate-300">
                 <span>{{ book.currentPage }} / {{ book.totalPages }} págs.</span>
                 <span>{{ book.totalPages > 0 ? ((book.currentPage / book.totalPages) * 100).toFixed(0) : 0 }}%</span>
               </div>

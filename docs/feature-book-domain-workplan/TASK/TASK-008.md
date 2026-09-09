@@ -17,11 +17,11 @@
 - [x] 2.2 Aplicar `formatSpanishDate` en las fechas visibles de `BookDetailModalComponent` y `ReadingLogEditorComponent` ( `BooksPageComponent` no renderiza fechas actualmente).
 
 ### Fase 3: Theming, Micro-animación de Switch y Contraste
-- [ ] 3.1 Añadir micro-animación de rotación y escala al botón Sol/Luna en la cabecera de `BooksPageComponent`.
-- [ ] 3.2 Reforzar contraste en modo claro:
-  - [ ] Fondo de página: `bg-slate-100/80` (en `index.html` y `books-page.html`).
-  - [ ] Tarjetas: `border-slate-300/80` y `shadow-sm`.
-  - [ ] Textos secundarios: `text-slate-700 dark:text-slate-300`.
+- [x] 3.1 Añadir micro-animación de rotación y escala al botón Sol/Luna en la cabecera de `BooksPageComponent`.
+- [x] 3.2 Reforzar contraste en modo claro:
+  - [x] Fondo de página: `bg-slate-100/80` (en `index.html` y `books-page.html`).
+  - [x] Tarjetas: `border-slate-300/80` y `shadow-sm`.
+  - [x] Textos secundarios: `text-slate-700 dark:text-slate-300`.
 
 ### Fase 4: Ergonomía de Formularios y Modales
 - [ ] 4.1 Rediseñar el selector de archivo de imagen de portada en `BookCreateModalComponent` y `BookEditModalComponent` con botón estilizado y badge de archivo.

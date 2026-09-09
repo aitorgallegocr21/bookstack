@@ -10,3 +10,25 @@
 .book-reading-log-item {
   contain: paint;
 }
+
+.theme-icon-enter {
+  animation: theme-icon-enter 300ms ease-out;
+}
+
+@keyframes theme-icon-enter {
+  from {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.65);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-icon-enter {
+    animation: none;
+  }
+}

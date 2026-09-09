@@ -32,6 +32,7 @@ export class BookDetailModalComponent {
   protected readonly showLogEditor = signal<boolean>(false);
   protected readonly editingLog = signal<ReadingLog | undefined>(undefined);
   protected readonly isClosing = signal<boolean>(false);
+  protected readonly showAllLogs = signal<boolean>(false);
 
   protected readonly book = computed<Book | undefined>(() => {
     return this.booksService.books().find((b) => b.id === this.bookId());
@@ -43,6 +44,11 @@ export class BookDetailModalComponent {
       .readingLogs()
       .filter((log) => log.bookId === id)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  });
+
+  protected readonly visibleBookLogs = computed<ReadingLog[]>(() => {
+    const logs = this.bookLogs();
+    return this.showAllLogs() ? logs : logs.slice(0, 2);
   });
 
   protected readonly progressPercentage = computed(() => {
@@ -63,6 +69,10 @@ export class BookDetailModalComponent {
   protected closeLogEditor(): void {
     this.showLogEditor.set(false);
     this.editingLog.set(undefined);
+  }
+
+  protected toggleLogsExpanded(): void {
+    this.showAllLogs.update((isExpanded) => !isExpanded);
   }
 
   protected async deleteLog(logId: string): Promise<void> {

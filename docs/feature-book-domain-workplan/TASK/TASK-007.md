@@ -19,7 +19,7 @@
 - [x] 2.3 Configurar la rejilla responsiva del catálogo: `grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4`.
 
 ### Fase 3: Centralización de Sesiones en Detalle de Libro
-- [ ] 3.1 Verificar y refinar `BookDetailModalComponent` (`book-detail-modal.html` y `.ts`) para albergar el historial de sesiones con acordeón ("Ver más / Ver menos").
+- [x] 3.1 Verificar y refinar `BookDetailModalComponent` (`book-detail-modal.html` y `.ts`) para albergar el historial de sesiones con acordeón ("Ver más / Ver menos").
 
 ### Fase 4: Modo Oscuro Estricto en Formularios y Modales
 - [ ] 4.1 Actualizar inputs, selects, textareas y options en `src/app/features/books/components/book-create-modal/book-create-modal.html` con clases `dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100`.

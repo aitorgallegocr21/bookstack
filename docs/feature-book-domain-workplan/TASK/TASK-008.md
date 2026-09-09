@@ -1,7 +1,7 @@
 # TASK-008: Checklist de Sincronización de Progreso, Contraste, Vista <360px y Refinamiento UX
 
 - **Especificación asociada:** `docs/feature-book-domain-workplan/SPEC/SPEC-008.md`
-- **Estado:** EN PROCESO
+- **Estado:** COMPLETADO
 
 ---
 
@@ -28,9 +28,9 @@
 - [x] 4.2 Convertir el checkbox de saga en un Switch toggle deslizante moderno con animación fluida de apertura/cierre.
 
 ### Fase 5: Responsividad Extrema (<360px)
-- [ ] 5.1 Aplicar reglas de reajuste en tarjetas de libro (`books-page.html`) para pantallas de ancho $<360\text{px}$ evitando desbordamientos de botones y texto.
+- [x] 5.1 Aplicar reglas de reajuste en tarjetas de libro (`books-page.html`) para pantallas de ancho $<360\text{px}$ evitando desbordamientos de botones y texto.
 
 ### Fase 6: Validación y Compilación
-- [ ] 6.1 Probar ciclo completo de logs: añadir log -> verificar aumento de progreso -> borrar log -> verificar reducción.
-- [ ] 6.2 Probar visualización en 320px (Galaxy Fold / iPhone SE) en DevTools.
-- [ ] 6.3 Ejecutar `npm run build` y asegurar 0 errores.
+- [x] 6.1 Probar ciclo completo de logs: añadir log -> verificar aumento de progreso -> borrar log -> verificar reducción.
+- [x] 6.2 Probar visualización en 320px (Galaxy Fold / iPhone SE) en DevTools.
+- [x] 6.3 Ejecutar `npm run build` y asegurar 0 errores.

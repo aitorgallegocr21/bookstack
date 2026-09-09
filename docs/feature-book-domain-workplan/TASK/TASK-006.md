@@ -26,6 +26,6 @@
 - [x] 3.2 Asignar las clases de contención a los elementos repetitivos existentes (`book-card-item` en las tarjetas y `book-reading-log-item` en los registros de lectura).
 
 ### Fase 4: Verificación de Rendimiento y Compilación
-- [ ] 4.1 Probar redimensionamiento continuo con DevTools Device Toolbar activado y comprobar ausencia de bloqueos.
-- [ ] 4.2 Ejecutar auditoría de rendimiento en DevTools para confirmar LCP < 2.5s.
-- [ ] 4.3 Ejecutar `npm run build` y asegurar 0 errores.
+- [x] 4.1 Probar redimensionamiento continuo con DevTools Device Toolbar activado y comprobar ausencia de bloqueos.
+- [x] 4.2 Ejecutar auditoría de rendimiento en DevTools para confirmar LCP < 2.5s.
+- [x] 4.3 Ejecutar `npm run build` y asegurar 0 errores.

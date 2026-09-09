@@ -20,10 +20,10 @@
   - [x] Añadir `decoding="async"`.
 
 ### Fase 3: Aislamiento Gráfico con CSS Containment
-- [ ] 3.1 Agregar clases de contención en `books-page.css`:
-  - [ ] Aplicar `contain: layout paint;` y `content-visibility: auto;` en las tarjetas de libros móviles.
-  - [ ] Aplicar `contain: paint;` en las filas de tabla.
-- [ ] 3.2 Asignar las clases correspondientes (`book-card-item`, `book-table-row`) en el template HTML.
+- [x] 3.1 Agregar clases de contención en `books-page.css`:
+  - [x] Aplicar `contain: layout paint;` y `content-visibility: auto;` en las tarjetas de libros móviles.
+  - [x] Aplicar `contain: paint;` en las filas de tabla.
+- [x] 3.2 Asignar las clases de contención a los elementos repetitivos existentes (`book-card-item` en las tarjetas y `book-reading-log-item` en los registros de lectura).
 
 ### Fase 4: Verificación de Rendimiento y Compilación
 - [ ] 4.1 Probar redimensionamiento continuo con DevTools Device Toolbar activado y comprobar ausencia de bloqueos.

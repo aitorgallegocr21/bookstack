@@ -1,6 +1,6 @@
 # TASK-009: Checklist de Shell Global, Enrutamiento Modular y Desacoplamiento
 
-- **Especificación asociada:** `docs/feature-book-domain-workplan/SPEC/SPEC-009.md`
+- **Especificación asociada:** `docs/features/02-app-shell/SPEC/SPEC-009.md`
 - **Estado:** EN PROCESO
 
 ---

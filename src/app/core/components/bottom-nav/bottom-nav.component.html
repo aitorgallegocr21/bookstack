@@ -1,9 +1,38 @@
-<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t">
-  <div class="max-w-4xl mx-auto px-4 py-2 flex justify-between">
-    <a routerLink="/" class="flex-1 text-center">Inicio</a>
-    <a routerLink="/books" class="flex-1 text-center">Libros</a>
-    <a routerLink="/stats" class="flex-1 text-center">Estadísticas</a>
-    <a routerLink="/series" class="flex-1 text-center">Series</a>
-    <a routerLink="/settings" class="flex-1 text-center">Ajustes</a>
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t" role="navigation" aria-label="Navegación inferior">
+  <div class="max-w-4xl mx-auto px-2 py-2 flex justify-between items-center">
+    <a routerLink="/" routerLinkActive="text-sky-600" class="flex-1 text-center py-3" aria-label="Inicio">
+      <div class="flex flex-col items-center gap-1">
+        <svg [lucideIcon]="Home" size="20" stroke-width="2"></svg>
+        <span class="text-xs">Inicio</span>
+      </div>
+    </a>
+
+    <a routerLink="/books" routerLinkActive="text-sky-600" class="flex-1 text-center py-3" aria-label="Libros">
+      <div class="flex flex-col items-center gap-1">
+        <svg [lucideIcon]="Book" size="20" stroke-width="2"></svg>
+        <span class="text-xs">Libros</span>
+      </div>
+    </a>
+
+    <a routerLink="/stats" routerLinkActive="text-sky-600" class="flex-1 text-center py-3" aria-label="Estadísticas">
+      <div class="flex flex-col items-center gap-1">
+        <svg [lucideIcon]="Stats" size="20" stroke-width="2"></svg>
+        <span class="text-xs">Stats</span>
+      </div>
+    </a>
+
+    <a routerLink="/series" routerLinkActive="text-sky-600" class="flex-1 text-center py-3" aria-label="Series">
+      <div class="flex flex-col items-center gap-1">
+        <svg [lucideIcon]="Series" size="20" stroke-width="2"></svg>
+        <span class="text-xs">Series</span>
+      </div>
+    </a>
+
+    <a routerLink="/settings" routerLinkActive="text-sky-600" class="flex-1 text-center py-3" aria-label="Ajustes">
+      <div class="flex flex-col items-center gap-1">
+        <svg [lucideIcon]="Settings" size="20" stroke-width="2"></svg>
+        <span class="text-xs">Ajustes</span>
+      </div>
+    </a>
   </div>
 </nav>

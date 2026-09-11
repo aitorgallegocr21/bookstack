@@ -1,2 +1,7 @@
-/* Estilos mínimos para el Header */
+/* Estilos mínimos y focus states para el Header */
 :host { display: block; }
+
+a[routerLink], button { text-decoration: none; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+

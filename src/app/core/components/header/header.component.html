@@ -1,18 +1,53 @@
-<header class="w-full bg-white dark:bg-slate-900 shadow-sm">
+<header class="w-full bg-white dark:bg-slate-900 shadow-sm" role="banner">
   <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
     <div class="flex items-center gap-4">
-      <a routerLink="/" class="font-semibold text-lg">Bookstack</a>
-      <nav class="hidden sm:flex gap-3 ml-4">
-        <a routerLink="/books" class="text-sm">Libros</a>
-        <a routerLink="/stats" class="text-sm">Estadísticas</a>
-        <a routerLink="/series" class="text-sm">Series</a>
-        <a routerLink="/settings" class="text-sm">Ajustes</a>
+      <a routerLink="/" class="flex items-center gap-2 font-semibold text-lg" aria-label="Ir al inicio">
+        <svg [lucideIcon]="Home" size="20" stroke-width="2"></svg>
+        <span>Bookstack</span>
+      </a>
+
+      <nav class="hidden sm:flex gap-3 ml-4" role="navigation" aria-label="Navegación principal">
+        <a routerLink="/books" routerLinkActive="text-sky-600" class="flex items-center gap-2 text-sm" aria-label="Libros">
+          <svg [lucideIcon]="Book" size="16" stroke-width="2"></svg>
+          <span>Libros</span>
+        </a>
+        <a routerLink="/stats" routerLinkActive="text-sky-600" class="flex items-center gap-2 text-sm" aria-label="Estadísticas">
+          <svg [lucideIcon]="Stats" size="16" stroke-width="2"></svg>
+          <span>Estadísticas</span>
+        </a>
+        <a routerLink="/series" routerLinkActive="text-sky-600" class="flex items-center gap-2 text-sm" aria-label="Series">
+          <svg [lucideIcon]="Series" size="16" stroke-width="2"></svg>
+          <span>Series</span>
+        </a>
+        <a routerLink="/settings" routerLinkActive="text-sky-600" class="flex items-center gap-2 text-sm" aria-label="Ajustes">
+          <svg [lucideIcon]="Settings" size="16" stroke-width="2"></svg>
+          <span>Ajustes</span>
+        </a>
       </nav>
     </div>
 
     <div class="flex items-center gap-3">
-      <button class="px-3 py-1 rounded bg-primary text-white" (click)="openCreate()">Nuevo</button>
-      <button class="px-2 py-1 rounded border" (click)="toggleTheme()">Tema</button>
+      <button
+        class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-medium text-sm shadow-xs focus:outline-none focus:ring-2 focus:ring-sky-400"
+        (click)="openCreate()"
+        aria-label="Crear nuevo libro"
+      >
+        <svg [lucideIcon]="Plus" size="16" stroke-width="2"></svg>
+        <span class="sr-only sm:not-sr-only">Nuevo</span>
+      </button>
+
+      <button
+        class="inline-flex items-center justify-center p-2 rounded-xl border bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-300"
+        (click)="toggleTheme()"
+        [attr.aria-pressed]="themeService.isDark()"
+        aria-label="Alternar tema"
+      >
+        @if (themeService.isDark()) {
+          <svg [lucideIcon]="Sun" size="16" stroke-width="2"></svg>
+        } @else {
+          <svg [lucideIcon]="Moon" size="16" stroke-width="2"></svg>
+        }
+      </button>
     </div>
   </div>
 </header>

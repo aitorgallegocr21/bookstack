@@ -27,6 +27,10 @@ import {
   templateUrl: './book-edit-modal.html',
   styleUrl: './book-edit-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush
+  ,
+  host: {
+    '(document:keydown.escape)': 'handleEscape()'
+  }
 })
 export class BookEditModalComponent {
   private readonly booksService = inject(BooksService);
@@ -326,7 +330,7 @@ export class BookEditModalComponent {
   }
 
   protected onBackdropClick(event: Event): void {
-    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
+    if (event.target === event.currentTarget) {
       this.cancel();
     }
   }

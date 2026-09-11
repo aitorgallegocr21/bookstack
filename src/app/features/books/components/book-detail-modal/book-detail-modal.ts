@@ -21,6 +21,9 @@ import { formatSpanishDate } from '../../../../core/utils/date-formatter';
   templateUrl: './book-detail-modal.html',
   styleUrl: './book-detail-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown.escape)': 'handleEscape()'
+  }
 })
 export class BookDetailModalComponent {
   private readonly booksService = inject(BooksService);
@@ -88,9 +91,13 @@ export class BookDetailModalComponent {
   }
 
   protected onBackdropClick(event: Event): void {
-    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
+    if (event.target === event.currentTarget) {
       this.cancel();
     }
+  }
+
+  protected handleEscape(): void {
+    this.cancel();
   }
 
   protected getStatusBadgeClass(status: BookStatus): string {

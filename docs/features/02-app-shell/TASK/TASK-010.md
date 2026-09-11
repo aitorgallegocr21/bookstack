@@ -10,21 +10,21 @@
   - [x] Implementar captura segura de `QuotaExceededError` en `setItem` y retornar booleano de éxito.
 
 ### Fase 2: Control por Teclado y Cierre Seguro en Modales
-- [ ] 2.1 Actualizar `BookCreateModalComponent` (`book-create-modal.ts` y `.html`):
-  - [ ] Añadir `@HostListener('document:keydown.escape')`.
-  - [ ] Asegurar `onBackdropClick` seguro.
-  - [ ] Asignar `autofocus` al input de título.
-- [ ] 2.2 Actualizar `BookEditModalComponent` (`book-edit-modal.ts` y `.html`):
-  - [ ] Añadir `@HostListener('document:keydown.escape')`.
-  - [ ] Asegurar `onBackdropClick` seguro.
-  - [ ] Asignar `autofocus` al input de título.
-- [ ] 2.3 Actualizar `BookDetailModalComponent` (`book-detail-modal.ts` y `.html`):
-  - [ ] Añadir `@HostListener('document:keydown.escape')`.
-  - [ ] Asegurar `onBackdropClick` seguro.
-- [ ] 2.4 Actualizar `ReadingLogEditorComponent` (`reading-log-editor.ts` y `.html`):
-  - [ ] Añadir `@HostListener('document:keydown.escape')`.
-  - [ ] Asegurar `onBackdropClick` seguro.
-  - [ ] Asignar `autofocus` al campo de páginas leídas.
+- [x] 2.1 Actualizar `BookCreateModalComponent` (`book-create-modal.ts` y `.html`):
+  - [x] Añadir `@HostListener('document:keydown.escape')`.
+  - [x] Asegurar `onBackdropClick` seguro.
+  - [x] Asignar `autofocus` al input de título.
+- [x] 2.2 Actualizar `BookEditModalComponent` (`book-edit-modal.ts` y `.html`):
+  - [x] Añadir `@HostListener('document:keydown.escape')`.
+  - [x] Asegurar `onBackdropClick` seguro.
+  - [x] Asignar `autofocus` al input de título.
+- [x] 2.3 Actualizar `BookDetailModalComponent` (`book-detail-modal.ts` y `.html`):
+  - [x] Añadir `@HostListener('document:keydown.escape')`.
+  - [x] Asegurar `onBackdropClick` seguro.
+- [x] 2.4 Actualizar `ReadingLogEditorComponent` (`reading-log-editor.ts` y `.html`):
+  - [x] Añadir `@HostListener('document:keydown.escape')`.
+  - [x] Asegurar `onBackdropClick` seguro.
+  - [x] Asignar `autofocus` al campo de páginas leídas.
 
 ### Fase 3: Accesibilidad WCAG AA y Foco Visible
 - [ ] 3.1 Auditar y añadir `aria-label`, `title` y `focus-visible:ring-2` en:

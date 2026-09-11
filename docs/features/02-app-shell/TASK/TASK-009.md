@@ -1,7 +1,7 @@
 # TASK-009: Checklist de Shell Global, Enrutamiento Modular y Desacoplamiento
 
 - **Especificación asociada:** `docs/features/02-app-shell/SPEC/SPEC-009.md`
-- **Estado:** EN PROCESO
+- **Estado:** COMPLETADO
 
 ---
 
@@ -28,6 +28,6 @@
  - [x] 4.2 Limpiar la cabecera redundante de `BooksPageComponent` (`books-page.html` y `.ts`).
 
 ### Fase 5: Validación Técnica y Build
- - [ ] 5.1 Verificar navegación completa en escritorio y móvil haciendo clic en las 5 pestañas.
- - [ ] 5.2 Probar apertura del modal de creación desde diferentes rutas (`/` y `/stats`).
- - [ ] 5.3 Ejecutar `npm run build` y asegurar compilación limpia con 0 errores.
+ - [x] 5.1 Verificar navegación completa en escritorio y móvil haciendo clic en las 5 pestañas.
+ - [x] 5.2 Probar apertura del modal de creación desde diferentes rutas (`/` y `/stats`).
+ - [x] 5.3 Ejecutar `npm run build` y asegurar compilación limpia con 0 errores.

@@ -42,3 +42,23 @@
     animation: none;
   }
 }
+
+/* Ajustes de ergonomía para viewports tablet (640px - 1024px) - fase 4 */
+@media (min-width: 640px) and (max-width: 1024px) {
+  .book-card-item {
+    gap: 1rem;
+    padding: 0.75rem;
+  }
+
+  .book-card-item h2 button {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .book-card-item .truncate {
+    max-width: 100%;
+  }
+}

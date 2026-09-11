@@ -9,6 +9,7 @@ export class BooksService {
   private initPromise: Promise<void> | null = null;
 
   readonly books = signal<Book[]>([]);
+  readonly isCreateModalOpen = signal<boolean>(false);
 
   constructor(private readonly storage: StorageAdapterService) {
     this.initDataStream();
@@ -99,5 +100,13 @@ export class BooksService {
     await this.ensureInitialized();
     await this.storage.remove(this.storeName, id);
     this.books.update((current) => current.filter((b) => b.id !== id));
+  }
+
+  openCreateModal(): void {
+    this.isCreateModalOpen.set(true);
+  }
+
+  closeCreateModal(): void {
+    this.isCreateModalOpen.set(false);
   }
 }

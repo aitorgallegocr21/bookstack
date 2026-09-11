@@ -6,11 +6,11 @@
 ---
 
 ### Fase 1: Estado Global de Modales y Vistas Placeholder
-- [ ] 1.1 Agregar `isCreateModalOpen`, `openCreateModal()` y `closeCreateModal()` a `BooksService` (`books.service.ts`).
-- [ ] 1.2 Crear componente Standalone `DashboardPageComponent` en `src/app/features/dashboard/pages/dashboard-page/`.
-- [ ] 1.3 Crear componente Standalone `StatsPageComponent` en `src/app/features/analytics/pages/stats-page/`.
-- [ ] 1.4 Crear componente Standalone `SeriesPageComponent` en `src/app/features/series/pages/series-page/`.
-- [ ] 1.5 Crear componente Standalone `SettingsPageComponent` en `src/app/features/settings/pages/settings-page/`.
+- [x] 1.1 Agregar `isCreateModalOpen`, `openCreateModal()` y `closeCreateModal()` a `BooksService` (`books.service.ts`).
+- [x] 1.2 Crear componente Standalone `DashboardPageComponent` en `src/app/features/dashboard/pages/dashboard-page/`.
+- [x] 1.3 Crear componente Standalone `StatsPageComponent` en `src/app/features/analytics/pages/stats-page/`.
+- [x] 1.4 Crear componente Standalone `SeriesPageComponent` en `src/app/features/series/pages/series-page/`.
+- [x] 1.5 Crear componente Standalone `SettingsPageComponent` en `src/app/features/settings/pages/settings-page/`.
 
 ### Fase 2: Configuración del Enrutador Angular
 - [ ] 2.1 Configurar rutas perezosas en `src/app/app.routes.ts` para `/`, `/books`, `/stats`, `/series`, `/settings` y comodín `**`.

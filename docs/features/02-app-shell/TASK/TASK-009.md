@@ -25,7 +25,7 @@
 
 ### Fase 4: Refactorización de Shell y Página de Libros
  - [x] 4.1 Actualizar `src/app/app.ts` y `src/app/app.html` con `<app-header>`, `<router-outlet>`, `<app-bottom-nav>` y renderizado condicional de `BookCreateModalComponent`.
- - [ ] 4.2 Limpiar la cabecera redundante de `BooksPageComponent` (`books-page.html` y `.ts`).
+ - [x] 4.2 Limpiar la cabecera redundante de `BooksPageComponent` (`books-page.html` y `.ts`).
 
 ### Fase 5: Validación Técnica y Build
  - [ ] 5.1 Verificar navegación completa en escritorio y móvil haciendo clic en las 5 pestañas.

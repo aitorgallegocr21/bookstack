@@ -6,11 +6,10 @@ import {
   ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideDynamicIcon, LucidePlus, LucideEye, LucideEdit2, LucideTrash2, LucideSun, LucideMoon } from '@lucide/angular';
+import { LucideDynamicIcon, LucidePlus, LucideEye, LucideEdit2, LucideTrash2 } from '@lucide/angular';
 import { BooksService } from '../../services/books.service';
 import { ReadingStatsService } from '../../services/reading-stats.service';
 import { ReadingLogService } from '../../services/reading-log.service';
-import { ThemeService } from '../../../../core/services/theme.service';
 import {
   Book,
   BookStatus,
@@ -44,7 +43,7 @@ export class BooksPage {
   private readonly booksService = inject(BooksService);
   private readonly readingStatsService = inject(ReadingStatsService);
   private readonly readingLogService = inject(ReadingLogService);
-  protected readonly themeService = inject(ThemeService);
+  
 
   // Exportar constantes de presentación y iconos para uso en templates
   protected readonly BOOK_STATUS_CONFIG = BOOK_STATUS_CONFIG;
@@ -53,15 +52,14 @@ export class BooksPage {
   protected readonly Eye = LucideEye;
   protected readonly Edit2 = LucideEdit2;
   protected readonly Trash2 = LucideTrash2;
-  protected readonly Sun = LucideSun;
-  protected readonly Moon = LucideMoon;
+  
 
   protected readonly books = this.booksService.books;
   protected readonly readingLogs = this.readingLogService.readingLogs;
   protected readonly stats = this.readingStatsService.stats;
 
-  // Signals para control de los 3 Modales Independientes
-  protected readonly showCreateModal = signal<boolean>(false);
+  // Señal global del modal de creación (delegada al BooksService)
+  protected readonly isCreateModalOpen = this.booksService.isCreateModalOpen;
   protected readonly selectedBookForDetailId = signal<string | null>(null);
   protected readonly selectedBookForEditId = signal<string | null>(null);
 
@@ -142,12 +140,8 @@ export class BooksPage {
   });
 
   // Métodos de apertura y cierre
-  protected openCreateModal(): void {
-    this.showCreateModal.set(true);
-  }
-
   protected closeCreateModal(): void {
-    this.showCreateModal.set(false);
+    this.booksService.closeCreateModal();
   }
 
   protected openDetailModal(bookId: string): void {

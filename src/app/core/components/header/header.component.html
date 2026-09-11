@@ -1,0 +1,18 @@
+<header class="w-full bg-white dark:bg-slate-900 shadow-sm">
+  <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a routerLink="/" class="font-semibold text-lg">Bookstack</a>
+      <nav class="hidden sm:flex gap-3 ml-4">
+        <a routerLink="/books" class="text-sm">Libros</a>
+        <a routerLink="/stats" class="text-sm">Estadísticas</a>
+        <a routerLink="/series" class="text-sm">Series</a>
+        <a routerLink="/settings" class="text-sm">Ajustes</a>
+      </nav>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button class="px-3 py-1 rounded bg-primary text-white" (click)="openCreate()">Nuevo</button>
+      <button class="px-2 py-1 rounded border" (click)="toggleTheme()">Tema</button>
+    </div>
+  </div>
+</header>

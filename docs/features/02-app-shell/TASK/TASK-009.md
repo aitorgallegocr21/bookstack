@@ -13,7 +13,7 @@
 - [x] 1.5 Crear componente Standalone `SettingsPageComponent` en `src/app/features/settings/pages/settings-page/`.
 
 ### Fase 2: Configuración del Enrutador Angular
-- [ ] 2.1 Configurar rutas perezosas en `src/app/app.routes.ts` para `/`, `/books`, `/stats`, `/series`, `/settings` y comodín `**`.
+- [z] 2.1 Configurar rutas perezosas en `src/app/app.routes.ts` para `/`, `/books`, `/stats`, `/series`, `/settings` y comodín `**`.
 
 ### Fase 3: Construcción de Componentes del Core Shell
 - [ ] 3.1 Crear `HeaderComponent` (`header.component.ts` y `.html`) en `src/app/core/components/header/`:

@@ -143,9 +143,23 @@ export class StorageAdapterService {
     return keys.map(k => JSON.parse(localStorage.getItem(k) || '{}') as T);
   }
 
+  setItem<T>(key: string, value: T): boolean {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (error: unknown) {
+      if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.code === 22)) {
+        console.error(`[StorageAdapter] Límite de almacenamiento excedido al guardar "${key}".`, error);
+      } else {
+        console.error(`[StorageAdapter] Error inesperado al persistir "${key}":`, error);
+      }
+      return false;
+    }
+  }
+
   private setToLocalStorage<T extends { id: string }>(storeName: string, value: T): void {
     const key = `${storeName}_${value.id}`;
-    localStorage.setItem(key, JSON.stringify(value));
+    this.setItem(key, value);
   }
 
   private removeFromLocalStorage(storeName: string, key: string): void {

@@ -6,8 +6,8 @@
 ---
 
 ### Fase 1: Resiliencia de Almacenamiento Local-First
-- [ ] 1.1 Modificar `src/app/features/books/services/storage-adapter.service.ts`:
-  - [ ] Implementar captura segura de `QuotaExceededError` en `setItem` y retornar booleano de éxito.
+- [x] 1.1 Modificar `src/app/features/books/services/storage-adapter.service.ts`:
+  - [x] Implementar captura segura de `QuotaExceededError` en `setItem` y retornar booleano de éxito.
 
 ### Fase 2: Control por Teclado y Cierre Seguro en Modales
 - [ ] 2.1 Actualizar `BookCreateModalComponent` (`book-create-modal.ts` y `.html`):

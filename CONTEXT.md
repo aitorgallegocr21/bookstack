@@ -26,6 +26,11 @@
 3. **Optimización de Portadas en Cliente:** Pipeline Canvas (`ImageOptimizerService`) para compresión a WebP/JPEG ($400\text{px}$ máx., calidad $0.75$) antes de persistir en almacenamiento.
 4. **Sincronización Bidireccional de Progreso:** Los registros de lectura recalculan automáticamente `Book.currentPage` mediante deltas y transicionan el estado a `COMPLETED` o `READING`.
 5. **Formato Temporal Centralizado:** Toda fecha mostrada al usuario final debe formatearse mediante la utilidad `formatSpanishDate` (`es-ES`).
+6. **Accesibilidad Semántica & Control por Teclado (WCAG 2.1 AA):**
+   - Escucha universal de la tecla `Escape` y autoenfoque estructurado en todos los modales y diálogos.
+   - Atributos `aria-label` y estilos de foco visibles (`focus-visible:ring-2`) en todos los botones y controles basados en iconos vectoriales.
+7. **Resiliencia de Cuota Local:**
+   - Control de excepciones `QuotaExceededError` en la capa de persistencia `StorageAdapterService` para blindar la estabilidad del estado reactivo ante límites de cuota en el navegador.
 
 ---
 

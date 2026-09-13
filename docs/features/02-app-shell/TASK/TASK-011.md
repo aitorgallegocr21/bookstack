@@ -15,8 +15,8 @@
 
 ### Fase 2: Construcción de `SidebarComponent` (Desktop)
 - [x] 2.1 Crear `SidebarComponent` en `src/app/core/components/sidebar/` (`sidebar.component.ts` y `.html`).
-- [ ] 2.2 Maquetar botón de colapso/expansión y enlace al branding.
-- [ ] 2.3 Implementar botón primario `+ Añadir libro` enlazado a `BooksService.openCreateModal()`.
+- [x] 2.2 Maquetar botón de colapso/expansión y enlace al branding.
+- [x] 2.3 Implementar botón primario `+ Añadir libro` enlazado a `BooksService.openCreateModal()`.
 - [ ] 2.4 Maquetar navegación central (`/`, `/books`, `/stats`) con iconos modernos y `routerLinkActive`.
 - [ ] 2.5 Maquetar cluster inferior: `Ajustes` (`/settings`), `Acerca de` (`/about`), enlace externo a GitHub y conmutador de tema (`ThemeService`).
 

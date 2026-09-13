@@ -16,10 +16,10 @@
 - [x] 2.2 Restaurar la animación SVG de Sol/Luna en `sidebar.component.html` y `header.component.html`.
 
 ### Fase 3: Cabecera Móvil y Acciones Globales
-- [ ] 3.1 Actualizar `header.component.html` para vista móvil:
-  - [ ] Eliminar la palabra "Tema" y dejar solo el icono animado.
-  - [ ] Añadir botón con icono de GitHub (`target="_blank" rel="noopener noreferrer"`).
-  - [ ] Añadir botón primario `+` enlazado a `booksService.openCreateModal()`.
+- [x] 3.1 Actualizar `header.component.html` para vista móvil:
+  - [x] Eliminar la palabra "Tema" y dejar solo el icono animado.
+  - [x] Añadir botón con icono de GitHub (`target="_blank" rel="noopener noreferrer"`).
+  - [x] Añadir botón primario `+` enlazado a `booksService.openCreateModal()`.
 - [ ] 3.2 Ajustar `bottom-nav.component.html` para ocultar la 5ª pestaña en pantallas $<350\text{px}` (`hidden xs:flex` o similar).
 
 ### Fase 4: Control de Scroll y Autofocus en Modales

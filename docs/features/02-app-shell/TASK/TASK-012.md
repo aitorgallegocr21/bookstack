@@ -6,14 +6,14 @@
 ---
 
 ### Fase 1: Breakpoints y Enrutamiento Activo
-- [ ] 1.1 Auditar `app.html` asegurando que `<app-sidebar>` use `hidden md:flex` y que `<app-header>` / `<app-bottom-nav>` usen `md:hidden`.
-- [ ] 1.2 Añadir `[routerLinkActiveOptions]="{ exact: true }"` al enlace `/` en `sidebar.component.html` y `bottom-nav.component.html`.
+- [x] 1.1 Auditar `app.html` asegurando que `<app-sidebar>` use `hidden md:flex` y que `<app-header>` / `<app-bottom-nav>` usen `md:hidden`.
+- [x] 1.2 Añadir `[routerLinkActiveOptions]="{ exact: true }"` al enlace `/` en `sidebar.component.html` y `bottom-nav.component.html`.
 
 ### Fase 2: Rediseño del Sidebar Header y Theming
-- [ ] 2.1 Refactorizar el contenedor superior de `sidebar.component.html`:
-  - [ ] Modo expandido: Logo + nombre + botón chevron a la derecha.
-  - [ ] Modo colapsado: Botón isotipo centrado interactivo que ejecuta `uiState.toggleSidebar()`.
-- [ ] 2.2 Restaurar la animación SVG de Sol/Luna en `sidebar.component.html` y `header.component.html`.
+- [x] 2.1 Refactorizar el contenedor superior de `sidebar.component.html`:
+  - [x] Modo expandido: Logo + nombre + botón chevron a la derecha.
+  - [x] Modo colapsado: Botón isotipo centrado interactivo que ejecuta `uiState.toggleSidebar()`.
+- [x] 2.2 Restaurar la animación SVG de Sol/Luna en `sidebar.component.html` y `header.component.html`.
 
 ### Fase 3: Cabecera Móvil y Acciones Globales
 - [ ] 3.1 Actualizar `header.component.html` para vista móvil:

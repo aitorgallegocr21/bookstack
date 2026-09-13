@@ -18,7 +18,7 @@
 - [x] 2.2 Maquetar botón de colapso/expansión y enlace al branding.
 - [x] 2.3 Implementar botón primario `+ Añadir libro` enlazado a `BooksService.openCreateModal()`.
 - [x] 2.4 Maquetar navegación central (`/`, `/books`, `/stats`) con iconos modernos y `routerLinkActive`.
-- [ ] 2.5 Maquetar cluster inferior: `Ajustes` (`/settings`), `Acerca de` (`/about`), enlace externo a GitHub y conmutador de tema (`ThemeService`).
+- [x] 2.5 Maquetar cluster inferior: `Ajustes` (`/settings`), `Acerca de` (`/about`), enlace externo a GitHub y conmutador de tema (`ThemeService`).
 
 ### Fase 3: Adaptación de Header y BottomNav (Mobile)
 - [ ] 3.1 Simplificar `HeaderComponent` para vista móvil (logo + conmutador de tema).

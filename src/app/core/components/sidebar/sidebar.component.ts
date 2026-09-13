@@ -14,6 +14,8 @@ import {
   LucideSettings,
   LucideHome,
   LucideChevronLeft,
+  LucideInfo,
+  LucideGitBranch,
 } from '@lucide/angular';
 
 @Component({
@@ -40,11 +42,18 @@ export class SidebarComponent {
   protected readonly Settings = LucideSettings;
   protected readonly Home = LucideHome;
   protected readonly ChevronLeft = LucideChevronLeft;
+  protected readonly Info = LucideInfo;
+  protected readonly Github = LucideGitBranch;
 
   protected readonly navItems = [
     { path: '/', label: 'Inicio', icon: this.Home },
     { path: '/books', label: 'Libros', icon: this.Book },
     { path: '/stats', label: 'Stats', icon: this.Stats },
+  ] as const;
+
+  protected readonly secondaryNavItems = [
+    { path: '/settings', label: 'Ajustes', icon: this.Settings },
+    { path: '/about', label: 'Acerca de', icon: this.Info },
   ] as const;
 
   protected toggleSidebar(): void {

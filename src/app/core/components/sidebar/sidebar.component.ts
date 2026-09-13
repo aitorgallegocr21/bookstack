@@ -69,6 +69,6 @@ export class SidebarComponent {
   }
 
   protected openGitHub(): void {
-    window.open('https://github.com', '_blank', 'noopener,noreferrer');
+    window.open('https://github.com/aitorgallegocr21/bookstack.git', '_blank', 'noopener,noreferrer');
   }
 }

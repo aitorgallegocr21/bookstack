@@ -7,11 +7,11 @@
 
 ### Fase 1: Estado de UI y Rutas
 - [x] 1.1 Crear `UiStateService` en `src/app/core/services/ui-state.service.ts` con señal `isSidebarCollapsed` y persistencia en `LocalStorage`.
-- [ ] 1.2 Crear componente Standalone `AboutPageComponent` en `src/app/features/about/pages/about-page/`.
-- [ ] 1.3 Actualizar `src/app/app.routes.ts`:
-  - [ ] Eliminar ruta `/series`.
-  - [ ] Registrar ruta `/about`.
-  - [ ] Validar mapeo de `/` (Dashboard) y `/books` (BooksPage).
+- [x] 1.2 Crear componente Standalone `AboutPageComponent` en `src/app/features/about/pages/about-page/`.
+- [x] 1.3 Actualizar `src/app/app.routes.ts`:
+  - [x] Eliminar ruta `/series`.
+  - [x] Registrar ruta `/about`.
+  - [x] Validar mapeo de `/` (Dashboard) y `/books` (BooksPage).
 
 ### Fase 2: Construcción de `SidebarComponent` (Desktop)
 - [ ] 2.1 Crear `SidebarComponent` en `src/app/core/components/sidebar/` (`sidebar.component.ts` y `.html`).

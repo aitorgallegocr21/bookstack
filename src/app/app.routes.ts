@@ -17,14 +17,14 @@ export const routes: Routes = [
       import('./features/analytics/pages/stats-page/stats-page').then((m) => m.StatsPage)
   },
   {
-    path: 'series',
-    loadComponent: () =>
-      import('./features/series/pages/series-page/series-page').then((m) => m.SeriesPage)
-  },
-  {
     path: 'settings',
     loadComponent: () =>
       import('./features/settings/pages/settings-page/settings-page').then((m) => m.SettingsPage)
+  },
+  {
+    path: 'about',
+    loadComponent: () =>
+      import('./features/about/pages/about-page/about-page').then((m) => m.AboutPage)
   },
   {
     path: '**',

@@ -1,8 +1,10 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  DOCUMENT,
   inject,
   input,
+  OnDestroy,
   output,
   signal,
   computed,
@@ -32,7 +34,8 @@ import {
     '(document:keydown.escape)': 'handleEscape()'
   }
 })
-export class BookEditModalComponent {
+export class BookEditModalComponent implements OnDestroy {
+  private readonly document = inject(DOCUMENT);
   private readonly booksService = inject(BooksService);
   private readonly imageOptimizerService = inject(ImageOptimizerService);
   private readonly fb = inject(FormBuilder);
@@ -49,6 +52,10 @@ export class BookEditModalComponent {
   protected readonly coverPreview = signal<string>('');
   protected readonly coverFileName = signal<string>('');
   protected readonly isDraggingCover = signal<boolean>(false);
+
+  ngOnDestroy(): void {
+    this.document.body?.classList.remove('overflow-hidden');
+  }
 
   // Búsqueda declarativa del libro actual mediante Signal computed
   protected readonly book = computed<Book | undefined>(() => {
@@ -97,6 +104,8 @@ export class BookEditModalComponent {
   });
 
   constructor() {
+    this.document.body?.classList.add('overflow-hidden');
+
     effect(() => {
       const currentBook = this.book();
       if (currentBook) {

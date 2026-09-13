@@ -1,7 +1,9 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  DOCUMENT,
   inject,
+  OnDestroy,
   output,
   signal
 } from '@angular/core';
@@ -26,7 +28,8 @@ import { ImageOptimizerService } from '../../services/image-optimizer.service';
     '(document:keydown.escape)': 'handleEscape()'
   }
 })
-export class BookCreateModalComponent {
+export class BookCreateModalComponent implements OnDestroy {
+  private readonly document = inject(DOCUMENT);
   private readonly booksService = inject(BooksService);
   private readonly imageOptimizerService = inject(ImageOptimizerService);
   private readonly fb = inject(FormBuilder);
@@ -40,6 +43,14 @@ export class BookCreateModalComponent {
   protected readonly coverPreview = signal<string>('');
   protected readonly coverFileName = signal<string>('');
   protected readonly isDraggingCover = signal<boolean>(false);
+
+  constructor() {
+    this.document.body?.classList.add('overflow-hidden');
+  }
+
+  ngOnDestroy(): void {
+    this.document.body?.classList.remove('overflow-hidden');
+  }
 
   protected readonly statusOptions: { value: BookStatus; label: string }[] = [
     { value: 'pending', label: 'Pendiente' },

@@ -1,7 +1,9 @@
 import {
   Component,
+  DOCUMENT,
   inject,
   input,
+  OnDestroy,
   output,
   effect,
   signal,
@@ -21,7 +23,8 @@ import { formatSpanishDate } from '../../../../core/utils/date-formatter';
   styleUrl: './reading-log-editor.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReadingLogEditorComponent {
+export class ReadingLogEditorComponent implements OnDestroy {
+  private readonly document = inject(DOCUMENT);
   private readonly readingLogService = inject(ReadingLogService);
 
   readonly bookId = input.required<string>();
@@ -33,7 +36,13 @@ export class ReadingLogEditorComponent {
   protected readonly isSaving = signal(false);
   protected readonly isClosing = signal(false);
 
+  ngOnDestroy(): void {
+    this.document.body?.classList.remove('overflow-hidden');
+  }
+
   constructor() {
+    this.document.body?.classList.add('overflow-hidden');
+
     effect(() => {
       const selected = this.existingLog();
       const currentBookId = this.bookId();

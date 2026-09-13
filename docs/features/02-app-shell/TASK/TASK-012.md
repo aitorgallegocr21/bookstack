@@ -23,11 +23,11 @@
 - [x] 3.2 Ajustar `bottom-nav.component.html` para ocultar la 5ª pestaña en pantallas $<350\text{px}` (`hidden xs:flex` o similar).
 
 ### Fase 4: Control de Scroll y Autofocus en Modales
-- [ ] 4.1 Implementar bloqueo de scroll (`document.body.classList.add/remove('overflow-hidden')`) en:
-  - [ ] `BookDetailModalComponent` (`book-detail-modal.ts`).
-  - [ ] `BookCreateModalComponent` (`book-create-modal.ts`).
-  - [ ] `BookEditModalComponent` (`book-edit-modal.ts`).
-  - [ ] `ReadingLogEditorComponent` (`reading-log-editor.ts`).
+- [x] 4.1 Implementar bloqueo de scroll (`document.body.classList.add/remove('overflow-hidden')`) en:
+  - [x] `BookDetailModalComponent` (`book-detail-modal.ts`).
+  - [x] `BookCreateModalComponent` (`book-create-modal.ts`).
+  - [x] `BookEditModalComponent` (`book-edit-modal.ts`).
+  - [x] `ReadingLogEditorComponent` (`reading-log-editor.ts`).
 - [ ] 4.2 Asegurar `autofocus` funcional con `@ViewChild` y `ngAfterViewInit` en modales de creación y edición.
 
 ### Fase 5: UI del Dashboard y Página Acerca de

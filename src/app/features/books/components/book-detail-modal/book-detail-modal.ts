@@ -1,8 +1,10 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  DOCUMENT,
   inject,
   input,
+  OnDestroy,
   output,
   signal,
   computed,
@@ -25,7 +27,8 @@ import { formatSpanishDate } from '../../../../core/utils/date-formatter';
     '(document:keydown.escape)': 'handleEscape()'
   }
 })
-export class BookDetailModalComponent {
+export class BookDetailModalComponent implements OnDestroy {
+  private readonly document = inject(DOCUMENT);
   private readonly booksService = inject(BooksService);
   private readonly readingLogService = inject(ReadingLogService);
 
@@ -37,6 +40,14 @@ export class BookDetailModalComponent {
   protected readonly editingLog = signal<ReadingLog | undefined>(undefined);
   protected readonly isClosing = signal<boolean>(false);
   protected readonly showAllLogs = signal<boolean>(false);
+
+  constructor() {
+    this.document.body?.classList.add('overflow-hidden');
+  }
+
+  ngOnDestroy(): void {
+    this.document.body?.classList.remove('overflow-hidden');
+  }
 
   protected readonly book = computed<Book | undefined>(() => {
     return this.booksService.books().find((b) => b.id === this.bookId());

@@ -1,7 +1,7 @@
 # TASK-011: Checklist de Implementación de Sidebar Plegable, Ajuste de Vistas y Página Acerca de
 
 - **Especificación asociada:** `docs/features/02-app-shell/SPEC/SPEC-011.md`
-- **Estado:** EN PROCESO
+- **Estado:** COMPLETADO
 
 ---
 
@@ -29,7 +29,7 @@
 - [x] 4.2 Ajustar `DashboardPageComponent` y `BooksPageComponent` para asegurar la correcta distribución del contenido.
 
 ### Fase 5: Validación Técnica y Build
-- [ ] 5.1 Probar alternancia de colapso/expansión del sidebar y verificar persistencia tras recargar el navegador.
-- [ ] 5.2 Comprobar navegación completa en modo claro y modo oscuro.
-- [ ] 5.3 Probar apertura del modal de creación desde la barra lateral colapsada y expandida.
-- [ ] 5.4 Ejecutar `npm run build` y asegurar 0 errores de tipado.
+- [x] 5.1 Probar alternancia de colapso/expansión del sidebar y verificar persistencia tras recargar el navegador.
+- [x] 5.2 Comprobar navegación completa en modo claro y modo oscuro.
+- [x] 5.3 Probar apertura del modal de creación desde la barra lateral colapsada y expandida.
+- [x] 5.4 Ejecutar `npm run build` y asegurar 0 errores de tipado.

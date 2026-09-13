@@ -1,0 +1,16 @@
+/* Sidebar Component Styles */
+
+/* Smooth width transition for sidebar */
+:host-context(aside) {
+  transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Icon rotation animation for collapse button */
+:host-context(.rotate-180) {
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ensure proper stacking context */
+aside {
+  z-index: 40;
+}

@@ -1,0 +1,67 @@
+<aside
+  class="fixed left-0 top-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-[width]"
+  [style.width]="(uiState.isSidebarCollapsed() ? '68px' : '240px')"
+  role="navigation"
+  aria-label="Navegación principal"
+>
+  <!-- Logo y botón de colapso -->
+  <div
+    class="flex items-center justify-between h-16 px-3 border-b border-slate-200 dark:border-slate-800 flex-shrink-0"
+  >
+    <a
+      routerLink="/"
+      class="flex items-center justify-center w-full text-slate-900 dark:text-white font-bold text-lg hover:opacity-80 transition-opacity"
+      aria-label="Ir al inicio"
+      title="Bookstack"
+    >
+      @if (!uiState.isSidebarCollapsed()) {
+        <span>📚</span>
+      }
+    </a>
+
+    <button
+      (click)="toggleSidebar()"
+      class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+      [attr.aria-pressed]="uiState.isSidebarCollapsed()"
+      aria-label="Alternar barra lateral"
+      title="Alternar barra lateral"
+    >
+      <svg
+        [lucideIcon]="ChevronLeft"
+        size="18"
+        stroke-width="2"
+        [class.rotate-180]="uiState.isSidebarCollapsed()"
+        class="transition-transform"
+      ></svg>
+    </button>
+  </div>
+
+  <!-- Botón primario: Añadir libro -->
+  <div class="px-3 py-4 flex-shrink-0 border-b border-slate-200 dark:border-slate-800">
+    <button
+      (click)="openCreate()"
+      class="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none"
+      aria-label="Crear nuevo libro"
+      title="Crear nuevo libro"
+    >
+      <svg [lucideIcon]="Plus" size="18" stroke-width="2"></svg>
+      @if (!uiState.isSidebarCollapsed()) {
+        <span>Añadir libro</span>
+      } @else {
+        <span class="sr-only">Crear nuevo libro</span>
+      }
+    </button>
+  </div>
+
+  <!-- Navegación central (placeholder para Fase 2.4) -->
+  <nav class="flex-1 px-3 py-4 space-y-1" aria-label="Menú principal">
+    <!-- Será completado en Fase 2.4 -->
+  </nav>
+
+  <!-- Cluster inferior: Ajustes, Acerca de, GitHub, Tema (placeholder para Fase 2.5) -->
+  <div
+    class="px-3 py-4 space-y-1 border-t border-slate-200 dark:border-slate-800 flex-shrink-0"
+  >
+    <!-- Será completado en Fase 2.5 -->
+  </div>
+</aside>

@@ -21,8 +21,8 @@
 - [x] 2.5 Maquetar cluster inferior: `Ajustes` (`/settings`), `Acerca de` (`/about`), enlace externo a GitHub y conmutador de tema (`ThemeService`).
 
 ### Fase 3: Adaptación de Header y BottomNav (Mobile)
-- [ ] 3.1 Simplificar `HeaderComponent` para vista móvil (logo + conmutador de tema).
-- [ ] 3.2 Actualizar `BottomNavComponent` con los 5 accesos táctiles: *Inicio*, *Libros*, *Stats*, *Ajustes*, *Acerca de*.
+- [x] 3.1 Simplificar `HeaderComponent` para vista móvil (logo + conmutador de tema).
+- [x] 3.2 Actualizar `BottomNavComponent` con los 5 accesos táctiles: *Inicio*, *Libros*, *Stats*, *Ajustes*, *Acerca de*.
 
 ### Fase 4: Reorganización de Layout e Intercambio de Vistas
 - [ ] 4.1 Actualizar `app.html` y `app.ts` para integrar `<app-sidebar>` en desktop y layout responsivo fluido.

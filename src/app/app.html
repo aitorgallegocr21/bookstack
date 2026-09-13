@@ -1,7 +1,11 @@
 <div class="min-h-screen bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+	<app-sidebar></app-sidebar>
 	<app-header></app-header>
 
-	<main class="pt-4 pb-20">
+	<main
+		class="pt-4 pb-20 transition-[margin] duration-200 lg:ml-[var(--sidebar-width)]"
+		[style.--sidebar-width]="uiState.isSidebarCollapsed() ? '68px' : '240px'"
+	>
 		<router-outlet></router-outlet>
 	</main>
 

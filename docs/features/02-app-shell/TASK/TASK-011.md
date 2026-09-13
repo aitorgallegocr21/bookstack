@@ -25,8 +25,8 @@
 - [x] 3.2 Actualizar `BottomNavComponent` con los 5 accesos táctiles: *Inicio*, *Libros*, *Stats*, *Ajustes*, *Acerca de*.
 
 ### Fase 4: Reorganización de Layout e Intercambio de Vistas
-- [ ] 4.1 Actualizar `app.html` y `app.ts` para integrar `<app-sidebar>` en desktop y layout responsivo fluido.
-- [ ] 4.2 Ajustar `DashboardPageComponent` y `BooksPageComponent` para asegurar la correcta distribución del contenido.
+- [x] 4.1 Actualizar `app.html` y `app.ts` para integrar `<app-sidebar>` en desktop y layout responsivo fluido.
+- [x] 4.2 Ajustar `DashboardPageComponent` y `BooksPageComponent` para asegurar la correcta distribución del contenido.
 
 ### Fase 5: Validación Técnica y Build
 - [ ] 5.1 Probar alternancia de colapso/expansión del sidebar y verificar persistencia tras recargar el navegador.

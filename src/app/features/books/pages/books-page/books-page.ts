@@ -8,21 +8,18 @@ import {
 import { CommonModule } from '@angular/common';
 import { LucideDynamicIcon, LucidePlus, LucideEye, LucideEdit2, LucideTrash2 } from '@lucide/angular';
 import { BooksService } from '../../services/books.service';
-import { ReadingStatsService } from '../../services/reading-stats.service';
 import { ReadingLogService } from '../../services/reading-log.service';
 import {
   Book,
   BookStatus,
   ReadingLog,
   BOOK_STATUS_CONFIG,
-  BOOK_STATUS_LABELS,
   BOOK_RATING_MAX
 } from '../../models/book.model';
 import { BookCreateModalComponent } from '../../components/book-create-modal/book-create-modal';
 import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
 import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
 import { ReadingLogEditorComponent } from '../../components/reading-log-editor/reading-log-editor';
-import { formatSpanishMonth } from '../../../../core/utils/date-formatter';
 
 @Component({
   selector: 'app-books-page',
@@ -41,22 +38,19 @@ import { formatSpanishMonth } from '../../../../core/utils/date-formatter';
 })
 export class BooksPage {
   private readonly booksService = inject(BooksService);
-  private readonly readingStatsService = inject(ReadingStatsService);
   private readonly readingLogService = inject(ReadingLogService);
-  
+
 
   // Exportar constantes de presentación y iconos para uso en templates
   protected readonly BOOK_STATUS_CONFIG = BOOK_STATUS_CONFIG;
-  protected readonly BOOK_STATUS_LABELS = BOOK_STATUS_LABELS;
   protected readonly Plus = LucidePlus;
   protected readonly Eye = LucideEye;
   protected readonly Edit2 = LucideEdit2;
   protected readonly Trash2 = LucideTrash2;
-  
+
 
   protected readonly books = this.booksService.books;
   protected readonly readingLogs = this.readingLogService.readingLogs;
-  protected readonly stats = this.readingStatsService.stats;
 
   // Señal global del modal de creación (delegada al BooksService)
   protected readonly isCreateModalOpen = this.booksService.isCreateModalOpen;
@@ -130,14 +124,6 @@ export class BooksPage {
       return newSet;
     });
   }
-
-  protected readonly maxMonthlyPages = computed(() => {
-    const monthly = this.stats().monthlyPages;
-    if (monthly.length === 0) {
-      return 1;
-    }
-    return Math.max(...monthly.map((m) => m.pages), 1);
-  });
 
   // Métodos de apertura y cierre
   protected closeCreateModal(): void {
@@ -218,10 +204,6 @@ export class BooksPage {
 
     const normalized = Math.min(BOOK_RATING_MAX, Math.max(0, rating));
     return `★ ${normalized.toFixed(1).replace(/\.0$/, '')}/10`;
-  }
-
-  protected formatMonth(month: string): string {
-    return formatSpanishMonth(month);
   }
 
   /**

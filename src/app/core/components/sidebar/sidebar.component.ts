@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { BooksService } from '../../../features/books/services/books.service';
 import { ThemeService } from '../../services/theme.service';
 import { UiStateService } from '../../services/ui-state.service';
@@ -19,7 +19,7 @@ import {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideDynamicIcon],
+  imports: [CommonModule, RouterLink, RouterLinkActive, LucideDynamicIcon],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,6 +40,12 @@ export class SidebarComponent {
   protected readonly Settings = LucideSettings;
   protected readonly Home = LucideHome;
   protected readonly ChevronLeft = LucideChevronLeft;
+
+  protected readonly navItems = [
+    { path: '/', label: 'Inicio', icon: this.Home },
+    { path: '/books', label: 'Libros', icon: this.Book },
+    { path: '/stats', label: 'Stats', icon: this.Stats },
+  ] as const;
 
   protected toggleSidebar(): void {
     this.uiState.toggleSidebar();

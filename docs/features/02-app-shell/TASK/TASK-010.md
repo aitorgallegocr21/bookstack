@@ -27,15 +27,15 @@
   - [x] Asignar `autofocus` al campo de páginas leídas.
 
 ### Fase 3: Accesibilidad WCAG AA y Foco Visible
-- [ ] 3.1 Auditar y añadir `aria-label`, `title` y `focus-visible:ring-2` en:
-  - [ ] Botones de tarjeta de catálogo (`books-page.html`).
-  - [ ] Botones de cabecera (`header.component.html` si aplica).
-  - [ ] Botones de barra inferior (`bottom-nav.component.html` si aplica).
-  - [ ] Botones de cierre (`×`) y acciones dentro de todos los modales.
+- [x] 3.1 Auditar y añadir `aria-label`, `title` y `focus-visible:ring-2` en:
+  - [x] Botones de tarjeta de catálogo (`books-page.html`).
+  - [x] Botones de cabecera (`header.component.html` si aplica).
+  - [x] Botones de barra inferior (`bottom-nav.component.html` si aplica).
+  - [x] Botones de cierre (`×`) y acciones dentro de todos los modales.
 
 ### Fase 4: Ergonomía de Tarjetas en Viewports Medios
-- [ ] 4.1 Ajustar espaciados y truncados elípticos en la vista de tarjetas de `books-page.html` para tablets (640px a 1024px).
+- [x] 4.1 Ajustar espaciados y truncados elípticos en la vista de tarjetas de `books-page.html` para tablets (640px a 1024px).
 
 ### Fase 5: Validación Técnica y Build
-- [ ] 5.1 Probar navegación por teclado (Tab + Shift+Tab + Escape) en todos los flujos de la app.
-- [ ] 5.2 Ejecutar `npm run build` y asegurar 0 errores de tipado.
+- [x] 5.1 Probar navegación por teclado (Tab + Shift+Tab + Escape) en todos los flujos de la app.
+- [x] 5.2 Ejecutar `npm run build` y asegurar 0 errores de tipado.

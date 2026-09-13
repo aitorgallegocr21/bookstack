@@ -6,7 +6,7 @@
 ---
 
 ### Fase 1: Estado de UI y Rutas
-- [ ] 1.1 Crear `UiStateService` en `src/app/core/services/ui-state.service.ts` con señal `isSidebarCollapsed` y persistencia en `LocalStorage`.
+- [x] 1.1 Crear `UiStateService` en `src/app/core/services/ui-state.service.ts` con señal `isSidebarCollapsed` y persistencia en `LocalStorage`.
 - [ ] 1.2 Crear componente Standalone `AboutPageComponent` en `src/app/features/about/pages/about-page/`.
 - [ ] 1.3 Actualizar `src/app/app.routes.ts`:
   - [ ] Eliminar ruta `/series`.

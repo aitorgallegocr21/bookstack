@@ -31,8 +31,8 @@
 - [x] 4.2 Asegurar `autofocus` funcional con `@ViewChild` y `ngAfterViewInit` en modales de creación y edición.
 
 ### Fase 5: UI del Dashboard y Página Acerca de
-- [ ] 5.1 Restaurar clases hover (`hover:shadow-md hover:-translate-y-0.5 transition-all`) en las tarjetas de `dashboard-page.component.html`.
-- [ ] 5.2 Añadir sección de autoría (Aitor Gallego-Casilda Romero) y enlaces a GitHub en `about-page.component.html`.
+- [x] 5.1 Restaurar clases hover (`hover:shadow-md hover:-translate-y-0.5 transition-all`) en las tarjetas de `dashboard-page.component.html`.
+- [x] 5.2 Añadir sección de autoría (Aitor Gallego-Casilda Romero) y enlaces a GitHub en `about-page.component.html`.
 
 ### Fase 6: Validación Técnica y Build
 - [ ] 6.1 Validar visualización en $320\text{px}$, $375\text{px}$, $768\text{px}$, $1024\text{px}$ y $>1280\text{px}$.

@@ -2,13 +2,16 @@ import {
   Component,
   ChangeDetectionStrategy,
   DOCUMENT,
+  ElementRef,
+  AfterViewInit,
   inject,
   input,
   OnDestroy,
   output,
   signal,
   computed,
-  effect
+  effect,
+  ViewChild
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -34,7 +37,7 @@ import {
     '(document:keydown.escape)': 'handleEscape()'
   }
 })
-export class BookEditModalComponent implements OnDestroy {
+export class BookEditModalComponent implements AfterViewInit, OnDestroy {
   private readonly document = inject(DOCUMENT);
   private readonly booksService = inject(BooksService);
   private readonly imageOptimizerService = inject(ImageOptimizerService);
@@ -44,6 +47,8 @@ export class BookEditModalComponent implements OnDestroy {
   readonly bookId = input.required<string>();
   readonly closed = output<void>();
   readonly saved = output<Book>();
+
+  @ViewChild('titleInput') private titleInput?: ElementRef<HTMLInputElement>;
 
   // Estado local
   protected readonly isSaving = signal<boolean>(false);
@@ -147,6 +152,10 @@ export class BookEditModalComponent implements OnDestroy {
         });
       }
     });
+  }
+
+  ngAfterViewInit(): void {
+    queueMicrotask(() => this.titleInput?.nativeElement.focus({ preventScroll: true }));
   }
 
   protected onStatusChange(status: BookStatus): void {

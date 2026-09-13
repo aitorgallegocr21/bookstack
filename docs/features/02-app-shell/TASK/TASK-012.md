@@ -28,7 +28,7 @@
   - [x] `BookCreateModalComponent` (`book-create-modal.ts`).
   - [x] `BookEditModalComponent` (`book-edit-modal.ts`).
   - [x] `ReadingLogEditorComponent` (`reading-log-editor.ts`).
-- [ ] 4.2 Asegurar `autofocus` funcional con `@ViewChild` y `ngAfterViewInit` en modales de creación y edición.
+- [x] 4.2 Asegurar `autofocus` funcional con `@ViewChild` y `ngAfterViewInit` en modales de creación y edición.
 
 ### Fase 5: UI del Dashboard y Página Acerca de
 - [ ] 5.1 Restaurar clases hover (`hover:shadow-md hover:-translate-y-0.5 transition-all`) en las tarjetas de `dashboard-page.component.html`.

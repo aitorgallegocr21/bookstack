@@ -2,10 +2,13 @@ import {
   Component,
   ChangeDetectionStrategy,
   DOCUMENT,
+  ElementRef,
+  AfterViewInit,
   inject,
   OnDestroy,
   output,
-  signal
+  signal,
+  ViewChild
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BooksService } from '../../services/books.service';
@@ -28,7 +31,7 @@ import { ImageOptimizerService } from '../../services/image-optimizer.service';
     '(document:keydown.escape)': 'handleEscape()'
   }
 })
-export class BookCreateModalComponent implements OnDestroy {
+export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
   private readonly document = inject(DOCUMENT);
   private readonly booksService = inject(BooksService);
   private readonly imageOptimizerService = inject(ImageOptimizerService);
@@ -36,6 +39,8 @@ export class BookCreateModalComponent implements OnDestroy {
 
   readonly closed = output<void>();
   readonly saved = output<Book>();
+
+  @ViewChild('titleInput') private titleInput?: ElementRef<HTMLInputElement>;
 
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
@@ -46,6 +51,10 @@ export class BookCreateModalComponent implements OnDestroy {
 
   constructor() {
     this.document.body?.classList.add('overflow-hidden');
+  }
+
+  ngAfterViewInit(): void {
+    queueMicrotask(() => this.titleInput?.nativeElement.focus({ preventScroll: true }));
   }
 
   ngOnDestroy(): void {

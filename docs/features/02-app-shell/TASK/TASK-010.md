@@ -1,7 +1,7 @@
 # TASK-010: Checklist de Accesibilidad WCAG, Control de Foco y Resiliencia
 
 - **Especificación asociada:** `docs/features/02-app-shell/SPEC/SPEC-010.md`
-- **Estado:** EN PROCESO
+- **Estado:** COMPLETADO
 
 ---
 

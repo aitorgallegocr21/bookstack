@@ -1,7 +1,7 @@
 # TASK-012: Checklist de Refinamiento de Shell, Correcciones de Breakpoints y Ergonomía
 
 - **Especificación asociada:** `docs/features/02-app-shell/SPEC/SPEC-012.md`
-- **Estado:** EN PROCESO
+- **Estado:** COMPLETADO
 
 ---
 
@@ -35,6 +35,6 @@
 - [x] 5.2 Añadir sección de autoría (Aitor Gallego-Casilda Romero) y enlaces a GitHub en `about-page.component.html`.
 
 ### Fase 6: Validación Técnica y Build
-- [ ] 6.1 Validar visualización en $320\text{px}$, $375\text{px}$, $768\text{px}$, $1024\text{px}$ y $>1280\text{px}$.
-- [ ] 6.2 Probar apertura de modales, bloqueo de scroll y autofocus.
-- [ ] 6.3 Ejecutar `npm run build` y asegurar 0 errores de compilación.
+- [x] 6.1 Validar visualización en $320\text{px}$, $375\text{px}$, $768\text{px}$, $1024\text{px}$ y $>1280\text{px}$.
+- [x] 6.2 Probar apertura de modales, bloqueo de scroll y autofocus.
+- [x] 6.3 Ejecutar `npm run build` y asegurar 0 errores de compilación.

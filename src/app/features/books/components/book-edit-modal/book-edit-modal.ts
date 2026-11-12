@@ -1,29 +1,29 @@
 import {
-  Component,
-  ChangeDetectionStrategy,
-  DOCUMENT,
-  ElementRef,
   AfterViewInit,
-  inject,
-  input,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
   OnDestroy,
-  output,
-  signal,
   computed,
   effect,
-  ViewChild
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { BooksService } from '../../services/books.service';
-import { ImageOptimizerService } from '../../services/image-optimizer.service';
+import { UiStateService } from '../../../../core/services/ui-state.service';
 import {
+  BOOK_RATING_MAX,
+  BOOK_RATING_MIN,
   Book,
   BookFormat,
   BookStatus,
-  BOOK_RATING_MAX,
-  BOOK_RATING_MIN
 } from '../../models/book.model';
+import { BooksService } from '../../services/books.service';
+import { ImageOptimizerService } from '../../services/image-optimizer.service';
 
 @Component({
   selector: 'app-book-edit-modal',
@@ -31,26 +31,23 @@ import {
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './book-edit-modal.html',
   styleUrl: './book-edit-modal.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
-  ,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '(document:keydown.escape)': 'handleEscape()'
-  }
+    '(document:keydown.escape)': 'handleEscape()',
+  },
 })
 export class BookEditModalComponent implements AfterViewInit, OnDestroy {
-  private readonly document = inject(DOCUMENT);
+  private readonly uiState = inject(UiStateService);
   private readonly booksService = inject(BooksService);
   private readonly imageOptimizerService = inject(ImageOptimizerService);
   private readonly fb = inject(FormBuilder);
 
-  // Inputs y Outputs reactivos nativos de Angular 18+
   readonly bookId = input.required<string>();
   readonly closed = output<void>();
   readonly saved = output<Book>();
 
-  @ViewChild('titleInput') private titleInput?: ElementRef<HTMLInputElement>;
+  private readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
 
-  // Estado local
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
   protected readonly coverMode = signal<'url' | 'upload'>('url');
@@ -59,20 +56,20 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
   protected readonly isDraggingCover = signal<boolean>(false);
 
   ngOnDestroy(): void {
-    this.document.body?.classList.remove('overflow-hidden');
+    this.uiState.releaseScrollLock();
   }
 
-  // Búsqueda declarativa del libro actual mediante Signal computed
+  // Declarative computed lookup for the active book
   protected readonly book = computed<Book | undefined>(() => {
     return this.booksService.books().find((b) => b.id === this.bookId());
   });
 
-  // Opciones de estado
+  // Status options
   protected readonly statusOptions: { value: BookStatus; label: string }[] = [
     { value: 'pending', label: 'Pendiente' },
     { value: 'reading', label: 'Leyendo' },
     { value: 'completed', label: 'Completado' },
-    { value: 'abandoned', label: 'Abandonado' }
+    { value: 'abandoned', label: 'Abandonado' },
   ];
 
   private normalizeFormatValue(format?: BookFormat | string | null): string {
@@ -83,7 +80,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
     return format?.name?.trim() || 'Físico';
   }
 
-  // Formulario reactivo tipado
+  // Typed reactive form
   protected readonly editForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(1)]],
     author: ['', [Validators.required, Validators.minLength(1)]],
@@ -105,11 +102,11 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
     seriesEnabled: [false],
     seriesName: [''],
     seriesVolumeNumber: [null as number | null],
-    coverSource: ['url']
+    coverSource: ['url'],
   });
 
   constructor() {
-    this.document.body?.classList.add('overflow-hidden');
+    this.uiState.acquireScrollLock();
 
     effect(() => {
       const currentBook = this.book();
@@ -120,7 +117,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
           currentPage: currentBook.currentPage,
           totalChapters: currentBook.totalChapters ?? 0,
           currentChapter: currentBook.currentChapter ?? 0,
-          endDate: currentBook.endDate || ''
+          endDate: currentBook.endDate || '',
         });
 
         this.coverPreview.set(currentBook.coverUrl || '');
@@ -136,7 +133,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
           totalPages: currentBook.totalPages,
           currentPage: completedValues.currentPage ?? currentBook.currentPage,
           totalChapters: currentBook.totalChapters ?? 0,
-          currentChapter: completedValues.currentChapter ?? (currentBook.currentChapter ?? 0),
+          currentChapter: completedValues.currentChapter ?? currentBook.currentChapter ?? 0,
           totalCharacters: currentBook.totalCharacters ?? 0,
           status: currentBook.status,
           format: this.normalizeFormatValue(currentBook.format),
@@ -148,14 +145,14 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
           seriesEnabled: hasSeries,
           seriesName: currentBook.series?.name || '',
           seriesVolumeNumber: currentBook.series?.volumeNumber || null,
-          coverSource: 'url'
+          coverSource: 'url',
         });
       }
     });
   }
 
   ngAfterViewInit(): void {
-    queueMicrotask(() => this.titleInput?.nativeElement.focus({ preventScroll: true }));
+    queueMicrotask(() => this.titleInput()?.nativeElement.focus({ preventScroll: true }));
   }
 
   protected onStatusChange(status: BookStatus): void {
@@ -169,12 +166,12 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
       currentPage,
       totalChapters,
       currentChapter,
-      endDate: this.editForm.get('endDate')?.value || ''
+      endDate: this.editForm.get('endDate')?.value || '',
     });
 
     this.editForm.patchValue({
       ...nextValues,
-      status
+      status,
     });
   }
 
@@ -233,7 +230,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
       this.editForm.patchValue({ coverUrl: optimizedCover });
       this.coverMode.set('upload');
     } catch (error) {
-      console.error('Error al optimizar la portada:', error);
+      console.error('[BookEditModal] Failed to optimize cover image:', error);
       this.coverPreview.set('');
       this.coverFileName.set('');
       this.editForm.patchValue({ coverUrl: '' });
@@ -261,7 +258,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
     return {
       currentPage: Math.max(values.currentPage, values.totalPages),
       currentChapter: Math.max(values.currentChapter, values.totalChapters),
-      endDate: values.endDate || this.getTodayIso()
+      endDate: values.endDate || this.getTodayIso(),
     };
   }
 
@@ -283,8 +280,8 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
         currentPage,
         totalChapters,
         currentChapter,
-        endDate
-      })
+        endDate,
+      }),
     );
 
     this.isSaving.set(true);
@@ -295,14 +292,15 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
       ? {
           id: currentBook.series?.id || crypto.randomUUID(),
           name: val.seriesName!.trim(),
-          volumeNumber: val.seriesVolumeNumber ? Number(val.seriesVolumeNumber) : undefined
+          volumeNumber: val.seriesVolumeNumber ? Number(val.seriesVolumeNumber) : undefined,
         }
       : undefined;
 
     const rawRating = val.rating;
-    const normalizedRating = typeof rawRating === 'number' && Number.isFinite(rawRating)
-      ? Math.min(BOOK_RATING_MAX, Math.max(BOOK_RATING_MIN, rawRating))
-      : undefined;
+    const normalizedRating =
+      typeof rawRating === 'number' && Number.isFinite(rawRating)
+        ? Math.min(BOOK_RATING_MAX, Math.max(BOOK_RATING_MIN, rawRating))
+        : undefined;
 
     const updatedBook: Book = {
       ...currentBook,
@@ -324,7 +322,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
       startDate: val.startDate || undefined,
       endDate: val.endDate || undefined,
       notes: val.notes?.trim() || undefined,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     try {
@@ -332,7 +330,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
       this.saved.emit(updatedBook);
       this.closed.emit();
     } catch (error) {
-      console.error('Error al actualizar el libro:', error);
+      console.error('[BookEditModal] Failed to update book:', error);
     } finally {
       this.isSaving.set(false);
     }

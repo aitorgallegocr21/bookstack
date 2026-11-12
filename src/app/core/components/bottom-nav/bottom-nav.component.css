@@ -1,6 +1,11 @@
-:host { display: block; }
+:host {
+  display: block;
+}
 
-a { text-decoration: none; }
+a {
+  text-decoration: none;
+}
 
-a:focus { outline: none; }
-
+a:focus {
+  outline: none;
+}

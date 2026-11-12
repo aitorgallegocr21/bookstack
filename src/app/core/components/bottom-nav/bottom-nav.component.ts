@@ -1,7 +1,15 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { LucideDynamicIcon, LucideHome, LucideBook, LucideBarChart2, LucideSettings, LucideInfo } from '@lucide/angular';
+import {
+  LucideBarChart2,
+  LucideBook,
+  LucideDynamicIcon,
+  LucideHome,
+  LucideInfo,
+  LucideSettings,
+} from '@lucide/angular';
+import { I18nService } from '../../i18n/i18n.service';
 
 @Component({
   selector: 'app-bottom-nav',
@@ -9,9 +17,11 @@ import { LucideDynamicIcon, LucideHome, LucideBook, LucideBarChart2, LucideSetti
   imports: [CommonModule, RouterLink, RouterLinkActive, LucideDynamicIcon],
   templateUrl: './bottom-nav.component.html',
   styleUrl: './bottom-nav.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BottomNavComponent {
+  protected readonly i18n = inject(I18nService);
+
   protected readonly Home = LucideHome;
   protected readonly Book = LucideBook;
   protected readonly Stats = LucideBarChart2;

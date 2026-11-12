@@ -1,63 +1,81 @@
 # CONTEXT.md - BookStack (Single Source of Truth)
 
-## 1. Visión General del Proyecto
-- **Nombre:** BookStack
-- **Propósito:** Aplicación web minimalista, visual, privada y de alto rendimiento para el seguimiento de lectura personal, gestión de sagas, registro de sesiones y analítica de hábitos.
-- **Estrategia:** Local-First (100% ejecución en cliente, persistencia en navegador mediante `LocalStorage` / `IndexedDB`, sin backend obligatorio).
+## 1. Project Overview
+
+- **Name:** BookStack
+- **Purpose:** Minimalist, visual, private, high-performance **Local-First** web application for personal reading tracking, session logging, habit analytics, and private library management.
+- **Strategy:** 100% client-side execution with local browser persistence (`IndexedDB` primary store + safe `LocalStorage` fallback) and zero mandatory backend.
+- **Branching Model:** `main` (production releases deployed to GitHub Pages via verified GitHub PRs) $\leftarrow$ `develop` (primary integration branch for feature/refactor branches).
 
 ---
 
-## 2. Stack Tecnológico y Dependencias Clave
-- **Framework:** Angular v18+ (Standalone Components, Signals reactivos, Control Flow nativo `@if` / `@for`, Lazy Loading con `loadComponent`).
-- **Estilos & UI:** Tailwind CSS (sistema dark/light estricto, micro-animaciones aceleradas por hardware, ergonomía móvil <360px).
-- **Iconografía:** Lucide Icons (`lucide-angular`) y SVGs vectoriales inline.
-- **Internacionalización:** Localización nativa en español (`es-ES`) mediante `Intl.DateTimeFormat`.
-- **Despliegue & CI/CD:** GitHub Pages vía GitHub Actions (`.github/workflows/deploy.yml`).
+## 2. Technology Stack & Tooling
+
+- **Framework:** Angular 22+ (`@angular/core`, Standalone Components, Signals, `@if` / `@for` Control Flow, `OnPush`, Lazy Routes via `loadComponent`).
+- **Styling:** Tailwind CSS v4 (`@tailwindcss/postcss`, `@custom-variant dark`), class-based light/dark theme persistence.
+- **Icons:** `@lucide/angular` and inline semantic SVGs.
+- **Schema Validation:** `zod` runtime validation (`BookSchema`, `ReadingLogSchema`) for persisted browser records.
+- **Internationalization:** Signal-based `I18nService` (`es` active user-facing default, `en` dictionary structure ready for expansion) + `Intl.DateTimeFormat`.
+- **Quality & Testing Gates:** Strict TypeScript (`tsconfig.app.json` + `tsconfig.spec.json`), ESLint + `angular-eslint` (including template accessibility), Prettier + `prettier-plugin-tailwindcss`, Vitest 5 (`jsdom` + `fake-indexeddb`), and Playwright E2E tests.
+- **CI/CD:** GitHub Actions (`.github/workflows/ci.yml` quality gates on `main`, `.github/workflows/deploy.yml` GitHub Pages deployment with SPA `404.html` fallback).
 
 ---
 
-## 3. Decisiones Arquitectónicas Consolidadas (ADR)
+## 3. Architectural Decision Records (ADR)
 
-1. **Estado Reactivo:** Basado íntegramente en Angular Signals (`signal`, `computed`). Prohibido RxJS para estado local en componentes.
-2. **Arquitectura Shell Asimétrica:**
-   - Desktop ($\ge 768\text{px}$): `SidebarComponent` colapsable ($68\text{px} \leftrightarrow 240\text{px}$) con persistencia en `UiStateService` (`LocalStorage`).
-   - Móvil ($< 768\text{px}$): `HeaderComponent` compacto + `BottomNavComponent` fijo con 5 accesos táctiles ($\ge 48\text{px}$).
-3. **Rendimiento Gráfico & Core Web Vitals:** Transiciones discretas (`transition-colors`, `transition-[width]`), prohibido `transition-all`. Portadas con `decoding="async"` y `loading="lazy"`.
-4. **Optimización Canvas en Cliente:** Pipeline `ImageOptimizerService` para compresión de portadas ($400\text{px}$ máx., calidad $0.75$) previo a persistencia.
-5. **Sincronización Bidireccional:** Registros de lectura recalculan automáticamente `Book.currentPage` mediante deltas y transicionan estado (`COMPLETED` / `READING`).
-6. **Accesibilidad Semántica (WCAG 2.1 AA):** Control universal por teclado (`Escape`, autofoco en modales), `aria-label` descriptivos y foco visible (`focus-visible:ring-2`).
-7. **Resiliencia Local-First:** Captura controlada de `QuotaExceededError` en `StorageAdapterService`.
+1. **Signal-First State Management:** Reactive state relies exclusively on Angular Signals (`signal`, `computed`, `effect`). RxJS subscriptions are forbidden for local UI or service state.
+2. **Asymmetric Responsive Shell:**
+   - Tablet & Desktop ($\ge 768\text{px}$): Collapsible `SidebarComponent` (`hidden md:flex`, `68px` $\leftrightarrow$ `240px`) persisted via `UiStateService`.
+   - Mobile ($< 768\text{px}$): Compact `HeaderComponent` + fixed `BottomNavComponent` with safe-area padding (`env(safe-area-inset-bottom)`).
+3. **Rendering & Motion Performance:** Discrete CSS transitions (`transition-colors`, `transition-[width]`, `transition-transform`, `transition-shadow`); `transition-all` is banned. Cover images use `decoding="async"` and `loading="lazy"`.
+4. **Client-Side Canvas Cover Optimization:** `ImageOptimizerService` scales and compresses uploaded covers ($\le 400\text{px}$, quality `0.75`, WebP/JPEG fallback) before persistence.
+5. **Bidirectional Reading Delta Sync:** Logging, updating, or deleting a `ReadingLog` automatically adjusts `Book.currentPage` and status transitions (`pending` / `reading` / `completed`).
+6. **Accessible Modal & Scroll-Lock Discipline:** Modals implement `host: { '(document:keydown.escape)': ... }`, programmatic initial focus via `viewChild()`, and reference-counted body scroll locks via `UiStateService.acquireScrollLock()` / `releaseScrollLock()`.
+7. **Storage Resilience & Clean Layering:** `StorageAdapterService` lives in `src/app/core/services/`, avoids redundant `localStorage` mirroring on normal IndexedDB writes, traps `QuotaExceededError` / malformed JSON safely, and pairs with Zod parsers in `src/app/features/books/schemas/book.schema.ts`.
 
 ---
 
-## 4. Punteros Semánticos del Código Fuente Actual (JIT)
+## 4. Semantic Source Map (JIT Pointers)
 
-Consulta y modifica exclusivamente las rutas reales presentes en la base de código:
+Inspect and edit only real workspace paths listed below:
 
 ```text
-src/app/
-├── app.config.ts                     # Configuración global y proveedores (ApplicationConfig, routing)
-├── app.routes.ts                     # Rutas Lazy (/, /books, /stats, /settings, /about)
-├── app.ts / app.html                 # Shell raíz (<app-sidebar>, <app-header>, <router-outlet>, <app-bottom-nav>)
-│
-├── core/                             # Núcleo transversal y UI Shell
-│   ├── components/
-│   │   ├── sidebar/                  # Barra lateral desktop colapsable (68px / 240px)
-│   │   ├── header/                   # Cabecera mínima para móvil (<768px)
-│   │   └── bottom-nav/               # Barra de navegación inferior móvil
-│   ├── services/
-│   │   ├── theme.service.ts          # Gestión reactiva del tema (dark / light)
-│   │   └── ui-state.service.ts       # Estado de UI (sidebar colapsado/expandido)
-│   └── utils/
-│       └── date-formatter.ts         # Formateador de fechas en español (es-ES)
-│
-└── features/                         # Módulos desacoplados por dominio
-    ├── dashboard/pages/dashboard-page/ # Vista de inicio y resumen de lectura (/)
-    ├── books/                          # Dominio consolidado de Libros (/books)
-    │   ├── models/book.model.ts        # -> Contratos: Book, BookSeries, ReadingLog, ReadingStats
-    │   ├── services/                   # BooksService, ReadingLogService, ReadingStatsService, ImageOptimizer, StorageAdapter
-    │   ├── pages/books-page/           # Catálogo maestro (Media-Object, layout fluido)
-    │   └── components/                 # Modales: create, edit, detail, reading-log-editor
-    ├── analytics/pages/stats-page/     # Módulo de analítica y estadísticas (/stats)
-    ├── settings/pages/settings-page/   # Módulo de ajustes y copias de seguridad (/settings)
-    └── about/pages/about-page/         # Módulo informativo y manifiesto Local-First (/about)
+src/
+├── test-setup.ts                              # Global Vitest setup (fake-indexeddb + matchMedia mock)
+├── styles.css                                 # Tailwind CSS v4 entry (@import 'tailwindcss') & dark variant
+└── app/
+    ├── app.config.ts                          # Root ApplicationConfig (routing, ChangeDetection)
+    ├── app.routes.ts                          # Lazy routes (/, /books, /stats, /settings, /about)
+    ├── app.ts / app.html / app.spec.ts        # Root shell (<app-sidebar>, <app-header>, <main>, <app-bottom-nav>)
+    │
+    ├── core/                                  # Cross-cutting infrastructure & navigation shell
+    │   ├── components/
+    │   │   ├── sidebar/                       # Collapsible desktop/tablet sidebar (68px / 240px)
+    │   │   ├── header/                        # Mobile compact header (<768px)
+    │   │   └── bottom-nav/                    # Mobile fixed bottom bar (<768px)
+    │   ├── i18n/                              # Signal-based dictionaries (es, en) & I18nService
+    │   ├── services/
+    │   │   ├── storage-adapter.service.ts     # IndexedDB + LocalStorage fallback adapter
+    │   │   ├── theme.service.ts               # Light/dark theme signal & persistence
+    │   │   └── ui-state.service.ts            # Sidebar collapse & reference-counted scroll lock
+    │   └── utils/
+    │       └── date-formatter.ts              # Locale-aware Intl date & month formatters
+    │
+    └── features/                              # Decoupled domain modules
+        ├── dashboard/pages/dashboard-page/    # Home overview & KPIs (/)
+        ├── books/                             # Books catalog & reading logs domain (/books)
+        │   ├── models/book.model.ts           # Contracts: Book, BookSeries, ReadingLog, ReadingStats
+        │   ├── schemas/book.schema.ts         # Zod runtime parsers (BookSchema, ReadingLogSchema)
+        │   ├── services/                      # BooksService, ReadingLogService, ReadingStatsService, ImageOptimizerService
+        │   ├── pages/books-page/              # Catalog grid & modal coordination
+        │   └── components/                    # book-create-modal, book-edit-modal, book-detail-modal, reading-log-editor
+        ├── analytics/pages/stats-page/        # Analytics view (/stats)
+        ├── settings/pages/settings-page/      # Settings & backup hub (/settings)
+        └── about/pages/about-page/            # Project info & Local-First manifesto (/about)
+
+tests/
+└── e2e/                                       # Playwright End-to-End browser specs
+    ├── overflow.spec.ts                       # Horizontal overflow & single-<main> check (375..1280px)
+    ├── navigation-and-theme.spec.ts           # Sidebar, mobile bottom nav & dark theme persistence
+    └── books-flow.spec.ts                     # End-to-end Book & ReadingLog CRUD lifecycle
+```

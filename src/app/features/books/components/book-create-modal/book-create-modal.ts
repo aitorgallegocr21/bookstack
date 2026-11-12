@@ -1,23 +1,18 @@
 import {
-  Component,
-  ChangeDetectionStrategy,
-  DOCUMENT,
-  ElementRef,
   AfterViewInit,
-  inject,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
   OnDestroy,
+  inject,
   output,
   signal,
-  ViewChild
+  viewChild,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { UiStateService } from '../../../../core/services/ui-state.service';
+import { BOOK_RATING_MAX, BOOK_RATING_MIN, Book, BookStatus } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
-import {
-  Book,
-  BookStatus,
-  BOOK_RATING_MAX,
-  BOOK_RATING_MIN
-} from '../../models/book.model';
 import { ImageOptimizerService } from '../../services/image-optimizer.service';
 
 @Component({
@@ -28,11 +23,11 @@ import { ImageOptimizerService } from '../../services/image-optimizer.service';
   styleUrl: './book-create-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '(document:keydown.escape)': 'handleEscape()'
-  }
+    '(document:keydown.escape)': 'handleEscape()',
+  },
 })
 export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
-  private readonly document = inject(DOCUMENT);
+  private readonly uiState = inject(UiStateService);
   private readonly booksService = inject(BooksService);
   private readonly imageOptimizerService = inject(ImageOptimizerService);
   private readonly fb = inject(FormBuilder);
@@ -40,7 +35,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
   readonly closed = output<void>();
   readonly saved = output<Book>();
 
-  @ViewChild('titleInput') private titleInput?: ElementRef<HTMLInputElement>;
+  private readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
 
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
@@ -50,22 +45,22 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
   protected readonly isDraggingCover = signal<boolean>(false);
 
   constructor() {
-    this.document.body?.classList.add('overflow-hidden');
+    this.uiState.acquireScrollLock();
   }
 
   ngAfterViewInit(): void {
-    queueMicrotask(() => this.titleInput?.nativeElement.focus({ preventScroll: true }));
+    queueMicrotask(() => this.titleInput()?.nativeElement.focus({ preventScroll: true }));
   }
 
   ngOnDestroy(): void {
-    this.document.body?.classList.remove('overflow-hidden');
+    this.uiState.releaseScrollLock();
   }
 
   protected readonly statusOptions: { value: BookStatus; label: string }[] = [
     { value: 'pending', label: 'Pendiente' },
     { value: 'reading', label: 'Leyendo' },
     { value: 'completed', label: 'Completado' },
-    { value: 'abandoned', label: 'Abandonado' }
+    { value: 'abandoned', label: 'Abandonado' },
   ];
 
   protected readonly createForm = this.fb.group({
@@ -89,7 +84,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     seriesEnabled: [false],
     seriesName: [''],
     seriesVolumeNumber: [null],
-    coverSource: ['url']
+    coverSource: ['url'],
   });
 
   protected handleEscape(): void {
@@ -107,7 +102,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
       currentPage,
       totalChapters,
       currentChapter,
-      endDate: this.createForm.get('endDate')?.value || ''
+      endDate: this.createForm.get('endDate')?.value || '',
     });
 
     this.createForm.patchValue(nextValues);
@@ -128,7 +123,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     return {
       currentPage: Math.max(values.currentPage, values.totalPages),
       currentChapter: Math.max(values.currentChapter, values.totalChapters),
-      endDate: values.endDate || this.getTodayIso()
+      endDate: values.endDate || this.getTodayIso(),
     };
   }
 
@@ -187,7 +182,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
       this.createForm.patchValue({ coverUrl: optimizedCover });
       this.coverMode.set('upload');
     } catch (error) {
-      console.error('Error al optimizar la portada:', error);
+      console.error('[BookCreateModal] Failed to optimize cover image:', error);
       this.coverPreview.set('');
       this.coverFileName.set('');
       this.createForm.patchValue({ coverUrl: '' });
@@ -217,8 +212,8 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
         currentPage,
         totalChapters,
         currentChapter,
-        endDate
-      })
+        endDate,
+      }),
     );
 
     this.isSaving.set(true);
@@ -230,14 +225,15 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
       ? {
           id: crypto.randomUUID(),
           name: val.seriesName!.trim(),
-          volumeNumber: val.seriesVolumeNumber ? Number(val.seriesVolumeNumber) : undefined
+          volumeNumber: val.seriesVolumeNumber ? Number(val.seriesVolumeNumber) : undefined,
         }
       : undefined;
 
     const rawRating = val.rating;
-    const normalizedRating = typeof rawRating === 'number' && Number.isFinite(rawRating)
-      ? Math.min(BOOK_RATING_MAX, Math.max(BOOK_RATING_MIN, rawRating))
-      : undefined;
+    const normalizedRating =
+      typeof rawRating === 'number' && Number.isFinite(rawRating)
+        ? Math.min(BOOK_RATING_MAX, Math.max(BOOK_RATING_MIN, rawRating))
+        : undefined;
 
     const newBook: Book = {
       id: crypto.randomUUID(),
@@ -260,7 +256,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
       endDate: val.endDate || undefined,
       notes: val.notes?.trim() || undefined,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     };
 
     try {
@@ -268,7 +264,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
       this.saved.emit(newBook);
       this.closed.emit();
     } catch (error) {
-      console.error('Error al crear el nuevo libro:', error);
+      console.error('[BookCreateModal] Failed to create book:', error);
     } finally {
       this.isSaving.set(false);
     }

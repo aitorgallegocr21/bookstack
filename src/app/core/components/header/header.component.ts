@@ -1,16 +1,17 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ThemeService } from '../../services/theme.service';
-import { BooksService } from '../../../features/books/services/books.service';
 import {
   LucideDynamicIcon,
-  LucideSun,
-  LucideMoon,
+  LucideGitBranch,
   LucideHome,
+  LucideMoon,
   LucidePlus,
-  LucideGitBranch
+  LucideSun,
 } from '@lucide/angular';
+import { BooksService } from '../../../features/books/services/books.service';
+import { I18nService } from '../../i18n/i18n.service';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-header',
@@ -18,11 +19,12 @@ import {
   imports: [CommonModule, RouterLink, LucideDynamicIcon],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent {
   protected readonly themeService = inject(ThemeService);
   protected readonly booksService = inject(BooksService);
+  protected readonly i18n = inject(I18nService);
 
   protected readonly Sun = LucideSun;
   protected readonly Moon = LucideMoon;

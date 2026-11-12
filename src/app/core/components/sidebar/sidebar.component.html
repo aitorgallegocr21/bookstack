@@ -1,32 +1,31 @@
 <aside
-  class="fixed left-0 top-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-[width]"
-  [style.width]="(uiState.isSidebarCollapsed() ? '68px' : '240px')"
+  class="fixed top-0 left-0 flex h-[100dvh] flex-col border-r border-slate-200 bg-white transition-[width] dark:border-slate-800 dark:bg-slate-900"
+  [style.width]="uiState.isSidebarCollapsed() ? '68px' : '240px'"
 >
-  <!-- Logo y botón de colapso -->
+  <!-- Logo and collapse toggle -->
   <div
-    class="flex h-16 items-center gap-2 border-b border-slate-200 px-3 dark:border-slate-800 flex-shrink-0"
+    class="flex h-16 flex-shrink-0 items-center gap-2 border-b border-slate-200 px-3 dark:border-slate-800"
   >
     @if (!uiState.isSidebarCollapsed()) {
-      <!-- Modo expandido: Logo + nombre + botón chevron -->
       <a
         routerLink="/"
-        class="flex min-w-0 items-center gap-2 rounded-lg px-1.5 py-2 text-slate-900 transition-opacity hover:opacity-80 dark:text-white"
-        title="Bookstack"
+        class="flex min-w-0 items-center gap-2 rounded-lg px-1.5 py-2 text-slate-900 transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-white"
+        title="BookStack"
       >
         <span
           class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-base shadow-sm dark:bg-slate-800"
         >
           📚
         </span>
-        <span class="truncate text-base font-bold tracking-tight">Bookstack</span>
+        <span class="truncate text-base font-bold tracking-tight">BookStack</span>
       </a>
 
       <button
         (click)="toggleSidebar()"
-        class="ml-auto flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+        class="ml-auto flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
         [attr.aria-pressed]="uiState.isSidebarCollapsed()"
-        aria-label="Contraer barra lateral"
-        title="Contraer barra lateral"
+        [attr.aria-label]="i18n.t().nav.collapseSidebar"
+        [title]="i18n.t().nav.collapseSidebar"
         type="button"
       >
         <svg
@@ -37,13 +36,12 @@
         ></svg>
       </button>
     } @else {
-      <!-- Modo colapsado: Isotipo centrado interactivo -->
       <button
         (click)="toggleSidebar()"
-        class="w-full flex items-center justify-center rounded-lg px-1.5 py-2 text-slate-900 transition-colors hover:bg-slate-100 dark:text-white dark:hover:bg-slate-800"
+        class="flex w-full items-center justify-center rounded-lg px-1.5 py-2 text-slate-900 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-white dark:hover:bg-slate-800"
         [attr.aria-pressed]="uiState.isSidebarCollapsed()"
-        aria-label="Expandir barra lateral"
-        title="Expandir barra lateral"
+        [attr.aria-label]="i18n.t().nav.expandSidebar"
+        [title]="i18n.t().nav.expandSidebar"
         type="button"
       >
         <span
@@ -55,42 +53,39 @@
     }
   </div>
 
-  <!-- Botón primario: Añadir libro -->
-  <div class="px-3 py-4 flex-shrink-0 border-b border-slate-200 dark:border-slate-800">
+  <!-- Primary CTA: Add book -->
+  <div class="flex-shrink-0 border-b border-slate-200 px-3 py-4 dark:border-slate-800">
     <button
+      type="button"
       (click)="openCreate()"
-      class="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none"
-      title="Crear nuevo libro"
+      class="shadow-xs inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none"
+      [attr.aria-label]="i18n.t().nav.createBookAria"
+      [title]="i18n.t().nav.createBookAria"
     >
       <svg [lucideIcon]="Plus" size="18" stroke-width="2"></svg>
       @if (!uiState.isSidebarCollapsed()) {
-        <span>Añadir libro</span>
+        <span>{{ i18n.t().nav.addBook }}</span>
       } @else {
-        <span class="sr-only">Añadir libro</span>
+        <span class="sr-only">{{ i18n.t().nav.addBook }}</span>
       }
     </button>
   </div>
 
-  <!-- Navegación central -->
-  <nav class="flex-1 px-3 py-4 space-y-1" aria-label="Menú principal">
-    @for (item of navItems; track item.path) {
+  <!-- Main navigation -->
+  <nav class="flex-1 space-y-1 px-3 py-4" [attr.aria-label]="i18n.t().nav.mainMenuAria">
+    @for (item of navItems(); track item.path) {
       <a
         [routerLink]="item.path"
         [routerLinkActive]="'bg-blue-50 text-blue-700 font-semibold shadow-xs dark:bg-blue-950/60 dark:text-blue-400'"
         [routerLinkActiveOptions]="item.path === '/' ? { exact: true } : { exact: false }"
-        class="flex items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+        class="flex items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
         [class.justify-center]="uiState.isSidebarCollapsed()"
         [class.justify-start]="!uiState.isSidebarCollapsed()"
         [attr.aria-label]="item.label"
         [title]="item.label"
       >
         <span class="flex h-7 w-7 items-center justify-center rounded-lg">
-          <svg
-            [lucideIcon]="item.icon"
-            size="18"
-            stroke-width="2"
-            class="shrink-0"
-          ></svg>
+          <svg [lucideIcon]="item.icon" size="18" stroke-width="2" class="shrink-0"></svg>
         </span>
 
         @if (!uiState.isSidebarCollapsed()) {
@@ -102,27 +97,20 @@
     }
   </nav>
 
-  <!-- Cluster inferior: Ajustes, Acerca de, GitHub, Tema -->
-  <div
-    class="px-3 py-4 space-y-1 border-t border-slate-200 dark:border-slate-800 flex-shrink-0"
-  >
-    @for (item of secondaryNavItems; track item.path) {
+  <!-- Bottom cluster: Settings, About, GitHub, Theme -->
+  <div class="flex-shrink-0 space-y-1 border-t border-slate-200 px-3 py-4 dark:border-slate-800">
+    @for (item of secondaryNavItems(); track item.path) {
       <a
         [routerLink]="item.path"
         [routerLinkActive]="'bg-blue-50 text-blue-700 font-semibold shadow-xs dark:bg-blue-950/60 dark:text-blue-400'"
-        class="flex items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+        class="flex items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
         [class.justify-center]="uiState.isSidebarCollapsed()"
         [class.justify-start]="!uiState.isSidebarCollapsed()"
         [attr.aria-label]="item.label"
         [title]="item.label"
       >
         <span class="flex h-7 w-7 items-center justify-center rounded-lg">
-          <svg
-            [lucideIcon]="item.icon"
-            size="18"
-            stroke-width="2"
-            class="shrink-0"
-          ></svg>
+          <svg [lucideIcon]="item.icon" size="18" stroke-width="2" class="shrink-0"></svg>
         </span>
 
         @if (!uiState.isSidebarCollapsed()) {
@@ -136,36 +124,33 @@
     <button
       type="button"
       (click)="openGitHub()"
-      class="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+      class="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
       [class.justify-center]="uiState.isSidebarCollapsed()"
       [class.justify-start]="!uiState.isSidebarCollapsed()"
-      [attr.aria-label]="'Repositorio de GitHub'"
-      title="Repositorio de GitHub"
+      [attr.aria-label]="i18n.t().nav.github"
+      [title]="i18n.t().nav.github"
     >
       <span class="flex h-7 w-7 items-center justify-center rounded-lg">
-        <svg
-          [lucideIcon]="Github"
-          size="18"
-          stroke-width="2"
-          class="shrink-0"
-        ></svg>
+        <svg [lucideIcon]="Github" size="18" stroke-width="2" class="shrink-0"></svg>
       </span>
 
       @if (!uiState.isSidebarCollapsed()) {
-        <span class="truncate">GitHub</span>
+        <span class="truncate">{{ i18n.t().nav.github }}</span>
       } @else {
-        <span class="sr-only">GitHub</span>
+        <span class="sr-only">{{ i18n.t().nav.github }}</span>
       }
     </button>
 
     <button
       type="button"
       (click)="toggleTheme()"
-      class="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+      class="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
       [class.justify-center]="uiState.isSidebarCollapsed()"
       [class.justify-start]="!uiState.isSidebarCollapsed()"
-      [attr.aria-label]="themeService.isDark() ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'"
-      [title]="themeService.isDark() ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'"
+      [attr.aria-label]="
+        themeService.isDark() ? i18n.t().nav.switchToLight : i18n.t().nav.switchToDark
+      "
+      [title]="themeService.isDark() ? i18n.t().nav.switchToLight : i18n.t().nav.switchToDark"
     >
       <span class="flex h-7 w-7 items-center justify-center rounded-lg">
         <svg
@@ -177,9 +162,13 @@
       </span>
 
       @if (!uiState.isSidebarCollapsed()) {
-        <span class="truncate">{{ themeService.isDark() ? 'Tema claro' : 'Tema oscuro' }}</span>
+        <span class="truncate">{{
+          themeService.isDark() ? i18n.t().nav.lightTheme : i18n.t().nav.darkTheme
+        }}</span>
       } @else {
-        <span class="sr-only">{{ themeService.isDark() ? 'Tema claro' : 'Tema oscuro' }}</span>
+        <span class="sr-only">{{
+          themeService.isDark() ? i18n.t().nav.lightTheme : i18n.t().nav.darkTheme
+        }}</span>
       }
     </button>
   </div>

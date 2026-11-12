@@ -1,84 +1,81 @@
-# 📚 BookStack
+# BookStack
 
-> **Seguimiento de lectura personal, privado y de alto rendimiento. Diseñado bajo la filosofía Local-First.**
+> 🌐 **Language:** English | [Leer en Español](README.es.md)
 
-[![Angular](https://img.shields.io/badge/Angular-v18+-DD0031?style=flat-square&logo=angular&logoColor=white)](https://angular.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Local--First](https://img.shields.io/badge/Architecture-Local--First-10B981?style=flat-square)](https://localfirstweb.dev/)
-[![Accessibility](https://img.shields.io/badge/Accessibility-WCAG_2.1_AA-8B5CF6?style=flat-square)](https://www.w3.org/WAI/WCAG21/quickref/)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+Modern, minimalist, **Local-First** web application for personal reading tracking, session logging, habit analytics, and private library management.
 
-## 📖 Acerca del Proyecto
+![Angular](https://img.shields.io/badge/Angular-22%2B-DD0031?style=flat-square&logo=angular)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.3-38B2AC?style=flat-square&logo=tailwind-css)
+![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
-**BookStack** es una aplicación web moderna concebida para lectores que buscan organizar su biblioteca personal, registrar hábitos de lectura y analizar métricas sin ceder sus datos a servidores de terceros.
+---
 
-### 🛡️ Principios Fundamentales
-* **100% Local-First:** Todos tus libros, notas y registros de lectura se almacenan y procesan de forma privada en tu propio navegador (`LocalStorage` / `IndexedDB`).
-* **Reactividad Nativa:** Arquitectura desacoplada basada en **Angular Signals** para un rendimiento instantáneo sin overhead.
-* **Diseño Ergonómico Asimétrico:** Experiencia de escritorio optimizada mediante barra lateral colapsable y navegación táctil inferior en dispositivos móviles.
-* **Compresión en Cliente:** Pipeline con Canvas API que optimiza y reduce las portadas a formatos ligeros (WebP/JPEG, $400\text{px}$ máx.) antes de persistir en memoria local.
+## Core Features
 
-## 🚀 Funcionalidades Principales
+- **Library Management:** Organize books by reading status (_Pending_, _Reading_, _Completed_, _Abandoned_) with cover previews, ratings, and format tracking.
+- **Session Logging & Bidirectional Progress:** Log reading sessions with page deltas and time spent; BookStack automatically recalculates `currentPage`, completion percentage, and status transitions.
+- **Reading Analytics:** Real-time computed metrics for reading speed (`pp/h`), status distribution, and monthly reading activity.
+- **Client-Side Cover Optimization:** Built-in HTML5 Canvas pipeline compresses uploaded covers ($\le 400\text{px}$, WebP/JPEG) before saving locally.
+- **Asymmetric Responsive Shell:** Collapsible sidebar (`68px` / `240px`) on desktop/tablet ($\ge 768\text{px}$) and compact header + bottom navigation on mobile ($< 768\text{px}$), with full light/dark theme persistence.
+- **100% Local-First Privacy:** Data stays on your device using `IndexedDB` (with safe `LocalStorage` fallback and Zod schema validation). No external backend required.
+- **i18n-Ready Architecture:** Spanish (`es`) UI active by default via centralized Signal-based translation dictionaries prepared for multi-language expansion.
 
-* 📚 **Gestión Integral de Biblioteca:** Catálogo con fichas técnicas completas, soporte para sagas/colecciones literarias, formatos (Físico, Digital, Audiolibro) e ISBN.
-* ⏱️ **Registro Granular de Sesiones:** Historial de lecturas con cálculo automático de páginas leídas y alternancia inteligente entre estados `READING` y `COMPLETED`.
-* 🎨 **Tema Dinámico Claro/Oscuro:** Conmutador Sol/Luna con micro-animaciones fluidas y preservación de preferencias de usuario.
-* ♿ **Accesibilidad de Primer Nivel (WCAG 2.1 AA):** Navegación completa por teclado (`Escape` para cerrar diálogos, autofoco programático) y bloqueo de scroll de fondo.
-* 📱 **Adaptabilidad Extrema:** Layout fluido blindado contra colapsos visuales desde pantallas ultra-pequeñas ($< 350\text{px}$) hasta monitores ultra-panorámicos.
+---
 
-## 🏛️ Arquitectura Técnica
+## Tech Stack
 
-```text
-src/app/
-├── core/                             # Núcleo transversal y UI Shell
-│   ├── components/
-│   │   ├── sidebar/                  # Barra lateral desktop colapsable (68px / 240px)
-│   │   ├── header/                   # Cabecera mínima para móvil (<768px)
-│   │   └── bottom-nav/               # Barra táctil inferior fija móvil
-│   ├── services/
-│   │   ├── theme.service.ts          # Gestión reactiva del tema (dark / light)
-│   │   └── ui-state.service.ts       # Estado persistente de UI (sidebar)
-│   └── utils/
-│       └── date-formatter.ts         # Formateador universal de fechas (es-ES)
-│
-└── features/                         # Módulos desacoplados por dominio
-    ├── dashboard/                    # Vista de inicio y resumen de lectura (/)
-    ├── books/                        # Dominio consolidado de libros y modales (/books)
-    ├── analytics/                    # Analítica avanzada y estadísticas (/stats)
-    ├── settings/                     # Ajustes y copias de seguridad (/settings)
-    └── about/                        # Manifiesto y créditos de autoría (/about)
+- **Frontend:** Angular 22+ (Standalone Components, Signals, `@if`/`@for` Control Flow, `OnPush`, Lazy Routes)
+- **Styling:** Tailwind CSS v4 (`@tailwindcss/postcss`)
+- **Icons:** `@lucide/angular`
+- **Validation:** `zod`
+- **Local Persistence:** Browser `IndexedDB` + `LocalStorage` fallback
+- **Testing & Quality:** Vitest 5, Playwright E2E, ESLint + `angular-eslint`, Prettier
+
+---
+
+## Getting Started
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/aitorgallegocr21/bookstack.git
+cd bookstack
+
+# 2. Checkout develop for active development
+git checkout develop
+
+# 3. Install dependencies
+npm install
+
+# 4. Start the local dev server
+npm run dev
 ```
 
-## 🛠️ Instalación y Desarrollo Local
+---
 
-### Prerrequisitos
-* **Node.js**: >= 18.19.0
-* **npm**: >= 10.0.0
-* **Angular CLI**: `npm install -g @angular/cli`
+## Quality & Verification Commands
 
-### Pasos de Configuración
+| Command               | Description                                                        |
+| :-------------------- | :----------------------------------------------------------------- |
+| `npm run verify`      | Full quality gate (`check` + `lint` + `format` + `test` + `build`) |
+| `npm run verify:fast` | Quick quality gate (`check` + `lint` + `format` + `test`)          |
+| `npm run check`       | Strict TypeScript type checking (`app` and `spec`)                 |
+| `npm run lint`        | ESLint + `angular-eslint` + template accessibility rules           |
+| `npm run format`      | Prettier formatting and Tailwind v4 class sorting check            |
+| `npm test`            | Run Vitest unit & component tests                                  |
+| `npm run test:e2e`    | Run Playwright End-to-End browser tests                            |
+| `npm run build`       | Production build to `dist/bookstack/browser`                       |
 
-1. Clonar el repositorio:
-   ```bash
-   git clone [https://github.com/aitorgallegocr21/bookstack.git](https://github.com/aitorgallegocr21/bookstack.git)
-   cd bookstack
-2. Instalar las dependencias del proyecto:
-   ```bash
-   npm install
-3. Iniciar el servidor de desarrollo local:
-    ```bash
-    npm start
-- Abre tu navegador en http://localhost:4200/.
+---
 
-4. Compilar para producción (validación estricta de tipado y optimización):
-    ```bash
-    npm run build
+## Branching & Documentation Workflow
 
-## Autor
-Desarrollado y diseñado por Aitor Gallego-Casilda Romero.
-- Github: https://www.google.com/search?q=https://github.com/aitorgallegocr21
-- Repositorio: https://www.google.com/search?q=https://github.com/aitorgallegocr21/bookstack
+- **`main`:** Production-ready branch deployed automatically to GitHub Pages. Updated strictly via verified GitHub Pull Requests from `develop`.
+- **`develop`:** Primary integration branch for daily feature, fix, and refactoring work.
+- **Engineering Docs:** See [`AGENTS.md`](AGENTS.md), [`CONTEXT.md`](CONTEXT.md), [`docs/TASKS.md`](docs/TASKS.md), and [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 
-## Licencia
-Distribuido bajo la Licencia MIT. Código abierto para uso personal, modificación y distribución manteniendo la atribución original del autor.
+---
+
+## License
+
+Licensed under the [MIT License](LICENSE).

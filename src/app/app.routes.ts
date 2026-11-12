@@ -4,30 +4,32 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./features/dashboard/pages/dashboard-page/dashboard-page').then((m) => m.DashboardPage)
+      import('./features/dashboard/pages/dashboard-page/dashboard-page').then(
+        (m) => m.DashboardPage,
+      ),
   },
   {
     path: 'books',
     loadComponent: () =>
-      import('./features/books/pages/books-page/books-page').then((m) => m.BooksPage)
+      import('./features/books/pages/books-page/books-page').then((m) => m.BooksPage),
   },
   {
     path: 'stats',
     loadComponent: () =>
-      import('./features/analytics/pages/stats-page/stats-page').then((m) => m.StatsPage)
+      import('./features/analytics/pages/stats-page/stats-page').then((m) => m.StatsPage),
   },
   {
     path: 'settings',
     loadComponent: () =>
-      import('./features/settings/pages/settings-page/settings-page').then((m) => m.SettingsPage)
+      import('./features/settings/pages/settings-page/settings-page').then((m) => m.SettingsPage),
   },
   {
     path: 'about',
     loadComponent: () =>
-      import('./features/about/pages/about-page/about-page').then((m) => m.AboutPage)
+      import('./features/about/pages/about-page/about-page').then((m) => m.AboutPage),
   },
   {
     path: '**',
-    redirectTo: ''
-  }
+    redirectTo: '',
+  },
 ];

@@ -6,6 +6,21 @@
     <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">{{ i18n.t().books.subtitle }}</p>
   </header>
 
+  <!-- Catalog Toolbar -->
+  <app-catalog-toolbar
+    [criteria]="catalogFilterService.criteria()"
+    [viewMode]="catalogFilterService.viewMode()"
+    [sortOption]="catalogFilterService.sortOption()"
+    [statusCounts]="catalogFilterService.statusCounts()"
+    [totalBooks]="catalogFilterService.totalBooksCount()"
+    [filteredBooksCount]="catalogFilterService.filteredBooksCount()"
+    [availableFormats]="availableFormats()"
+    (criteriaChange)="catalogFilterService.setCriteria($event)"
+    (viewModeChange)="catalogFilterService.setViewMode($event)"
+    (sortChange)="catalogFilterService.setSortOption($event)"
+    (resetFilters)="catalogFilterService.resetFilters()"
+  />
+
   <!-- Book List -->
   <section
     class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"

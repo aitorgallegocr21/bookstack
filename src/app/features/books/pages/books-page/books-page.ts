@@ -10,6 +10,7 @@ import {
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
 import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
+import { CatalogToolbarComponent } from '../../components/catalog-toolbar/catalog-toolbar.component';
 import { ReadingLogEditorComponent } from '../../components/reading-log-editor/reading-log-editor';
 import {
   BOOK_RATING_MAX,
@@ -20,8 +21,9 @@ import {
   ReadingLog,
 } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
+import { CatalogFilterService } from '../../services/catalog-filter.service';
 import { ReadingLogService } from '../../services/reading-log.service';
-import { translateBookFormat } from '../../utils/book-form.utils';
+import { normalizeBookFormat, translateBookFormat } from '../../utils/book-form.utils';
 
 @Component({
   selector: 'app-books-page',
@@ -32,6 +34,7 @@ import { translateBookFormat } from '../../utils/book-form.utils';
     BookEditModalComponent,
     BookDetailModalComponent,
     ReadingLogEditorComponent,
+    CatalogToolbarComponent,
   ],
   templateUrl: './books-page.html',
   styleUrl: './books-page.css',
@@ -40,6 +43,7 @@ import { translateBookFormat } from '../../utils/book-form.utils';
 export class BooksPage {
   private readonly booksService = inject(BooksService);
   private readonly readingLogService = inject(ReadingLogService);
+  protected readonly catalogFilterService = inject(CatalogFilterService);
   protected readonly i18n = inject(I18nService);
 
   protected readonly BOOK_STATUS_CONFIG = BOOK_STATUS_CONFIG;
@@ -48,8 +52,18 @@ export class BooksPage {
   protected readonly Edit2 = LucideEdit2;
   protected readonly Trash2 = LucideTrash2;
 
-  protected readonly books = this.booksService.books;
+  protected readonly books = this.catalogFilterService.filteredBooks;
   protected readonly readingLogs = this.readingLogService.readingLogs;
+
+  protected readonly availableFormats = computed(() => {
+    const formatsSet = new Set<string>(['Físico', 'Ebook', 'Audiolibro']);
+    for (const book of this.booksService.books()) {
+      if (book.format) {
+        formatsSet.add(normalizeBookFormat(book.format));
+      }
+    }
+    return Array.from(formatsSet);
+  });
 
   protected readonly selectedBookForDetailId = signal<string | null>(null);
   protected readonly selectedBookForEditId = signal<string | null>(null);

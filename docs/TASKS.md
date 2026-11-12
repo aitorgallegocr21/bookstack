@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- [ ] **[Phase 07: Catalog Filtering, Search & View Density](tasks/phase-07-catalog-filtering-search/index.md)** — _Next Up_ (Multi-criteria filtering by status/format/rating, live search, sorting, and compact/comfortable card density in `/books`).
+- [ ] **[Phase 07: Catalog Filtering, Search & View Density](tasks/phase-07-catalog-filtering-search/index.md)** — _Active Sprint_ (Three switchable view modes [Bookshelf Grid, Detailed Cards, Compact List], live omni-search, status chips with real-time counters, 7 sort options, collapsible advanced filters for format/rating, and zero-match empty state in `/books`).
 
 ---
 

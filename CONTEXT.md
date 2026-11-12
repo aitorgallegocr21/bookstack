@@ -89,5 +89,22 @@ tests/
 └── e2e/                                       # Playwright End-to-End browser specs
     ├── overflow.spec.ts                       # Horizontal overflow & single-<main> check (375..1280px)
     ├── navigation-and-theme.spec.ts           # Sidebar, mobile bottom nav & dark theme persistence
-    └── books-flow.spec.ts                     # End-to-end Book & ReadingLog CRUD lifecycle
+    ├── books-flow.spec.ts                     # End-to-end Book & ReadingLog CRUD lifecycle
+    └── dashboard-flow.spec.ts                 # Full dashboard interactive flow & streak/goal lifecycle
 ```
+
+---
+
+## 5. Phase Documentation & Major Changes Protocol (Interactive Discovery)
+
+Whenever the user requests documenting a new phase or planning major features:
+
+1. **Interactive Interview (`/grill-me` in Spanish):**
+   - Conduct a step-by-step interview walking through the decision tree.
+   - Formulate questions **one at a time** using the `ask_question` tool.
+   - Maintain creative, high-standard UX/UI and architecture focus aligned with BookStack's vision (Minimalist, Local-First, Angular 22 Signals, Tailwind v4, Mobile-first $\ge 350\text{px}$, WCAG 2.1 AA).
+   - Provide concrete, opinionated recommendations prefixed with `(Recommended)` for every choice.
+2. **Phase Artifacts Synthesis:**
+   - Translate resolved decisions into the phase directory `docs/tasks/phase-XX-<name>/`.
+   - Structure atomic task files (`task-X.1-*.md`, etc.) with technical objectives and verification criteria.
+   - Synchronize `docs/TASKS.md`, `README.md`, `README.es.md`, and this `CONTEXT.md`.

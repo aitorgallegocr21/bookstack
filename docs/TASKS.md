@@ -1,6 +1,6 @@
 # Tasks Backlog & Roadmap
 
-> **Agent Protocol:** This document is the single high-level phase registry and active sprint index. For atomic task specifications, inspect the corresponding phase directory inside `docs/tasks/`.
+> **Agent Protocol:** This document is the single high-level phase registry and active sprint index. For milestone definitions migrated from the original product roadmap, see [docs/ROADMAP.md](ROADMAP.md). For atomic task specifications, inspect the corresponding phase directory inside `docs/tasks/`.
 >
 > **Execution Loop:** `[Targeted Spec] ➔ [Minimal Code Edit + Tests] ➔ [Validation: npm run verify] ➔ [Update Docs/Tasks] ➔ [Semantic Git Commit]`
 

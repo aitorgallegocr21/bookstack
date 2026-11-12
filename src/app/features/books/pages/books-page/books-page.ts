@@ -5,11 +5,16 @@ import {
   LucideEdit2,
   LucideEye,
   LucidePlus,
+  LucideRotateCcw,
+  LucideSearch,
   LucideTrash2,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { BookCompactRowComponent } from '../../components/book-compact-row/book-compact-row.component';
 import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
+import { BookDetailedCardComponent } from '../../components/book-detailed-card/book-detailed-card.component';
 import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
+import { BookGridCardComponent } from '../../components/book-grid-card/book-grid-card.component';
 import { CatalogToolbarComponent } from '../../components/catalog-toolbar/catalog-toolbar.component';
 import { ReadingLogEditorComponent } from '../../components/reading-log-editor/reading-log-editor';
 import {
@@ -35,6 +40,9 @@ import { normalizeBookFormat, translateBookFormat } from '../../utils/book-form.
     BookDetailModalComponent,
     ReadingLogEditorComponent,
     CatalogToolbarComponent,
+    BookGridCardComponent,
+    BookDetailedCardComponent,
+    BookCompactRowComponent,
   ],
   templateUrl: './books-page.html',
   styleUrl: './books-page.css',
@@ -51,8 +59,11 @@ export class BooksPage {
   protected readonly Eye = LucideEye;
   protected readonly Edit2 = LucideEdit2;
   protected readonly Trash2 = LucideTrash2;
+  protected readonly Search = LucideSearch;
+  protected readonly RotateCcw = LucideRotateCcw;
 
   protected readonly books = this.catalogFilterService.filteredBooks;
+  protected readonly allBooks = this.booksService.books;
   protected readonly readingLogs = this.readingLogService.readingLogs;
 
   protected readonly availableFormats = computed(() => {
@@ -161,6 +172,13 @@ export class BooksPage {
     this.readingLogBookId.set(book.id);
     this.editingReadingLog.set(existingLog);
     this.showReadingLogEditor.set(true);
+  }
+
+  protected openReadingLogEditorForId(bookId: string): void {
+    const found = this.allBooks().find((b) => b.id === bookId);
+    if (found) {
+      this.openReadingLogEditor(found);
+    }
   }
 
   protected closeReadingLogEditor(): void {

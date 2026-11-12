@@ -1,44 +1,72 @@
-<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t" role="navigation" aria-label="Navegación inferior">
-  <div class="max-w-4xl mx-auto px-2 py-2 flex justify-between items-center">
+<nav
+  class="fixed right-0 bottom-0 left-0 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden dark:border-slate-800 dark:bg-slate-900"
+  role="navigation"
+  [attr.aria-label]="i18n.t().nav.bottomNavAria"
+>
+  <div class="mx-auto flex max-w-4xl items-center justify-between px-2 py-2">
     <a
       routerLink="/"
-      routerLinkActive="text-sky-600"
+      routerLinkActive="text-sky-600 dark:text-sky-400"
       [routerLinkActiveOptions]="{ exact: true }"
-      class="flex-1 text-center py-3 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
-      aria-label="Inicio"
-      title="Inicio"
+      class="flex-1 py-3 text-center focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      [attr.aria-label]="i18n.t().nav.home"
+      [title]="i18n.t().nav.home"
     >
       <div class="flex flex-col items-center gap-1">
         <svg [lucideIcon]="Home" size="20" stroke-width="2"></svg>
-        <span class="text-xs">Inicio</span>
+        <span class="text-xs">{{ i18n.t().nav.home }}</span>
       </div>
     </a>
 
-    <a routerLink="/books" routerLinkActive="text-sky-600" class="flex-1 text-center py-3 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none" aria-label="Libros" title="Libros">
+    <a
+      routerLink="/books"
+      routerLinkActive="text-sky-600 dark:text-sky-400"
+      class="flex-1 py-3 text-center focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      [attr.aria-label]="i18n.t().nav.books"
+      [title]="i18n.t().nav.books"
+    >
       <div class="flex flex-col items-center gap-1">
         <svg [lucideIcon]="Book" size="20" stroke-width="2"></svg>
-        <span class="text-xs">Libros</span>
+        <span class="text-xs">{{ i18n.t().nav.books }}</span>
       </div>
     </a>
 
-    <a routerLink="/stats" routerLinkActive="text-sky-600" class="flex-1 text-center py-3 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none" aria-label="Estadísticas" title="Estadísticas">
+    <a
+      routerLink="/stats"
+      routerLinkActive="text-sky-600 dark:text-sky-400"
+      class="flex-1 py-3 text-center focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      [attr.aria-label]="i18n.t().nav.stats"
+      [title]="i18n.t().nav.stats"
+    >
       <div class="flex flex-col items-center gap-1">
         <svg [lucideIcon]="Stats" size="20" stroke-width="2"></svg>
-        <span class="text-xs">Stats</span>
+        <span class="text-xs">{{ i18n.t().nav.stats }}</span>
       </div>
     </a>
 
-    <a routerLink="/settings" routerLinkActive="text-sky-600" class="flex-1 text-center py-3 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none" aria-label="Ajustes" title="Ajustes">
+    <a
+      routerLink="/settings"
+      routerLinkActive="text-sky-600 dark:text-sky-400"
+      class="flex-1 py-3 text-center focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      [attr.aria-label]="i18n.t().nav.settings"
+      [title]="i18n.t().nav.settings"
+    >
       <div class="flex flex-col items-center gap-1">
         <svg [lucideIcon]="Settings" size="20" stroke-width="2"></svg>
-        <span class="text-xs">Ajustes</span>
+        <span class="text-xs">{{ i18n.t().nav.settings }}</span>
       </div>
     </a>
 
-    <a routerLink="/about" routerLinkActive="text-sky-600" class="hidden min-[350px]:flex flex-1 text-center py-3 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none" aria-label="Acerca de" title="Acerca de">
-      <div class="flex flex-col items-center gap-1">
+    <a
+      routerLink="/about"
+      routerLinkActive="text-sky-600 dark:text-sky-400"
+      class="hidden flex-1 py-3 text-center focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-[350px]:flex"
+      [attr.aria-label]="i18n.t().nav.about"
+      [title]="i18n.t().nav.about"
+    >
+      <div class="flex w-full flex-col items-center gap-1">
         <svg [lucideIcon]="About" size="20" stroke-width="2"></svg>
-        <span class="text-xs">Acerca de</span>
+        <span class="text-xs">{{ i18n.t().nav.about }}</span>
       </div>
     </a>
   </div>

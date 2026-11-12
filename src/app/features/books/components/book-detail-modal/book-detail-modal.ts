@@ -1,20 +1,21 @@
 import {
-  Component,
   ChangeDetectionStrategy,
-  DOCUMENT,
+  Component,
+  OnDestroy,
+  computed,
   inject,
   input,
-  OnDestroy,
   output,
   signal,
-  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { I18nService } from '../../../../core/i18n/i18n.service';
+import { UiStateService } from '../../../../core/services/ui-state.service';
+import { formatLocalizedDate } from '../../../../core/utils/date-formatter';
+import { BOOK_RATING_MAX, Book, BookStatus, ReadingLog } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
 import { ReadingLogService } from '../../services/reading-log.service';
-import { Book, BookStatus, ReadingLog, BOOK_RATING_MAX } from '../../models/book.model';
 import { ReadingLogEditorComponent } from '../reading-log-editor/reading-log-editor';
-import { formatSpanishDate } from '../../../../core/utils/date-formatter';
 
 @Component({
   selector: 'app-book-detail-modal',
@@ -24,11 +25,12 @@ import { formatSpanishDate } from '../../../../core/utils/date-formatter';
   styleUrl: './book-detail-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '(document:keydown.escape)': 'handleEscape()'
-  }
+    '(document:keydown.escape)': 'handleEscape()',
+  },
 })
 export class BookDetailModalComponent implements OnDestroy {
-  private readonly document = inject(DOCUMENT);
+  private readonly uiState = inject(UiStateService);
+  private readonly i18n = inject(I18nService);
   private readonly booksService = inject(BooksService);
   private readonly readingLogService = inject(ReadingLogService);
 
@@ -42,11 +44,11 @@ export class BookDetailModalComponent implements OnDestroy {
   protected readonly showAllLogs = signal<boolean>(false);
 
   constructor() {
-    this.document.body?.classList.add('overflow-hidden');
+    this.uiState.acquireScrollLock();
   }
 
   ngOnDestroy(): void {
-    this.document.body?.classList.remove('overflow-hidden');
+    this.uiState.releaseScrollLock();
   }
 
   protected readonly book = computed<Book | undefined>(() => {
@@ -97,7 +99,7 @@ export class BookDetailModalComponent implements OnDestroy {
     try {
       await this.readingLogService.remove(logId);
     } catch (error) {
-      console.error('Error al eliminar la sesión de lectura:', error);
+      console.error('[BookDetailModal] Failed to delete reading session:', error);
     }
   }
 
@@ -135,12 +137,7 @@ export class BookDetailModalComponent implements OnDestroy {
   }
 
   protected getStatusLabel(status: BookStatus): string {
-    switch (status) {
-      case 'reading': return 'Leyendo';
-      case 'completed': return 'Completado';
-      case 'abandoned': return 'Abandonado';
-      case 'pending': return 'Pendiente';
-    }
+    return this.i18n.t().status[status];
   }
 
   protected getSeriesLabel(book?: Book): string {
@@ -154,13 +151,13 @@ export class BookDetailModalComponent implements OnDestroy {
 
   protected getRatingBadge(rating?: number): string {
     if (rating === undefined || rating === null || Number.isNaN(rating)) {
-      return 'Sin valoración';
+      return this.i18n.t().books.noRating;
     }
 
     return `★ ${Math.min(BOOK_RATING_MAX, Math.max(0, rating)).toFixed(1).replace(/\.0$/, '')}/10`;
   }
 
   protected formatDate(date?: string): string {
-    return formatSpanishDate(date);
+    return formatLocalizedDate(date, false, this.i18n.intlLocale());
   }
 }

@@ -1,15 +1,26 @@
 import { Injectable } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class StorageAdapterService {
   private readonly dbName = 'bookstackDB';
   private readonly dbVersion = 1;
   private dbPromise: Promise<IDBDatabase> | null = null;
 
+  private isIndexedDbAvailable(): boolean {
+    return typeof indexedDB !== 'undefined';
+  }
+
   private getDB(): Promise<IDBDatabase> {
-    this.dbPromise ??= this.initDB();
+    if (!this.isIndexedDbAvailable()) {
+      return Promise.reject(new Error('IndexedDB is not available in this environment.'));
+    }
+
+    this.dbPromise ??= this.initDB().catch((error: unknown) => {
+      this.dbPromise = null;
+      throw error;
+    });
     return this.dbPromise;
   }
 
@@ -19,7 +30,7 @@ export class StorageAdapterService {
 
       request.onerror = () => {
         const error = request.error || new Error('Failed to open IndexedDB');
-        console.error('Failed to open IndexedDB:', error);
+        console.error('[StorageAdapter] Failed to open IndexedDB:', error);
         reject(error);
       };
 
@@ -27,7 +38,7 @@ export class StorageAdapterService {
         const db = request.result;
 
         db.onerror = (event) => {
-          console.error('Database error:', (event.target as IDBRequest).error);
+          console.error('[StorageAdapter] Database error:', (event.target as IDBRequest).error);
         };
 
         resolve(db);
@@ -48,13 +59,13 @@ export class StorageAdapterService {
   async get<T>(storeName: string, key: string): Promise<T | null> {
     try {
       const db = await this.getDB();
-      return new Promise((resolve) => {
+      return await new Promise<T | null>((resolve) => {
         const transaction = db.transaction(storeName, 'readonly');
         const store = transaction.objectStore(storeName);
         const request = store.get(key);
 
         request.onsuccess = () => {
-          resolve(request.result || null);
+          resolve((request.result as T | undefined) ?? null);
         };
 
         request.onerror = () => {
@@ -69,13 +80,13 @@ export class StorageAdapterService {
   async getAll<T>(storeName: string): Promise<T[]> {
     try {
       const db = await this.getDB();
-      return new Promise((resolve) => {
+      return await new Promise<T[]>((resolve) => {
         const transaction = db.transaction(storeName, 'readonly');
         const store = transaction.objectStore(storeName);
         const request = store.getAll();
 
         request.onsuccess = () => {
-          resolve(request.result || []);
+          resolve((request.result as T[] | undefined) ?? []);
         };
 
         request.onerror = () => {
@@ -87,33 +98,34 @@ export class StorageAdapterService {
     }
   }
 
-  async set<T extends { id: string }>(storeName: string, value: T): Promise<void> {
+  async set<T extends { id: string }>(storeName: string, value: T): Promise<boolean> {
     try {
       const db = await this.getDB();
-      await new Promise<void>((resolve, reject) => {
+      return await new Promise<boolean>((resolve) => {
         const transaction = db.transaction(storeName, 'readwrite');
         const store = transaction.objectStore(storeName);
         const request = store.put(value);
 
         request.onsuccess = () => {
-          this.setToLocalStorage(storeName, value);
-          resolve();
+          resolve(true);
         };
 
         request.onerror = () => {
-          this.setToLocalStorage(storeName, value);
-          reject(request.error || new Error(`Failed to set item in store: ${storeName}`));
+          console.warn(
+            `[StorageAdapter] IndexedDB write failed for "${storeName}"; falling back to localStorage.`,
+          );
+          resolve(this.setToLocalStorage(storeName, value));
         };
       });
     } catch {
-      this.setToLocalStorage(storeName, value);
+      return this.setToLocalStorage(storeName, value);
     }
   }
 
   async remove(storeName: string, key: string): Promise<void> {
     try {
       const db = await this.getDB();
-      await new Promise<void>((resolve, reject) => {
+      await new Promise<void>((resolve) => {
         const transaction = db.transaction(storeName, 'readwrite');
         const store = transaction.objectStore(storeName);
         const request = store.delete(key);
@@ -125,7 +137,7 @@ export class StorageAdapterService {
 
         request.onerror = () => {
           this.removeFromLocalStorage(storeName, key);
-          reject(request.error || new Error(`Failed to remove item with key ${key} from store: ${storeName}`));
+          resolve();
         };
       });
     } catch {
@@ -133,14 +145,14 @@ export class StorageAdapterService {
     }
   }
 
-  private getFromLocalStorage<T>(storeName: string, key: string): T | null {
-    const data = localStorage.getItem(`${storeName}_${key}`);
-    return data ? (JSON.parse(data) as T) : null;
-  }
-
-  private getAllFromLocalStorage<T>(storeName: string): T[] {
-    const keys = Object.keys(localStorage).filter(k => k.startsWith(`${storeName}_`));
-    return keys.map(k => JSON.parse(localStorage.getItem(k) || '{}') as T);
+  getItem<T>(key: string): T | null {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? (JSON.parse(raw) as T) : null;
+    } catch (error) {
+      console.warn(`[StorageAdapter] Failed to read key "${key}" from localStorage:`, error);
+      return null;
+    }
   }
 
   setItem<T>(key: string, value: T): boolean {
@@ -148,21 +160,50 @@ export class StorageAdapterService {
       localStorage.setItem(key, JSON.stringify(value));
       return true;
     } catch (error: unknown) {
-      if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.code === 22)) {
-        console.error(`[StorageAdapter] Límite de almacenamiento excedido al guardar "${key}".`, error);
+      if (
+        error instanceof DOMException &&
+        (error.name === 'QuotaExceededError' || error.code === 22)
+      ) {
+        console.error(`[StorageAdapter] Storage quota exceeded while persisting "${key}".`, error);
       } else {
-        console.error(`[StorageAdapter] Error inesperado al persistir "${key}":`, error);
+        console.error(`[StorageAdapter] Unexpected error while persisting "${key}":`, error);
       }
       return false;
     }
   }
 
-  private setToLocalStorage<T extends { id: string }>(storeName: string, value: T): void {
-    const key = `${storeName}_${value.id}`;
-    this.setItem(key, value);
+  private getFromLocalStorage<T>(storeName: string, key: string): T | null {
+    return this.getItem<T>(`${storeName}_${key}`);
+  }
+
+  private getAllFromLocalStorage<T>(storeName: string): T[] {
+    try {
+      const prefix = `${storeName}_`;
+      const keys = Object.keys(localStorage).filter((k) => k.startsWith(prefix));
+      const items: T[] = [];
+
+      for (const k of keys) {
+        const parsed = this.getItem<T>(k);
+        if (parsed !== null) {
+          items.push(parsed);
+        }
+      }
+
+      return items;
+    } catch {
+      return [];
+    }
+  }
+
+  private setToLocalStorage<T extends { id: string }>(storeName: string, value: T): boolean {
+    return this.setItem(`${storeName}_${value.id}`, value);
   }
 
   private removeFromLocalStorage(storeName: string, key: string): void {
-    localStorage.removeItem(`${storeName}_${key}`);
+    try {
+      localStorage.removeItem(`${storeName}_${key}`);
+    } catch {
+      // Ignore storage removal errors in restricted environments
+    }
   }
 }

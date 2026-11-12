@@ -9,10 +9,16 @@ import { UiStateService } from './core/services/ui-state.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, HeaderComponent, SidebarComponent, BottomNavComponent, BookCreateModalComponent],
+  imports: [
+    RouterOutlet,
+    HeaderComponent,
+    SidebarComponent,
+    BottomNavComponent,
+    BookCreateModalComponent,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
   protected readonly booksService = inject(BooksService);

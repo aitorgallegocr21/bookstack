@@ -44,7 +44,10 @@
   border-radius: 0.875rem;
   padding: 0.7rem 0.875rem;
   font-size: 0.875rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
 :host-context(.dark) .field-input,
@@ -145,7 +148,10 @@
   border-radius: 1rem;
   padding: 1rem;
   text-align: center;
-  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .cover-dropzone:hover,
@@ -186,7 +192,9 @@
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
+  transition:
+    grid-template-rows 0.25s ease,
+    opacity 0.2s ease;
 }
 
 .series-fields--open {
@@ -217,13 +225,21 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes scaleUp {

@@ -1,10 +1,12 @@
-name: CI & Quality Gate
+name: CI Quality Gate (PR Check)
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:

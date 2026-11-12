@@ -22,6 +22,20 @@ export const SeriesInfoSchema = z.object({
   sequelBookId: z.string().optional(),
 });
 
+export function isSafeCoverUrl(url: string): boolean {
+  const trimmed = url.trim();
+  if (!trimmed) {
+    return true;
+  }
+
+  return (
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('data:image/') ||
+    trimmed.startsWith('blob:')
+  );
+}
+
 export const BookSchema = z.object({
   id: z.string().min(1),
   isbn: z.string().optional(),
@@ -40,7 +54,10 @@ export const BookSchema = z.object({
   format: z.union([BookFormatSchema, z.string()]).optional(),
   series: BookSeriesSchema.optional(),
   seriesInfo: SeriesInfoSchema.optional(),
-  coverUrl: z.string().optional(),
+  coverUrl: z
+    .string()
+    .refine(isSafeCoverUrl, { message: 'Unsupported or unsafe cover URL scheme' })
+    .optional(),
   rating: z.number().min(0).max(10).optional(),
   genre: z.array(z.string()).optional(),
   startDate: z.string().optional(),

@@ -43,7 +43,7 @@
   }
 }
 
-/* Ajustes de ergonomía para viewports tablet (640px - 1024px) - fase 4 */
+/* Tablet viewport ergonomics (640px - 1024px) */
 @media (min-width: 640px) and (max-width: 1024px) {
   .book-card-item {
     gap: 1rem;

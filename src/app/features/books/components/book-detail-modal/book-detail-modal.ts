@@ -93,7 +93,7 @@ export class BookDetailModalComponent implements OnDestroy {
   }
 
   protected async deleteLog(logId: string): Promise<void> {
-    const confirmed = window.confirm('¿Deseas eliminar este registro de lectura?');
+    const confirmed = window.confirm(this.i18n.t().books.confirmDeleteLog);
     if (!confirmed) return;
 
     try {

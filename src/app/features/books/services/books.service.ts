@@ -82,7 +82,7 @@ export class BooksService {
 
     await this.storage.set(this.storeName, updatedBook);
     this.books.update((current) =>
-      current.map((currentBook) => (currentBook.id === bookId ? updatedBook : currentBook)),
+      current.map((currentBook) => (currentBook.id === bookId ? updatedBook : currentBook))
     );
   }
 

@@ -22,7 +22,7 @@ describe('ImageOptimizerService', () => {
   it('should reject unsupported image MIME types', async () => {
     const gifFile = new File(['gif-bytes'], 'cover.gif', { type: 'image/gif' });
     await expect(service.optimize(gifFile)).rejects.toThrow(
-      'Unsupported image format. Use JPEG, PNG, WebP, or AVIF.',
+      'Unsupported image format. Use JPEG, PNG, WebP, or AVIF.'
     );
   });
 
@@ -31,7 +31,7 @@ describe('ImageOptimizerService', () => {
     Object.defineProperty(hugeFile, 'size', { value: 11 * 1024 * 1024 });
 
     await expect(service.optimize(hugeFile)).rejects.toThrow(
-      'Image exceeds the maximum allowed size of 10MB.',
+      'Image exceeds the maximum allowed size of 10MB.'
     );
   });
 

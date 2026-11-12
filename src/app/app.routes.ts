@@ -5,7 +5,7 @@ export const routes: Routes = [
     path: '',
     loadComponent: () =>
       import('./features/dashboard/pages/dashboard-page/dashboard-page').then(
-        (m) => m.DashboardPage,
+        (m) => m.DashboardPage
       ),
   },
   {

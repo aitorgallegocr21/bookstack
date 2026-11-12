@@ -15,15 +15,16 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UiStateService } from '../../../../core/services/ui-state.service';
-import {
-  BOOK_RATING_MAX,
-  BOOK_RATING_MIN,
-  Book,
-  BookFormat,
-  BookStatus,
-} from '../../models/book.model';
+import { BOOK_RATING_MAX, BOOK_RATING_MIN, Book, BookStatus } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
 import { ImageOptimizerService } from '../../services/image-optimizer.service';
+import {
+  BOOK_STATUS_OPTIONS,
+  buildBookSeriesPayload,
+  getCompletedAutofillValues,
+  normalizeBookFormat,
+  normalizeBookRating,
+} from '../../utils/book-form.utils';
 
 @Component({
   selector: 'app-book-edit-modal',
@@ -65,20 +66,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
   });
 
   // Status options
-  protected readonly statusOptions: { value: BookStatus; label: string }[] = [
-    { value: 'pending', label: 'Pendiente' },
-    { value: 'reading', label: 'Leyendo' },
-    { value: 'completed', label: 'Completado' },
-    { value: 'abandoned', label: 'Abandonado' },
-  ];
-
-  private normalizeFormatValue(format?: BookFormat | string | null): string {
-    if (typeof format === 'string') {
-      return format.trim() || 'Físico';
-    }
-
-    return format?.name?.trim() || 'Físico';
-  }
+  protected readonly statusOptions = BOOK_STATUS_OPTIONS;
 
   // Typed reactive form
   protected readonly editForm = this.fb.group({
@@ -111,7 +99,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       const currentBook = this.book();
       if (currentBook) {
-        const completedValues = this.getCompletedAutofillValues({
+        const completedValues = getCompletedAutofillValues({
           status: currentBook.status,
           totalPages: currentBook.totalPages,
           currentPage: currentBook.currentPage,
@@ -136,7 +124,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
           currentChapter: completedValues.currentChapter ?? currentBook.currentChapter ?? 0,
           totalCharacters: currentBook.totalCharacters ?? 0,
           status: currentBook.status,
-          format: this.normalizeFormatValue(currentBook.format),
+          format: normalizeBookFormat(currentBook.format),
           coverUrl: currentBook.coverUrl || '',
           startDate: currentBook.startDate || '',
           endDate: completedValues.endDate ?? (currentBook.endDate || ''),
@@ -160,7 +148,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
     const currentPage = Number(this.editForm.get('currentPage')?.value) || 0;
     const totalChapters = Number(this.editForm.get('totalChapters')?.value) || 0;
     const currentChapter = Number(this.editForm.get('currentChapter')?.value) || 0;
-    const nextValues = this.getCompletedAutofillValues({
+    const nextValues = getCompletedAutofillValues({
       status,
       totalPages,
       currentPage,
@@ -243,25 +231,6 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
     this.editForm.patchValue({ coverUrl: '' });
   }
 
-  private getCompletedAutofillValues(values: {
-    status: BookStatus | null;
-    totalPages: number;
-    currentPage: number;
-    totalChapters: number;
-    currentChapter: number;
-    endDate: string | null;
-  }): Partial<{ currentPage: number; currentChapter: number; endDate: string }> {
-    if (values.status !== 'completed') {
-      return {};
-    }
-
-    return {
-      currentPage: Math.max(values.currentPage, values.totalPages),
-      currentChapter: Math.max(values.currentChapter, values.totalChapters),
-      endDate: values.endDate || this.getTodayIso(),
-    };
-  }
-
   protected async save(): Promise<void> {
     const currentBook = this.book();
     if (this.editForm.invalid || !currentBook || this.isSaving()) return;
@@ -274,33 +243,26 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
     const endDate = this.editForm.get('endDate')?.value || '';
 
     this.editForm.patchValue(
-      this.getCompletedAutofillValues({
+      getCompletedAutofillValues({
         status,
         totalPages,
         currentPage,
         totalChapters,
         currentChapter,
         endDate,
-      }),
+      })
     );
 
     this.isSaving.set(true);
     const val = this.editForm.getRawValue();
 
-    const hasSeries = Boolean(val.seriesEnabled) && Boolean(val.seriesName?.trim());
-    const series = hasSeries
-      ? {
-          id: currentBook.series?.id || crypto.randomUUID(),
-          name: val.seriesName!.trim(),
-          volumeNumber: val.seriesVolumeNumber ? Number(val.seriesVolumeNumber) : undefined,
-        }
-      : undefined;
-
-    const rawRating = val.rating;
-    const normalizedRating =
-      typeof rawRating === 'number' && Number.isFinite(rawRating)
-        ? Math.min(BOOK_RATING_MAX, Math.max(BOOK_RATING_MIN, rawRating))
-        : undefined;
+    const series = buildBookSeriesPayload({
+      enabled: val.seriesEnabled,
+      name: val.seriesName,
+      volumeNumber: val.seriesVolumeNumber,
+      existingSeriesId: currentBook.series?.id,
+    });
+    const normalizedRating = normalizeBookRating(val.rating);
 
     const updatedBook: Book = {
       ...currentBook,
@@ -315,7 +277,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
       totalChapters: val.totalChapters ? Number(val.totalChapters) : undefined,
       currentChapter: val.currentChapter ? Number(val.currentChapter) : undefined,
       status: val.status as BookStatus,
-      format: this.normalizeFormatValue(val.format),
+      format: normalizeBookFormat(val.format),
       series,
       coverUrl: val.coverUrl?.trim() || this.coverPreview() || undefined,
       rating: normalizedRating,
@@ -353,9 +315,5 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
 
   protected handleEscape(): void {
     this.cancel();
-  }
-
-  private getTodayIso(): string {
-    return new Date().toISOString().slice(0, 10);
   }
 }

@@ -50,7 +50,7 @@ describe('SidebarComponent', () => {
     expect(aside?.style.width).toBe('240px');
 
     const collapseBtn = (fixture.nativeElement as HTMLElement).querySelector(
-      'button[aria-label="Contraer barra lateral"]',
+      'button[aria-label="Contraer barra lateral"]'
     ) as HTMLButtonElement | null;
     expect(collapseBtn).not.toBeNull();
 
@@ -78,14 +78,14 @@ describe('SidebarComponent', () => {
     expect(booksLink?.classList.contains('font-semibold')).toBe(true);
 
     const createBtn = root.querySelector(
-      'button[aria-label="Crear nuevo libro"]',
+      'button[aria-label="Crear nuevo libro"]'
     ) as HTMLButtonElement | null;
     createBtn?.click();
     expect(booksService.isCreateModalOpen()).toBe(true);
 
     const initialDark = themeService.isDark();
     const themeBtn = root.querySelector(
-      'aside > div:last-child button:last-child',
+      'aside > div:last-child button:last-child'
     ) as HTMLButtonElement;
     themeBtn.click();
     expect(themeService.isDark()).toBe(!initialDark);

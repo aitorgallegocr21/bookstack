@@ -95,7 +95,7 @@ describe('BookDetailModalComponent', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     const editBtn = Array.from(root.querySelectorAll('button')).find((btn) =>
-      btn.textContent?.includes('Editar'),
+      btn.textContent?.includes('Editar')
     );
     expect(editBtn).toBeDefined();
     editBtn?.click();

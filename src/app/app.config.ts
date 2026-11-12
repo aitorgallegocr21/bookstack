@@ -8,7 +8,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(
       routes,
-      withComponentInputBinding(), // Automatically binds route parameters to component signal inputs
+      withComponentInputBinding() // Automatically binds route parameters to component signal inputs
     ),
   ],
 };

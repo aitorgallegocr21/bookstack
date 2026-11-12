@@ -45,7 +45,8 @@ Defined centrally in `src/app/features/books/models/book.model.ts`:
 
 ## 3. Modals, Focus & Accessibility (WCAG 2.1 AA)
 
-- **Scroll Lock:** Opening any modal adds `overflow-hidden` to `document.body` and removes it in `ngOnDestroy()`.
+- **Scroll Lock:** Opening any modal increments `UiStateService.acquireScrollLock()` (adding `overflow-hidden` to `document.body` while active locks > 0) and calls `releaseScrollLock()` in `ngOnDestroy()` so stacked modals never unlock prematurely.
+- **Shared Modal Styles:** Modal animations (`.modal-backdrop`, `.modal-panel`) and form controls (`.field-label`, `.field-input`, `.field-select`, `.cover-dropzone`) live centrally in `src/styles.css` under `@layer components`.
 - **Keyboard Closure:** Modals bind `(document:keydown.escape)` via `host` metadata and verify `event.target === event.currentTarget` for backdrop clicks.
 - **Programmatic Focus:** Focus the primary input on open via `viewChild()` + `queueMicrotask` (never use the HTML `autofocus` attribute).
 - **Focus Ring:** Interactive buttons and links enforce `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500`.

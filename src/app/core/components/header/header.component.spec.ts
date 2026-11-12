@@ -27,7 +27,7 @@ describe('HeaderComponent', () => {
     expect(header?.classList.contains('md:hidden')).toBe(true);
 
     const buttons = Array.from(
-      root.querySelectorAll('header button, header a[aria-label="GitHub"]'),
+      root.querySelectorAll('header button, header a[aria-label="GitHub"]')
     );
     expect(buttons.length).toBe(3);
     for (const control of buttons) {
@@ -49,7 +49,7 @@ describe('HeaderComponent', () => {
     expect(themeService.isDark()).toBe(!initialDark);
 
     const addButton = root.querySelector(
-      'button[aria-label="Crear nuevo libro"]',
+      'button[aria-label="Crear nuevo libro"]'
     ) as HTMLButtonElement;
     addButton.click();
     expect(booksService.isCreateModalOpen()).toBe(true);

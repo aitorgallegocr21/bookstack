@@ -14,6 +14,13 @@ import { UiStateService } from '../../../../core/services/ui-state.service';
 import { BOOK_RATING_MAX, BOOK_RATING_MIN, Book, BookStatus } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
 import { ImageOptimizerService } from '../../services/image-optimizer.service';
+import {
+  BOOK_STATUS_OPTIONS,
+  buildBookSeriesPayload,
+  getCompletedAutofillValues,
+  normalizeBookFormat,
+  normalizeBookRating,
+} from '../../utils/book-form.utils';
 
 @Component({
   selector: 'app-book-create-modal',
@@ -56,12 +63,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     this.uiState.releaseScrollLock();
   }
 
-  protected readonly statusOptions: { value: BookStatus; label: string }[] = [
-    { value: 'pending', label: 'Pendiente' },
-    { value: 'reading', label: 'Leyendo' },
-    { value: 'completed', label: 'Completado' },
-    { value: 'abandoned', label: 'Abandonado' },
-  ];
+  protected readonly statusOptions = BOOK_STATUS_OPTIONS;
 
   protected readonly createForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(1)]],
@@ -96,7 +98,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     const currentPage = Number(this.createForm.get('currentPage')?.value) || 0;
     const totalChapters = Number(this.createForm.get('totalChapters')?.value) || 0;
     const currentChapter = Number(this.createForm.get('currentChapter')?.value) || 0;
-    const nextValues = this.getCompletedAutofillValues({
+    const nextValues = getCompletedAutofillValues({
       status,
       totalPages,
       currentPage,
@@ -106,25 +108,6 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     });
 
     this.createForm.patchValue(nextValues);
-  }
-
-  private getCompletedAutofillValues(values: {
-    status: BookStatus | null;
-    totalPages: number;
-    currentPage: number;
-    totalChapters: number;
-    currentChapter: number;
-    endDate: string | null;
-  }): Partial<{ currentPage: number; currentChapter: number; endDate: string }> {
-    if (values.status !== 'completed') {
-      return {};
-    }
-
-    return {
-      currentPage: Math.max(values.currentPage, values.totalPages),
-      currentChapter: Math.max(values.currentChapter, values.totalChapters),
-      endDate: values.endDate || this.getTodayIso(),
-    };
   }
 
   protected onCoverModeChange(mode: 'url' | 'upload'): void {
@@ -206,34 +189,26 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     const endDate = this.createForm.get('endDate')?.value || '';
 
     this.createForm.patchValue(
-      this.getCompletedAutofillValues({
+      getCompletedAutofillValues({
         status,
         totalPages,
         currentPage,
         totalChapters,
         currentChapter,
         endDate,
-      }),
+      })
     );
 
     this.isSaving.set(true);
     const val = this.createForm.getRawValue();
     const now = new Date().toISOString();
 
-    const hasSeries = Boolean(val.seriesEnabled) && Boolean(val.seriesName?.trim());
-    const series = hasSeries
-      ? {
-          id: crypto.randomUUID(),
-          name: val.seriesName!.trim(),
-          volumeNumber: val.seriesVolumeNumber ? Number(val.seriesVolumeNumber) : undefined,
-        }
-      : undefined;
-
-    const rawRating = val.rating;
-    const normalizedRating =
-      typeof rawRating === 'number' && Number.isFinite(rawRating)
-        ? Math.min(BOOK_RATING_MAX, Math.max(BOOK_RATING_MIN, rawRating))
-        : undefined;
+    const series = buildBookSeriesPayload({
+      enabled: val.seriesEnabled,
+      name: val.seriesName,
+      volumeNumber: val.seriesVolumeNumber,
+    });
+    const normalizedRating = normalizeBookRating(val.rating);
 
     const newBook: Book = {
       id: crypto.randomUUID(),
@@ -248,7 +223,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
       totalChapters: val.totalChapters ? Number(val.totalChapters) : undefined,
       currentChapter: val.currentChapter ? Number(val.currentChapter) : undefined,
       status: val.status as BookStatus,
-      format: val.format?.trim() || 'Físico',
+      format: normalizeBookFormat(val.format),
       series,
       coverUrl: val.coverUrl?.trim() || this.coverPreview() || undefined,
       rating: normalizedRating,
@@ -284,9 +259,5 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     if (event.target === event.currentTarget) {
       this.cancel();
     }
-  }
-
-  private getTodayIso(): string {
-    return new Date().toISOString().slice(0, 10);
   }
 }

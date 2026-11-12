@@ -51,7 +51,7 @@ describe('BookEditModalComponent', () => {
 
     expect(document.body.classList.contains('overflow-hidden')).toBe(true);
     const titleInput = (fixture.nativeElement as HTMLElement).querySelector(
-      'input[formcontrolname="title"]',
+      'input[formcontrolname="title"]'
     ) as HTMLInputElement;
     expect(titleInput.value).toBe('Original Title');
 

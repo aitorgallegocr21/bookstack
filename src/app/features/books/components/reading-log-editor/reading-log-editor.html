@@ -13,16 +13,16 @@
     class="modal-panel relative flex max-h-[90dvh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900"
   >
     <header
-      class="flex flex-shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-950/60 sm:px-6"
+      class="flex flex-shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4 sm:px-6 dark:border-slate-800 dark:bg-slate-950/60"
     >
       <div>
         <span
-          class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500"
+          class="text-[10px] font-extrabold tracking-[0.2em] text-slate-400 uppercase dark:text-slate-500"
           >Sesión de lectura</span
         >
         <h2
           id="modal-title"
-          class="mt-1 text-xl font-bold leading-tight text-slate-900 dark:text-slate-100"
+          class="mt-1 text-xl leading-tight font-bold text-slate-900 dark:text-slate-100"
         >
           {{ existingLog() ? 'Editar sesión' : 'Registrar lectura' }}
         </h2>
@@ -31,7 +31,7 @@
       <button
         type="button"
         (click)="cancel()"
-        class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+        class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:hover:bg-slate-800 dark:hover:text-slate-200"
         aria-label="Cerrar editor"
         title="Cerrar editor"
       >
@@ -52,11 +52,11 @@
       </button>
     </header>
 
-    <form class="flex-1 overflow-y-auto space-y-4 p-5 sm:p-6" (ngSubmit)="save()">
+    <form class="flex-1 space-y-4 overflow-y-auto p-5 sm:p-6" (ngSubmit)="save()">
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label class="block">
           <span
-            class="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-400"
+            class="mb-1.5 block text-[11px] font-bold tracking-[0.12em] text-slate-600 uppercase dark:text-slate-400"
             >Fecha</span
           >
           <input
@@ -64,7 +64,7 @@
             [(ngModel)]="draft.date"
             name="date"
             required
-            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:ring-2 focus:ring-slate-900/10 focus:outline-none dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
           />
           @if (draft.date) {
             <span class="mt-1.5 block text-xs text-slate-500 dark:text-slate-400">{{
@@ -75,7 +75,7 @@
 
         <label class="block">
           <span
-            class="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-400"
+            class="mb-1.5 block text-[11px] font-bold tracking-[0.12em] text-slate-600 uppercase dark:text-slate-400"
             >Páginas leídas</span
           >
           <input
@@ -85,14 +85,14 @@
             [(ngModel)]="draft.pagesRead"
             name="pagesRead"
             required
-            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:ring-2 focus:ring-slate-900/10 focus:outline-none dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
           />
         </label>
       </div>
 
       <label class="block">
         <span
-          class="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-400"
+          class="mb-1.5 block text-[11px] font-bold tracking-[0.12em] text-slate-600 uppercase dark:text-slate-400"
           >Tiempo (min)</span
         >
         <input
@@ -100,20 +100,20 @@
           min="0"
           [(ngModel)]="draft.timeSpentMinutes"
           name="timeSpentMinutes"
-          class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+          class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:ring-2 focus:ring-slate-900/10 focus:outline-none dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
         />
       </label>
 
       <label class="block">
         <span
-          class="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-400"
+          class="mb-1.5 block text-[11px] font-bold tracking-[0.12em] text-slate-600 uppercase dark:text-slate-400"
           >Notas</span
         >
         <textarea
           [(ngModel)]="draft.notes"
           name="notes"
           rows="4"
-          class="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
+          class="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:ring-2 focus:ring-slate-900/10 focus:outline-none dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
         ></textarea>
       </label>
 
@@ -121,7 +121,7 @@
         class="flex items-center justify-end gap-3 border-t border-slate-200 pt-4 dark:border-slate-800"
       >
         <button
-          class="rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+          class="rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
           type="button"
           (click)="cancel()"
           title="Cancelar"
@@ -129,7 +129,7 @@
           Cancelar
         </button>
         <button
-          class="rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+          class="rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
           type="submit"
           [disabled]="isSaving()"
           title="Guardar"

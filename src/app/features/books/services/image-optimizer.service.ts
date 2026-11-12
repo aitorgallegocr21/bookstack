@@ -21,7 +21,7 @@ export class ImageOptimizerService {
     const targetFormat = this.getPreferredOutputFormat(file.type);
     const { width, height } = this.calculateScaledDimensions(
       image.naturalWidth || image.width,
-      image.naturalHeight || image.height,
+      image.naturalHeight || image.height
     );
 
     const canvas = document.createElement('canvas');
@@ -80,7 +80,7 @@ export class ImageOptimizerService {
 
   private calculateScaledDimensions(
     width: number,
-    height: number,
+    height: number
   ): { width: number; height: number } {
     const scale = Math.min(1, this.maxDimension / Math.max(width, height));
 

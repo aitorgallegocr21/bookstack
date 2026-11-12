@@ -20,7 +20,7 @@ export class ReadingStatsService {
     const totalPagesRead = books.reduce((total, book) => total + Math.max(book.currentPage, 0), 0);
     const totalTimeSpentMinutes = logs.reduce(
       (total, log) => total + (log.timeSpentMinutes ?? 0),
-      0,
+      0
     );
 
     const startDates = books
@@ -79,7 +79,7 @@ export class ReadingStatsService {
   }
 
   private calculateMonthlyPages(
-    logs: Array<{ date: string; pagesRead: number }>,
+    logs: Array<{ date: string; pagesRead: number }>
   ): Array<{ month: string; pages: number }> {
     const result = new Map<string, number>();
 
@@ -102,7 +102,7 @@ export class ReadingStatsService {
   }
 
   private calculateStatusDistribution(
-    books: Array<{ status: BookStatus }>,
+    books: Array<{ status: BookStatus }>
   ): Array<{ status: BookStatus; count: number }> {
     return ['pending', 'reading', 'completed', 'abandoned'].map((status) => ({
       status: status as BookStatus,

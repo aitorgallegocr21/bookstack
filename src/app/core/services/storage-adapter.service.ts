@@ -112,7 +112,7 @@ export class StorageAdapterService {
 
         request.onerror = () => {
           console.warn(
-            `[StorageAdapter] IndexedDB write failed for "${storeName}"; falling back to localStorage.`,
+            `[StorageAdapter] IndexedDB write failed for "${storeName}"; falling back to localStorage.`
           );
           resolve(this.setToLocalStorage(storeName, value));
         };

@@ -19,7 +19,7 @@ test.describe('End-to-end Book & Reading Log lifecycle', () => {
 
     await expect(page.locator('#create-modal-title')).toBeHidden();
     await expect(
-      page.getByRole('button', { name: 'Ver detalles: Dune', exact: true }).first(),
+      page.getByRole('button', { name: 'Ver detalles: Dune', exact: true }).first()
     ).toBeVisible();
     await expect(page.getByText('0 / 200 págs.')).toBeVisible();
 
@@ -58,7 +58,7 @@ test.describe('End-to-end Book & Reading Log lifecycle', () => {
     await expect(
       page
         .getByRole('button', { name: 'Ver detalles: Dune: Edición Revisada', exact: true })
-        .first(),
+        .first()
     ).toBeVisible();
 
     // Delete book and confirm return to empty state

@@ -65,7 +65,7 @@ describe('BookCreateModalComponent', () => {
     const titleInput = root.querySelector('input[formcontrolname="title"]') as HTMLInputElement;
     const authorInput = root.querySelector('input[formcontrolname="author"]') as HTMLInputElement;
     const totalPagesInput = root.querySelector(
-      'input[formcontrolname="totalPages"]',
+      'input[formcontrolname="totalPages"]'
     ) as HTMLInputElement;
 
     // Submit while required fields are empty

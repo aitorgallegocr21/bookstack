@@ -74,7 +74,7 @@ describe('BooksPage', () => {
     expect(root.textContent).toContain('150 / 600');
 
     const detailsButton = root.querySelector(
-      'button[aria-label="Ver detalles: Elantris"]',
+      'button[aria-label="Ver detalles: Elantris"]'
     ) as HTMLButtonElement;
     detailsButton.click();
     fixture.detectChanges();
@@ -82,7 +82,7 @@ describe('BooksPage', () => {
     expect(document.body.classList.contains('overflow-hidden')).toBe(true);
 
     const editButton = root.querySelector(
-      'button[aria-label="Editar Elantris"]',
+      'button[aria-label="Editar Elantris"]'
     ) as HTMLButtonElement;
     editButton.click();
     fixture.detectChanges();

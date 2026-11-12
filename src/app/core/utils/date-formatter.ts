@@ -4,7 +4,7 @@
 export function formatLocalizedDate(
   dateStr: string | undefined | null,
   includeTime = false,
-  locale = 'es-ES',
+  locale = 'es-ES'
 ): string {
   if (!dateStr) {
     return '';
@@ -28,7 +28,7 @@ export function formatLocalizedDate(
  */
 export function formatLocalizedMonth(
   monthKey: string | undefined | null,
-  locale = 'es-ES',
+  locale = 'es-ES'
 ): string {
   if (!monthKey) {
     return '';

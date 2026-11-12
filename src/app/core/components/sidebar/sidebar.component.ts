@@ -80,7 +80,7 @@ export class SidebarComponent {
     window.open(
       'https://github.com/aitorgallegocr21/bookstack.git',
       '_blank',
-      'noopener,noreferrer',
+      'noopener,noreferrer'
     );
   }
 }

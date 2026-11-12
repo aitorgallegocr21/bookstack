@@ -62,7 +62,7 @@ export class ReadingLogService {
       if (previousLog.bookId === updatedLog.bookId) {
         await this.booksService.applyReadingDelta(
           updatedLog.bookId,
-          updatedLog.pagesRead - previousLog.pagesRead,
+          updatedLog.pagesRead - previousLog.pagesRead
         );
       } else {
         await this.booksService.applyReadingDelta(previousLog.bookId, -previousLog.pagesRead);

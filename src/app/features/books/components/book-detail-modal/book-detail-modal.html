@@ -32,11 +32,11 @@
         <button
           type="button"
           (click)="cancel()"
-          class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+          class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:hover:bg-slate-800 dark:hover:text-slate-200"
           aria-label="Cerrar modal"
           title="Cerrar"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -47,10 +47,10 @@
         </button>
       </div>
 
-      <div class="p-6 overflow-y-auto flex-1 space-y-6">
+      <div class="flex-1 space-y-6 overflow-y-auto p-6">
         <div class="flex flex-col gap-6 sm:flex-row sm:items-start">
           <div
-            class="w-28 shrink-0 self-start overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:w-32"
+            class="w-28 shrink-0 self-start overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm sm:w-32 dark:border-slate-700 dark:bg-slate-800"
           >
             @if (currentBook.coverUrl) {
               <img
@@ -68,11 +68,11 @@
             }
           </div>
 
-          <div class="flex-1 flex flex-col justify-between space-y-4">
+          <div class="flex flex-1 flex-col justify-between space-y-4">
             <div>
               <h2
                 id="detail-modal-title"
-                class="text-2xl font-bold leading-tight text-slate-900 dark:text-slate-100"
+                class="text-2xl leading-tight font-bold text-slate-900 dark:text-slate-100"
               >
                 {{ currentBook.title }}
               </h2>
@@ -80,7 +80,7 @@
                 {{ currentBook.author }}
               </p>
               @if (currentBook.notes) {
-                <p class="mt-2 line-clamp-2 text-xs italic text-slate-500 dark:text-slate-400">
+                <p class="mt-2 line-clamp-2 text-xs text-slate-500 italic dark:text-slate-400">
                   "{{ currentBook.notes }}"
                 </p>
               }
@@ -97,8 +97,8 @@
             <div
               class="space-y-2 rounded-xl border border-slate-200/80 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/80"
             >
-              <div class="flex justify-between items-center text-xs font-semibold">
-                <span class="uppercase tracking-wider text-slate-600 dark:text-slate-400"
+              <div class="flex items-center justify-between text-xs font-semibold">
+                <span class="tracking-wider text-slate-600 uppercase dark:text-slate-400"
                   >Progreso</span
                 >
                 <span class="text-slate-900 dark:text-slate-100">
@@ -120,7 +120,7 @@
               <button
                 type="button"
                 (click)="openLogEditor()"
-                class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
                 aria-label="Registrar lectura"
                 title="Registrar lectura"
               >
@@ -130,7 +130,7 @@
               <button
                 type="button"
                 (click)="onRequestEdit()"
-                class="rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-800 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                class="rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-800 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                 aria-label="Editar libro"
                 title="Editar libro"
               >
@@ -143,7 +143,7 @@
         <section class="space-y-4 border-t border-slate-100 pt-4 dark:border-slate-800">
           <div class="flex items-center justify-between">
             <h3
-              class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+              class="text-xs font-bold tracking-wider text-slate-700 uppercase dark:text-slate-300"
             >
               Detalles del libro
             </h3>
@@ -155,7 +155,7 @@
                 class="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800"
               >
                 <p
-                  class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400"
+                  class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
                   ISBN
                 </p>
@@ -170,7 +170,7 @@
                 class="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800"
               >
                 <p
-                  class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400"
+                  class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
                   Editorial
                 </p>
@@ -185,7 +185,7 @@
                 class="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800"
               >
                 <p
-                  class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400"
+                  class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
                   Año
                 </p>
@@ -200,7 +200,7 @@
                 class="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800"
               >
                 <p
-                  class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400"
+                  class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
                   Saga / serie
                 </p>
@@ -217,7 +217,7 @@
                 class="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800"
               >
                 <p
-                  class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400"
+                  class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
                   Capítulos
                 </p>
@@ -232,7 +232,7 @@
                 class="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800"
               >
                 <p
-                  class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400"
+                  class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
                   Caracteres
                 </p>
@@ -244,10 +244,10 @@
 
             @if (currentBook.startDate || currentBook.endDate) {
               <div
-                class="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800 sm:col-span-2"
+                class="rounded-xl border border-slate-200 bg-slate-50 p-3 sm:col-span-2 dark:border-slate-800 dark:bg-slate-800"
               >
                 <p
-                  class="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400"
+                  class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
                   Fechas de lectura
                 </p>
@@ -274,7 +274,7 @@
           <div class="flex items-center justify-between">
             <h3
               id="reading-sessions-title"
-              class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+              class="text-xs font-bold tracking-wider text-slate-700 uppercase dark:text-slate-300"
             >
               Sesiones de lectura ({{ bookLogs().length }})
             </h3>
@@ -294,12 +294,12 @@
 
           @if (bookLogs().length === 0) {
             <p
-              class="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3 text-center text-xs italic text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+              class="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3 text-center text-xs text-slate-500 italic dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
             >
               Sin sesiones registradas para este libro.
             </p>
           } @else {
-            <div id="reading-sessions-list" class="space-y-2 max-h-52 overflow-y-auto pr-1">
+            <div id="reading-sessions-list" class="max-h-52 space-y-2 overflow-y-auto pr-1">
               @for (log of visibleBookLogs(); track log.id) {
                 <div
                   class="flex items-center justify-between rounded-xl border border-slate-200/60 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-800"
@@ -314,15 +314,15 @@
                       }
                     </div>
                     @if (log.notes) {
-                      <div class="italic text-slate-600 dark:text-slate-400">"{{ log.notes }}"</div>
+                      <div class="text-slate-600 italic dark:text-slate-400">"{{ log.notes }}"</div>
                     }
                   </div>
 
-                  <div class="flex items-center gap-1.5 ml-2">
+                  <div class="ml-2 flex items-center gap-1.5">
                     <button
                       type="button"
                       (click)="openLogEditor(log)"
-                      class="rounded px-2 py-1 font-semibold text-slate-700 transition-colors hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                      class="rounded px-2 py-1 font-semibold text-slate-700 transition-colors hover:bg-slate-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-300 dark:hover:bg-slate-700"
                       title="Editar sesión"
                     >
                       Editar
@@ -330,7 +330,7 @@
                     <button
                       type="button"
                       (click)="deleteLog(log.id)"
-                      class="rounded px-2 py-1 font-semibold text-red-700 transition-colors hover:bg-red-100 dark:text-red-300 dark:hover:bg-red-950/40 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                      class="rounded px-2 py-1 font-semibold text-red-700 transition-colors hover:bg-red-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-red-300 dark:hover:bg-red-950/40"
                       title="Borrar sesión"
                     >
                       Borrar

@@ -93,4 +93,36 @@ describe('StorageAdapterService', () => {
 
     expect(service.getReadingGoals()).toEqual(goals);
   });
+
+  describe('Catalog preferences persistence', () => {
+    it('should default viewMode to "detailed" when nothing or invalid value is stored', () => {
+      expect(service.getCatalogViewMode()).toBe('detailed');
+
+      localStorage.setItem(service.catalogViewModeKey, JSON.stringify('invalid-mode'));
+      expect(service.getCatalogViewMode()).toBe('detailed');
+    });
+
+    it('should persist and retrieve valid CatalogViewMode', () => {
+      expect(service.setCatalogViewMode('grid')).toBe(true);
+      expect(service.getCatalogViewMode()).toBe('grid');
+
+      expect(service.setCatalogViewMode('compact')).toBe(true);
+      expect(service.getCatalogViewMode()).toBe('compact');
+    });
+
+    it('should default sortOption to "recent" when nothing or invalid value is stored', () => {
+      expect(service.getCatalogSort()).toBe('recent');
+
+      localStorage.setItem(service.catalogSortKey, JSON.stringify('unsupported-sort'));
+      expect(service.getCatalogSort()).toBe('recent');
+    });
+
+    it('should persist and retrieve valid CatalogSortOption', () => {
+      expect(service.setCatalogSort('title-asc')).toBe(true);
+      expect(service.getCatalogSort()).toBe('title-asc');
+
+      expect(service.setCatalogSort('rating-desc')).toBe(true);
+      expect(service.getCatalogSort()).toBe('rating-desc');
+    });
+  });
 });

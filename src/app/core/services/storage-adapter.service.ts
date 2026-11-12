@@ -1,4 +1,12 @@
 import { Injectable } from '@angular/core';
+import {
+  CatalogSortOption,
+  CatalogViewMode,
+  DEFAULT_CATALOG_SORT,
+  DEFAULT_CATALOG_VIEW_MODE,
+  isCatalogSortOption,
+  isCatalogViewMode,
+} from '../../features/books/models/catalog-filter.model';
 
 @Injectable({
   providedIn: 'root',
@@ -8,6 +16,8 @@ export class StorageAdapterService {
   private readonly dbVersion = 1;
   private dbPromise: Promise<IDBDatabase> | null = null;
   readonly goalsStorageKey = 'bookstack_reading_goals';
+  readonly catalogViewModeKey = 'bookstack_catalog_view_mode';
+  readonly catalogSortKey = 'bookstack_catalog_sort';
 
   private isIndexedDbAvailable(): boolean {
     return typeof indexedDB !== 'undefined';
@@ -179,6 +189,24 @@ export class StorageAdapterService {
 
   saveReadingGoals(goals: unknown): boolean {
     return this.setItem(this.goalsStorageKey, goals);
+  }
+
+  getCatalogViewMode(): CatalogViewMode {
+    const raw = this.getItem<unknown>(this.catalogViewModeKey);
+    return isCatalogViewMode(raw) ? raw : DEFAULT_CATALOG_VIEW_MODE;
+  }
+
+  setCatalogViewMode(viewMode: CatalogViewMode): boolean {
+    return this.setItem(this.catalogViewModeKey, viewMode);
+  }
+
+  getCatalogSort(): CatalogSortOption {
+    const raw = this.getItem<unknown>(this.catalogSortKey);
+    return isCatalogSortOption(raw) ? raw : DEFAULT_CATALOG_SORT;
+  }
+
+  setCatalogSort(sort: CatalogSortOption): boolean {
+    return this.setItem(this.catalogSortKey, sort);
   }
 
   private getFromLocalStorage<T>(storeName: string, key: string): T | null {

@@ -103,6 +103,50 @@ export interface TranslationDictionary {
     confirmDeleteBook: string;
     confirmDeleteLog: string;
   };
+  catalog: {
+    searchPlaceholder: string;
+    searchAria: string;
+    clearSearchAria: string;
+    viewModes: {
+      grid: string;
+      detailed: string;
+      compact: string;
+    };
+    sortOptions: {
+      recent: string;
+      titleAsc: string;
+      titleDesc: string;
+      authorAsc: string;
+      ratingDesc: string;
+      progressDesc: string;
+      pagesDesc: string;
+    };
+    statusChips: {
+      all: string;
+      reading: string;
+      pending: string;
+      completed: string;
+      abandoned: string;
+    };
+    filterButton: string;
+    filterButtonAria: string;
+    activeFiltersBadgeAria: string;
+    clearFilters: string;
+    resultsCount: string;
+    resultsCountSingle: string;
+    emptyState: {
+      title: string;
+      description: string;
+      resetAction: string;
+    };
+    drawer: {
+      formatTitle: string;
+      formatAll: string;
+      ratingTitle: string;
+      ratingAll: string;
+      starsSuffix: string;
+    };
+  };
   bookForm: {
     libraryBadge: string;
     createTitle: string;

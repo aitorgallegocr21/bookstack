@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- [x] **[Phase 07: Catalog Filtering, Search & View Density](tasks/phase-07-catalog-filtering-search/index.md)** — _Completed 2026-11_ (Three switchable view modes [Bookshelf Grid, Detailed Cards, Compact List], live omni-search, status chips with real-time counters, 7 sort options, collapsible advanced filters for format/rating, dedicated zero-match empty state, LocalStorage preference persistence, and 32 Playwright E2E tests).
+- [x] **[Phase 07: Catalog Filtering, Search & View Density](tasks/phase-07-catalog-filtering-search/index.md)** — _Completed 2026-11_ (Three switchable view modes [Bookshelf Grid, Detailed Cards, Compact List], live omni-search, status chips with real-time counters, 7 sort options, collapsible advanced filters with smooth CSS Grid transition, uniform card sizing, contextual 1-click reset, accessible mobile status menu, and 32 Playwright E2E tests).
 
 ---
 
@@ -22,7 +22,7 @@
 
 ## Completed Phases (Archive & Changelog)
 
-- [x] **[Phase 07: Catalog Filtering, Search & View Density](tasks/phase-07-catalog-filtering-search/index.md)** — _Completed 2026-11_ (Three switchable view modes [Bookshelf Grid, Detailed Cards, Compact List], live omni-search, status chips with real-time counters, 7 sort options, collapsible advanced filters for format/rating, dedicated zero-match empty state, LocalStorage preference persistence, and 32 Playwright E2E tests).
+- [x] **[Phase 07: Catalog Filtering, Search & View Density](tasks/phase-07-catalog-filtering-search/index.md)** — _Completed 2026-11_ (Three switchable view modes [Bookshelf Grid, Detailed Cards, Compact List], live omni-search, status chips with real-time counters, 7 sort options, collapsible advanced filters with smooth CSS Grid transition, uniform card sizing, contextual 1-click reset, accessible mobile status menu, and 32 Playwright E2E tests).
 - [x] **[Phase 06: Interactive Dashboard Hub](tasks/phase-06-interactive-dashboard-hub/index.md)** — _Completed 2026-11_ (Redesigned home `/` into an interactive reading launchpad: "Currently Reading" hero showcase with inline fast page progress updater and parallel active reads switcher, smart dual empty states, daily reading streak with animated flame and weekly activity indicators, combined annual goals tracking books & pages with modal editor, and recent activity feed).
 - [x] **[Phase 05: Comprehensive Test Suite (Vitest + Playwright E2E)](tasks/phase-05-testing-suite-and-qa-gate/index.md)** — _Completed 2026-11_ (Vitest global setup with `fake-indexeddb` + `matchMedia` mock, 20 unit/component/regression test files passing 59 specs, plus 23 Playwright E2E tests covering responsive overflow, navigation, theme persistence, and book/log flows).
 - [x] **[Phase 04: Core Hardening, Bug Fixes & i18n Foundation](tasks/phase-04-core-hardening-and-i18n/index.md)** — _Completed 2026-11_ (Sidebar tablet breakpoint `hidden md:flex`, ESLint/template accessibility remediation, `StorageAdapterService` Clean Architecture relocation & IndexedDB optimization, Zod persistence validation, `I18nService` foundation keeping Spanish UI active, and English internal code/docs sync).

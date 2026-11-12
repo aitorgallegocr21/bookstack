@@ -43,6 +43,9 @@ export interface RatingFilterOption {
   imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './catalog-toolbar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block',
+  },
 })
 export class CatalogToolbarComponent {
   protected readonly i18n = inject(I18nService);
@@ -111,6 +114,11 @@ export class CatalogToolbarComponent {
 
   protected onStatusSelect(status: BookStatus | 'all'): void {
     this.criteriaChange.emit({ status });
+  }
+
+  protected onStatusSelectChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.onStatusSelect(selectElement.value as BookStatus | 'all');
   }
 
   protected onFormatSelect(format: string): void {

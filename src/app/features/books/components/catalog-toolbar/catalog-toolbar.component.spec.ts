@@ -164,8 +164,11 @@ describe('CatalogToolbarComponent', () => {
   });
 
   it('should toggle secondary filter drawer and reflect active secondary filters badge', () => {
-    // Filter drawer should initially be closed
-    expect(fixture.debugElement.query(By.css('.border-slate-200\\/90'))).toBeNull();
+    // Filter drawer should initially be collapsed (inert + aria-hidden="true")
+    const drawerWrapper = fixture.debugElement.query(By.css('.grid.duration-200'));
+    expect(drawerWrapper).toBeTruthy();
+    expect(drawerWrapper.nativeElement.getAttribute('aria-hidden')).toBe('true');
+    expect(drawerWrapper.nativeElement.hasAttribute('inert')).toBe(true);
 
     // Toggle drawer open
     const toggleButton = fixture.debugElement.query(
@@ -174,7 +177,10 @@ describe('CatalogToolbarComponent', () => {
     toggleButton.nativeElement.click();
     fixture.detectChanges();
 
-    // Drawer should now be rendered
+    // Drawer should now be expanded
+    expect(drawerWrapper.nativeElement.getAttribute('aria-hidden')).toBe('false');
+    expect(drawerWrapper.nativeElement.hasAttribute('inert')).toBe(false);
+
     const formatButtons = fixture.debugElement.queryAll(By.css('.flex.flex-wrap button'));
     expect(formatButtons.length).toBeGreaterThan(0);
 
@@ -215,6 +221,36 @@ describe('CatalogToolbarComponent', () => {
     resetBtn.nativeElement.click();
     fixture.detectChanges();
 
+    expect(host.resetFiltersCalled).toBe(true);
+  });
+
+  it('should render contextual quick reset button when filters are active and emit criteriaChange from mobile status selector', () => {
+    // Initially no quick reset button
+    expect(
+      fixture.debugElement.query(By.css('button[aria-label="Restablecer filtros"]'))
+    ).toBeNull();
+
+    // Activate status filter via mobile select
+    const mobileSelect = fixture.debugElement.query(By.css('#catalog-mobile-status-select'))
+      .nativeElement as HTMLSelectElement;
+    expect(mobileSelect).toBeTruthy();
+
+    mobileSelect.value = 'completed';
+    mobileSelect.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(host.lastCriteriaChange).toEqual({ status: 'completed' });
+
+    // Reflect active criteria in host and verify contextual reset button appears
+    host.criteria.set({ ...DEFAULT_CATALOG_FILTER_CRITERIA, status: 'completed' });
+    fixture.detectChanges();
+
+    const quickResetBtn = fixture.debugElement.query(
+      By.css('button[aria-label="Restablecer filtros"]')
+    );
+    expect(quickResetBtn).toBeTruthy();
+
+    quickResetBtn.nativeElement.click();
+    fixture.detectChanges();
     expect(host.resetFiltersCalled).toBe(true);
   });
 });

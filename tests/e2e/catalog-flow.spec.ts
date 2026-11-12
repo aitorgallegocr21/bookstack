@@ -297,11 +297,10 @@ test.describe('Catalog Filtering, Omni-Search & View Modes', () => {
       page.getByText('No hay libros que coincidan con los criterios de búsqueda')
     ).toBeVisible();
 
-    const resetFiltersBtn = page.getByRole('button', { name: 'Restablecer filtros' });
-    await expect(resetFiltersBtn).toBeVisible();
-
-    // Click reset filters
-    await resetFiltersBtn.click();
+    // Both contextual toolbar reset and empty-state reset are available; click empty-state reset
+    const emptyStateResetBtn = page.getByRole('button', { name: 'Restablecer filtros' }).last();
+    await expect(emptyStateResetBtn).toBeVisible();
+    await emptyStateResetBtn.click();
 
     // All books restored and search cleared
     await expect(searchInput).toHaveValue('');
@@ -309,10 +308,26 @@ test.describe('Catalog Filtering, Omni-Search & View Modes', () => {
     await expect(page.getByRole('heading', { name: 'No se encontraron libros' })).toBeHidden();
   });
 
-  test('should preserve zero horizontal overflow on mobile viewports', async ({ page }) => {
+  test('should filter via mobile status menu and preserve zero horizontal overflow on mobile viewports', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/books');
     await page.waitForSelector('app-catalog-toolbar');
+
+    // Mobile status select is visible instead of horizontal chip strip
+    const mobileStatusSelect = page.locator('#catalog-mobile-status-select');
+    await expect(mobileStatusSelect).toBeVisible();
+    await mobileStatusSelect.selectOption('reading');
+    await expect(page.locator('app-book-detailed-card')).toHaveCount(1);
+
+    // Contextual quick reset button appears in toolbar and restores all books
+    const quickResetBtn = page
+      .locator('app-catalog-toolbar')
+      .getByRole('button', { name: 'Restablecer filtros' });
+    await expect(quickResetBtn).toBeVisible();
+    await quickResetBtn.click();
+    await expect(page.locator('app-book-detailed-card')).toHaveCount(5);
 
     // Verify zero horizontal overflow in Detailed mode
     const detailedOverflow = await page.evaluate(() => ({

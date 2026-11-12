@@ -1,5 +1,5 @@
 <section
-  class="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs sm:p-4 dark:border-slate-800 dark:bg-slate-900"
+  class="flex flex-col rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs sm:p-4 dark:border-slate-800 dark:bg-slate-900"
   aria-label="Controles del catálogo de libros"
 >
   <!-- Top Control Bar: Search Input, View Mode Switcher, Sort Selector -->
@@ -113,15 +113,35 @@
     </div>
   </div>
 
-  <!-- Bottom Quick Filter Row: Status Chips + Filter Drawer Toggle Button -->
+  <!-- Bottom Quick Filter Row: Mobile Status Menu / Desktop Status Chips + Quick Reset + Filter Drawer Toggle -->
   <div
-    class="flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5 dark:border-slate-800/80"
+    class="mt-3 flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5 dark:border-slate-800/80"
   >
-    <!-- Status Filter Chips (horizontally scrollable on mobile) -->
+    <!-- Mobile Accessible Status Selector (< 640px, zero horizontal scrollbar) -->
+    <div class="relative min-w-0 flex-1 sm:hidden">
+      <label for="catalog-mobile-status-select" class="sr-only">
+        Filtro por estado de lectura
+      </label>
+      <select
+        id="catalog-mobile-status-select"
+        [value]="criteria().status"
+        (change)="onStatusSelectChange($event)"
+        aria-label="Filtro por estado de lectura"
+        class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-xs font-medium text-slate-800 transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-100 dark:focus:border-blue-400 dark:focus:bg-slate-800"
+      >
+        @for (status of statusKeys; track status) {
+          <option [value]="status">
+            {{ getStatusLabel(status) }} ({{ statusCounts()[status] }})
+          </option>
+        }
+      </select>
+    </div>
+
+    <!-- Desktop & Tablet Status Filter Chips (>= 640px, hidden scrollbar) -->
     <div
       role="tablist"
       aria-label="Filtro por estado de lectura"
-      class="no-scrollbar -mx-1 flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto px-1 py-1"
+      class="no-scrollbar -mx-1 hidden min-w-0 flex-1 items-center gap-1.5 overflow-x-auto px-1 py-1 sm:flex"
     >
       @for (status of statusKeys; track status) {
         <button
@@ -130,10 +150,10 @@
           [attr.aria-selected]="criteria().status === status"
           [class]="
             criteria().status === status
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'dark:hover:bg-slate-750 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300'
+              ? 'border-blue-600 bg-blue-600 text-white shadow-xs hover:bg-blue-500 dark:border-blue-500 dark:hover:bg-blue-500'
+              : 'border-slate-200/90 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900 hover:shadow-2xs dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700/80 dark:hover:text-white'
           "
-          class="inline-flex min-h-[38px] shrink-0 items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none sm:text-sm"
+          class="inline-flex min-h-[38px] shrink-0 items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-medium transition-[background-color,border-color,color,box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none sm:text-sm"
         >
           <span>{{ getStatusLabel(status) }}</span>
           <span
@@ -150,8 +170,21 @@
       }
     </div>
 
-    <!-- Toggle Secondary Filter Panel Button -->
-    <div class="shrink-0 pl-1">
+    <!-- Contextual Quick Reset + Secondary Filter Toggle -->
+    <div class="flex shrink-0 items-center gap-1.5 pl-1">
+      @if (hasActiveFilters()) {
+        <button
+          type="button"
+          (click)="onResetFilters()"
+          [attr.aria-label]="i18n.t().catalog.emptyState.resetAction"
+          [title]="i18n.t().catalog.emptyState.resetAction"
+          class="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-rose-200/90 bg-rose-50/80 px-2.5 py-1.5 text-xs font-medium text-rose-700 transition-colors hover:border-rose-300 hover:bg-rose-100 focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none sm:min-h-[38px] sm:text-sm dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:border-rose-800 dark:hover:bg-rose-900/50"
+        >
+          <svg [lucideIcon]="RotateCcw" size="14" stroke-width="2.2"></svg>
+          <span class="hidden md:inline">{{ i18n.t().catalog.emptyState.resetAction }}</span>
+        </button>
+      }
+
       <button
         type="button"
         (click)="toggleFilterDrawer()"
@@ -159,10 +192,10 @@
         [attr.aria-label]="i18n.t().catalog.filterButtonAria"
         [class]="
           isFilterDrawerOpen() || activeSecondaryCount() > 0
-            ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-500/40 dark:bg-blue-950/40 dark:text-blue-300'
-            : 'dark:hover:bg-slate-750 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
+            ? 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100/80 dark:border-blue-500/40 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/50'
+            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-700/80 dark:hover:text-white'
         "
-        class="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none sm:text-sm"
+        class="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-[background-color,border-color,color] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none sm:min-h-[38px] sm:text-sm"
       >
         <svg [lucideIcon]="Filter" size="15" stroke-width="2"></svg>
         <span class="xs:inline hidden">{{ i18n.t().catalog.filterButton }}</span>
@@ -181,96 +214,107 @@
     </div>
   </div>
 
-  <!-- Collapsible Secondary Filter Drawer -->
-  @if (isFilterDrawerOpen()) {
-    <div
-      class="mt-1 flex flex-col gap-3.5 rounded-xl border border-slate-200/90 bg-slate-50/80 p-3.5 dark:border-slate-800 dark:bg-slate-800/50"
-    >
-      <!-- Formats Selector -->
-      <div class="flex flex-col gap-1.5">
-        <span
-          class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400"
-        >
-          {{ i18n.t().catalog.drawer.formatTitle }}
-        </span>
-        <div class="flex flex-wrap gap-1.5">
-          <button
-            type="button"
-            (click)="onFormatSelect('all')"
-            [class]="
-              criteria().format === 'all'
-                ? 'bg-blue-600 text-white shadow-2xs'
-                : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-            "
-            class="inline-flex min-h-[36px] items-center rounded-lg px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+  <!-- Collapsible Secondary Filter Drawer (Smooth CSS Grid Transition) -->
+  <div
+    class="grid transition-[grid-template-rows,opacity,margin-top] duration-200 ease-out motion-reduce:transition-none"
+    [class]="
+      isFilterDrawerOpen()
+        ? 'mt-3 grid-rows-[1fr] opacity-100'
+        : 'pointer-events-none mt-0 grid-rows-[0fr] opacity-0'
+    "
+    [attr.aria-hidden]="!isFilterDrawerOpen()"
+    [attr.inert]="!isFilterDrawerOpen() ? '' : null"
+  >
+    <div class="overflow-hidden">
+      <div
+        class="mt-1 flex flex-col gap-3.5 rounded-xl border border-slate-200/90 bg-slate-50/80 p-3.5 dark:border-slate-800 dark:bg-slate-800/50"
+      >
+        <!-- Formats Selector -->
+        <div class="flex flex-col gap-1.5">
+          <span
+            class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400"
           >
-            {{ i18n.t().catalog.drawer.formatAll }}
-          </button>
-
-          @for (fmt of availableFormats(); track fmt) {
+            {{ i18n.t().catalog.drawer.formatTitle }}
+          </span>
+          <div class="flex flex-wrap gap-1.5">
             <button
               type="button"
-              (click)="onFormatSelect(fmt)"
+              (click)="onFormatSelect('all')"
               [class]="
-                criteria().format.toLowerCase() === fmt.toLowerCase()
+                criteria().format === 'all'
                   ? 'bg-blue-600 text-white shadow-2xs'
                   : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
               "
               class="inline-flex min-h-[36px] items-center rounded-lg px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
             >
-              {{ fmt }}
+              {{ i18n.t().catalog.drawer.formatAll }}
             </button>
-          }
-        </div>
-      </div>
 
-      <!-- Rating Star Selector -->
-      <div class="flex flex-col gap-1.5">
-        <span
-          class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400"
+            @for (fmt of availableFormats(); track fmt) {
+              <button
+                type="button"
+                (click)="onFormatSelect(fmt)"
+                [class]="
+                  criteria().format.toLowerCase() === fmt.toLowerCase()
+                    ? 'bg-blue-600 text-white shadow-2xs'
+                    : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                "
+                class="inline-flex min-h-[36px] items-center rounded-lg px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+              >
+                {{ fmt }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Rating Star Selector -->
+        <div class="flex flex-col gap-1.5">
+          <span
+            class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400"
+          >
+            {{ i18n.t().catalog.drawer.ratingTitle }}
+          </span>
+          <div class="flex flex-wrap gap-1.5">
+            @for (ratingOpt of ratingOptions; track ratingOpt.value) {
+              <button
+                type="button"
+                (click)="onRatingSelect(ratingOpt.value)"
+                [class]="
+                  criteria().minRating === ratingOpt.value
+                    ? 'bg-blue-600 text-white shadow-2xs'
+                    : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                "
+                class="inline-flex min-h-[36px] items-center gap-1 rounded-lg px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+              >
+                @if (ratingOpt.value > 0) {
+                  <svg [lucideIcon]="Star" size="13" class="fill-current" stroke-width="1.5"></svg>
+                }
+                <span>{{ ratingOpt.label }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Drawer Footer: Counter & Reset Filter Action -->
+        <div
+          class="flex items-center justify-between border-t border-slate-200/70 pt-2.5 dark:border-slate-700/60"
         >
-          {{ i18n.t().catalog.drawer.ratingTitle }}
-        </span>
-        <div class="flex flex-wrap gap-1.5">
-          @for (ratingOpt of ratingOptions; track ratingOpt.value) {
+          <span class="text-xs text-slate-500 dark:text-slate-400">
+            {{ getResultsCountText() }}
+          </span>
+
+          @if (hasActiveFilters()) {
             <button
               type="button"
-              (click)="onRatingSelect(ratingOpt.value)"
-              [class]="
-                criteria().minRating === ratingOpt.value
-                  ? 'bg-blue-600 text-white shadow-2xs'
-                  : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-              "
-              class="inline-flex min-h-[36px] items-center gap-1 rounded-lg px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+              (click)="onResetFilters()"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-blue-400 dark:hover:text-blue-300"
             >
-              @if (ratingOpt.value > 0) {
-                <svg [lucideIcon]="Star" size="13" class="fill-current" stroke-width="1.5"></svg>
-              }
-              <span>{{ ratingOpt.label }}</span>
+              <svg [lucideIcon]="RotateCcw" size="13" stroke-width="2.5"></svg>
+              <span>{{ i18n.t().catalog.clearFilters }}</span>
             </button>
           }
         </div>
       </div>
-
-      <!-- Drawer Footer: Counter & Reset Filter Action -->
-      <div
-        class="flex items-center justify-between border-t border-slate-200/70 pt-2.5 dark:border-slate-700/60"
-      >
-        <span class="text-xs text-slate-500 dark:text-slate-400">
-          {{ getResultsCountText() }}
-        </span>
-
-        @if (hasActiveFilters()) {
-          <button
-            type="button"
-            (click)="onResetFilters()"
-            class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-blue-400 dark:hover:text-blue-300"
-          >
-            <svg [lucideIcon]="RotateCcw" size="13" stroke-width="2.5"></svg>
-            <span>{{ i18n.t().catalog.clearFilters }}</span>
-          </button>
-        }
-      </div>
     </div>
-  }
+  </div>
 </section>

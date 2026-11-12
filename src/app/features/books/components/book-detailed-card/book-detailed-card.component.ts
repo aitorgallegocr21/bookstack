@@ -17,6 +17,9 @@ import { translateBookFormat } from '../../utils/book-form.utils';
   imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './book-detailed-card.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block h-full',
+  },
 })
 export class BookDetailedCardComponent {
   protected readonly i18n = inject(I18nService);

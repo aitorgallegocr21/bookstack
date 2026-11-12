@@ -16,7 +16,7 @@
 
 - [ ] **Phase 07: Catalog Filtering, Search & View Density** — _Roadmapped_ (Multi-criteria filtering by status/format/rating, live search, sorting, and compact/comfortable card density in `/books`).
 - [ ] **Phase 08: Advanced Analytics** — _Roadmapped_ (Interactive reading velocity charts, monthly/yearly trends, and genre/format breakdowns in `/stats`).
-- [ ] **Phase 09: Settings, Data Portability & Backup Engine** — _Roadmapped_ (Zod-validated JSON/CSV export & import, storage quota inspector, language switcher UI, and reset controls in `/settings`).
+- [ ] **Phase 09: Settings, Data Portability & Backup Engine** — _Roadmapped_ (CSP meta hardening, Zod-validated JSON/CSV export & import, storage quota inspector, and reset controls in `/settings`).
 - [ ] **Phase 10: ISBN Barcode Scanner & Series Management** — _Roadmapped_ (Camera ISBN scanning via `html5-qrcode`, Open Library / Google Books metadata lookup, and chronological saga organization).
 
 ---

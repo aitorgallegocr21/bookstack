@@ -12,9 +12,10 @@ import { CommonModule } from '@angular/common';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { formatLocalizedDate } from '../../../../core/utils/date-formatter';
-import { BOOK_RATING_MAX, Book, BookStatus, ReadingLog } from '../../models/book.model';
+import { BOOK_RATING_MAX, Book, BookFormat, BookStatus, ReadingLog } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
 import { ReadingLogService } from '../../services/reading-log.service';
+import { translateBookFormat } from '../../utils/book-form.utils';
 import { ReadingLogEditorComponent } from '../reading-log-editor/reading-log-editor';
 
 @Component({
@@ -30,7 +31,7 @@ import { ReadingLogEditorComponent } from '../reading-log-editor/reading-log-edi
 })
 export class BookDetailModalComponent implements OnDestroy {
   private readonly uiState = inject(UiStateService);
-  private readonly i18n = inject(I18nService);
+  protected readonly i18n = inject(I18nService);
   private readonly booksService = inject(BooksService);
   private readonly readingLogService = inject(ReadingLogService);
 
@@ -140,12 +141,18 @@ export class BookDetailModalComponent implements OnDestroy {
     return this.i18n.t().status[status];
   }
 
+  protected getFormatLabel(format?: BookFormat | string): string {
+    return translateBookFormat(format, this.i18n.t().bookForm.formats);
+  }
+
   protected getSeriesLabel(book?: Book): string {
     if (!book?.series?.name) {
       return '';
     }
 
-    const volume = book.series.volumeNumber ? ` · Vol. ${book.series.volumeNumber}` : '';
+    const volume = book.series.volumeNumber
+      ? ` · ${this.i18n.t().bookDetail.volumePrefix} ${book.series.volumeNumber}`
+      : '';
     return `${book.series.name}${volume}`;
   }
 

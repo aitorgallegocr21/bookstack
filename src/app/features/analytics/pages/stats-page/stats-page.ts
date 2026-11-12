@@ -1,11 +1,12 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { I18nService } from '../../../../core/i18n/i18n.service';
 
 @Component({
   selector: 'app-stats-page',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './stats-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class StatsPage {}
+export class StatsPage {
+  protected readonly i18n = inject(I18nService);
+}

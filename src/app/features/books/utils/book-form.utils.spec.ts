@@ -1,19 +1,17 @@
+import { EN_TRANSLATIONS } from '../../../core/i18n/en';
+import { ES_TRANSLATIONS } from '../../../core/i18n/es';
 import {
-  BOOK_STATUS_OPTIONS,
+  BOOK_STATUS_VALUES,
   buildBookSeriesPayload,
   getCompletedAutofillValues,
   normalizeBookFormat,
   normalizeBookRating,
+  translateBookFormat,
 } from './book-form.utils';
 
 describe('book-form.utils', () => {
-  it('should expose all four book status options', () => {
-    expect(BOOK_STATUS_OPTIONS.map((opt) => opt.value)).toEqual([
-      'pending',
-      'reading',
-      'completed',
-      'abandoned',
-    ]);
+  it('should expose all four book status values in order', () => {
+    expect(BOOK_STATUS_VALUES).toEqual(['pending', 'reading', 'completed', 'abandoned']);
   });
 
   it('should compute completion autofill defaults only when status is completed', () => {
@@ -46,6 +44,14 @@ describe('book-form.utils', () => {
     expect(normalizeBookFormat('  ')).toBe('Físico');
     expect(normalizeBookFormat('Audiolibro')).toBe('Audiolibro');
     expect(normalizeBookFormat({ id: 'digital', name: 'Digital' })).toBe('Digital');
+  });
+
+  it('should translate standard stored book formats into active locale labels', () => {
+    expect(translateBookFormat('Físico', EN_TRANSLATIONS.bookForm.formats)).toBe('Physical');
+    expect(translateBookFormat('Audiolibro', EN_TRANSLATIONS.bookForm.formats)).toBe('Audiobook');
+    expect(translateBookFormat('Ebook', ES_TRANSLATIONS.bookForm.formats)).toBe('Ebook');
+    expect(translateBookFormat('Custom', EN_TRANSLATIONS.bookForm.formats)).toBe('Custom');
+    expect(translateBookFormat(undefined, EN_TRANSLATIONS.bookForm.formats)).toBe('');
   });
 
   it('should clamp rating values into valid bounds and reject non-numbers', () => {

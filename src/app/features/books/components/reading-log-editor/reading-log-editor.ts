@@ -31,7 +31,7 @@ import { ReadingLogService } from '../../services/reading-log.service';
 })
 export class ReadingLogEditorComponent implements AfterViewInit, OnDestroy {
   private readonly uiState = inject(UiStateService);
-  private readonly i18n = inject(I18nService);
+  protected readonly i18n = inject(I18nService);
   private readonly readingLogService = inject(ReadingLogService);
 
   readonly bookId = input.required<string>();

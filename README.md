@@ -19,7 +19,7 @@ Modern, minimalist, **Local-First** web application for personal reading trackin
 - **Client-Side Cover Optimization:** Built-in HTML5 Canvas pipeline compresses uploaded covers ($\le 400\text{px}$, WebP/JPEG) before saving locally.
 - **Asymmetric Responsive Shell:** Collapsible sidebar (`68px` / `240px`) on desktop/tablet ($\ge 768\text{px}$) and compact header + bottom navigation on mobile ($< 768\text{px}$), with full light/dark theme persistence.
 - **100% Local-First Privacy:** Data stays on your device using `IndexedDB` (with safe `LocalStorage` fallback and Zod schema validation). No external backend required.
-- **i18n-Ready Architecture:** Spanish (`es`) UI active by default via centralized Signal-based translation dictionaries prepared for multi-language expansion.
+- **Multi-Language i18n (`es` / `en`):** Spanish (`es`) default UI with complete Signal-based Spanish and English translation dictionaries switchable live from `/settings`.
 
 ---
 

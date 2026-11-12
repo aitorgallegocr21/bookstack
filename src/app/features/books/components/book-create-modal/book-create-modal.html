@@ -16,10 +16,10 @@
         <p
           class="text-[10px] font-extrabold tracking-[0.2em] text-slate-400 uppercase dark:text-slate-500"
         >
-          Biblioteca
+          {{ i18n.t().bookForm.libraryBadge }}
         </p>
         <h2 id="create-modal-title" class="text-xl font-bold text-slate-900 dark:text-slate-100">
-          Añadir nuevo libro
+          {{ i18n.t().bookForm.createTitle }}
         </h2>
       </div>
 
@@ -27,8 +27,8 @@
         type="button"
         (click)="cancel()"
         class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-500 dark:hover:bg-slate-700/60 dark:hover:text-slate-300"
-        aria-label="Cerrar modal"
-        title="Cerrar"
+        [attr.aria-label]="i18n.t().bookForm.closeModalAria"
+        [title]="i18n.t().common.close"
       >
         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -55,56 +55,60 @@
             <h3
               class="text-sm font-bold tracking-[0.16em] text-slate-700 uppercase dark:text-slate-300"
             >
-              Información básica
+              {{ i18n.t().bookForm.basicInfoSection }}
             </h3>
           </div>
 
           <div>
             <label for="create-book-title" class="field-label">
-              Título <span class="text-red-500">*</span>
+              {{ i18n.t().bookForm.titleLabel }} <span class="text-red-500">*</span>
             </label>
             <input
               #titleInput
               id="create-book-title"
               type="text"
               formControlName="title"
-              placeholder="Ej. El problema de los tres cuerpos"
+              [placeholder]="i18n.t().bookForm.titlePlaceholder"
               class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
             />
           </div>
 
           <div>
             <label for="create-book-author" class="field-label">
-              Autor <span class="text-red-500">*</span>
+              {{ i18n.t().bookForm.authorLabel }} <span class="text-red-500">*</span>
             </label>
             <input
               id="create-book-author"
               type="text"
               formControlName="author"
-              placeholder="Ej. Cixin Liu"
+              [placeholder]="i18n.t().bookForm.authorPlaceholder"
               class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
             />
           </div>
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label for="create-book-isbn" class="field-label">ISBN</label>
+              <label for="create-book-isbn" class="field-label">{{
+                i18n.t().bookForm.isbnLabel
+              }}</label>
               <input
                 id="create-book-isbn"
                 type="text"
                 formControlName="isbn"
-                placeholder="978-84-..."
+                [placeholder]="i18n.t().bookForm.isbnPlaceholder"
                 class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
               />
             </div>
             <div>
-              <label for="create-book-publication-year" class="field-label">Año</label>
+              <label for="create-book-publication-year" class="field-label">{{
+                i18n.t().bookForm.yearLabel
+              }}</label>
               <input
                 id="create-book-publication-year"
                 type="number"
                 min="0"
                 formControlName="publicationYear"
-                placeholder="2025"
+                [placeholder]="i18n.t().bookForm.yearPlaceholder"
                 class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
               />
             </div>
@@ -112,21 +116,25 @@
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label for="create-book-publisher" class="field-label">Editorial</label>
+              <label for="create-book-publisher" class="field-label">{{
+                i18n.t().bookForm.publisherLabel
+              }}</label>
               <input
                 id="create-book-publisher"
                 type="text"
                 formControlName="publisher"
-                placeholder="Nombre de la editorial"
+                [placeholder]="i18n.t().bookForm.publisherPlaceholder"
                 class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
               />
             </div>
             <div>
-              <label for="create-book-format" class="field-label">Formato</label>
+              <label for="create-book-format" class="field-label">{{
+                i18n.t().bookForm.formatLabel
+              }}</label>
               <div class="select-wrap">
                 <select
                   id="create-book-format"
-                  title="Formato del libro"
+                  [title]="i18n.t().bookForm.formatTitle"
                   formControlName="format"
                   class="field-select"
                 >
@@ -134,19 +142,19 @@
                     class="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100"
                     value="Físico"
                   >
-                    Físico
+                    {{ i18n.t().bookForm.formats.physical }}
                   </option>
                   <option
                     class="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100"
                     value="Ebook"
                   >
-                    Ebook
+                    {{ i18n.t().bookForm.formats.ebook }}
                   </option>
                   <option
                     class="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100"
                     value="Audiolibro"
                   >
-                    Audiolibro
+                    {{ i18n.t().bookForm.formats.audiobook }}
                   </option>
                 </select>
               </div>
@@ -162,34 +170,38 @@
             <h3
               class="text-sm font-bold tracking-[0.16em] text-slate-700 uppercase dark:text-slate-300"
             >
-              Progreso y formato
+              {{ i18n.t().bookForm.progressFormatSection }}
             </h3>
           </div>
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label for="create-book-status" class="field-label">Estado</label>
+              <label for="create-book-status" class="field-label">{{
+                i18n.t().bookForm.statusLabel
+              }}</label>
               <div class="select-wrap">
                 <select
                   id="create-book-status"
-                  title="Estado inicial del libro"
+                  [title]="i18n.t().bookForm.createStatusTitle"
                   formControlName="status"
                   class="field-select"
                   (change)="onStatusChange($any($event.target).value)"
                 >
-                  @for (opt of statusOptions; track opt.value) {
+                  @for (statusValue of statusValues; track statusValue) {
                     <option
                       class="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-                      [value]="opt.value"
+                      [value]="statusValue"
                     >
-                      {{ opt.label }}
+                      {{ i18n.t().status[statusValue] }}
                     </option>
                   }
                 </select>
               </div>
             </div>
             <div>
-              <label for="create-book-rating" class="field-label">Valoración</label>
+              <label for="create-book-rating" class="field-label">{{
+                i18n.t().bookForm.ratingLabel
+              }}</label>
               <input
                 id="create-book-rating"
                 type="number"
@@ -197,7 +209,7 @@
                 max="10"
                 step="0.5"
                 formControlName="rating"
-                placeholder="0 - 10"
+                [placeholder]="i18n.t().bookForm.ratingPlaceholder"
                 class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
               />
             </div>
@@ -205,7 +217,9 @@
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label for="create-book-total-pages" class="field-label">Páginas totales</label>
+              <label for="create-book-total-pages" class="field-label">{{
+                i18n.t().bookForm.totalPagesLabel
+              }}</label>
               <input
                 id="create-book-total-pages"
                 type="number"
@@ -215,7 +229,9 @@
               />
             </div>
             <div>
-              <label for="create-book-current-pages" class="field-label">Páginas leídas</label>
+              <label for="create-book-current-pages" class="field-label">{{
+                i18n.t().bookForm.readPagesLabel
+              }}</label>
               <input
                 id="create-book-current-pages"
                 type="number"
@@ -228,7 +244,9 @@
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label for="create-book-total-chapters" class="field-label">Capítulos totales</label>
+              <label for="create-book-total-chapters" class="field-label">{{
+                i18n.t().bookForm.totalChaptersLabel
+              }}</label>
               <input
                 id="create-book-total-chapters"
                 type="number"
@@ -238,7 +256,9 @@
               />
             </div>
             <div>
-              <label for="create-book-current-chapter" class="field-label">Capítulos leídos</label>
+              <label for="create-book-current-chapter" class="field-label">{{
+                i18n.t().bookForm.readChaptersLabel
+              }}</label>
               <input
                 id="create-book-current-chapter"
                 type="number"
@@ -250,9 +270,9 @@
           </div>
 
           <div>
-            <label for="create-book-total-characters" class="field-label"
-              >Total de caracteres</label
-            >
+            <label for="create-book-total-characters" class="field-label">{{
+              i18n.t().bookForm.totalCharactersLabel
+            }}</label>
             <input
               id="create-book-total-characters"
               type="number"
@@ -271,7 +291,7 @@
             <h3
               class="text-sm font-bold tracking-[0.16em] text-slate-700 uppercase dark:text-slate-300"
             >
-              Saga / serie
+              {{ i18n.t().bookForm.seriesSection }}
             </h3>
           </div>
 
@@ -279,7 +299,7 @@
             for="create-book-series-enabled"
             class="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300"
           >
-            <span>Pertenece a una saga</span>
+            <span>{{ i18n.t().bookForm.belongsToSeriesLabel }}</span>
             <span class="relative inline-flex shrink-0 items-center">
               <input
                 id="create-book-series-enabled"
@@ -303,25 +323,27 @@
             <div class="min-h-0 overflow-hidden">
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label for="create-book-series-name" class="field-label">Nombre de serie</label>
+                  <label for="create-book-series-name" class="field-label">{{
+                    i18n.t().bookForm.seriesNameLabel
+                  }}</label>
                   <input
                     id="create-book-series-name"
                     type="text"
                     formControlName="seriesName"
-                    placeholder="Ej. Trilogía de la Fundación"
+                    [placeholder]="i18n.t().bookForm.seriesNamePlaceholder"
                     class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
                   />
                 </div>
                 <div>
-                  <label for="create-book-series-volume" class="field-label"
-                    >Número de volumen</label
-                  >
+                  <label for="create-book-series-volume" class="field-label">{{
+                    i18n.t().bookForm.seriesVolumeLabel
+                  }}</label>
                   <input
                     id="create-book-series-volume"
                     type="number"
                     min="1"
                     formControlName="seriesVolumeNumber"
-                    placeholder="1"
+                    [placeholder]="i18n.t().bookForm.seriesVolumePlaceholder"
                     class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
                   />
                 </div>
@@ -338,13 +360,15 @@
             <h3
               class="text-sm font-bold tracking-[0.16em] text-slate-700 uppercase dark:text-slate-300"
             >
-              Fechas y portada
+              {{ i18n.t().bookForm.datesCoverSection }}
             </h3>
           </div>
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label for="create-book-start-date" class="field-label">Fecha inicio</label>
+              <label for="create-book-start-date" class="field-label">{{
+                i18n.t().bookForm.startDateLabel
+              }}</label>
               <input
                 id="create-book-start-date"
                 type="date"
@@ -353,7 +377,9 @@
               />
             </div>
             <div>
-              <label for="create-book-end-date" class="field-label">Fecha fin</label>
+              <label for="create-book-end-date" class="field-label">{{
+                i18n.t().bookForm.endDateLabel
+              }}</label>
               <input
                 id="create-book-end-date"
                 type="date"
@@ -363,116 +389,11 @@
             </div>
           </div>
 
-          <div>
-            <span id="create-book-cover-label" class="field-label">Portada</span>
-            <div
-              role="group"
-              aria-labelledby="create-book-cover-label"
-              class="flex gap-2 rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-800"
-            >
-              <button
-                type="button"
-                class="flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
-                [class.bg-slate-900]="coverMode() === 'url'"
-                [class.dark:bg-slate-700]="coverMode() === 'url'"
-                [class.text-white]="coverMode() === 'url'"
-                [class.text-slate-600]="coverMode() !== 'url'"
-                [class.dark:text-slate-400]="coverMode() !== 'url'"
-                [class.hover:bg-slate-100]="coverMode() !== 'url'"
-                [class.dark:hover:bg-slate-700/60]="coverMode() !== 'url'"
-                (click)="onCoverModeChange('url')"
-                title="Usar URL de portada"
-              >
-                URL web
-              </button>
-              <button
-                type="button"
-                class="flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
-                [class.bg-slate-900]="coverMode() === 'upload'"
-                [class.dark:bg-slate-700]="coverMode() === 'upload'"
-                [class.text-white]="coverMode() === 'upload'"
-                [class.text-slate-600]="coverMode() !== 'upload'"
-                [class.dark:text-slate-400]="coverMode() !== 'upload'"
-                [class.hover:bg-slate-100]="coverMode() !== 'upload'"
-                [class.dark:hover:bg-slate-700/60]="coverMode() !== 'upload'"
-                (click)="onCoverModeChange('upload')"
-                title="Subir archivo de portada"
-              >
-                Subir archivo
-              </button>
-            </div>
-          </div>
-
-          @if (coverMode() === 'url') {
-            <div>
-              <label for="create-book-cover-url" class="field-label">URL de portada</label>
-              <input
-                id="create-book-cover-url"
-                type="url"
-                formControlName="coverUrl"
-                placeholder="https://..."
-                class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
-              />
-            </div>
-          } @else {
-            <div
-              class="cover-dropzone"
-              [class.cover-dropzone--active]="isDraggingCover()"
-              (dragover)="onCoverDragOver($event)"
-              (dragleave)="onCoverDragLeave($event)"
-              (drop)="onCoverDrop($event)"
-            >
-              <input
-                id="create-book-cover-file"
-                type="file"
-                accept="image/png,image/jpeg,image/webp,image/avif"
-                class="sr-only"
-                (change)="onCoverSelected($event)"
-              />
-              <span class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-                >Arrastra una imagen aquí</span
-              >
-              <span class="text-xs text-slate-500 dark:text-slate-400">PNG, JPG, WebP o AVIF</span>
-              <label for="create-book-cover-file" class="cover-file-button">Elegir archivo</label>
-              @if (coverFileName()) {
-                <span class="cover-file-badge" title="Archivo seleccionado">{{
-                  coverFileName()
-                }}</span>
-              }
-            </div>
-          }
-
-          @if (coverPreview() || createForm.get('coverUrl')?.value) {
-            <div
-              class="rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800"
-            >
-              <div class="mb-2 flex items-center justify-between">
-                <span
-                  class="text-xs font-bold tracking-[0.14em] text-slate-500 uppercase dark:text-slate-400"
-                  >Previsualización</span
-                >
-                <button
-                  type="button"
-                  (click)="clearCover()"
-                  class="text-xs font-medium text-rose-600 hover:text-rose-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-rose-400 dark:hover:text-rose-300"
-                  aria-label="Eliminar portada"
-                  title="Eliminar portada"
-                >
-                  Eliminar
-                </button>
-              </div>
-              <div
-                class="mx-auto w-32 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm dark:border-slate-700 dark:bg-slate-900"
-              >
-                <img
-                  [src]="coverPreview() || createForm.get('coverUrl')?.value"
-                  alt="Previsualización de la portada"
-                  decoding="async"
-                  class="aspect-[2/3] w-full object-cover"
-                />
-              </div>
-            </div>
-          }
+          <app-cover-picker
+            idPrefix="create"
+            [coverUrl]="createForm.controls.coverUrl.value || ''"
+            (coverUrlChange)="onCoverUrlChange($event)"
+          />
         </section>
 
         <section
@@ -483,14 +404,14 @@
             <h3
               class="text-sm font-bold tracking-[0.16em] text-slate-700 uppercase dark:text-slate-300"
             >
-              Notas
+              {{ i18n.t().bookForm.notesSection }}
             </h3>
           </div>
 
           <textarea
             formControlName="notes"
             rows="3"
-            placeholder="Sinopsis, expectativas o notas personales..."
+            [placeholder]="i18n.t().bookForm.notesPlaceholder"
             class="field-textarea border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
           ></textarea>
         </section>
@@ -503,17 +424,17 @@
           type="button"
           (click)="cancel()"
           class="rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800/60"
-          title="Cancelar"
+          [title]="i18n.t().common.cancel"
         >
-          Cancelar
+          {{ i18n.t().common.cancel }}
         </button>
         <button
           type="submit"
           [disabled]="createForm.invalid || isSaving()"
           class="rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700"
-          title="Añadir libro"
+          [title]="i18n.t().bookForm.createSubmit"
         >
-          {{ isSaving() ? 'Guardando...' : 'Añadir libro' }}
+          {{ isSaving() ? i18n.t().common.saving : i18n.t().bookForm.createSubmit }}
         </button>
       </div>
     </form>

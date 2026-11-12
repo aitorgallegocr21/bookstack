@@ -10,22 +10,23 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { I18nService } from '../../../../core/i18n/i18n.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { BOOK_RATING_MAX, BOOK_RATING_MIN, Book, BookStatus } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
-import { ImageOptimizerService } from '../../services/image-optimizer.service';
 import {
-  BOOK_STATUS_OPTIONS,
+  BOOK_STATUS_VALUES,
   buildBookSeriesPayload,
   getCompletedAutofillValues,
   normalizeBookFormat,
   normalizeBookRating,
 } from '../../utils/book-form.utils';
+import { CoverPickerComponent } from '../cover-picker/cover-picker';
 
 @Component({
   selector: 'app-book-create-modal',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CoverPickerComponent],
   templateUrl: './book-create-modal.html',
   styleUrl: './book-create-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,8 +36,8 @@ import {
 })
 export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
   private readonly uiState = inject(UiStateService);
+  protected readonly i18n = inject(I18nService);
   private readonly booksService = inject(BooksService);
-  private readonly imageOptimizerService = inject(ImageOptimizerService);
   private readonly fb = inject(FormBuilder);
 
   readonly closed = output<void>();
@@ -46,24 +47,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
 
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
-  protected readonly coverMode = signal<'url' | 'upload'>('url');
-  protected readonly coverPreview = signal<string>('');
-  protected readonly coverFileName = signal<string>('');
-  protected readonly isDraggingCover = signal<boolean>(false);
-
-  constructor() {
-    this.uiState.acquireScrollLock();
-  }
-
-  ngAfterViewInit(): void {
-    queueMicrotask(() => this.titleInput()?.nativeElement.focus({ preventScroll: true }));
-  }
-
-  ngOnDestroy(): void {
-    this.uiState.releaseScrollLock();
-  }
-
-  protected readonly statusOptions = BOOK_STATUS_OPTIONS;
+  protected readonly statusValues = BOOK_STATUS_VALUES;
 
   protected readonly createForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(1)]],
@@ -86,8 +70,19 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     seriesEnabled: [false],
     seriesName: [''],
     seriesVolumeNumber: [null],
-    coverSource: ['url'],
   });
+
+  constructor() {
+    this.uiState.acquireScrollLock();
+  }
+
+  ngAfterViewInit(): void {
+    queueMicrotask(() => this.titleInput()?.nativeElement.focus({ preventScroll: true }));
+  }
+
+  ngOnDestroy(): void {
+    this.uiState.releaseScrollLock();
+  }
 
   protected handleEscape(): void {
     this.cancel();
@@ -110,72 +105,8 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     this.createForm.patchValue(nextValues);
   }
 
-  protected onCoverModeChange(mode: 'url' | 'upload'): void {
-    this.coverMode.set(mode);
-    this.createForm.patchValue({ coverSource: mode });
-
-    if (mode === 'url') {
-      this.createForm.patchValue({ coverUrl: this.coverPreview() || '' });
-      return;
-    }
-
-    if (!this.coverPreview()) {
-      this.createForm.patchValue({ coverUrl: '' });
-    }
-  }
-
-  protected async onCoverSelected(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    await this.processCoverFile(file);
-    input.value = '';
-  }
-
-  protected onCoverDragOver(event: DragEvent): void {
-    event.preventDefault();
-    this.isDraggingCover.set(true);
-  }
-
-  protected onCoverDragLeave(event: DragEvent): void {
-    event.preventDefault();
-    this.isDraggingCover.set(false);
-  }
-
-  protected async onCoverDrop(event: DragEvent): Promise<void> {
-    event.preventDefault();
-    this.isDraggingCover.set(false);
-    const file = event.dataTransfer?.files[0];
-
-    if (file) {
-      await this.processCoverFile(file);
-    }
-  }
-
-  private async processCoverFile(file: File): Promise<void> {
-    this.coverFileName.set(file.name);
-
-    try {
-      const optimizedCover = await this.imageOptimizerService.optimize(file);
-      this.coverPreview.set(optimizedCover);
-      this.createForm.patchValue({ coverUrl: optimizedCover });
-      this.coverMode.set('upload');
-    } catch (error) {
-      console.error('[BookCreateModal] Failed to optimize cover image:', error);
-      this.coverPreview.set('');
-      this.coverFileName.set('');
-      this.createForm.patchValue({ coverUrl: '' });
-    }
-  }
-
-  protected clearCover(): void {
-    this.coverPreview.set('');
-    this.coverFileName.set('');
-    this.createForm.patchValue({ coverUrl: '' });
+  protected onCoverUrlChange(coverUrl: string): void {
+    this.createForm.controls.coverUrl.setValue(coverUrl);
   }
 
   protected async save(): Promise<void> {
@@ -225,7 +156,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
       status: val.status as BookStatus,
       format: normalizeBookFormat(val.format),
       series,
-      coverUrl: val.coverUrl?.trim() || this.coverPreview() || undefined,
+      coverUrl: val.coverUrl?.trim() || undefined,
       rating: normalizedRating,
       startDate: val.startDate || undefined,
       endDate: val.endDate || undefined,

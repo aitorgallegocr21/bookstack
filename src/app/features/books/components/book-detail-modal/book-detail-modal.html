@@ -20,11 +20,11 @@
           >
             {{ getStatusLabel(currentBook.status) }}
           </span>
-          @if (currentBook.format) {
+          @if (getFormatLabel(currentBook.format); as formatLabel) {
             <span
               class="rounded-md bg-slate-200/60 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
             >
-              {{ currentBook.format }}
+              {{ formatLabel }}
             </span>
           }
         </div>
@@ -33,8 +33,8 @@
           type="button"
           (click)="cancel()"
           class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:hover:bg-slate-800 dark:hover:text-slate-200"
-          aria-label="Cerrar modal"
-          title="Cerrar"
+          [attr.aria-label]="i18n.t().bookDetail.closeModalAria"
+          [title]="i18n.t().common.close"
         >
           <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -55,7 +55,7 @@
             @if (currentBook.coverUrl) {
               <img
                 [src]="currentBook.coverUrl"
-                [alt]="'Portada de ' + currentBook.title"
+                [alt]="i18n.t().bookDetail.coverAltPrefix + ' ' + currentBook.title"
                 decoding="async"
                 class="block aspect-[2/3] w-full object-cover"
               />
@@ -98,13 +98,12 @@
               class="space-y-2 rounded-xl border border-slate-200/80 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/80"
             >
               <div class="flex items-center justify-between text-xs font-semibold">
-                <span class="tracking-wider text-slate-600 uppercase dark:text-slate-400"
-                  >Progreso</span
-                >
+                <span class="tracking-wider text-slate-600 uppercase dark:text-slate-400">{{
+                  i18n.t().bookDetail.progress
+                }}</span>
                 <span class="text-slate-900 dark:text-slate-100">
-                  {{ currentBook.currentPage }} / {{ currentBook.totalPages }} págs. ({{
-                    progressPercentage()
-                  }}%)
+                  {{ currentBook.currentPage }} / {{ currentBook.totalPages }}
+                  {{ i18n.t().books.pagesUnit }} ({{ progressPercentage() }}%)
                 </span>
               </div>
 
@@ -121,20 +120,20 @@
                 type="button"
                 (click)="openLogEditor()"
                 class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
-                aria-label="Registrar lectura"
-                title="Registrar lectura"
+                [attr.aria-label]="i18n.t().bookDetail.logReading"
+                [title]="i18n.t().bookDetail.logReading"
               >
-                + Registrar lectura
+                {{ i18n.t().bookDetail.logReadingButton }}
               </button>
 
               <button
                 type="button"
                 (click)="onRequestEdit()"
                 class="rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-800 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                aria-label="Editar libro"
-                title="Editar libro"
+                [attr.aria-label]="i18n.t().bookDetail.editBook"
+                [title]="i18n.t().bookDetail.editBook"
               >
-                Editar libro
+                {{ i18n.t().bookDetail.editBook }}
               </button>
             </div>
           </div>
@@ -145,7 +144,7 @@
             <h3
               class="text-xs font-bold tracking-wider text-slate-700 uppercase dark:text-slate-300"
             >
-              Detalles del libro
+              {{ i18n.t().bookDetail.detailsHeading }}
             </h3>
           </div>
 
@@ -157,7 +156,7 @@
                 <p
                   class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
-                  ISBN
+                  {{ i18n.t().bookDetail.isbn }}
                 </p>
                 <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">
                   {{ currentBook.isbn }}
@@ -172,7 +171,7 @@
                 <p
                   class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
-                  Editorial
+                  {{ i18n.t().bookDetail.publisher }}
                 </p>
                 <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">
                   {{ currentBook.publisher }}
@@ -187,7 +186,7 @@
                 <p
                   class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
-                  Año
+                  {{ i18n.t().bookDetail.year }}
                 </p>
                 <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">
                   {{ currentBook.publicationYear }}
@@ -202,7 +201,7 @@
                 <p
                   class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
-                  Saga / serie
+                  {{ i18n.t().bookDetail.series }}
                 </p>
                 <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">
                   {{ getSeriesLabel(currentBook) }}
@@ -219,7 +218,7 @@
                 <p
                   class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
-                  Capítulos
+                  {{ i18n.t().bookDetail.chapters }}
                 </p>
                 <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">
                   {{ currentBook.currentChapter ?? 0 }} / {{ currentBook.totalChapters ?? 0 }}
@@ -234,7 +233,7 @@
                 <p
                   class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
-                  Caracteres
+                  {{ i18n.t().bookDetail.characters }}
                 </p>
                 <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">
                   {{ currentBook.totalCharacters }}
@@ -249,17 +248,23 @@
                 <p
                   class="text-[10px] font-bold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400"
                 >
-                  Fechas de lectura
+                  {{ i18n.t().bookDetail.readingDates }}
                 </p>
                 <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-200">
                   @if (currentBook.startDate) {
-                    <span>Inicio: {{ formatDate(currentBook.startDate) }}</span>
+                    <span
+                      >{{ i18n.t().bookDetail.startPrefix }}
+                      {{ formatDate(currentBook.startDate) }}</span
+                    >
                   }
                   @if (currentBook.startDate && currentBook.endDate) {
                     <span class="mx-2 text-slate-400">•</span>
                   }
                   @if (currentBook.endDate) {
-                    <span>Fin: {{ formatDate(currentBook.endDate) }}</span>
+                    <span
+                      >{{ i18n.t().bookDetail.endPrefix }}
+                      {{ formatDate(currentBook.endDate) }}</span
+                    >
                   }
                 </p>
               </div>
@@ -276,7 +281,7 @@
               id="reading-sessions-title"
               class="text-xs font-bold tracking-wider text-slate-700 uppercase dark:text-slate-300"
             >
-              Sesiones de lectura ({{ bookLogs().length }})
+              {{ i18n.t().bookDetail.sessionsTitle }} ({{ bookLogs().length }})
             </h3>
 
             @if (bookLogs().length > 2) {
@@ -287,7 +292,7 @@
                 aria-controls="reading-sessions-list"
                 (click)="toggleLogsExpanded()"
               >
-                {{ showAllLogs() ? 'Ver menos' : 'Ver más' }}
+                {{ showAllLogs() ? i18n.t().bookDetail.showLess : i18n.t().bookDetail.showMore }}
               </button>
             }
           </div>
@@ -296,7 +301,7 @@
             <p
               class="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3 text-center text-xs text-slate-500 italic dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
             >
-              Sin sesiones registradas para este libro.
+              {{ i18n.t().bookDetail.noSessions }}
             </p>
           } @else {
             <div id="reading-sessions-list" class="max-h-52 space-y-2 overflow-y-auto pr-1">
@@ -306,10 +311,11 @@
                 >
                   <div class="space-y-1">
                     <div class="font-bold text-slate-800 dark:text-slate-200">
-                      {{ formatDate(log.date) }} — {{ log.pagesRead }} páginas leídas
+                      {{ formatDate(log.date) }} — {{ log.pagesRead }}
+                      {{ i18n.t().bookDetail.pagesReadSuffix }}
                       @if (log.timeSpentMinutes) {
                         <span class="font-normal text-slate-500 dark:text-slate-400"
-                          >({{ log.timeSpentMinutes }} min)</span
+                          >({{ log.timeSpentMinutes }} {{ i18n.t().bookDetail.minutesUnit }})</span
                         >
                       }
                     </div>
@@ -323,17 +329,17 @@
                       type="button"
                       (click)="openLogEditor(log)"
                       class="rounded px-2 py-1 font-semibold text-slate-700 transition-colors hover:bg-slate-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-300 dark:hover:bg-slate-700"
-                      title="Editar sesión"
+                      [title]="i18n.t().bookDetail.editSessionTitle"
                     >
-                      Editar
+                      {{ i18n.t().bookDetail.editAction }}
                     </button>
                     <button
                       type="button"
                       (click)="deleteLog(log.id)"
                       class="rounded px-2 py-1 font-semibold text-red-700 transition-colors hover:bg-red-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-red-300 dark:hover:bg-red-950/40"
-                      title="Borrar sesión"
+                      [title]="i18n.t().bookDetail.deleteSessionTitle"
                     >
-                      Borrar
+                      {{ i18n.t().bookDetail.deleteAction }}
                     </button>
                   </div>
                 </div>

@@ -15,11 +15,13 @@ import {
   BOOK_RATING_MAX,
   BOOK_STATUS_CONFIG,
   Book,
+  BookFormat,
   BookStatus,
   ReadingLog,
 } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
 import { ReadingLogService } from '../../services/reading-log.service';
+import { translateBookFormat } from '../../utils/book-form.utils';
 
 @Component({
   selector: 'app-books-page',
@@ -168,6 +170,12 @@ export class BooksPage {
 
   protected getStatusBadgeClass(status: BookStatus): string {
     return BOOK_STATUS_CONFIG[status].badgeClass;
+  }
+
+  protected getFormatLabel(format?: BookFormat | string): string {
+    return (
+      translateBookFormat(format, this.i18n.t().bookForm.formats) || this.i18n.t().books.noFormat
+    );
   }
 
   protected getRatingBadge(rating?: number): string {

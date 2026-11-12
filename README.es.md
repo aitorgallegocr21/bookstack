@@ -19,7 +19,7 @@ Aplicación web moderna, minimalista y **Local-First** para el seguimiento de le
 - **Optimización de Portadas en Cliente:** Pipeline HTML5 Canvas que comprime las portadas subidas ($\le 400\text{px}$, WebP/JPEG) antes de guardarlas localmente.
 - **Shell Responsiva Asimétrica:** Barra lateral colapsable (`68px` / `240px`) en escritorio y tablet ($\ge 768\text{px}$) y cabecera compacta con barra inferior táctil en móvil ($< 768\text{px}$), con persistencia de tema claro/oscuro.
 - **Privacidad Total Local-First:** Tus datos nunca salen de tu navegador gracias a `IndexedDB` (con respaldo seguro en `LocalStorage` y validación Zod). Sin backend obligatorio.
-- **Arquitectura preparada para i18n:** Interfaz activa en español (`es`) mediante diccionarios reactivos preparados para múltiples idiomas.
+- **Internacionalización (`es` / `en`):** Interfaz en español (`es`) por defecto con diccionarios completos reactivos en español e inglés intercambiables en tiempo real desde `/settings`.
 
 ---
 

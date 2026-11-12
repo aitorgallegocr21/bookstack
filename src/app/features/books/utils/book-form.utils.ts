@@ -1,3 +1,4 @@
+import { TranslationDictionary } from '../../../core/i18n/i18n.types';
 import {
   BOOK_RATING_MAX,
   BOOK_RATING_MIN,
@@ -6,11 +7,11 @@ import {
   BookStatus,
 } from '../models/book.model';
 
-export const BOOK_STATUS_OPTIONS: ReadonlyArray<{ value: BookStatus; label: string }> = [
-  { value: 'pending', label: 'Pendiente' },
-  { value: 'reading', label: 'Leyendo' },
-  { value: 'completed', label: 'Completado' },
-  { value: 'abandoned', label: 'Abandonado' },
+export const BOOK_STATUS_VALUES: readonly BookStatus[] = [
+  'pending',
+  'reading',
+  'completed',
+  'abandoned',
 ];
 
 export interface CompletedAutofillInput {
@@ -49,6 +50,27 @@ export function normalizeBookFormat(format?: BookFormat | string | null): string
   }
 
   return format?.name?.trim() || 'Físico';
+}
+
+export function translateBookFormat(
+  format: BookFormat | string | null | undefined,
+  formats: TranslationDictionary['bookForm']['formats']
+): string {
+  const raw = typeof format === 'string' ? format.trim() : format?.name?.trim();
+  if (!raw) {
+    return '';
+  }
+
+  switch (raw) {
+    case 'Físico':
+      return formats.physical;
+    case 'Ebook':
+      return formats.ebook;
+    case 'Audiolibro':
+      return formats.audiobook;
+    default:
+      return raw;
+  }
 }
 
 export function normalizeBookRating(rawRating: unknown): number | undefined {

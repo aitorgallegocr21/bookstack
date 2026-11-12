@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -12,24 +13,24 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { I18nService } from '../../../../core/i18n/i18n.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { BOOK_RATING_MAX, BOOK_RATING_MIN, Book, BookStatus } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
-import { ImageOptimizerService } from '../../services/image-optimizer.service';
 import {
-  BOOK_STATUS_OPTIONS,
+  BOOK_STATUS_VALUES,
   buildBookSeriesPayload,
   getCompletedAutofillValues,
   normalizeBookFormat,
   normalizeBookRating,
 } from '../../utils/book-form.utils';
+import { CoverPickerComponent } from '../cover-picker/cover-picker';
 
 @Component({
   selector: 'app-book-edit-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, CoverPickerComponent],
   templateUrl: './book-edit-modal.html',
   styleUrl: './book-edit-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,8 +40,8 @@ import {
 })
 export class BookEditModalComponent implements AfterViewInit, OnDestroy {
   private readonly uiState = inject(UiStateService);
+  protected readonly i18n = inject(I18nService);
   private readonly booksService = inject(BooksService);
-  private readonly imageOptimizerService = inject(ImageOptimizerService);
   private readonly fb = inject(FormBuilder);
 
   readonly bookId = input.required<string>();
@@ -51,24 +52,12 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
 
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
-  protected readonly coverMode = signal<'url' | 'upload'>('url');
-  protected readonly coverPreview = signal<string>('');
-  protected readonly coverFileName = signal<string>('');
-  protected readonly isDraggingCover = signal<boolean>(false);
+  protected readonly statusValues = BOOK_STATUS_VALUES;
 
-  ngOnDestroy(): void {
-    this.uiState.releaseScrollLock();
-  }
-
-  // Declarative computed lookup for the active book
   protected readonly book = computed<Book | undefined>(() => {
     return this.booksService.books().find((b) => b.id === this.bookId());
   });
 
-  // Status options
-  protected readonly statusOptions = BOOK_STATUS_OPTIONS;
-
-  // Typed reactive form
   protected readonly editForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(1)]],
     author: ['', [Validators.required, Validators.minLength(1)]],
@@ -90,7 +79,6 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
     seriesEnabled: [false],
     seriesName: [''],
     seriesVolumeNumber: [null as number | null],
-    coverSource: ['url'],
   });
 
   constructor() {
@@ -108,8 +96,6 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
           endDate: currentBook.endDate || '',
         });
 
-        this.coverPreview.set(currentBook.coverUrl || '');
-        this.coverFileName.set('');
         const hasSeries = Boolean(currentBook.series);
 
         this.editForm.patchValue({
@@ -133,7 +119,6 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
           seriesEnabled: hasSeries,
           seriesName: currentBook.series?.name || '',
           seriesVolumeNumber: currentBook.series?.volumeNumber || null,
-          coverSource: 'url',
         });
       }
     });
@@ -141,6 +126,10 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     queueMicrotask(() => this.titleInput()?.nativeElement.focus({ preventScroll: true }));
+  }
+
+  ngOnDestroy(): void {
+    this.uiState.releaseScrollLock();
   }
 
   protected onStatusChange(status: BookStatus): void {
@@ -163,72 +152,8 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  protected onCoverModeChange(mode: 'url' | 'upload'): void {
-    this.coverMode.set(mode);
-    this.editForm.patchValue({ coverSource: mode });
-
-    if (mode === 'url') {
-      this.editForm.patchValue({ coverUrl: this.coverPreview() || '' });
-      return;
-    }
-
-    if (!this.coverPreview()) {
-      this.editForm.patchValue({ coverUrl: '' });
-    }
-  }
-
-  protected async onCoverSelected(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    await this.processCoverFile(file);
-    input.value = '';
-  }
-
-  protected onCoverDragOver(event: DragEvent): void {
-    event.preventDefault();
-    this.isDraggingCover.set(true);
-  }
-
-  protected onCoverDragLeave(event: DragEvent): void {
-    event.preventDefault();
-    this.isDraggingCover.set(false);
-  }
-
-  protected async onCoverDrop(event: DragEvent): Promise<void> {
-    event.preventDefault();
-    this.isDraggingCover.set(false);
-    const file = event.dataTransfer?.files[0];
-
-    if (file) {
-      await this.processCoverFile(file);
-    }
-  }
-
-  private async processCoverFile(file: File): Promise<void> {
-    this.coverFileName.set(file.name);
-
-    try {
-      const optimizedCover = await this.imageOptimizerService.optimize(file);
-      this.coverPreview.set(optimizedCover);
-      this.editForm.patchValue({ coverUrl: optimizedCover });
-      this.coverMode.set('upload');
-    } catch (error) {
-      console.error('[BookEditModal] Failed to optimize cover image:', error);
-      this.coverPreview.set('');
-      this.coverFileName.set('');
-      this.editForm.patchValue({ coverUrl: '' });
-    }
-  }
-
-  protected clearCover(): void {
-    this.coverPreview.set('');
-    this.coverFileName.set('');
-    this.editForm.patchValue({ coverUrl: '' });
+  protected onCoverUrlChange(coverUrl: string): void {
+    this.editForm.controls.coverUrl.setValue(coverUrl);
   }
 
   protected async save(): Promise<void> {
@@ -279,7 +204,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
       status: val.status as BookStatus,
       format: normalizeBookFormat(val.format),
       series,
-      coverUrl: val.coverUrl?.trim() || this.coverPreview() || undefined,
+      coverUrl: val.coverUrl?.trim() || undefined,
       rating: normalizedRating,
       startDate: val.startDate || undefined,
       endDate: val.endDate || undefined,

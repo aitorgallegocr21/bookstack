@@ -19,7 +19,7 @@
 - **Styling:** Tailwind CSS v4 (`@tailwindcss/postcss`, `@custom-variant dark`), shared modal/form primitives in `src/styles.css`, class-based light/dark theme persistence.
 - **Icons:** `@lucide/angular` and inline semantic SVGs.
 - **Schema Validation & Privacy:** `zod` runtime validation (`BookSchema` with `isSafeCoverUrl`, `ReadingLogSchema`) + strict `<meta name="referrer" content="no-referrer" />`.
-- **Internationalization:** Signal-based `I18nService` (`es` active user-facing default, `en` dictionary structure ready for expansion) + `Intl.DateTimeFormat`.
+- **Internationalization:** Signal-based `I18nService` (`es` active default, `en` full coverage across all routes, modals, and form components; live switcher in `/settings`) + `Intl.DateTimeFormat`.
 - **Quality & Testing Gates:** Strict TypeScript (`tsconfig.app.json` + `tsconfig.spec.json`), ESLint + `angular-eslint` (including template accessibility), Prettier + `prettier-plugin-tailwindcss` (`.prettierrc.mjs`), Vitest 5 (`jsdom` + `fake-indexeddb`), and Playwright E2E tests.
 
 ---
@@ -34,7 +34,7 @@
 4. **Client-Side Canvas Cover Optimization:** `ImageOptimizerService` scales and compresses uploaded covers ($\le 400\text{px}$, quality `0.75`, WebP/JPEG fallback) before persistence.
 5. **Bidirectional Reading Delta Sync:** Logging, updating, or deleting a `ReadingLog` automatically adjusts `Book.currentPage` and status transitions (`pending` / `reading` / `completed`).
 6. **Accessible Modal & Scroll-Lock Discipline:** Modals implement `host: { '(document:keydown.escape)': ... }`, programmatic initial focus via `viewChild()`, and reference-counted body scroll locks via `UiStateService.acquireScrollLock()` / `releaseScrollLock()`.
-7. **Storage Resilience, Security & Clean Layering:** `StorageAdapterService` lives in `src/app/core/services/`, avoids redundant `localStorage` mirroring on normal IndexedDB writes, traps `QuotaExceededError` / malformed JSON safely, and pairs with Zod parsers (`isSafeCoverUrl` blocks `javascript:` / `data:text/html`). Shared form helpers reside in `book-form.utils.ts`.
+7. **Storage Resilience, Security & Clean Layering:** `StorageAdapterService` lives in `src/app/core/services/`, avoids redundant `localStorage` mirroring on normal IndexedDB writes, traps `QuotaExceededError` / malformed JSON safely, and pairs with Zod parsers (`isSafeCoverUrl` blocks `javascript:` / `data:text/html`). Shared form helpers (`BOOK_STATUS_VALUES`, `translateBookFormat`, autofill) reside in `book-form.utils.ts`, and reusable cover selection/drag-drop/preview lives in `CoverPickerComponent`.
 8. **Token & Agent Context Efficiency:** Always consult this JIT map first, read targeted line ranges (`StartLine`/`EndLine`), never scan `node_modules`, `dist`, or `playwright-report`, and keep `AGENTS.md` + `docs/tasks/` synchronized on every change.
 
 ---
@@ -72,11 +72,11 @@ src/
         │   ├── models/book.model.ts           # Contracts: Book, BookSeries, ReadingLog, ReadingStats
         │   ├── schemas/book.schema.ts         # Zod runtime parsers (BookSchema, isSafeCoverUrl, ReadingLogSchema)
         │   ├── services/                      # BooksService, ReadingLogService, ReadingStatsService, ImageOptimizerService
-        │   ├── utils/book-form.utils.ts       # Shared status/autofill/format/rating/series normalization helpers
+        │   ├── utils/book-form.utils.ts       # Shared status/autofill/format/rating/series helpers
         │   ├── pages/books-page/              # Catalog grid & modal coordination
-        │   └── components/                    # book-create-modal, book-edit-modal, book-detail-modal, reading-log-editor
+        │   └── components/                    # cover-picker, book-create-modal, book-edit-modal, book-detail-modal, reading-log-editor
         ├── analytics/pages/stats-page/        # Analytics view (/stats)
-        ├── settings/pages/settings-page/      # Settings & backup hub (/settings)
+        ├── settings/pages/settings-page/      # Language switcher, settings & future backup hub (/settings)
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)
 
 tests/

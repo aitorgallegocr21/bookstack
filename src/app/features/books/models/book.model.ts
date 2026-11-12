@@ -96,6 +96,39 @@ export interface ReadingLog {
   createdAt: string;
 }
 
+export interface ReadingGoals {
+  year: number;
+  targetBooks: number;
+  targetPages: number;
+}
+
+export const DEFAULT_READING_GOALS: ReadingGoals = {
+  year: new Date().getFullYear(),
+  targetBooks: 12,
+  targetPages: 3000,
+};
+
+export interface DayActivity {
+  dayIndex: number;
+  dayKey: 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+  date: string;
+  active: boolean;
+  isToday: boolean;
+}
+
+export interface StreakInfo {
+  currentStreak: number;
+  longestStreak: number;
+  hasReadToday: boolean;
+  weeklyActivity: DayActivity[];
+}
+
+export interface AnnualProgress {
+  year: number;
+  completedBooks: number;
+  pagesRead: number;
+}
+
 export interface ReadingStats {
   totalBooks: number;
   completedBooks: number;
@@ -107,6 +140,8 @@ export interface ReadingStats {
   averageReadingSpeedPagesPerHour: number;
   monthlyPages: { month: string; pages: number }[];
   statusDistribution: { status: BookStatus; count: number }[];
+  streakInfo: StreakInfo;
+  annualProgress: AnnualProgress;
 }
 
 // ==========================================

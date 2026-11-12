@@ -24,6 +24,25 @@ describe('DashboardPage', () => {
       { status: 'completed', count: 2 },
       { status: 'abandoned', count: 0 },
     ],
+    streakInfo: {
+      currentStreak: 3,
+      longestStreak: 5,
+      hasReadToday: true,
+      weeklyActivity: [
+        { dayIndex: 0, dayKey: 'mon', date: '2026-03-09', active: true, isToday: false },
+        { dayIndex: 1, dayKey: 'tue', date: '2026-03-10', active: true, isToday: false },
+        { dayIndex: 2, dayKey: 'wed', date: '2026-03-11', active: true, isToday: true },
+        { dayIndex: 3, dayKey: 'thu', date: '2026-03-12', active: false, isToday: false },
+        { dayIndex: 4, dayKey: 'fri', date: '2026-03-13', active: false, isToday: false },
+        { dayIndex: 5, dayKey: 'sat', date: '2026-03-14', active: false, isToday: false },
+        { dayIndex: 6, dayKey: 'sun', date: '2026-03-15', active: false, isToday: false },
+      ],
+    },
+    annualProgress: {
+      year: 2026,
+      completedBooks: 2,
+      pagesRead: 720,
+    },
   });
 
   beforeEach(async () => {

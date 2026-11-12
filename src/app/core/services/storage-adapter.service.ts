@@ -7,6 +7,7 @@ export class StorageAdapterService {
   private readonly dbName = 'bookstackDB';
   private readonly dbVersion = 1;
   private dbPromise: Promise<IDBDatabase> | null = null;
+  readonly goalsStorageKey = 'bookstack_reading_goals';
 
   private isIndexedDbAvailable(): boolean {
     return typeof indexedDB !== 'undefined';
@@ -170,6 +171,14 @@ export class StorageAdapterService {
       }
       return false;
     }
+  }
+
+  getReadingGoals(): unknown | null {
+    return this.getItem<unknown>(this.goalsStorageKey);
+  }
+
+  saveReadingGoals(goals: unknown): boolean {
+    return this.setItem(this.goalsStorageKey, goals);
   }
 
   private getFromLocalStorage<T>(storeName: string, key: string): T | null {

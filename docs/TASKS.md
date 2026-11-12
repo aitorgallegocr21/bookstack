@@ -9,7 +9,7 @@
 ## Active Phase
 
 - [ ] **[Phase 06: Interactive Dashboard Hub](tasks/phase-06-interactive-dashboard-hub/index.md)** — _In Progress_ ("Currently Reading" hero card, fast page update, parallel active reads strip, streaks & weekly activity pills, combined annual goals modal, and recent activity feed on `/`).
-  - [ ] **[Task 6.1: Reading Goals & Daily Streaks Engine](tasks/phase-06-interactive-dashboard-hub/task-6.1-goals-and-streaks-engine.md)**
+  - [x] **[Task 6.1: Reading Goals & Daily Streaks Engine](tasks/phase-06-interactive-dashboard-hub/task-6.1-goals-and-streaks-engine.md)**
   - [ ] **[Task 6.2: Hero "Currently Reading", Fast Updater & Smart Empty States](tasks/phase-06-interactive-dashboard-hub/task-6.2-hero-currently-reading-and-fast-updater.md)**
   - [ ] **[Task 6.3: Streaks Widget, Goals Edit Modal & Recent Activity Feed](tasks/phase-06-interactive-dashboard-hub/task-6.3-streaks-goals-modal-and-recent-feed.md)**
   - [ ] **[Task 6.4: Full i18n Sync, Component Specs & Playwright E2E Suite](tasks/phase-06-interactive-dashboard-hub/task-6.4-dashboard-qa-and-e2e-suite.md)**

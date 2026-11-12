@@ -69,8 +69,8 @@ src/
     └── features/                              # Decoupled domain modules
         ├── dashboard/pages/dashboard-page/    # Home overview & KPIs (/)
         ├── books/                             # Books catalog & reading logs domain (/books)
-        │   ├── models/book.model.ts           # Contracts: Book, BookSeries, ReadingLog, ReadingStats
-        │   ├── schemas/book.schema.ts         # Zod runtime parsers (BookSchema, isSafeCoverUrl, ReadingLogSchema)
+        │   ├── models/book.model.ts           # Contracts: Book, BookSeries, ReadingLog, ReadingStats, ReadingGoals, StreakInfo
+        │   ├── schemas/                       # Zod runtime parsers (book.schema.ts, reading-goals.schema.ts)
         │   ├── services/                      # BooksService, ReadingLogService, ReadingStatsService, ImageOptimizerService
         │   ├── utils/book-form.utils.ts       # Shared status/autofill/format/rating/series helpers
         │   ├── pages/books-page/              # Catalog grid & modal coordination

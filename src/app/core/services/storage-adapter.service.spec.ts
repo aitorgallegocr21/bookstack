@@ -83,4 +83,14 @@ describe('StorageAdapterService', () => {
     expect(result).toBe(false);
     expect(errorSpy).toHaveBeenCalled();
   });
+
+  it('should save and retrieve reading goals payload using dedicated helpers', () => {
+    const goals = { year: 2026, targetBooks: 20, targetPages: 5000 };
+    expect(service.getReadingGoals()).toBeNull();
+
+    const saved = service.saveReadingGoals(goals);
+    expect(saved).toBe(true);
+
+    expect(service.getReadingGoals()).toEqual(goals);
+  });
 });

@@ -1,10 +1,37 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ReadingStats } from '../../../books/models/book.model';
+import { vi } from 'vitest';
+import { Book, ReadingStats } from '../../../books/models/book.model';
+import { BooksService } from '../../../books/services/books.service';
+import { ReadingLogService } from '../../../books/services/reading-log.service';
 import { ReadingStatsService } from '../../../books/services/reading-stats.service';
 import { DashboardPage } from './dashboard-page';
 
 describe('DashboardPage', () => {
+  const mockBooks = signal<Book[]>([
+    {
+      id: 'b-1',
+      title: 'Current Read',
+      author: 'Author A',
+      totalPages: 300,
+      currentPage: 150,
+      status: 'reading',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    },
+  ]);
+
+  const mockBooksService = {
+    books: mockBooks,
+    openCreateModal: vi.fn(),
+    update: vi.fn(async () => undefined),
+  };
+
+  const mockReadingLogService = {
+    readingLogs: signal([]),
+    add: vi.fn(async () => undefined),
+  };
+
   const mockStats = signal<ReadingStats>({
     totalBooks: 4,
     completedBooks: 2,
@@ -53,6 +80,14 @@ describe('DashboardPage', () => {
           provide: ReadingStatsService,
           useValue: { stats: mockStats },
         },
+        {
+          provide: BooksService,
+          useValue: mockBooksService,
+        },
+        {
+          provide: ReadingLogService,
+          useValue: mockReadingLogService,
+        },
       ],
     }).compileComponents();
   });
@@ -68,5 +103,15 @@ describe('DashboardPage', () => {
     expect(root.textContent).toContain('48');
     expect(root.textContent).toContain('Enero 2026');
     expect(root.textContent).toContain('Febrero 2026');
+  });
+
+  it('should render currently reading hero with active book', () => {
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('app-currently-reading-hero')).not.toBeNull();
+    expect(root.textContent).toContain('Current Read');
+    expect(root.textContent).toContain('Author A');
   });
 });

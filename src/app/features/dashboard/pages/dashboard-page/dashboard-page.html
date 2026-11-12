@@ -8,6 +8,30 @@
     </p>
   </header>
 
+  <!-- Currently Reading Hero Section -->
+  <section [attr.aria-label]="i18n.t().dashboard.currentlyReading">
+    <app-currently-reading-hero
+      [activeBook]="primaryActiveBook()"
+      [otherActiveBooks]="otherActiveBooks()"
+      [pendingBooks]="pendingBooks()"
+      [totalBooksCount]="allBooks().length"
+      (pageUpdated)="handlePageUpdate($event)"
+      (bookSelected)="handleSelectActiveBook($event)"
+      (startReading)="handleStartReading($event)"
+      (openFullLog)="handleOpenFullLog($event)"
+      (openCreateModal)="handleOpenCreateModal()"
+    />
+  </section>
+
+  <!-- Reading Log Full Editor Modal (when opened from Hero) -->
+  @if (selectedBookForLog(); as targetBook) {
+    <app-reading-log-editor
+      [bookId]="targetBook.id"
+      (closed)="handleCloseFullLog()"
+      (saved)="handleCloseFullLog()"
+    />
+  }
+
   <section
     class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
     [attr.aria-label]="i18n.t().dashboard.metricsAria"

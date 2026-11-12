@@ -67,7 +67,9 @@ src/
     │       └── date-formatter.ts              # Locale-aware Intl date & month formatters
     │
     └── features/                              # Decoupled domain modules
-        ├── dashboard/pages/dashboard-page/    # Home overview & KPIs (/)
+        ├── dashboard/                             # Home dashboard domain (/)
+        │   ├── pages/dashboard-page/              # Main dashboard overview & layout coordinator
+        │   └── components/currently-reading-hero/ # Currently reading hero showcase & fast page updater
         ├── books/                             # Books catalog & reading logs domain (/books)
         │   ├── models/book.model.ts           # Contracts: Book, BookSeries, ReadingLog, ReadingStats, ReadingGoals, StreakInfo
         │   ├── schemas/                       # Zod runtime parsers (book.schema.ts, reading-goals.schema.ts)

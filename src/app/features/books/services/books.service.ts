@@ -77,6 +77,14 @@ export class BooksService {
       ...book,
       currentPage: nextPage,
       status: nextStatus,
+      startDate:
+        nextStatus === 'reading' && !book.startDate
+          ? new Date().toLocaleDateString('sv')
+          : book.startDate,
+      endDate:
+        nextStatus === 'completed'
+          ? book.endDate || new Date().toLocaleDateString('sv')
+          : book.endDate,
       updatedAt: new Date().toISOString(),
     };
 

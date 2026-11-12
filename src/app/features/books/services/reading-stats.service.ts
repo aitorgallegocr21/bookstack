@@ -27,17 +27,15 @@ export class ReadingStatsService {
       .map((book) => book.startDate)
       .filter((date): date is string => Boolean(date));
 
-    const daysFromStart = startDates.length > 0
-      ? Math.max(1, this.calculateDaySpan(startDates))
-      : 1;
+    const daysFromStart =
+      startDates.length > 0 ? Math.max(1, this.calculateDaySpan(startDates)) : 1;
 
     const averagePagesPerDay = Math.round(totalPagesRead / daysFromStart);
 
     const totalPagesLogged = logs.reduce((total, log) => total + log.pagesRead, 0);
     const totalMinutesLogged = logs.reduce((total, log) => total + (log.timeSpentMinutes ?? 0), 0);
-    const averageReadingSpeedPagesPerHour = totalMinutesLogged > 0
-      ? Math.round((totalPagesLogged / totalMinutesLogged) * 60)
-      : 0;
+    const averageReadingSpeedPagesPerHour =
+      totalMinutesLogged > 0 ? Math.round((totalPagesLogged / totalMinutesLogged) * 60) : 0;
 
     const monthlyPages = this.calculateMonthlyPages(logs);
     const statusDistribution = this.calculateStatusDistribution(books);
@@ -52,7 +50,7 @@ export class ReadingStatsService {
       averagePagesPerDay,
       averageReadingSpeedPagesPerHour,
       monthlyPages,
-      statusDistribution
+      statusDistribution,
     };
   });
 
@@ -80,7 +78,9 @@ export class ReadingStatsService {
     return Math.max(1, Math.round((today.getTime() - earliest.getTime()) / msInDay));
   }
 
-  private calculateMonthlyPages(logs: Array<{ date: string; pagesRead: number }>): Array<{ month: string; pages: number }> {
+  private calculateMonthlyPages(
+    logs: Array<{ date: string; pagesRead: number }>
+  ): Array<{ month: string; pages: number }> {
     const result = new Map<string, number>();
 
     for (const log of logs) {
@@ -93,16 +93,20 @@ export class ReadingStatsService {
       result.set(key, (result.get(key) ?? 0) + log.pagesRead);
     }
 
-    return Array.from(result.entries()).map(([month, pages]) => ({
-      month,
-      pages
-    }));
+    return Array.from(result.entries())
+      .sort(([monthA], [monthB]) => monthA.localeCompare(monthB))
+      .map(([month, pages]) => ({
+        month,
+        pages,
+      }));
   }
 
-  private calculateStatusDistribution(books: Array<{ status: BookStatus }>): Array<{ status: BookStatus; count: number }> {
+  private calculateStatusDistribution(
+    books: Array<{ status: BookStatus }>
+  ): Array<{ status: BookStatus; count: number }> {
     return ['pending', 'reading', 'completed', 'abandoned'].map((status) => ({
       status: status as BookStatus,
-      count: books.filter((book) => book.status === status).length
+      count: books.filter((book) => book.status === status).length,
     }));
   }
 }

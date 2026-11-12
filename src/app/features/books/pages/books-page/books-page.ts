@@ -1,29 +1,27 @@
-import {
-  Component,
-  computed,
-  inject,
-  signal,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideDynamicIcon, LucidePlus, LucideEye, LucideEdit2, LucideTrash2, LucideSun, LucideMoon } from '@lucide/angular';
-import { BooksService } from '../../services/books.service';
-import { ReadingStatsService } from '../../services/reading-stats.service';
-import { ReadingLogService } from '../../services/reading-log.service';
-import { ThemeService } from '../../../../core/services/theme.service';
 import {
+  LucideDynamicIcon,
+  LucideEdit2,
+  LucideEye,
+  LucidePlus,
+  LucideTrash2,
+} from '@lucide/angular';
+import { I18nService } from '../../../../core/i18n/i18n.service';
+import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
+import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
+import { ReadingLogEditorComponent } from '../../components/reading-log-editor/reading-log-editor';
+import {
+  BOOK_RATING_MAX,
+  BOOK_STATUS_CONFIG,
   Book,
+  BookFormat,
   BookStatus,
   ReadingLog,
-  BOOK_STATUS_CONFIG,
-  BOOK_STATUS_LABELS,
-  BOOK_RATING_MAX
 } from '../../models/book.model';
-import { BookCreateModalComponent } from '../../components/book-create-modal/book-create-modal';
-import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
-import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
-import { ReadingLogEditorComponent } from '../../components/reading-log-editor/reading-log-editor';
-import { formatSpanishMonth } from '../../../../core/utils/date-formatter';
+import { BooksService } from '../../services/books.service';
+import { ReadingLogService } from '../../services/reading-log.service';
+import { translateBookFormat } from '../../utils/book-form.utils';
 
 @Component({
   selector: 'app-books-page',
@@ -31,50 +29,40 @@ import { formatSpanishMonth } from '../../../../core/utils/date-formatter';
   imports: [
     CommonModule,
     LucideDynamicIcon,
-    BookCreateModalComponent,
     BookEditModalComponent,
     BookDetailModalComponent,
-    ReadingLogEditorComponent
-],
+    ReadingLogEditorComponent,
+  ],
   templateUrl: './books-page.html',
   styleUrl: './books-page.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BooksPage {
   private readonly booksService = inject(BooksService);
-  private readonly readingStatsService = inject(ReadingStatsService);
   private readonly readingLogService = inject(ReadingLogService);
-  protected readonly themeService = inject(ThemeService);
+  protected readonly i18n = inject(I18nService);
 
-  // Exportar constantes de presentación y iconos para uso en templates
   protected readonly BOOK_STATUS_CONFIG = BOOK_STATUS_CONFIG;
-  protected readonly BOOK_STATUS_LABELS = BOOK_STATUS_LABELS;
   protected readonly Plus = LucidePlus;
   protected readonly Eye = LucideEye;
   protected readonly Edit2 = LucideEdit2;
   protected readonly Trash2 = LucideTrash2;
-  protected readonly Sun = LucideSun;
-  protected readonly Moon = LucideMoon;
 
   protected readonly books = this.booksService.books;
   protected readonly readingLogs = this.readingLogService.readingLogs;
-  protected readonly stats = this.readingStatsService.stats;
 
-  // Signals para control de los 3 Modales Independientes
-  protected readonly showCreateModal = signal<boolean>(false);
   protected readonly selectedBookForDetailId = signal<string | null>(null);
   protected readonly selectedBookForEditId = signal<string | null>(null);
 
-  // Modales de registros de lectura
+  // Reading log editor modal state
   protected readonly showReadingLogEditor = signal<boolean>(false);
   protected readonly readingLogBookId = signal<string | undefined>(undefined);
   protected readonly editingReadingLog = signal<ReadingLog | undefined>(undefined);
 
-  // Signal para rastrear qué libros tienen sesiones expandidas
   protected readonly expandedBookIds = signal<Set<string>>(new Set());
 
   /**
-   * Agrupación reactiva O(N) de sesiones de lectura por ID de libro.
+   * O(N) reactive grouping of reading logs indexed by book ID.
    */
   protected readonly logsByBookMap = computed(() => {
     const map = new Map<string, ReadingLog[]>();
@@ -89,26 +77,17 @@ export class BooksPage {
     return map;
   });
 
-  /**
-   * Obtiene las sesiones visibles para un libro (máx 2 si no está expandido).
-   */
   protected getVisibleLogs(bookId: string): ReadingLog[] {
     const allLogs = this.logsByBookMap().get(bookId) ?? [];
     const isExpanded = this.expandedBookIds().has(bookId);
     return isExpanded ? allLogs : allLogs.slice(0, 2);
   }
 
-  /**
-   * Retorna true si hay más sesiones para mostrar (más de 2).
-   */
   protected hasMoreLogs(bookId: string): boolean {
     const allLogs = this.logsByBookMap().get(bookId) ?? [];
     return allLogs.length > 2;
   }
 
-  /**
-   * Retorna el contador de sesiones ocultas.
-   */
   protected getHiddenLogsCount(bookId: string): number {
     const allLogs = this.logsByBookMap().get(bookId) ?? [];
     const isExpanded = this.expandedBookIds().has(bookId);
@@ -118,9 +97,6 @@ export class BooksPage {
     return allLogs.length - 2;
   }
 
-  /**
-   * Alterna la expansión de sesiones para un libro.
-   */
   protected toggleLogsExpanded(bookId: string): void {
     this.expandedBookIds.update((set) => {
       const newSet = new Set(set);
@@ -131,23 +107,6 @@ export class BooksPage {
       }
       return newSet;
     });
-  }
-
-  protected readonly maxMonthlyPages = computed(() => {
-    const monthly = this.stats().monthlyPages;
-    if (monthly.length === 0) {
-      return 1;
-    }
-    return Math.max(...monthly.map((m) => m.pages), 1);
-  });
-
-  // Métodos de apertura y cierre
-  protected openCreateModal(): void {
-    this.showCreateModal.set(true);
-  }
-
-  protected closeCreateModal(): void {
-    this.showCreateModal.set(false);
   }
 
   protected openDetailModal(bookId: string): void {
@@ -172,7 +131,7 @@ export class BooksPage {
   }
 
   protected async deleteBook(bookId: string): Promise<void> {
-    const confirmed = window.confirm('¿Estás seguro de que deseas eliminar este libro? Se conservarán sus lecturas asociadas.');
+    const confirmed = window.confirm(this.i18n.t().books.confirmDeleteBook);
     if (!confirmed) {
       return;
     }
@@ -180,7 +139,7 @@ export class BooksPage {
     try {
       await this.booksService.remove(bookId);
     } catch (error) {
-      console.error('Error al eliminar el libro:', error);
+      console.error('[BooksPage] Failed to delete book:', error);
     }
   }
 
@@ -197,7 +156,7 @@ export class BooksPage {
   }
 
   protected async deleteReadingLog(logId: string): Promise<void> {
-    const confirmed = window.confirm('¿Deseas borrar este registro de lectura?');
+    const confirmed = window.confirm(this.i18n.t().books.confirmDeleteLog);
     if (!confirmed) {
       return;
     }
@@ -205,34 +164,29 @@ export class BooksPage {
     try {
       await this.readingLogService.remove(logId);
     } catch (error) {
-      console.error('Error al borrar la sesión de lectura:', error);
+      console.error('[BooksPage] Failed to delete reading log:', error);
     }
   }
 
-  /**
-   * Helper puro para resolver las clases de insignia de estado de manera consistente.
-   * Utiliza la configuración centralizada de BOOK_STATUS_CONFIG.
-   */
   protected getStatusBadgeClass(status: BookStatus): string {
     return BOOK_STATUS_CONFIG[status].badgeClass;
   }
 
+  protected getFormatLabel(format?: BookFormat | string): string {
+    return (
+      translateBookFormat(format, this.i18n.t().bookForm.formats) || this.i18n.t().books.noFormat
+    );
+  }
+
   protected getRatingBadge(rating?: number): string {
     if (rating === undefined || rating === null || Number.isNaN(rating)) {
-      return 'Sin valoración';
+      return this.i18n.t().books.noRating;
     }
 
     const normalized = Math.min(BOOK_RATING_MAX, Math.max(0, rating));
     return `★ ${normalized.toFixed(1).replace(/\.0$/, '')}/10`;
   }
 
-  protected formatMonth(month: string): string {
-    return formatSpanishMonth(month);
-  }
-
-  /**
-   * Helper para obtener el color de la barra de progreso según el estado.
-   */
   protected getStatusBarColor(status: BookStatus): string {
     return BOOK_STATUS_CONFIG[status].dotClass.replace('bg-', '');
   }

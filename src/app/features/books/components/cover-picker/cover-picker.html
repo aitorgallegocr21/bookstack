@@ -1,0 +1,131 @@
+<div>
+  <span [id]="idPrefix() + '-book-cover-label'" class="field-label">{{
+    i18n.t().bookForm.cover.label
+  }}</span>
+  <div
+    role="group"
+    [attr.aria-labelledby]="idPrefix() + '-book-cover-label'"
+    class="flex gap-2 rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-800"
+  >
+    <button
+      type="button"
+      class="flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      [class.bg-slate-900]="coverMode() === 'url'"
+      [class.dark:bg-slate-700]="coverMode() === 'url'"
+      [class.text-white]="coverMode() === 'url'"
+      [class.text-slate-600]="coverMode() !== 'url'"
+      [class.dark:text-slate-400]="coverMode() !== 'url'"
+      [class.hover:bg-slate-100]="coverMode() !== 'url'"
+      [class.dark:hover:bg-slate-700/60]="coverMode() !== 'url'"
+      [attr.aria-pressed]="coverMode() === 'url'"
+      (click)="setCoverMode('url')"
+      [title]="i18n.t().bookForm.cover.webUrlTabTitle"
+    >
+      {{ i18n.t().bookForm.cover.webUrlTab }}
+    </button>
+    <button
+      type="button"
+      class="flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      [class.bg-slate-900]="coverMode() === 'upload'"
+      [class.dark:bg-slate-700]="coverMode() === 'upload'"
+      [class.text-white]="coverMode() === 'upload'"
+      [class.text-slate-600]="coverMode() !== 'upload'"
+      [class.dark:text-slate-400]="coverMode() !== 'upload'"
+      [class.hover:bg-slate-100]="coverMode() !== 'upload'"
+      [class.dark:hover:bg-slate-700/60]="coverMode() !== 'upload'"
+      [attr.aria-pressed]="coverMode() === 'upload'"
+      (click)="setCoverMode('upload')"
+      [title]="i18n.t().bookForm.cover.uploadFileTabTitle"
+    >
+      {{ i18n.t().bookForm.cover.uploadFileTab }}
+    </button>
+  </div>
+</div>
+
+@if (coverMode() === 'url') {
+  <div>
+    <label [for]="idPrefix() + '-book-cover-url'" class="field-label">{{
+      i18n.t().bookForm.cover.urlLabel
+    }}</label>
+    <input
+      [id]="idPrefix() + '-book-cover-url'"
+      type="url"
+      [value]="urlInputValue()"
+      (input)="onUrlInput($any($event.target).value)"
+      [placeholder]="i18n.t().bookForm.cover.urlPlaceholder"
+      class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+    />
+  </div>
+} @else {
+  <div
+    class="cover-dropzone"
+    [class.cover-dropzone--active]="isDraggingCover()"
+    (dragover)="onCoverDragOver($event)"
+    (dragleave)="onCoverDragLeave($event)"
+    (drop)="onCoverDrop($event)"
+  >
+    <input
+      #coverFileInput
+      [id]="idPrefix() + '-book-cover-file'"
+      type="file"
+      accept="image/png,image/jpeg,image/webp,image/avif"
+      class="hidden"
+      (change)="onCoverSelected($event)"
+    />
+    <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{
+      i18n.t().bookForm.cover.dropzoneTitle
+    }}</span>
+    <span class="text-xs text-slate-500 dark:text-slate-400">{{
+      i18n.t().bookForm.cover.dropzoneFormats
+    }}</span>
+    <button
+      type="button"
+      class="cover-file-button focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      (click)="coverFileInput.click()"
+    >
+      {{ i18n.t().bookForm.cover.chooseFile }}
+    </button>
+    @if (coverFileName()) {
+      <span class="cover-file-badge" [title]="i18n.t().bookForm.cover.selectedFileTitle">{{
+        coverFileName()
+      }}</span>
+    }
+    @if (uploadError()) {
+      <p role="alert" class="mt-1 text-xs font-medium text-rose-600 dark:text-rose-400">
+        {{ uploadError() }}
+      </p>
+    }
+  </div>
+}
+
+@if (displayedCover()) {
+  <div
+    class="rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800"
+  >
+    <div class="mb-2 flex items-center justify-between">
+      <span
+        class="text-xs font-bold tracking-[0.14em] text-slate-500 uppercase dark:text-slate-400"
+        >{{ i18n.t().bookForm.cover.preview }}</span
+      >
+      <button
+        type="button"
+        (click)="clearCover()"
+        class="rounded text-xs font-medium text-rose-600 hover:text-rose-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-rose-400 dark:hover:text-rose-300"
+        [attr.aria-label]="i18n.t().bookForm.cover.removeAria"
+        [title]="i18n.t().bookForm.cover.removeAria"
+      >
+        {{ i18n.t().bookForm.cover.remove }}
+      </button>
+    </div>
+    <div
+      class="mx-auto w-32 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm dark:border-slate-700 dark:bg-slate-900"
+    >
+      <img
+        [src]="displayedCover()"
+        [alt]="i18n.t().bookForm.cover.previewAlt"
+        decoding="async"
+        class="aspect-[2/3] w-full object-cover"
+      />
+    </div>
+  </div>
+}

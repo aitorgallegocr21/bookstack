@@ -1,3 +1,19 @@
-<div class="min-h-screen bg-slate-100/80 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-	<router-outlet></router-outlet>
+<div class="min-h-screen bg-slate-100/80 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+  <app-sidebar class="hidden md:flex"></app-sidebar>
+  <app-header class="md:hidden"></app-header>
+
+  <main
+    class="pt-4 pb-20 transition-[margin] duration-200 md:ml-[var(--sidebar-width)]"
+    [style.--sidebar-width]="uiState.isSidebarCollapsed() ? '68px' : '240px'"
+  >
+    <router-outlet></router-outlet>
+  </main>
+
+  <app-bottom-nav class="md:hidden"></app-bottom-nav>
+
+  @defer (when booksService.isCreateModalOpen()) {
+    @if (booksService.isCreateModalOpen()) {
+      <app-book-create-modal (closed)="booksService.closeCreateModal()"></app-book-create-modal>
+    }
+  }
 </div>

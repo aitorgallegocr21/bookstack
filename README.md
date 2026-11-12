@@ -1,45 +1,81 @@
-# 📚 BookStack
+# BookStack
 
-> Aplicación web moderna, minimalista y Local-First para el seguimiento de lectura, métricas avanzadas y gestión de biblioteca personal.
+> 🌐 **Language:** English | [Leer en Español](README.es.md)
 
-![Angular](https://img.shields.io/badge/Angular-18%2B-DD0031?style=flat-square&logo=angular)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?style=flat-square&logo=tailwind-css)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript)
+Modern, minimalist, **Local-First** web application for personal reading tracking, session logging, habit analytics, and private library management.
+
+![Angular](https://img.shields.io/badge/Angular-22%2B-DD0031?style=flat-square&logo=angular)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.3-38B2AC?style=flat-square&logo=tailwind-css)
+![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
 ---
 
-## ✨ Características Principales
+## Core Features
 
-- 📖 **Gestión de Biblioteca:** Registra y organiza tus libros por estado (*Pendiente*, *Leyendo*, *Completado*, *Abandonado*).
-- ⚡ **Búsqueda & Escáner ISBN:** Autocompletado de portadas y datos mediante la cámara del dispositivo o APIs públicas (Open Library / Google Books).
-- 📊 **Estadísticas Visuales:** Gráficos de velocidad de lectura, consumo de páginas por mes y hábitos de lectura.
-- 📱 **Soporte para Ebooks & Sagas:** Registro opcional de conteo de palabras/caracteres y organización por orden cronológico en sagas.
-- 🔒 **Privacidad Total (Local-First):** Tus datos nunca salen de tu navegador. Persistencia local con IndexedDB.
-
----
-
-## 🛠️ Stack Tecnológico
-
-- **Frontend:** Angular v18+ (Standalone Components, Signals)
-- **Estilos:** Tailwind CSS v3
-- **Iconos:** `@lucide/angular`
-- **Escáner:** `html5-qrcode`
-- **Base de Datos Local:** IndexedDB
+- **Library Management:** Organize books by reading status (_Pending_, _Reading_, _Completed_, _Abandoned_) with cover previews, ratings, and format tracking.
+- **Session Logging & Bidirectional Progress:** Log reading sessions with page deltas and time spent; BookStack automatically recalculates `currentPage`, completion percentage, and status transitions.
+- **Reading Analytics:** Real-time computed metrics for reading speed (`pp/h`), status distribution, and monthly reading activity.
+- **Client-Side Cover Optimization:** Built-in HTML5 Canvas pipeline compresses uploaded covers ($\le 400\text{px}$, WebP/JPEG) before saving locally.
+- **Asymmetric Responsive Shell:** Collapsible sidebar (`68px` / `240px`) on desktop/tablet ($\ge 768\text{px}$) and compact header + bottom navigation on mobile ($< 768\text{px}$), with full light/dark theme persistence.
+- **100% Local-First Privacy:** Data stays on your device using `IndexedDB` (with safe `LocalStorage` fallback and Zod schema validation). No external backend required.
+- **Multi-Language i18n (`es` / `en`):** Spanish (`es`) default UI with complete Signal-based Spanish and English translation dictionaries switchable live from `/settings`.
 
 ---
 
-## 🚀 Instalación y Ejecución Local
+## Tech Stack
+
+- **Frontend:** Angular 22+ (Standalone Components, Signals, `@if`/`@for` Control Flow, `OnPush`, Lazy Routes)
+- **Styling:** Tailwind CSS v4 (`@tailwindcss/postcss`)
+- **Icons:** `@lucide/angular`
+- **Validation:** `zod`
+- **Local Persistence:** Browser `IndexedDB` + `LocalStorage` fallback
+- **Testing & Quality:** Vitest 5, Playwright E2E, ESLint + `angular-eslint`, Prettier
+
+---
+
+## Getting Started
 
 ```bash
-# 1. Clonar el repositorio
-git clone [https://github.com/TU_USUARIO/bookstack.git](https://github.com/TU_USUARIO/bookstack.git)
-
-# 2. Entrar al directorio
+# 1. Clone the repository
+git clone https://github.com/aitorgallegocr21/bookstack.git
 cd bookstack
 
-# 3. Instalar dependencias
+# 2. Checkout develop for active development
+git checkout develop
+
+# 3. Install dependencies
 npm install
 
-# 4. Iniciar el servidor de desarrollo
-ng serve
+# 4. Start the local dev server
+npm run dev
+```
+
+---
+
+## Quality & Verification Commands
+
+| Command               | Description                                                        |
+| :-------------------- | :----------------------------------------------------------------- |
+| `npm run verify`      | Full quality gate (`check` + `lint` + `format` + `test` + `build`) |
+| `npm run verify:fast` | Quick quality gate (`check` + `lint` + `format` + `test`)          |
+| `npm run check`       | Strict TypeScript type checking (`app` and `spec`)                 |
+| `npm run lint`        | ESLint + `angular-eslint` + template accessibility rules           |
+| `npm run format`      | Prettier formatting and Tailwind v4 class sorting check            |
+| `npm test`            | Run Vitest unit & component tests                                  |
+| `npm run test:e2e`    | Run Playwright End-to-End browser tests                            |
+| `npm run build`       | Production build to `dist/bookstack/browser`                       |
+
+---
+
+## Branching & Documentation Workflow
+
+- **`main`:** Production-ready branch deployed automatically to GitHub Pages. Updated strictly via verified GitHub Pull Requests from `develop`.
+- **`develop`:** Primary integration branch for daily feature, fix, and refactoring work.
+- **Engineering Docs:** See [`AGENTS.md`](AGENTS.md), [`CONTEXT.md`](CONTEXT.md), [`docs/TASKS.md`](docs/TASKS.md), and [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
+
+---
+
+## License
+
+Licensed under the [MIT License](LICENSE).

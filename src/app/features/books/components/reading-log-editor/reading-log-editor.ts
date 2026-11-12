@@ -1,17 +1,22 @@
 import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
+  ElementRef,
+  OnDestroy,
+  effect,
   inject,
   input,
   output,
-  effect,
   signal,
-  HostListener,
-  ChangeDetectionStrategy
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { I18nService } from '../../../../core/i18n/i18n.service';
+import { UiStateService } from '../../../../core/services/ui-state.service';
+import { formatLocalizedDate } from '../../../../core/utils/date-formatter';
 import { ReadingLog } from '../../models/book.model';
 import { ReadingLogService } from '../../services/reading-log.service';
-import { formatSpanishDate } from '../../../../core/utils/date-formatter';
 
 @Component({
   selector: 'app-reading-log-editor',
@@ -19,9 +24,14 @@ import { formatSpanishDate } from '../../../../core/utils/date-formatter';
   imports: [FormsModule],
   templateUrl: './reading-log-editor.html',
   styleUrl: './reading-log-editor.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown.escape)': 'handleEscape($event)',
+  },
 })
-export class ReadingLogEditorComponent {
+export class ReadingLogEditorComponent implements AfterViewInit, OnDestroy {
+  private readonly uiState = inject(UiStateService);
+  protected readonly i18n = inject(I18nService);
   private readonly readingLogService = inject(ReadingLogService);
 
   readonly bookId = input.required<string>();
@@ -29,11 +39,15 @@ export class ReadingLogEditorComponent {
   readonly closed = output<void>();
   readonly saved = output<ReadingLog>();
 
+  private readonly pagesReadInput = viewChild<ElementRef<HTMLInputElement>>('pagesReadInput');
+
   protected draft: ReadingLog = this.emptyLog();
   protected readonly isSaving = signal(false);
   protected readonly isClosing = signal(false);
 
   constructor() {
+    this.uiState.acquireScrollLock();
+
     effect(() => {
       const selected = this.existingLog();
       const currentBookId = this.bookId();
@@ -46,7 +60,14 @@ export class ReadingLogEditorComponent {
     });
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
+  ngAfterViewInit(): void {
+    queueMicrotask(() => this.pagesReadInput()?.nativeElement.focus({ preventScroll: true }));
+  }
+
+  ngOnDestroy(): void {
+    this.uiState.releaseScrollLock();
+  }
+
   protected handleEscape(event: Event): void {
     event.preventDefault();
     this.cancel();
@@ -72,7 +93,7 @@ export class ReadingLogEditorComponent {
       pagesRead: Number(this.draft.pagesRead) || 0,
       timeSpentMinutes: Number(this.draft.timeSpentMinutes) || 0,
       date: this.draft.date || this.getTodayLocalDate(),
-      createdAt: this.draft.createdAt || now
+      createdAt: this.draft.createdAt || now,
     };
 
     try {
@@ -87,7 +108,7 @@ export class ReadingLogEditorComponent {
       this.saved.emit(normalized);
       this.closed.emit();
     } catch (error) {
-      console.error('Error guardando la sesión de lectura:', error);
+      console.error('[ReadingLogEditor] Failed to save reading session:', error);
     } finally {
       this.isSaving.set(false);
     }
@@ -103,10 +124,10 @@ export class ReadingLogEditorComponent {
   }
 
   protected formatDate(date?: string): string {
-    return formatSpanishDate(date);
+    return formatLocalizedDate(date, false, this.i18n.intlLocale());
   }
 
-  private emptyLog(bookId: string = ''): ReadingLog {
+  private emptyLog(bookId = ''): ReadingLog {
     return {
       id: '',
       bookId,
@@ -114,7 +135,7 @@ export class ReadingLogEditorComponent {
       pagesRead: 0,
       timeSpentMinutes: 0,
       notes: '',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
   }
 

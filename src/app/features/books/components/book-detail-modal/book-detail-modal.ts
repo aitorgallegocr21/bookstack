@@ -1,18 +1,22 @@
 import {
-  Component,
   ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  computed,
   inject,
   input,
   output,
   signal,
-  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { I18nService } from '../../../../core/i18n/i18n.service';
+import { UiStateService } from '../../../../core/services/ui-state.service';
+import { formatLocalizedDate } from '../../../../core/utils/date-formatter';
+import { BOOK_RATING_MAX, Book, BookFormat, BookStatus, ReadingLog } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
 import { ReadingLogService } from '../../services/reading-log.service';
-import { Book, BookStatus, ReadingLog, BOOK_RATING_MAX } from '../../models/book.model';
+import { translateBookFormat } from '../../utils/book-form.utils';
 import { ReadingLogEditorComponent } from '../reading-log-editor/reading-log-editor';
-import { formatSpanishDate } from '../../../../core/utils/date-formatter';
 
 @Component({
   selector: 'app-book-detail-modal',
@@ -21,8 +25,13 @@ import { formatSpanishDate } from '../../../../core/utils/date-formatter';
   templateUrl: './book-detail-modal.html',
   styleUrl: './book-detail-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown.escape)': 'handleEscape()',
+  },
 })
-export class BookDetailModalComponent {
+export class BookDetailModalComponent implements OnDestroy {
+  private readonly uiState = inject(UiStateService);
+  protected readonly i18n = inject(I18nService);
   private readonly booksService = inject(BooksService);
   private readonly readingLogService = inject(ReadingLogService);
 
@@ -34,6 +43,14 @@ export class BookDetailModalComponent {
   protected readonly editingLog = signal<ReadingLog | undefined>(undefined);
   protected readonly isClosing = signal<boolean>(false);
   protected readonly showAllLogs = signal<boolean>(false);
+
+  constructor() {
+    this.uiState.acquireScrollLock();
+  }
+
+  ngOnDestroy(): void {
+    this.uiState.releaseScrollLock();
+  }
 
   protected readonly book = computed<Book | undefined>(() => {
     return this.booksService.books().find((b) => b.id === this.bookId());
@@ -77,20 +94,24 @@ export class BookDetailModalComponent {
   }
 
   protected async deleteLog(logId: string): Promise<void> {
-    const confirmed = window.confirm('¿Deseas eliminar este registro de lectura?');
+    const confirmed = window.confirm(this.i18n.t().books.confirmDeleteLog);
     if (!confirmed) return;
 
     try {
       await this.readingLogService.remove(logId);
     } catch (error) {
-      console.error('Error al eliminar la sesión de lectura:', error);
+      console.error('[BookDetailModal] Failed to delete reading session:', error);
     }
   }
 
   protected onBackdropClick(event: Event): void {
-    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
+    if (event.target === event.currentTarget) {
       this.cancel();
     }
+  }
+
+  protected handleEscape(): void {
+    this.cancel();
   }
 
   protected getStatusBadgeClass(status: BookStatus): string {
@@ -117,12 +138,11 @@ export class BookDetailModalComponent {
   }
 
   protected getStatusLabel(status: BookStatus): string {
-    switch (status) {
-      case 'reading': return 'Leyendo';
-      case 'completed': return 'Completado';
-      case 'abandoned': return 'Abandonado';
-      case 'pending': return 'Pendiente';
-    }
+    return this.i18n.t().status[status];
+  }
+
+  protected getFormatLabel(format?: BookFormat | string): string {
+    return translateBookFormat(format, this.i18n.t().bookForm.formats);
   }
 
   protected getSeriesLabel(book?: Book): string {
@@ -130,19 +150,21 @@ export class BookDetailModalComponent {
       return '';
     }
 
-    const volume = book.series.volumeNumber ? ` · Vol. ${book.series.volumeNumber}` : '';
+    const volume = book.series.volumeNumber
+      ? ` · ${this.i18n.t().bookDetail.volumePrefix} ${book.series.volumeNumber}`
+      : '';
     return `${book.series.name}${volume}`;
   }
 
   protected getRatingBadge(rating?: number): string {
     if (rating === undefined || rating === null || Number.isNaN(rating)) {
-      return 'Sin valoración';
+      return this.i18n.t().books.noRating;
     }
 
     return `★ ${Math.min(BOOK_RATING_MAX, Math.max(0, rating)).toFixed(1).replace(/\.0$/, '')}/10`;
   }
 
   protected formatDate(date?: string): string {
-    return formatSpanishDate(date);
+    return formatLocalizedDate(date, false, this.i18n.intlLocale());
   }
 }

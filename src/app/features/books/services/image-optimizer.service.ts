@@ -11,7 +11,7 @@ export class ImageOptimizerService {
     'image/jpeg',
     'image/png',
     'image/webp',
-    'image/avif'
+    'image/avif',
   ]);
 
   async optimize(file: File): Promise<string> {
@@ -30,7 +30,7 @@ export class ImageOptimizerService {
 
     const context = canvas.getContext('2d');
     if (!context) {
-      throw new Error('No se pudo inicializar el contexto 2D del canvas para la imagen.');
+      throw new Error('Could not initialize 2D canvas context for cover optimization.');
     }
 
     context.drawImage(image, 0, 0, width, height);
@@ -46,17 +46,15 @@ export class ImageOptimizerService {
 
   private validateFile(file: File): void {
     if (!(file instanceof File)) {
-      throw new Error('El archivo proporcionado no es válido.');
+      throw new Error('The provided file is not valid.');
     }
 
     if (!this.allowedMimeTypes.has(file.type)) {
-      throw new Error(
-        'Tipo de imagen no soportado. Usa JPEG, PNG, WebP o AVIF.'
-      );
+      throw new Error('Unsupported image format. Use JPEG, PNG, WebP, or AVIF.');
     }
 
     if (file.size > this.maxInputSizeBytes) {
-      throw new Error('La imagen supera el tamaño máximo permitido de 10MB.');
+      throw new Error('Image exceeds the maximum allowed size of 10MB.');
     }
   }
 
@@ -73,19 +71,22 @@ export class ImageOptimizerService {
 
       image.onerror = () => {
         URL.revokeObjectURL(objectUrl);
-        reject(new Error('No se pudo cargar la imagen para optimizarla.'));
+        reject(new Error('Could not load image for optimization.'));
       };
 
       image.src = objectUrl;
     });
   }
 
-  private calculateScaledDimensions(width: number, height: number): { width: number; height: number } {
+  private calculateScaledDimensions(
+    width: number,
+    height: number
+  ): { width: number; height: number } {
     const scale = Math.min(1, this.maxDimension / Math.max(width, height));
 
     return {
       width: Math.max(1, Math.round(width * scale)),
-      height: Math.max(1, Math.round(height * scale))
+      height: Math.max(1, Math.round(height * scale)),
     };
   }
 

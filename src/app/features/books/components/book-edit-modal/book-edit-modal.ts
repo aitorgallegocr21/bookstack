@@ -1,73 +1,63 @@
+import { CommonModule } from '@angular/common';
 import {
-  Component,
+  AfterViewInit,
   ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  computed,
+  effect,
   inject,
   input,
   output,
   signal,
-  computed,
-  effect
+  viewChild,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { I18nService } from '../../../../core/i18n/i18n.service';
+import { UiStateService } from '../../../../core/services/ui-state.service';
+import { BOOK_RATING_MAX, BOOK_RATING_MIN, Book, BookStatus } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
-import { ImageOptimizerService } from '../../services/image-optimizer.service';
 import {
-  Book,
-  BookFormat,
-  BookStatus,
-  BOOK_RATING_MAX,
-  BOOK_RATING_MIN
-} from '../../models/book.model';
+  BOOK_STATUS_VALUES,
+  buildBookSeriesPayload,
+  getCompletedAutofillValues,
+  normalizeBookFormat,
+  normalizeBookRating,
+} from '../../utils/book-form.utils';
+import { CoverPickerComponent } from '../cover-picker/cover-picker';
 
 @Component({
   selector: 'app-book-edit-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, CoverPickerComponent],
   templateUrl: './book-edit-modal.html',
   styleUrl: './book-edit-modal.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown.escape)': 'handleEscape()',
+  },
 })
-export class BookEditModalComponent {
+export class BookEditModalComponent implements AfterViewInit, OnDestroy {
+  private readonly uiState = inject(UiStateService);
+  protected readonly i18n = inject(I18nService);
   private readonly booksService = inject(BooksService);
-  private readonly imageOptimizerService = inject(ImageOptimizerService);
   private readonly fb = inject(FormBuilder);
 
-  // Inputs y Outputs reactivos nativos de Angular 18+
   readonly bookId = input.required<string>();
   readonly closed = output<void>();
   readonly saved = output<Book>();
 
-  // Estado local
+  private readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
+
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
-  protected readonly coverMode = signal<'url' | 'upload'>('url');
-  protected readonly coverPreview = signal<string>('');
-  protected readonly coverFileName = signal<string>('');
-  protected readonly isDraggingCover = signal<boolean>(false);
+  protected readonly statusValues = BOOK_STATUS_VALUES;
 
-  // Búsqueda declarativa del libro actual mediante Signal computed
   protected readonly book = computed<Book | undefined>(() => {
     return this.booksService.books().find((b) => b.id === this.bookId());
   });
 
-  // Opciones de estado
-  protected readonly statusOptions: { value: BookStatus; label: string }[] = [
-    { value: 'pending', label: 'Pendiente' },
-    { value: 'reading', label: 'Leyendo' },
-    { value: 'completed', label: 'Completado' },
-    { value: 'abandoned', label: 'Abandonado' }
-  ];
-
-  private normalizeFormatValue(format?: BookFormat | string | null): string {
-    if (typeof format === 'string') {
-      return format.trim() || 'Físico';
-    }
-
-    return format?.name?.trim() || 'Físico';
-  }
-
-  // Formulario reactivo tipado
   protected readonly editForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(1)]],
     author: ['', [Validators.required, Validators.minLength(1)]],
@@ -89,24 +79,23 @@ export class BookEditModalComponent {
     seriesEnabled: [false],
     seriesName: [''],
     seriesVolumeNumber: [null as number | null],
-    coverSource: ['url']
   });
 
   constructor() {
+    this.uiState.acquireScrollLock();
+
     effect(() => {
       const currentBook = this.book();
       if (currentBook) {
-        const completedValues = this.getCompletedAutofillValues({
+        const completedValues = getCompletedAutofillValues({
           status: currentBook.status,
           totalPages: currentBook.totalPages,
           currentPage: currentBook.currentPage,
           totalChapters: currentBook.totalChapters ?? 0,
           currentChapter: currentBook.currentChapter ?? 0,
-          endDate: currentBook.endDate || ''
+          endDate: currentBook.endDate || '',
         });
 
-        this.coverPreview.set(currentBook.coverUrl || '');
-        this.coverFileName.set('');
         const hasSeries = Boolean(currentBook.series);
 
         this.editForm.patchValue({
@@ -118,10 +107,10 @@ export class BookEditModalComponent {
           totalPages: currentBook.totalPages,
           currentPage: completedValues.currentPage ?? currentBook.currentPage,
           totalChapters: currentBook.totalChapters ?? 0,
-          currentChapter: completedValues.currentChapter ?? (currentBook.currentChapter ?? 0),
+          currentChapter: completedValues.currentChapter ?? currentBook.currentChapter ?? 0,
           totalCharacters: currentBook.totalCharacters ?? 0,
           status: currentBook.status,
-          format: this.normalizeFormatValue(currentBook.format),
+          format: normalizeBookFormat(currentBook.format),
           coverUrl: currentBook.coverUrl || '',
           startDate: currentBook.startDate || '',
           endDate: completedValues.endDate ?? (currentBook.endDate || ''),
@@ -130,10 +119,17 @@ export class BookEditModalComponent {
           seriesEnabled: hasSeries,
           seriesName: currentBook.series?.name || '',
           seriesVolumeNumber: currentBook.series?.volumeNumber || null,
-          coverSource: 'url'
         });
       }
     });
+  }
+
+  ngAfterViewInit(): void {
+    queueMicrotask(() => this.titleInput()?.nativeElement.focus({ preventScroll: true }));
+  }
+
+  ngOnDestroy(): void {
+    this.uiState.releaseScrollLock();
   }
 
   protected onStatusChange(status: BookStatus): void {
@@ -141,106 +137,23 @@ export class BookEditModalComponent {
     const currentPage = Number(this.editForm.get('currentPage')?.value) || 0;
     const totalChapters = Number(this.editForm.get('totalChapters')?.value) || 0;
     const currentChapter = Number(this.editForm.get('currentChapter')?.value) || 0;
-    const nextValues = this.getCompletedAutofillValues({
+    const nextValues = getCompletedAutofillValues({
       status,
       totalPages,
       currentPage,
       totalChapters,
       currentChapter,
-      endDate: this.editForm.get('endDate')?.value || ''
+      endDate: this.editForm.get('endDate')?.value || '',
     });
 
     this.editForm.patchValue({
       ...nextValues,
-      status
+      status,
     });
   }
 
-  protected onCoverModeChange(mode: 'url' | 'upload'): void {
-    this.coverMode.set(mode);
-    this.editForm.patchValue({ coverSource: mode });
-
-    if (mode === 'url') {
-      this.editForm.patchValue({ coverUrl: this.coverPreview() || '' });
-      return;
-    }
-
-    if (!this.coverPreview()) {
-      this.editForm.patchValue({ coverUrl: '' });
-    }
-  }
-
-  protected async onCoverSelected(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    await this.processCoverFile(file);
-    input.value = '';
-  }
-
-  protected onCoverDragOver(event: DragEvent): void {
-    event.preventDefault();
-    this.isDraggingCover.set(true);
-  }
-
-  protected onCoverDragLeave(event: DragEvent): void {
-    event.preventDefault();
-    this.isDraggingCover.set(false);
-  }
-
-  protected async onCoverDrop(event: DragEvent): Promise<void> {
-    event.preventDefault();
-    this.isDraggingCover.set(false);
-    const file = event.dataTransfer?.files[0];
-
-    if (file) {
-      await this.processCoverFile(file);
-    }
-  }
-
-  private async processCoverFile(file: File): Promise<void> {
-    this.coverFileName.set(file.name);
-
-    try {
-      const optimizedCover = await this.imageOptimizerService.optimize(file);
-      this.coverPreview.set(optimizedCover);
-      this.editForm.patchValue({ coverUrl: optimizedCover });
-      this.coverMode.set('upload');
-    } catch (error) {
-      console.error('Error al optimizar la portada:', error);
-      this.coverPreview.set('');
-      this.coverFileName.set('');
-      this.editForm.patchValue({ coverUrl: '' });
-    }
-  }
-
-  protected clearCover(): void {
-    this.coverPreview.set('');
-    this.coverFileName.set('');
-    this.editForm.patchValue({ coverUrl: '' });
-  }
-
-  private getCompletedAutofillValues(values: {
-    status: BookStatus | null;
-    totalPages: number;
-    currentPage: number;
-    totalChapters: number;
-    currentChapter: number;
-    endDate: string | null;
-  }): Partial<{ currentPage: number; currentChapter: number; endDate: string }> {
-    if (values.status !== 'completed') {
-      return {};
-    }
-
-    return {
-      currentPage: Math.max(values.currentPage, values.totalPages),
-      currentChapter: Math.max(values.currentChapter, values.totalChapters),
-      endDate: values.endDate || this.getTodayIso()
-    };
+  protected onCoverUrlChange(coverUrl: string): void {
+    this.editForm.controls.coverUrl.setValue(coverUrl);
   }
 
   protected async save(): Promise<void> {
@@ -255,32 +168,26 @@ export class BookEditModalComponent {
     const endDate = this.editForm.get('endDate')?.value || '';
 
     this.editForm.patchValue(
-      this.getCompletedAutofillValues({
+      getCompletedAutofillValues({
         status,
         totalPages,
         currentPage,
         totalChapters,
         currentChapter,
-        endDate
+        endDate,
       })
     );
 
     this.isSaving.set(true);
     const val = this.editForm.getRawValue();
 
-    const hasSeries = Boolean(val.seriesEnabled) && Boolean(val.seriesName?.trim());
-    const series = hasSeries
-      ? {
-          id: currentBook.series?.id || crypto.randomUUID(),
-          name: val.seriesName!.trim(),
-          volumeNumber: val.seriesVolumeNumber ? Number(val.seriesVolumeNumber) : undefined
-        }
-      : undefined;
-
-    const rawRating = val.rating;
-    const normalizedRating = typeof rawRating === 'number' && Number.isFinite(rawRating)
-      ? Math.min(BOOK_RATING_MAX, Math.max(BOOK_RATING_MIN, rawRating))
-      : undefined;
+    const series = buildBookSeriesPayload({
+      enabled: val.seriesEnabled,
+      name: val.seriesName,
+      volumeNumber: val.seriesVolumeNumber,
+      existingSeriesId: currentBook.series?.id,
+    });
+    const normalizedRating = normalizeBookRating(val.rating);
 
     const updatedBook: Book = {
       ...currentBook,
@@ -295,14 +202,14 @@ export class BookEditModalComponent {
       totalChapters: val.totalChapters ? Number(val.totalChapters) : undefined,
       currentChapter: val.currentChapter ? Number(val.currentChapter) : undefined,
       status: val.status as BookStatus,
-      format: this.normalizeFormatValue(val.format),
+      format: normalizeBookFormat(val.format),
       series,
-      coverUrl: val.coverUrl?.trim() || this.coverPreview() || undefined,
+      coverUrl: val.coverUrl?.trim() || undefined,
       rating: normalizedRating,
       startDate: val.startDate || undefined,
       endDate: val.endDate || undefined,
       notes: val.notes?.trim() || undefined,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     try {
@@ -310,7 +217,7 @@ export class BookEditModalComponent {
       this.saved.emit(updatedBook);
       this.closed.emit();
     } catch (error) {
-      console.error('Error al actualizar el libro:', error);
+      console.error('[BookEditModal] Failed to update book:', error);
     } finally {
       this.isSaving.set(false);
     }
@@ -326,16 +233,12 @@ export class BookEditModalComponent {
   }
 
   protected onBackdropClick(event: Event): void {
-    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
+    if (event.target === event.currentTarget) {
       this.cancel();
     }
   }
 
   protected handleEscape(): void {
     this.cancel();
-  }
-
-  private getTodayIso(): string {
-    return new Date().toISOString().slice(0, 10);
   }
 }

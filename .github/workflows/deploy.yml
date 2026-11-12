@@ -1,53 +1,56 @@
-name: Deploy to GitHub Pages
+name: Deploy Static Site to GitHub Pages
 
 on:
   push:
-    branches:
-      - main # Se ejecuta automáticamente al hacer push o merge a main
+    branches: [main]
+  workflow_dispatch:
 
-# Permisos requeridos para desplegar en GitHub Pages mediante ID Token
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Permite cancelar despliegues anteriores si haces commits muy seguidos
 concurrency:
   group: 'pages'
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repositorio
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'npm'
 
-      - name: Instalar dependencias
+      - name: Install dependencies
         run: npm ci
 
-      - name: Compilar aplicación Angular
+      - name: Build production Angular app for GitHub Pages
         run: npx ng build --configuration production --base-href /bookstack/
 
-      - name: Configurar GitHub Pages
+      - name: Add SPA 404 fallback for client-side routing
+        run: cp ./dist/bookstack/browser/index.html ./dist/bookstack/browser/404.html
+
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Subir artefactos de compilación
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # En Angular 18 el build cliente se genera en dist/<nombre-proyecto>/browser
           path: './dist/bookstack/browser'
 
-      - name: Desplegar en GitHub Pages
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

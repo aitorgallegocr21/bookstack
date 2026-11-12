@@ -4,12 +4,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "types": [],
-    "strict": true,
+    "strict": true
   },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "src/**/*.spec.ts"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts"]
 }

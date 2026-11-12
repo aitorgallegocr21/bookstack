@@ -1,4 +1,4 @@
-import { Injectable, effect, signal, computed } from '@angular/core';
+import { DOCUMENT, Injectable, computed, effect, inject, signal } from '@angular/core';
 
 type Theme = 'light' | 'dark';
 
@@ -6,6 +6,7 @@ const THEME_STORAGE_KEY = 'bookstack_theme_v1';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
+  private readonly document = inject(DOCUMENT);
   private readonly theme = signal<Theme>('light');
   readonly isDark = computed(() => this.theme() === 'dark');
 
@@ -15,23 +16,24 @@ export class ThemeService {
   }
 
   private initializeTheme(): void {
-    // Intentar cargar tema de localStorage
     const savedTheme = this.getSavedTheme();
 
     if (savedTheme) {
       this.theme.set(savedTheme);
       this.applyTheme(savedTheme);
-    } else {
-      // Usar preferencia del sistema operativo
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const initialTheme: Theme = prefersDark ? 'dark' : 'light';
-      this.theme.set(initialTheme);
-      this.applyTheme(initialTheme);
+      return;
     }
+
+    const prefersDark =
+      typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+        : false;
+    const initialTheme: Theme = prefersDark ? 'dark' : 'light';
+    this.theme.set(initialTheme);
+    this.applyTheme(initialTheme);
   }
 
   private setupThemeEffect(): void {
-    // Efecto para mantener sincronizado el DOM cuando cambia el tema
     effect(() => {
       const currentTheme = this.theme();
       this.applyTheme(currentTheme);
@@ -40,7 +42,7 @@ export class ThemeService {
   }
 
   toggleTheme(): void {
-    this.theme.update(current => (current === 'light' ? 'dark' : 'light'));
+    this.theme.update((current) => (current === 'light' ? 'dark' : 'light'));
   }
 
   setTheme(theme: Theme): void {
@@ -52,7 +54,7 @@ export class ThemeService {
   }
 
   private applyTheme(theme: Theme): void {
-    const htmlElement = document.documentElement;
+    const htmlElement = this.document.documentElement;
 
     if (theme === 'dark') {
       htmlElement.classList.add('dark');
@@ -65,7 +67,7 @@ export class ThemeService {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch (error) {
-      console.warn('Failed to persist theme to localStorage:', error);
+      console.warn('[ThemeService] Failed to persist theme to localStorage:', error);
     }
   }
 
@@ -74,7 +76,7 @@ export class ThemeService {
       const saved = localStorage.getItem(THEME_STORAGE_KEY);
       return saved === 'light' || saved === 'dark' ? saved : null;
     } catch (error) {
-      console.warn('Failed to retrieve theme from localStorage:', error);
+      console.warn('[ThemeService] Failed to retrieve theme from localStorage:', error);
       return null;
     }
   }

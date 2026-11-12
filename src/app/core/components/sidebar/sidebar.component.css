@@ -1,0 +1,18 @@
+/* Sidebar component discrete transitions */
+
+:host-context(aside) {
+  transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:host-context(.rotate-180) {
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+aside {
+  z-index: 40;
+}
+
+svg[lucideIcon='sun'],
+svg[lucideIcon='moon'] {
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}

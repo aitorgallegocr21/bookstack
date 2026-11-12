@@ -1,37 +1,29 @@
-import { Injectable, signal } from '@angular/core';
-import { from } from 'rxjs';
+import { Injectable, inject, signal } from '@angular/core';
+import { StorageAdapterService } from '../../../core/services/storage-adapter.service';
 import { Book } from '../models/book.model';
-import { StorageAdapterService } from './storage-adapter.service';
+import { parseStoredBooks } from '../schemas/book.schema';
 
 @Injectable({ providedIn: 'root' })
 export class BooksService {
+  private readonly storage = inject(StorageAdapterService);
   private readonly storeName = 'books';
   private initPromise: Promise<void> | null = null;
 
   readonly books = signal<Book[]>([]);
+  readonly isCreateModalOpen = signal<boolean>(false);
 
-  constructor(private readonly storage: StorageAdapterService) {
-    this.initDataStream();
-  }
-
-  private initDataStream(): void {
-    from(this.storage.getAll<Book>(this.storeName)).subscribe({
-      next: (storedBooks) => this.books.set(storedBooks),
-      error: (error) => {
-        console.error('Error inicializando la lista de libros:', error);
-        this.books.set([]);
-      }
-    });
+  constructor() {
+    void this.ensureInitialized();
   }
 
   private ensureInitialized(): Promise<void> {
     this.initPromise ??= this.storage
-      .getAll<Book>(this.storeName)
+      .getAll<unknown>(this.storeName)
       .then((storedBooks) => {
-        this.books.set(storedBooks);
+        this.books.set(parseStoredBooks(storedBooks));
       })
-      .catch((error) => {
-        console.error('Error inicializando la lista de libros:', error);
+      .catch((error: unknown) => {
+        console.error('[BooksService] Failed to initialize books list:', error);
         this.books.set([]);
       });
     return this.initPromise;
@@ -56,9 +48,7 @@ export class BooksService {
   async update(id: string, updatedBook: Book): Promise<void> {
     await this.ensureInitialized();
     await this.storage.set(this.storeName, updatedBook);
-    this.books.update((current) =>
-      current.map((b) => (b.id === id ? updatedBook : b))
-    );
+    this.books.update((current) => current.map((b) => (b.id === id ? updatedBook : b)));
   }
 
   async applyReadingDelta(bookId: string, deltaPages: number): Promise<void> {
@@ -76,17 +66,18 @@ export class BooksService {
     const totalPages = Math.max(0, book.totalPages);
     const currentPage = Math.min(totalPages, Math.max(0, book.currentPage));
     const nextPage = Math.min(totalPages, Math.max(0, currentPage + deltaPages));
-    const nextStatus = nextPage >= totalPages && totalPages > 0
-      ? 'completed'
-      : book.status === 'completed' || (deltaPages > 0 && book.status === 'pending')
-        ? 'reading'
-        : book.status;
+    const nextStatus =
+      nextPage >= totalPages && totalPages > 0
+        ? 'completed'
+        : book.status === 'completed' || (deltaPages > 0 && book.status === 'pending')
+          ? 'reading'
+          : book.status;
 
     const updatedBook: Book = {
       ...book,
       currentPage: nextPage,
       status: nextStatus,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
 
     await this.storage.set(this.storeName, updatedBook);
@@ -99,5 +90,13 @@ export class BooksService {
     await this.ensureInitialized();
     await this.storage.remove(this.storeName, id);
     this.books.update((current) => current.filter((b) => b.id !== id));
+  }
+
+  openCreateModal(): void {
+    this.isCreateModalOpen.set(true);
+  }
+
+  closeCreateModal(): void {
+    this.isCreateModalOpen.set(false);
   }
 }

@@ -1,0 +1,13 @@
+:host {
+  display: block;
+}
+
+a[routerLink],
+button {
+  text-decoration: none;
+}
+
+svg[lucideIcon='sun'],
+svg[lucideIcon='moon'] {
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}

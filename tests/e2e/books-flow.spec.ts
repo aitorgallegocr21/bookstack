@@ -33,7 +33,9 @@ test.describe('End-to-end Book & Reading Log lifecycle', () => {
     await expect(page.locator('app-reading-log-editor dialog')).toBeHidden();
     await expect(page.getByText('80 / 200 págs.')).toBeVisible();
     await expect(page.getByText('40%')).toBeVisible();
-    await expect(page.getByText('Leyendo')).toBeVisible();
+    await expect(
+      page.getByRole('region', { name: 'Lista de libros' }).getByText('Leyendo')
+    ).toBeVisible();
 
     // Open details modal and transition into edit modal
     await page.getByRole('button', { name: 'Ver detalles: Dune', exact: true }).first().click();

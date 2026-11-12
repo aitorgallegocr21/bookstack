@@ -14,6 +14,7 @@ Modern, minimalist, **Local-First** web application for personal reading trackin
 ## Core Features
 
 - **Interactive Dashboard Hub:** "Currently Reading" hero showcase with inline fast page updater, parallel active reads selector, smart dual empty states (welcome prompt vs. pick from pending), daily reading streak with animated flame and weekly activity indicators, combined annual goals (books + pages) with modal editor, and recent activity feed.
+- **Versatile Catalog Browsing & View Density:** Switch seamlessly between three distinct library views (Visual Bookshelf Grid, Media-Object Detailed Cards, and High-Density Compact List). Features real-time omni-search across title, author, and saga/series, quick status filter chips with dynamic count badges, collapsible secondary filters (format and star ratings), comprehensive sorting (7 criteria), persistent view preferences in LocalStorage, and a dedicated zero-match empty state with 1-click filter reset.
 - **Library Management:** Organize books by reading status (_Pending_, _Reading_, _Completed_, _Abandoned_) with cover previews, ratings, and format tracking.
 - **Session Logging & Bidirectional Progress:** Log reading sessions with page deltas and time spent; BookStack automatically recalculates `currentPage`, completion percentage, and status transitions.
 - **Reading Analytics:** Real-time computed metrics for reading speed (`pp/h`), status distribution, and monthly reading activity.

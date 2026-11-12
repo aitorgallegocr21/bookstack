@@ -75,12 +75,12 @@ src/
         │       ├── annual-goal-card/              # Books and pages annual progress with lightweight modal editor
         │       └── recent-activity-feed/          # Recent reading logs list with quick book & log navigation
         ├── books/                             # Books catalog & reading logs domain (/books)
-        │   ├── models/book.model.ts           # Contracts: Book, BookSeries, ReadingLog, ReadingStats, ReadingGoals, StreakInfo
+        │   ├── models/                        # Contracts: book.model.ts, catalog-filter.model.ts
         │   ├── schemas/                       # Zod runtime parsers (book.schema.ts, reading-goals.schema.ts)
-        │   ├── services/                      # BooksService, ReadingLogService, ReadingStatsService, ImageOptimizerService
+        │   ├── services/                      # BooksService, ReadingLogService, ReadingStatsService, ImageOptimizerService, CatalogFilterService
         │   ├── utils/book-form.utils.ts       # Shared status/autofill/format/rating/series helpers
-        │   ├── pages/books-page/              # Catalog grid & modal coordination
-        │   └── components/                    # cover-picker, book-create-modal, book-edit-modal, book-detail-modal, reading-log-editor
+        │   ├── pages/books-page/              # Catalog coordinator, 3 view modes & zero-match empty state
+        │   └── components/                    # cover-picker, book-create-modal, book-edit-modal, book-detail-modal, reading-log-editor, catalog-toolbar, book-grid-card, book-detailed-card, book-compact-row
         ├── analytics/pages/stats-page/        # Analytics view (/stats)
         ├── settings/pages/settings-page/      # Language switcher, settings & future backup hub (/settings)
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)
@@ -90,7 +90,8 @@ tests/
     ├── overflow.spec.ts                       # Horizontal overflow & single-<main> check (375..1280px)
     ├── navigation-and-theme.spec.ts           # Sidebar, mobile bottom nav & dark theme persistence
     ├── books-flow.spec.ts                     # End-to-end Book & ReadingLog CRUD lifecycle
-    └── dashboard-flow.spec.ts                 # Full dashboard interactive flow & streak/goal lifecycle
+    ├── dashboard-flow.spec.ts                 # Full dashboard interactive flow & streak/goal lifecycle
+    └── catalog-flow.spec.ts                   # Omni-search, status/format/rating filters, sort, 3 view modes & reset
 ```
 
 ---

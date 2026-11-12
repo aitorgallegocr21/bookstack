@@ -1,6 +1,6 @@
 # Phase 07: Catalog Filtering, Search & View Density
 
-**Status:** In Progress  
+**Status:** Completed  
 **Target Branch:** `feature/07-catalog-filtering-search` $\to$ `develop`  
 **Core Mission:** Elevate the BookStack catalog (`/books`) into a high-performance, modern, and versatile library browser. Introduce multi-criteria real-time filtering, live omni-search, comprehensive sorting, three distinct view modes (Visual Bookshelf Grid, Media-Object Detailed Cards, and High-Density Compact List), persistent user preferences via LocalStorage, and dedicated zero-match empty states with 1-click filter reset.
 
@@ -44,4 +44,4 @@
 - [x] **[Task 7.1: Filter, Sort & Persistence Engine](task-7.1-filter-sort-engine-and-persistence.md)** — Define filter & sort contracts, extend `StorageAdapterService` for view mode/sort persistence, build reactive Signals filter engine, and register i18n keys.
 - [x] **[Task 7.2: Catalog Toolbar & Filter Panel](task-7.2-catalog-toolbar-and-filter-panel.md)** — Build `CatalogToolbarComponent` featuring live search input, 3-mode view toggle, sort dropdown, status chips with real-time counters, and collapsible advanced filters (format & stars).
 - [x] **[Task 7.3: Three View Modes & Zero-Match Empty State](task-7.3-catalog-view-modes-and-empty-state.md)** — Implement `BookGridCardComponent`, refine `BookDetailedCardComponent`, build `BookCompactRowComponent`, and integrate the dedicated "no matching books" empty state with 1-click reset.
-- [ ] **[Task 7.4: Catalog QA, Component Specs & Playwright E2E Suite](task-7.4-catalog-qa-and-e2e-suite.md)** — Unit tests for filter engine, component specs for toolbar and view cards, and Playwright E2E suite covering search, filtering, view switching, and responsive mobile validation.
+- [x] **[Task 7.4: Catalog QA, Component Specs & Playwright E2E Suite](task-7.4-catalog-qa-and-e2e-suite.md)** — Unit tests for filter engine, component specs for toolbar and view cards, and Playwright E2E suite covering search, filtering, view switching, and responsive mobile validation.

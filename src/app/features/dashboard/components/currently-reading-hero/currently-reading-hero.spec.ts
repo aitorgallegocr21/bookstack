@@ -106,21 +106,39 @@ describe('CurrentlyReadingHeroComponent', () => {
     const input = root.querySelector('input[type="number"]') as HTMLInputElement;
     const submitBtn = root.querySelectorAll('button')[1] as HTMLButtonElement;
 
-    // By default value is 160 (currentPage) => button must be disabled
+    // By default value is 160 (currentPage) => button is disabled but warning is not shown until attempted
     expect(submitBtn.disabled).toBe(true);
-    expect(root.textContent).toContain('La página debe ser mayor a la actual (160)');
+    expect(root.textContent).not.toContain('La página debe ser mayor a la actual (160)');
 
-    // Setting value lower than 160
+    // Attempting to set value lower than or equal to 160 => shows warning
     input.value = '150';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
     expect(submitBtn.disabled).toBe(true);
+    expect(root.textContent).toContain('La página debe ser mayor a la actual (160)');
 
-    // Setting valid value
+    // Setting valid value => hides warning and enables submit button
     input.value = '175';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
     expect(submitBtn.disabled).toBe(false);
+    expect(root.textContent).not.toContain('La página debe ser mayor a la actual (160)');
+  });
+
+  it('should show warning if user tries to submit without increasing current page (regression)', () => {
+    fixture.componentRef.setInput('totalBooksCount', 3);
+    fixture.componentRef.setInput('activeBook', sampleBook); // currentPage: 160
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const input = root.querySelector('input[type="number"]') as HTMLInputElement;
+
+    expect(root.textContent).not.toContain('La página debe ser mayor a la actual (160)');
+
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    fixture.detectChanges();
+
+    expect(root.textContent).toContain('La página debe ser mayor a la actual (160)');
   });
 
   it('should open confirmation modal when updating to totalPages and emit upon confirmation', () => {

@@ -40,6 +40,7 @@ export class CurrentlyReadingHeroComponent implements OnDestroy {
   readonly openCreateModal = output<void>();
 
   protected readonly pageInputValue = signal<number>(0);
+  protected readonly pageInputTouched = signal<boolean>(false);
   protected readonly isCompletionModalOpen = signal<boolean>(false);
 
   constructor() {
@@ -47,6 +48,7 @@ export class CurrentlyReadingHeroComponent implements OnDestroy {
       const book = this.activeBook();
       if (book) {
         this.pageInputValue.set(book.currentPage);
+        this.pageInputTouched.set(false);
       }
     });
   }
@@ -97,11 +99,18 @@ export class CurrentlyReadingHeroComponent implements OnDestroy {
     const target = event.target as HTMLInputElement;
     const value = parseInt(target.value, 10);
     this.pageInputValue.set(Number.isNaN(value) ? 0 : value);
+    this.pageInputTouched.set(true);
   }
 
   protected submitPageUpdate(): void {
     const book = this.activeBook();
-    if (!book || !this.isPageUpdateValid()) {
+    if (!book) {
+      return;
+    }
+
+    this.pageInputTouched.set(true);
+
+    if (!this.isPageUpdateValid()) {
       return;
     }
 

@@ -293,7 +293,7 @@
               </svg>
               {{ i18n.t().dashboard.updatePageAction }}
             </button>
-            @if (pageInputValue() <= currentBook.currentPage) {
+            @if (pageInputTouched() && pageInputValue() <= currentBook.currentPage) {
               <span class="w-full text-xs font-medium text-amber-600 dark:text-amber-400">
                 {{ i18n.t().dashboard.pageInputMustBeGreater }} ({{ currentBook.currentPage }})
               </span>

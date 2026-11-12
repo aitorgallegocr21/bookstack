@@ -73,6 +73,18 @@ describe('DashboardPage', () => {
   });
 
   beforeEach(async () => {
+    mockBooks.set([
+      {
+        id: 'b-1',
+        title: 'Current Read',
+        author: 'Author A',
+        totalPages: 300,
+        currentPage: 150,
+        status: 'reading',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-02T00:00:00.000Z',
+      },
+    ]);
     await TestBed.configureTestingModule({
       imports: [DashboardPage],
       providers: [
@@ -127,5 +139,37 @@ describe('DashboardPage', () => {
     expect(root.querySelector('app-reading-streak-widget')).not.toBeNull();
     expect(root.querySelector('app-annual-goal-card')).not.toBeNull();
     expect(root.querySelector('app-recent-activity-feed')).not.toBeNull();
+  });
+
+  it('should render welcome empty state when totalBooks is 0', () => {
+    mockBooks.set([]);
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('¡Te damos la bienvenida a BookStack!');
+    expect(root.textContent).toContain('Añadir mi primer libro');
+  });
+
+  it('should render pick next read empty state when books exist but none are in reading status', () => {
+    mockBooks.set([
+      {
+        id: 'b-pending-1',
+        title: 'Pending Read',
+        author: 'Author B',
+        totalPages: 250,
+        currentPage: 0,
+        status: 'pending',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Sin lecturas en curso');
+    expect(root.textContent).toContain('Pending Read');
+    expect(root.textContent).toContain('Empezar a leer');
   });
 });

@@ -1,6 +1,6 @@
 # Phase 06: Interactive Dashboard Hub
 
-**Status:** In Progress (Active Phase)  
+**Status:** Completed  
 **Target Branch:** `feature/06-interactive-dashboard-hub` $\to$ `develop`  
 **Core Mission:** Redesign and elevate the BookStack home page (`/`) into an interactive, motivating personal reading launchpad. Features a "Currently Reading" Hero card with inline fast-page update, parallel active reads strip, smart dual empty states, daily reading streak with animated flame and weekly activity indicators, combined annual reading goals (books + pages) with a lightweight edit modal, recent activity feed, and responsive 2-column desktop layout.
 
@@ -38,4 +38,4 @@
 - [x] **[Task 6.1: Reading Goals & Daily Streaks Engine](task-6.1-goals-and-streaks-engine.md)** — Create `ReadingGoals` domain model & Zod schema, extend `ReadingStatsService` with consecutive day streak calculation (with grace period) and current-year goal tracking, and add unit tests with `fake-indexeddb`.
 - [x] **[Task 6.2: Hero "Currently Reading", Fast Updater & Smart Empty States](task-6.2-hero-currently-reading-and-fast-updater.md)** — Implement `CurrentlyReadingHeroComponent` with inline page numerical input, quick delta logging, parallel active books selector, and dual smart empty states (first book vs. pick from pending).
 - [x] **[Task 6.3: Streaks Widget, Goals Edit Modal & Recent Activity Feed](task-6.3-streaks-goals-modal-and-recent-feed.md)** — Implement `ReadingStreakWidgetComponent` with flame icon and weekly pills, `AnnualGoalCardComponent` with lightweight edit modal, `RecentActivityFeedComponent`, and wire the asymmetric 2-column responsive layout in `DashboardPageComponent`.
-- [ ] **[Task 6.4: Full i18n Sync, Component Specs & Playwright E2E Suite](task-6.4-dashboard-qa-and-e2e-suite.md)** — Synchronize `es.ts` and `en.ts` dictionaries, write component unit tests for dashboard elements, create `tests/e2e/dashboard-flow.spec.ts`, and run `npm run verify` + `npm run test:e2e`.
+- [x] **[Task 6.4: Full i18n Sync, Component Specs & Playwright E2E Suite](task-6.4-dashboard-qa-and-e2e-suite.md)** — Synchronize `es.ts` and `en.ts` dictionaries, write component unit tests for dashboard elements, create `tests/e2e/dashboard-flow.spec.ts`, and run `npm run verify` + `npm run test:e2e`.

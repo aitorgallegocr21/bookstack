@@ -13,6 +13,7 @@ Aplicación web moderna, minimalista y **Local-First** para el seguimiento de le
 
 ## Características Principales
 
+- **Panel Principal Interactivo (Dashboard):** Tarjeta destacada de "Leyendo ahora" con actualizador rápido de página en línea, selector de lecturas paralelas activas, estados vacíos inteligentes (bienvenida inicial vs. seleccionar de pendientes), racha diaria de lectura con llama animada e indicadores semanales, metas anuales combinadas (libros y páginas) con editor modal, y feed de actividad reciente.
 - **Gestión de Biblioteca:** Organiza tus libros por estado (_Por leer_, _Leyendo_, _Completado_, _Abandonado_) con vista previa de portadas, valoraciones y formatos.
 - **Registro de Sesiones y Progreso Bidireccional:** Registra sesiones con páginas leídas y tiempo invertido; BookStack recalcula automáticamente `currentPage`, el porcentaje de avance y las transiciones de estado.
 - **Analítica de Lectura:** Métricas reactivas de velocidad de lectura (`pp/h`), distribución por estado y actividad mensual.

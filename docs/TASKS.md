@@ -8,17 +8,12 @@
 
 ## Active Phase
 
-- [ ] **[Phase 06: Interactive Dashboard Hub](tasks/phase-06-interactive-dashboard-hub/index.md)** — _In Progress_ ("Currently Reading" hero card, fast page update, parallel active reads strip, streaks & weekly activity pills, combined annual goals modal, and recent activity feed on `/`).
-  - [x] **[Task 6.1: Reading Goals & Daily Streaks Engine](tasks/phase-06-interactive-dashboard-hub/task-6.1-goals-and-streaks-engine.md)**
-  - [x] **[Task 6.2: Hero "Currently Reading", Fast Updater & Smart Empty States](tasks/phase-06-interactive-dashboard-hub/task-6.2-hero-currently-reading-and-fast-updater.md)**
-  - [x] **[Task 6.3: Streaks Widget, Goals Edit Modal & Recent Activity Feed](tasks/phase-06-interactive-dashboard-hub/task-6.3-streaks-goals-modal-and-recent-feed.md)**
-  - [ ] **[Task 6.4: Full i18n Sync, Component Specs & Playwright E2E Suite](tasks/phase-06-interactive-dashboard-hub/task-6.4-dashboard-qa-and-e2e-suite.md)**
+- [ ] **[Phase 07: Catalog Filtering, Search & View Density](tasks/phase-07-catalog-filtering-search/index.md)** — _Next Up_ (Multi-criteria filtering by status/format/rating, live search, sorting, and compact/comfortable card density in `/books`).
 
 ---
 
 ## Upcoming Phases (Backlog & Roadmapped)
 
-- [ ] **Phase 07: Catalog Filtering, Search & View Density** — _Roadmapped_ (Multi-criteria filtering by status/format/rating, live search, sorting, and compact/comfortable card density in `/books`).
 - [ ] **Phase 08: Advanced Analytics** — _Roadmapped_ (Interactive reading velocity charts, monthly/yearly trends, and genre/format breakdowns in `/stats`).
 - [ ] **Phase 09: Settings, Data Portability & Backup Engine** — _Roadmapped_ (CSP meta hardening, Zod-validated JSON/CSV export & import, storage quota inspector, and reset controls in `/settings`).
 - [ ] **Phase 10: ISBN Barcode Scanner & Series Management** — _Roadmapped_ (Camera ISBN scanning via `html5-qrcode`, Open Library / Google Books metadata lookup, and chronological saga organization).
@@ -27,6 +22,7 @@
 
 ## Completed Phases (Archive & Changelog)
 
+- [x] **[Phase 06: Interactive Dashboard Hub](tasks/phase-06-interactive-dashboard-hub/index.md)** — _Completed 2026-11_ (Redesigned home `/` into an interactive reading launchpad: "Currently Reading" hero showcase with inline fast page progress updater and parallel active reads switcher, smart dual empty states, daily reading streak with animated flame and weekly activity indicators, combined annual goals tracking books & pages with modal editor, and recent activity feed).
 - [x] **[Phase 05: Comprehensive Test Suite (Vitest + Playwright E2E)](tasks/phase-05-testing-suite-and-qa-gate/index.md)** — _Completed 2026-11_ (Vitest global setup with `fake-indexeddb` + `matchMedia` mock, 20 unit/component/regression test files passing 59 specs, plus 23 Playwright E2E tests covering responsive overflow, navigation, theme persistence, and book/log flows).
 - [x] **[Phase 04: Core Hardening, Bug Fixes & i18n Foundation](tasks/phase-04-core-hardening-and-i18n/index.md)** — _Completed 2026-11_ (Sidebar tablet breakpoint `hidden md:flex`, ESLint/template accessibility remediation, `StorageAdapterService` Clean Architecture relocation & IndexedDB optimization, Zod persistence validation, `I18nService` foundation keeping Spanish UI active, and English internal code/docs sync).
 - [x] **[Phase 03: Agent Operating System, English Docs, Tooling & Branching Baseline](tasks/phase-03-workflow-tooling-and-docs/index.md)** — _Completed 2026-11_ (`develop`/`main` dual-branch strategy, full dependency upgrades to Angular 22.2.6 & Tailwind CSS v4, ESLint/Prettier/Zod quality gates, English `AGENTS.md` + `.agents/skills/`, bilingual READMEs, GitHub PR/Issue templates, and `ci.yml`/`deploy.yml`).

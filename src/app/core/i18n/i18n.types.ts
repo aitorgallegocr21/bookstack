@@ -60,6 +60,16 @@ export interface TranslationDictionary {
     streakDaysLabel: string;
     streakTodayDone: string;
     streakTodayPending: string;
+    longestStreakLabel: string;
+    weekDays: {
+      mon: string;
+      tue: string;
+      wed: string;
+      thu: string;
+      fri: string;
+      sat: string;
+      sun: string;
+    };
     annualGoalsTitle: string;
     editGoalsAction: string;
     booksGoalLabel: string;

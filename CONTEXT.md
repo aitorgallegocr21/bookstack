@@ -69,7 +69,11 @@ src/
     └── features/                              # Decoupled domain modules
         ├── dashboard/                             # Home dashboard domain (/)
         │   ├── pages/dashboard-page/              # Main dashboard overview & layout coordinator
-        │   └── components/currently-reading-hero/ # Currently reading hero showcase & fast page updater
+        │   └── components/
+        │       ├── currently-reading-hero/        # Currently reading hero showcase & fast page updater
+        │       ├── reading-streak-widget/         # Reading streak with flame and weekly activity indicators
+        │       ├── annual-goal-card/              # Books and pages annual progress with lightweight modal editor
+        │       └── recent-activity-feed/          # Recent reading logs list with quick book & log navigation
         ├── books/                             # Books catalog & reading logs domain (/books)
         │   ├── models/book.model.ts           # Contracts: Book, BookSeries, ReadingLog, ReadingStats, ReadingGoals, StreakInfo
         │   ├── schemas/                       # Zod runtime parsers (book.schema.ts, reading-goals.schema.ts)

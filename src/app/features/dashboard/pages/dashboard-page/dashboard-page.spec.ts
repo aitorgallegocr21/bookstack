@@ -78,7 +78,11 @@ describe('DashboardPage', () => {
       providers: [
         {
           provide: ReadingStatsService,
-          useValue: { stats: mockStats },
+          useValue: {
+            stats: mockStats,
+            goals: signal({ year: 2026, targetBooks: 20, targetPages: 5000 }),
+            saveGoals: vi.fn(),
+          },
         },
         {
           provide: BooksService,
@@ -113,5 +117,15 @@ describe('DashboardPage', () => {
     expect(root.querySelector('app-currently-reading-hero')).not.toBeNull();
     expect(root.textContent).toContain('Current Read');
     expect(root.textContent).toContain('Author A');
+  });
+
+  it('should render reading streak, annual goals, and recent activity feed components', () => {
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('app-reading-streak-widget')).not.toBeNull();
+    expect(root.querySelector('app-annual-goal-card')).not.toBeNull();
+    expect(root.querySelector('app-recent-activity-feed')).not.toBeNull();
   });
 });

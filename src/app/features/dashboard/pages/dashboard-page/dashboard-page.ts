@@ -2,17 +2,29 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { CommonModule } from '@angular/common';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { formatLocalizedMonth } from '../../../../core/utils/date-formatter';
-import { BOOK_STATUS_CONFIG, Book } from '../../../books/models/book.model';
+import { BOOK_STATUS_CONFIG, Book, ReadingGoals } from '../../../books/models/book.model';
 import { BooksService } from '../../../books/services/books.service';
 import { ReadingLogService } from '../../../books/services/reading-log.service';
 import { ReadingStatsService } from '../../../books/services/reading-stats.service';
 import { CurrentlyReadingHeroComponent } from '../../components/currently-reading-hero/currently-reading-hero';
+import { ReadingStreakWidgetComponent } from '../../components/reading-streak-widget/reading-streak-widget';
+import { AnnualGoalCardComponent } from '../../components/annual-goal-card/annual-goal-card';
+import { RecentActivityFeedComponent } from '../../components/recent-activity-feed/recent-activity-feed';
 import { ReadingLogEditorComponent } from '../../../books/components/reading-log-editor/reading-log-editor';
+import { BookDetailModalComponent } from '../../../books/components/book-detail-modal/book-detail-modal';
 
 @Component({
   selector: 'app-dashboard-page',
   standalone: true,
-  imports: [CommonModule, CurrentlyReadingHeroComponent, ReadingLogEditorComponent],
+  imports: [
+    CommonModule,
+    CurrentlyReadingHeroComponent,
+    ReadingStreakWidgetComponent,
+    AnnualGoalCardComponent,
+    RecentActivityFeedComponent,
+    ReadingLogEditorComponent,
+    BookDetailModalComponent,
+  ],
   templateUrl: './dashboard-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -23,11 +35,14 @@ export class DashboardPage {
   protected readonly i18n = inject(I18nService);
 
   protected readonly stats = this.readingStatsService.stats;
+  protected readonly goals = this.readingStatsService.goals;
   protected readonly allBooks = this.booksService.books;
+  protected readonly allLogs = this.readingLogService.readingLogs;
   protected readonly BOOK_STATUS_CONFIG = BOOK_STATUS_CONFIG;
 
   protected readonly selectedActiveBookId = signal<string | null>(null);
   protected readonly selectedBookForLog = signal<Book | null>(null);
+  protected readonly selectedBookForDetail = signal<Book | null>(null);
 
   protected readonly activeReadingBooks = computed<Book[]>(() => {
     return this.allBooks()
@@ -123,5 +138,17 @@ export class DashboardPage {
 
   protected handleCloseFullLog(): void {
     this.selectedBookForLog.set(null);
+  }
+
+  protected handleSelectBook(book: Book): void {
+    this.selectedBookForDetail.set(book);
+  }
+
+  protected handleCloseDetail(): void {
+    this.selectedBookForDetail.set(null);
+  }
+
+  protected handleGoalsUpdated(newGoals: ReadingGoals): void {
+    this.readingStatsService.saveGoals(newGoals);
   }
 }

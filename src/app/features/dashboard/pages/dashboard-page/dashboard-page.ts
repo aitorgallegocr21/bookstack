@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { I18nService } from '../../../../core/i18n/i18n.service';
-import { formatLocalizedMonth } from '../../../../core/utils/date-formatter';
+import {
+  formatLocalizedMonth,
+  getCurrentLocalDateTime,
+} from '../../../../core/utils/date-formatter';
 import { BOOK_STATUS_CONFIG, Book, ReadingGoals } from '../../../books/models/book.model';
 import { BooksService } from '../../../books/services/books.service';
 import { ReadingLogService } from '../../../books/services/reading-log.service';
@@ -99,7 +102,7 @@ export class DashboardPage {
       await this.readingLogService.add({
         id: crypto.randomUUID(),
         bookId: event.bookId,
-        date: new Date().toLocaleDateString('sv'),
+        date: getCurrentLocalDateTime(),
         pagesRead: delta,
         createdAt: new Date().toISOString(),
       });

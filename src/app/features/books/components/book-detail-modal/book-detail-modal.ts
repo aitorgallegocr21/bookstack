@@ -165,6 +165,6 @@ export class BookDetailModalComponent implements OnDestroy {
   }
 
   protected formatDate(date?: string): string {
-    return formatLocalizedDate(date, false, this.i18n.intlLocale());
+    return formatLocalizedDate(date, true, this.i18n.intlLocale());
   }
 }

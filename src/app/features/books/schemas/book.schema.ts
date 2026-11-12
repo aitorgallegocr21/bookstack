@@ -36,36 +36,41 @@ export function isSafeCoverUrl(url: string): boolean {
   );
 }
 
-export const BookSchema = z.object({
-  id: z.string().min(1),
-  isbn: z.string().optional(),
-  title: z.string().min(1),
-  author: z.string().min(1),
-  publisher: z.string().optional(),
-  publicationYear: z.number().optional(),
-  totalPages: z.number().min(0),
-  currentPage: z.number().min(0),
-  totalWords: z.number().min(0).optional(),
-  totalCharacters: z.number().min(0).optional(),
-  currentWords: z.number().min(0).optional(),
-  totalChapters: z.number().min(0).optional(),
-  currentChapter: z.number().min(0).optional(),
-  status: BookStatusSchema,
-  format: z.union([BookFormatSchema, z.string()]).optional(),
-  series: BookSeriesSchema.optional(),
-  seriesInfo: SeriesInfoSchema.optional(),
-  coverUrl: z
-    .string()
-    .refine(isSafeCoverUrl, { message: 'Unsupported or unsafe cover URL scheme' })
-    .optional(),
-  rating: z.number().min(0).max(10).optional(),
-  genre: z.array(z.string()).optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  notes: z.string().optional(),
-  createdAt: z.string().min(1),
-  updatedAt: z.string().min(1),
-});
+export const BookSchema = z
+  .object({
+    id: z.string().min(1),
+    isbn: z.string().optional(),
+    title: z.string().min(1),
+    author: z.string().min(1),
+    publisher: z.string().optional(),
+    publicationYear: z.number().optional(),
+    totalPages: z.number().int().min(1, 'totalPages must be at least 1'),
+    currentPage: z.number().int().min(0),
+    totalWords: z.number().min(0).optional(),
+    totalCharacters: z.number().min(0).optional(),
+    currentWords: z.number().min(0).optional(),
+    totalChapters: z.number().min(0).optional(),
+    currentChapter: z.number().min(0).optional(),
+    status: BookStatusSchema,
+    format: z.union([BookFormatSchema, z.string()]).optional(),
+    series: BookSeriesSchema.optional(),
+    seriesInfo: SeriesInfoSchema.optional(),
+    coverUrl: z
+      .string()
+      .refine(isSafeCoverUrl, { message: 'Unsupported or unsafe cover URL scheme' })
+      .optional(),
+    rating: z.number().min(0).max(10).optional(),
+    genre: z.array(z.string()).optional(),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    notes: z.string().optional(),
+    createdAt: z.string().min(1),
+    updatedAt: z.string().min(1),
+  })
+  .refine((data) => data.currentPage <= data.totalPages, {
+    message: 'currentPage cannot exceed totalPages',
+    path: ['currentPage'],
+  });
 
 export const ReadingLogSchema = z.object({
   id: z.string().min(1),

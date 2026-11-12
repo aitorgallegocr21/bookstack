@@ -68,6 +68,18 @@ test.describe('Dashboard Interactive Hub Flow', () => {
 
     await expect(goalsCard.getByText('0 / 15 (0%)')).toBeVisible();
     await expect(goalsCard.getByText('45 / 3500 (1%)')).toBeVisible();
+
+    // 7. Complete Book via Fast Page Update and Verify Confirmation Modal
+    await pageInput.fill('180');
+    await page.getByRole('button', { name: 'Actualizar', exact: true }).click();
+
+    // Confirmation dialog should appear
+    await expect(page.getByRole('heading', { name: '¿Has terminado este libro?' })).toBeVisible();
+    await page.getByRole('button', { name: 'Sí, completar libro' }).click();
+
+    // Now all books are completed => Library is up to date state
+    await expect(page.getByText('¡Biblioteca al día!')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Añadir nuevo libro' })).toBeVisible();
   });
 
   test('should display dashboard on mobile with zero horizontal overflow', async ({ page }) => {

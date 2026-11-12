@@ -85,6 +85,79 @@ describe('CurrentlyReadingHeroComponent', () => {
     expect(startReadingSpy).toHaveBeenCalledWith(pendingBook);
   });
 
+  it('should render all caught up empty state with addNewBook CTA when books exist but 0 pending', () => {
+    fixture.componentRef.setInput('totalBooksCount', 2);
+    fixture.componentRef.setInput('activeBook', null);
+    fixture.componentRef.setInput('pendingBooks', []);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('¡Biblioteca al día!');
+    expect(root.textContent).toContain('Añadir nuevo libro');
+    expect(root.textContent).not.toContain('Añadir mi primer libro');
+  });
+
+  it('should require new page to be greater than current page in fast page update', () => {
+    fixture.componentRef.setInput('totalBooksCount', 3);
+    fixture.componentRef.setInput('activeBook', sampleBook); // currentPage: 160
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const input = root.querySelector('input[type="number"]') as HTMLInputElement;
+    const submitBtn = root.querySelectorAll('button')[1] as HTMLButtonElement;
+
+    // By default value is 160 (currentPage) => button must be disabled
+    expect(submitBtn.disabled).toBe(true);
+    expect(root.textContent).toContain('La página debe ser mayor a la actual (160)');
+
+    // Setting value lower than 160
+    input.value = '150';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(submitBtn.disabled).toBe(true);
+
+    // Setting valid value
+    input.value = '175';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(submitBtn.disabled).toBe(false);
+  });
+
+  it('should open confirmation modal when updating to totalPages and emit upon confirmation', () => {
+    fixture.componentRef.setInput('totalBooksCount', 3);
+    fixture.componentRef.setInput('activeBook', sampleBook); // totalPages: 320
+    fixture.detectChanges();
+
+    const pageUpdateSpy = vi.fn();
+    component.pageUpdated.subscribe(pageUpdateSpy);
+
+    const root = fixture.nativeElement as HTMLElement;
+    const input = root.querySelector('input[type="number"]') as HTMLInputElement;
+    input.value = '320';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const submitBtn = root.querySelectorAll('button')[1] as HTMLButtonElement;
+    submitBtn.click();
+    fixture.detectChanges();
+
+    // Confirmation modal should be visible
+    expect(root.textContent).toContain('¿Has terminado este libro?');
+    expect(pageUpdateSpy).not.toHaveBeenCalled();
+
+    // Click confirm button in modal
+    const confirmBtn = Array.from(root.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Sí, completar libro')
+    );
+    expect(confirmBtn).toBeDefined();
+    confirmBtn?.click();
+
+    expect(pageUpdateSpy).toHaveBeenCalledWith({
+      bookId: 'book-1',
+      newPage: 320,
+    });
+  });
+
   it('should render active book details, format, and progress percentage', () => {
     fixture.componentRef.setInput('totalBooksCount', 3);
     fixture.componentRef.setInput('activeBook', sampleBook);

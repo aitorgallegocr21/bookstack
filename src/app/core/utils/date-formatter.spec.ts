@@ -3,6 +3,7 @@ import {
   formatLocalizedMonth,
   formatSpanishDate,
   formatSpanishMonth,
+  getCurrentLocalDateTime,
 } from './date-formatter';
 
 describe('date-formatter utilities', () => {
@@ -24,6 +25,12 @@ describe('date-formatter utilities', () => {
       const withTime = formatSpanishDate('2026-03-15T14:30:00.000Z', true);
       expect(withTime).toContain('2026');
       expect(withTime).toContain(':');
+    });
+
+    it('should return formatted local date-time string from getCurrentLocalDateTime', () => {
+      const fixedDate = new Date(2026, 10, 12, 14, 5); // month index 10 = November
+      const result = getCurrentLocalDateTime(fixedDate);
+      expect(result).toBe('2026-11-12T14:05');
     });
   });
 

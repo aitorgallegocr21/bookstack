@@ -224,10 +224,15 @@
                 <input
                   id="edit-book-total-pages"
                   type="number"
-                  min="0"
+                  min="1"
                   formControlName="totalPages"
                   class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
                 />
+                @if (editForm.controls.totalPages.touched && editForm.controls.totalPages.invalid) {
+                  <p class="mt-1 text-xs font-medium text-rose-500">
+                    {{ i18n.t().bookForm.totalPagesError }}
+                  </p>
+                }
               </div>
               <div>
                 <label for="edit-book-current-pages" class="field-label">{{
@@ -240,6 +245,14 @@
                   formControlName="currentPage"
                   class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
                 />
+                @if (
+                  editForm.hasError('currentPageExceedsTotal') &&
+                  (editForm.controls.currentPage.touched || editForm.controls.totalPages.touched)
+                ) {
+                  <p class="mt-1 text-xs font-medium text-rose-500">
+                    {{ i18n.t().bookForm.currentPageExceedsTotalError }}
+                  </p>
+                }
               </div>
             </div>
 

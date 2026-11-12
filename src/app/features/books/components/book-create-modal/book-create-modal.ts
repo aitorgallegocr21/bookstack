@@ -55,7 +55,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     isbn: [''],
     publisher: [''],
     publicationYear: [null],
-    totalPages: [0, [Validators.required, Validators.min(0)]],
+    totalPages: [null as number | null, [Validators.required, Validators.min(1)]],
     currentPage: [0, [Validators.min(0)]],
     totalCharacters: [0, [Validators.min(0)]],
     totalChapters: [0, [Validators.min(0)]],
@@ -74,6 +74,14 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
 
   constructor() {
     this.uiState.acquireScrollLock();
+    this.createForm.addValidators((control) => {
+      const total = Number(control.get('totalPages')?.value) || 0;
+      const current = Number(control.get('currentPage')?.value) || 0;
+      if (total > 0 && current > total) {
+        return { currentPageExceedsTotal: true };
+      }
+      return null;
+    });
   }
 
   ngAfterViewInit(): void {

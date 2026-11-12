@@ -52,7 +52,7 @@ export class RecentActivityFeedComponent {
         bookTitle: book?.title || 'Libro desconocido',
         bookAuthor: book?.author || '',
         coverUrl: book?.coverUrl,
-        formattedDate: formatLocalizedDate(log.date, false, this.i18n.intlLocale()),
+        formattedDate: formatLocalizedDate(log.date, true, this.i18n.intlLocale()),
       };
     });
   });

@@ -5,10 +5,12 @@ import {
   effect,
   inject,
   input,
+  OnDestroy,
   output,
   signal,
 } from '@angular/core';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { UiStateService } from '../../../../core/services/ui-state.service';
 import { Book, BOOK_STATUS_CONFIG, BookFormat } from '../../../books/models/book.model';
 import { translateBookFormat } from '../../../books/utils/book-form.utils';
 
@@ -21,8 +23,9 @@ import { translateBookFormat } from '../../../books/utils/book-form.utils';
     class: 'block w-full',
   },
 })
-export class CurrentlyReadingHeroComponent {
+export class CurrentlyReadingHeroComponent implements OnDestroy {
   protected readonly i18n = inject(I18nService);
+  private readonly uiState = inject(UiStateService);
   protected readonly BOOK_STATUS_CONFIG = BOOK_STATUS_CONFIG;
 
   readonly activeBook = input<Book | null>(null);
@@ -37,6 +40,7 @@ export class CurrentlyReadingHeroComponent {
   readonly openCreateModal = output<void>();
 
   protected readonly pageInputValue = signal<number>(0);
+  protected readonly isCompletionModalOpen = signal<boolean>(false);
 
   constructor() {
     effect(() => {
@@ -45,6 +49,12 @@ export class CurrentlyReadingHeroComponent {
         this.pageInputValue.set(book.currentPage);
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.isCompletionModalOpen()) {
+      this.uiState.releaseScrollLock();
+    }
   }
 
   protected readonly progressPercentage = computed<number>(() => {
@@ -61,6 +71,15 @@ export class CurrentlyReadingHeroComponent {
       return '';
     }
     return this.getFormatLabel(book.format);
+  });
+
+  protected readonly isPageUpdateValid = computed<boolean>(() => {
+    const book = this.activeBook();
+    if (!book) {
+      return false;
+    }
+    const val = this.pageInputValue();
+    return val > book.currentPage && val <= book.totalPages;
   });
 
   protected getFormatLabel(format?: BookFormat | string): string {
@@ -82,15 +101,41 @@ export class CurrentlyReadingHeroComponent {
 
   protected submitPageUpdate(): void {
     const book = this.activeBook();
+    if (!book || !this.isPageUpdateValid()) {
+      return;
+    }
+
+    const val = this.pageInputValue();
+    if (val >= book.totalPages) {
+      this.uiState.acquireScrollLock();
+      this.isCompletionModalOpen.set(true);
+      return;
+    }
+
+    this.pageUpdated.emit({ bookId: book.id, newPage: val });
+  }
+
+  protected confirmCompletion(): void {
+    const book = this.activeBook();
     if (!book) {
       return;
     }
 
-    const totalPages = Math.max(1, book.totalPages);
-    const clamped = Math.max(0, Math.min(totalPages, this.pageInputValue()));
+    this.uiState.releaseScrollLock();
+    this.isCompletionModalOpen.set(false);
+    this.pageUpdated.emit({ bookId: book.id, newPage: book.totalPages });
+  }
 
-    if (clamped !== book.currentPage) {
-      this.pageUpdated.emit({ bookId: book.id, newPage: clamped });
+  protected cancelCompletion(): void {
+    if (this.isCompletionModalOpen()) {
+      this.uiState.releaseScrollLock();
+      this.isCompletionModalOpen.set(false);
+    }
+  }
+
+  protected onBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.cancelCompletion();
     }
   }
 }

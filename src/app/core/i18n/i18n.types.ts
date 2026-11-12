@@ -56,6 +56,11 @@ export interface TranslationDictionary {
     startReadingAction: string;
     allCompletedTitle: string;
     allCompletedSubtitle: string;
+    addNewBook: string;
+    pageInputMustBeGreater: string;
+    confirmCompletionTitle: string;
+    confirmCompletionMessage: string;
+    confirmCompletionAction: string;
     streakTitle: string;
     streakDaysLabel: string;
     streakTodayDone: string;
@@ -128,6 +133,8 @@ export interface TranslationDictionary {
     ratingLabel: string;
     ratingPlaceholder: string;
     totalPagesLabel: string;
+    totalPagesError: string;
+    currentPageExceedsTotalError: string;
     readPagesLabel: string;
     totalChaptersLabel: string;
     readChaptersLabel: string;

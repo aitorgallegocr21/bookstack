@@ -44,9 +44,13 @@ describe('book.schema', () => {
     expect(ReadingLogSchema.safeParse(validLog).success).toBe(true);
   });
 
-  it('should reject invalid Book payloads (empty title, negative pages, invalid status, out-of-range rating, unsafe coverUrl)', () => {
+  it('should reject invalid Book payloads (empty title, 0 or negative pages, currentPage exceeding totalPages, invalid status, out-of-range rating, unsafe coverUrl)', () => {
     expect(BookSchema.safeParse({ ...validBook, title: '' }).success).toBe(false);
+    expect(BookSchema.safeParse({ ...validBook, totalPages: 0 }).success).toBe(false);
     expect(BookSchema.safeParse({ ...validBook, totalPages: -1 }).success).toBe(false);
+    expect(BookSchema.safeParse({ ...validBook, totalPages: 100, currentPage: 105 }).success).toBe(
+      false
+    );
     expect(BookSchema.safeParse({ ...validBook, status: 'archived' }).success).toBe(false);
     expect(BookSchema.safeParse({ ...validBook, rating: 11 }).success).toBe(false);
     expect(BookSchema.safeParse({ ...validBook, coverUrl: 'javascript:alert(1)' }).success).toBe(

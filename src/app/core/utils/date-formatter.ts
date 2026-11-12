@@ -10,17 +10,32 @@ export function formatLocalizedDate(
     return '';
   }
 
-  const date = new Date(dateStr);
+  const hasTime = dateStr.includes('T') || dateStr.includes(' ');
+  const shouldFormatTime = includeTime && hasTime;
+
+  const date = hasTime ? new Date(dateStr) : new Date(`${dateStr}T00:00:00`);
   if (Number.isNaN(date.getTime())) {
     return dateStr;
   }
 
   return new Intl.DateTimeFormat(locale, {
-    day: includeTime ? 'numeric' : '2-digit',
-    month: includeTime ? 'short' : '2-digit',
+    day: shouldFormatTime ? 'numeric' : '2-digit',
+    month: shouldFormatTime ? 'short' : '2-digit',
     year: 'numeric',
-    ...(includeTime ? { hour: '2-digit', minute: '2-digit' } : {}),
+    ...(shouldFormatTime ? { hour: '2-digit', minute: '2-digit' } : {}),
   }).format(date);
+}
+
+/**
+ * Returns current date and time as YYYY-MM-DDTHH:mm using local device time.
+ */
+export function getCurrentLocalDateTime(now = new Date()): string {
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 /**

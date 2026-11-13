@@ -1,0 +1,170 @@
+<section
+  aria-labelledby="velocity-chart-title"
+  class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900"
+>
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div class="min-w-0">
+      <h2
+        id="velocity-chart-title"
+        class="text-base font-bold tracking-tight text-slate-900 sm:text-lg dark:text-white"
+      >
+        {{ i18n.t().stats.velocity.title }}
+      </h2>
+      <p class="mt-1 text-xs text-slate-500 sm:text-sm dark:text-slate-400">
+        {{ i18n.t().stats.velocity.subtitle }}
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:justify-end">
+      <div
+        role="group"
+        [attr.aria-label]="i18n.t().stats.velocity.metricsAria"
+        class="inline-flex w-full rounded-xl bg-slate-100 p-1 sm:w-auto dark:bg-slate-800/80"
+      >
+        @for (option of metricOptions; track option.key) {
+          <button
+            type="button"
+            [attr.data-testid]="'velocity-metric-' + option.key"
+            [attr.aria-pressed]="analytics.trendMetric() === option.key"
+            (click)="selectMetric(option.key)"
+            class="min-h-11 flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:flex-initial sm:text-sm"
+            [class]="
+              analytics.trendMetric() === option.key
+                ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-950 dark:text-white'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
+            "
+          >
+            {{ i18n.t().stats.velocity[option.labelKey] }}
+          </button>
+        }
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <div
+          data-testid="velocity-period-total"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs dark:border-slate-700/80 dark:bg-slate-800/60"
+        >
+          <span class="text-slate-500 dark:text-slate-400">
+            {{ i18n.t().stats.velocity.periodTotal }}:
+          </span>
+          <span class="font-bold text-slate-900 tabular-nums dark:text-white">
+            {{ formattedTotal() }}
+          </span>
+        </div>
+
+        <div
+          data-testid="velocity-period-average"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs dark:border-slate-700/80 dark:bg-slate-800/60"
+        >
+          <span class="text-slate-500 dark:text-slate-400">
+            {{ i18n.t().stats.velocity.periodAverage }}:
+          </span>
+          <span class="font-bold text-slate-900 tabular-nums dark:text-white">
+            {{ formattedAverage() }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (selectedPoint(); as point) {
+    <div
+      data-testid="velocity-selected-detail"
+      class="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-slate-50/80 px-3.5 py-2.5 text-xs dark:border-slate-800 dark:bg-slate-800/40"
+    >
+      <div class="flex items-center gap-2">
+        <span class="font-medium text-slate-500 dark:text-slate-400">
+          {{ i18n.t().stats.velocity.selectedBucketLabel }}:
+        </span>
+        <span class="font-bold text-slate-900 dark:text-white">{{ point.label }}</span>
+      </div>
+
+      <div
+        class="flex flex-wrap items-center gap-x-3 gap-y-1 font-medium text-slate-700 tabular-nums dark:text-slate-200"
+      >
+        <span>{{ formatInteger(point.pages) }} {{ i18n.t().stats.velocity.pagesUnit }}</span>
+        <span aria-hidden="true" class="text-slate-300 dark:text-slate-600">·</span>
+        <span>{{ formatInteger(point.books) }} {{ i18n.t().stats.velocity.booksUnit }}</span>
+        <span aria-hidden="true" class="text-slate-300 dark:text-slate-600">·</span>
+        <span>{{ formatDuration(point.timeMinutes) }}</span>
+      </div>
+    </div>
+  }
+
+  <div class="mt-6 pt-5">
+    <div class="relative h-48 border-b border-slate-200 sm:h-56 dark:border-slate-800">
+      @if (hasActivity() && averageHeightPercent() > 0) {
+        <div
+          data-testid="velocity-average-line"
+          aria-hidden="true"
+          [style.bottom.%]="averageHeightPercent()"
+          class="pointer-events-none absolute inset-x-0 z-10 border-t border-dashed border-amber-500/80 dark:border-amber-400/70"
+        >
+          <span
+            class="absolute -top-5 right-0 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 shadow-xs ring-1 ring-amber-200/80 dark:bg-amber-950/90 dark:text-amber-300 dark:ring-amber-800/70"
+          >
+            {{ i18n.t().stats.velocity.averageLineLabel }} · {{ formattedAverage() }}
+          </span>
+        </div>
+      }
+
+      <div class="relative flex h-full items-end gap-1 sm:gap-2">
+        @for (bar of bars(); track bar.point.key) {
+          <button
+            type="button"
+            [attr.data-testid]="'velocity-bar-' + bar.point.key"
+            [attr.aria-label]="bar.ariaLabel"
+            [attr.aria-pressed]="selectedPoint()?.key === bar.point.key"
+            (click)="selectBucket(bar.point.key)"
+            class="group relative flex h-full min-h-11 min-w-0 flex-1 flex-col items-center justify-end rounded-t-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+          >
+            <div class="flex h-full w-full items-end justify-center px-0.5 sm:px-1">
+              @if (bar.isZero) {
+                <div
+                  class="h-1 w-full rounded-full transition-colors"
+                  [class]="
+                    selectedPoint()?.key === bar.point.key
+                      ? 'bg-indigo-300 dark:bg-indigo-700'
+                      : 'bg-slate-200 group-hover:bg-slate-300 dark:bg-slate-800 dark:group-hover:bg-slate-700'
+                  "
+                ></div>
+              } @else {
+                <div
+                  data-testid="velocity-bar-fill"
+                  [style.height.%]="bar.heightPercent"
+                  class="w-full max-w-9 rounded-t-md transition-[height,background-color]"
+                  [class]="
+                    selectedPoint()?.key === bar.point.key
+                      ? 'bg-indigo-600 shadow-sm dark:bg-indigo-400'
+                      : 'bg-indigo-500/75 group-hover:bg-indigo-600 dark:bg-indigo-500/65 dark:group-hover:bg-indigo-400'
+                  "
+                ></div>
+              }
+            </div>
+
+            <span
+              class="pointer-events-none absolute top-full mt-2 max-w-full truncate text-[10px] font-medium sm:text-xs"
+              [class]="
+                selectedPoint()?.key === bar.point.key
+                  ? 'font-bold text-indigo-600 dark:text-indigo-400'
+                  : 'text-slate-500 dark:text-slate-400'
+              "
+            >
+              {{ bar.point.label }}
+            </span>
+          </button>
+        }
+      </div>
+    </div>
+    <div class="h-6" aria-hidden="true"></div>
+  </div>
+
+  @if (!hasActivity()) {
+    <p
+      data-testid="velocity-empty-notice"
+      class="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3.5 py-2.5 text-center text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400"
+    >
+      {{ i18n.t().stats.velocity.emptyPeriod }}
+    </p>
+  }
+</section>

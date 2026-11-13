@@ -70,7 +70,7 @@ src/
         ├── analytics/                         # Reading analytics domain (/stats)
         │   ├── models/analytics.model.ts      # Period, KPI, trend, distribution, weekday pace & highlights contracts
         │   ├── services/analytics.service.ts  # Reactive period filtering & hybrid ReadingLog + Book aggregation
-        │   ├── components/{analytics-header,analytics-kpi-grid}/ # Period filter header & executive KPI cards
+        │   ├── components/{analytics-header,analytics-kpi-grid,reading-velocity-chart}/ # Period filter header, KPI cards & velocity trend chart
         │   └── pages/stats-page/              # Analytics view (/stats) & empty library state
         ├── settings/pages/settings-page/      # Language switcher, settings & future backup hub (/settings)
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)

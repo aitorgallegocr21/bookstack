@@ -40,15 +40,18 @@ Build and maintain **BookStack**, a minimalist, visual, private, high-performanc
 
 ## 3. Dynamic Model Routing, Subagent Delegation & Quota Optimization
 
-Agents operating in Antigravity MUST actively optimize token consumption and model quota by matching intelligence tiers to task complexity:
+Agents operating in Antigravity MUST actively optimize token consumption and model quota by matching intelligence tiers to task complexity and quota pools:
 
-1. **Automatic Subagent & Swarm Model Selection:**
-   - **Codebase Audits & Multi-File Lookups (`research` subagent):** When a task requires scanning $>4$ files (e.g., auditing i18n keys or tracing usages), delegate via `invoke_subagent(TypeName: "research", Model: "flash" | "flash_lite")` so raw file reads stay isolated from the main conversation context.
-   - **Live UI & Viewport Inspection (`browser` subagent):** Always pass `Model: "flash"` when invoking the `browser` subagent.
-   - **Isolated Mechanical Subtasks (`self` subagent):** For self-contained mechanical work (e.g., writing bilingual dictionary blocks or repetitive unit test suites from a closed spec), delegate via `invoke_subagent(TypeName: "self", Model: "flash")` or switch worker models via `swarm({ action: "model", model: "..." })` when running in swarm mode.
-   - **Architectural & Complex Debugging (`pro` / `inherit`):** Reserve high-reasoning frontier models (`pro` / Gemini 4 Argon / Claude Opus) for `/grill-me` phase design, complex Signal/IndexedDB state coordination, and root-cause debugging.
-2. **Proactive Session & Model Guidance:**
-   - In standard single-agent chat where the UI selector controls the primary thread model, proactively advise the user in 1 line at phase/task transitions when switching the UI model (e.g., High-Reasoning for `/grill-me` planning $\to$ Fast/Medium for atomic task coding) or running `/compact` will save credits.
+1. **Swarm Mode (`swarm` tool — Exact Model Selection):**
+   - Prefer **`gemini-4-hydrogen-low` / `gemini-4-hydrogen-medium` / `gemini-4-hydrogen-high`** for daily implementation, code reviews, i18n, and unit/E2E test workers: it provides higher intelligence than `gemini-3.8-flash-*` while drawing from the fast-resetting quota pool rather than the weekly `gemini-4-argon-*` / `claude-*` pools.
+   - Reserve **`gemini-4-argon-*`** or **`claude-opus-5-5-*` / `claude-sonnet-5-5-*`** for `/grill-me` architecture design, complex Signal/IndexedDB coordination, and hard root-cause debugging.
+2. **Subagent Mode (`invoke_subagent` — Tier Enum `'inherit' | 'flash_lite' | 'flash' | 'pro'`):**
+   - `invoke_subagent` only accepts generic tier names (`inherit`, `flash_lite`, `flash`, `pro`), not `"hydrogen"` directly.
+   - **When the primary chat is on Gemini 4 Hydrogen:** Pass `Model: "inherit"` for `research` and `self` subagents so they run on **Gemini 4 Hydrogen** instead of downgrading to `flash`.
+   - **When the primary chat is on a weekly/heavy model (e.g., Gemini 4 Argon / Claude):** Pass `Model: "flash"` (or `"flash_lite"`) for `research` (>4 file scans) and mechanical `self` subtasks to protect the weekly quota.
+   - **Live UI & Viewport Inspection (`browser` subagent):** Always pass `Model: "flash"` by default unless the user requests otherwise.
+3. **Proactive Session & Model Guidance:**
+   - In standard single-agent chat where the UI selector controls the primary thread model, proactively advise the user in 1 line at phase/task transitions when switching the UI model (e.g., High-Reasoning for `/grill-me` $\to$ **Gemini 4 Hydrogen (Low/Medium)** for atomic task coding) or running `/compact` will save quota.
    - Recommend starting a fresh chat or running `/compact` after completing each atomic `Task X.Y` to avoid quadratic multi-turn token accumulation.
 
 ---

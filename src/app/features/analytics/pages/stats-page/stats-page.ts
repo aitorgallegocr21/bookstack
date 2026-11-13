@@ -4,12 +4,18 @@ import { UiStateService } from '../../../../core/services/ui-state.service';
 import { BooksService } from '../../../books/services/books.service';
 import { AnalyticsHeaderComponent } from '../../components/analytics-header/analytics-header';
 import { AnalyticsKpiGridComponent } from '../../components/analytics-kpi-grid/analytics-kpi-grid';
+import { LibraryCompositionSectionComponent } from '../../components/library-composition-section/library-composition-section';
 import { ReadingVelocityChartComponent } from '../../components/reading-velocity-chart/reading-velocity-chart';
 
 @Component({
   selector: 'app-stats-page',
   standalone: true,
-  imports: [AnalyticsHeaderComponent, AnalyticsKpiGridComponent, ReadingVelocityChartComponent],
+  imports: [
+    AnalyticsHeaderComponent,
+    AnalyticsKpiGridComponent,
+    ReadingVelocityChartComponent,
+    LibraryCompositionSectionComponent,
+  ],
   templateUrl: './stats-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

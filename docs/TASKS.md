@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- [ ] **Phase 08: Advanced Analytics** — _Next Up_ (Interactive reading velocity charts, monthly/yearly trends, and genre/format breakdowns in `/stats`).
+- [ ] **[Phase 08: Advanced Analytics](tasks/phase-08-advanced-analytics/index.md)** — _Active_ (Reactive time-horizon selector, 4 executive KPI cards with micro-indicators, hybrid `ReadingLog` + direct book progress engine, 3-metric interactive SVG/CSS velocity chart, format donut + status stacked bar + rating histogram & top authors, weekday reading pace, and period highlights in `/stats`).
 
 ---
 

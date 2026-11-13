@@ -25,9 +25,9 @@ In BookStack's modernized engineering system, the legacy `SPEC-XXX` nomenclature
 | Original Milestone      | Modern Phase            | Scope & Target Route                                                                                                                                                                                                                                                  | Current Status       |
 | :---------------------- | :---------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------- |
 | **Fase 1 (`SPEC-009`)** | **Phase 02 & Phase 04** | Asymmetric responsive shell (`SidebarComponent` + `HeaderComponent` + `BottomNavComponent`), lazy routing, a11y hardening, clean `StorageAdapterService`.                                                                                                             | **Completed**        |
-| **Fase 2 (`SPEC-010`)** | **Phase 06**            | Interactive Dashboard Hub (`/`): "Currently Reading" hero card, daily streaks, annual reading goal, quick progress increment, and reading insights.                                                                                                                   | **Next Up (Active)** |
-| **Fase 3 (`SPEC-011`)** | **Phase 07**            | Catalog Filtering, Search & View Density (`/books`): Multi-criteria live search (ISBN, author, title), combined filters (status, format, rating), and compact/comfortable grid layout switchers.                                                                      | **Backlog**          |
-| **Fase 4 (`SPEC-012`)** | **Phase 08**            | Advanced Analytics Suite (`/stats`): Interactive reading velocity charts, chronological monthly/yearly trends, format breakdown, and habit analytics driven by `ReadingStatsService`.                                                                                 | **Backlog**          |
+| **Fase 2 (`SPEC-010`)** | **Phase 06**            | Interactive Dashboard Hub (`/`): "Currently Reading" hero card, daily streaks, annual reading goal, quick progress increment, and reading insights.                                                                                                                   | **Completed**        |
+| **Fase 3 (`SPEC-011`)** | **Phase 07**            | Catalog Filtering, Search & View Density (`/books`): Multi-criteria live search (ISBN, author, title), combined filters (status, format, rating), and compact/comfortable grid layout switchers.                                                                      | **Completed**        |
+| **Fase 4 (`SPEC-012`)** | **Phase 08**            | Advanced Analytics Suite (`/stats`): Reactive period filter, executive KPIs, hybrid `ReadingLog` + `Book` aggregation, 3-metric SVG/CSS velocity chart, format/status/rating/author composition panels, weekday reading pace, and period highlights.                  | **Next Up (Active)** |
 | **Fase 5 (`SPEC-013`)** | **Phase 09 & Phase 10** | **Phase 09:** Settings, Data Portability & Backup Engine (`/settings`): Zod-validated JSON/CSV export & import, storage quota inspector, and reset controls.<br>**Phase 10:** Sagas & Series Management (`/series`) + camera ISBN barcode scanner via `html5-qrcode`. | **Backlog**          |
 
 ---
@@ -56,10 +56,11 @@ In BookStack's modernized engineering system, the legacy `SPEC-XXX` nomenclature
 
 - **Objective:** Deliver deep, visual, client-side insights into reading habits and library composition.
 - **Key Deliverables:**
-  - Interactive monthly and annual page-count velocity graphs using SVG/CSS bar visualizations.
-  - Format distribution breakdown (percentage of physical, digital, and audio reading).
-  - Time investment and completion rate statistics.
-  - Exportable reading report summary for personal records.
+  - Reactive period selector (`This Year`, `Last 12 Months`, `All Time`, and specific past years) and 4 executive KPI cards with micro-indicators.
+  - Intelligent hybrid aggregation combining `ReadingLog` sessions with directly completed/updated books.
+  - Interactive monthly and annual velocity bar chart (switching between `Pages`, `Completed Books`, and `Time`) with period average reference line.
+  - Three composition breakdown panels: Format SVG donut chart, Status stacked bar with completion vs. abandonment rate, and Ratings histogram + Top Authors.
+  - Habit analytics (`Mon`–`Sun` weekday reading pace with peak day badge) and 4 Period Highlights milestone cards.
 
 ### Phase 09: Settings, Data Portability & Backup Engine (`/settings`)
 

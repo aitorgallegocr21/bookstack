@@ -1,7 +1,7 @@
 # Task 8.1: Analytics Period Models, Hybrid Aggregation Engine & Bilingual i18n
 
 **Phase:** Phase 08: Advanced Analytics (`/stats`)  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** High (analytics domain contracts, reactive `AnalyticsService` with hybrid `ReadingLog` + `Book` calculation pipeline, unit specs, and bilingual i18n keys).
 
 ---
@@ -74,5 +74,5 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/analytics/services/analytics.service.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/analytics/services/analytics.service.spec.ts`
+- [x] `npm run verify:quiet`

@@ -67,7 +67,10 @@ src/
         │   ├── utils/book-form.utils.ts       # Shared status/autofill/format/rating/series helpers
         │   ├── pages/books-page/              # Catalog coordinator, 3 view modes & zero-match empty state
         │   └── components/{cover-picker,book-create-modal,book-edit-modal,book-detail-modal,reading-log-editor,catalog-toolbar,book-grid-card,book-detailed-card,book-compact-row}/
-        ├── analytics/pages/stats-page/        # Analytics view (/stats)
+        ├── analytics/                         # Reading analytics domain (/stats)
+        │   ├── models/analytics.model.ts      # Period, KPI, trend, distribution, weekday pace & highlights contracts
+        │   ├── services/analytics.service.ts  # Reactive period filtering & hybrid ReadingLog + Book aggregation
+        │   └── pages/stats-page/              # Analytics view (/stats)
         ├── settings/pages/settings-page/      # Language switcher, settings & future backup hub (/settings)
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)
 

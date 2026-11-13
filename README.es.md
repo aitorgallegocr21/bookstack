@@ -57,16 +57,18 @@ npm run dev
 
 ## Comandos de Calidad y Verificación
 
-| Comando               | Descripción                                                                 |
-| :-------------------- | :-------------------------------------------------------------------------- |
-| `npm run verify`      | Puerta de calidad completa (`check` + `lint` + `format` + `test` + `build`) |
-| `npm run verify:fast` | Validación rápida (`check` + `lint` + `format` + `test`)                    |
-| `npm run check`       | Comprobación estricta de tipos TypeScript (`app` y `spec`)                  |
-| `npm run lint`        | ESLint + `angular-eslint` + reglas de accesibilidad en plantillas           |
-| `npm run format`      | Verificación de Prettier y ordenamiento de clases Tailwind v4               |
-| `npm test`            | Ejecutar suite unitaria y de componentes con Vitest                         |
-| `npm run test:e2e`    | Ejecutar pruebas End-to-End en navegador con Playwright                     |
-| `npm run build`       | Compilación de producción en `dist/bookstack/browser`                       |
+| Comando                    | Descripción                                                                               |
+| :------------------------- | :---------------------------------------------------------------------------------------- |
+| `npm run verify:quiet`     | Puerta optimizada en tokens (auto-fix formato/lint + salida compacta de validación/build) |
+| `npm run verify`           | Puerta de calidad completa (`check` + `lint` + `format` + `test` + `build`)               |
+| `npm run verify:fast`      | Validación rápida (`check` + `lint` + `format` + `test`)                                  |
+| `npm run test:file -- <f>` | Ejecutar Vitest sobre un único archivo spec sin ruido de progreso                         |
+| `npm run check`            | Comprobación estricta de tipos TypeScript (`app` y `spec`)                                |
+| `npm run lint`             | ESLint + `angular-eslint` + reglas de accesibilidad en plantillas                         |
+| `npm run format`           | Verificación de Prettier y ordenamiento de clases Tailwind v4                             |
+| `npm test`                 | Ejecutar suite unitaria y de componentes con Vitest                                       |
+| `npm run test:e2e`         | Ejecutar pruebas End-to-End en navegador con Playwright                                   |
+| `npm run build`            | Compilación de producción en `dist/bookstack/browser`                                     |
 
 ---
 

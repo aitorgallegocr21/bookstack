@@ -13,10 +13,13 @@
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "test": "ng test --watch=false",
+    "test:file": "ng test --watch=false --no-progress --include",
     "test:watch": "ng test",
     "test:e2e": "playwright test",
     "verify:fast": "npm run check && npm run lint && npm run format && npm test",
-    "verify": "npm run verify:fast && npm run build"
+    "verify": "npm run verify:fast && npm run build",
+    "verify:fast:quiet": "node scripts/verify-quiet.mjs --fast",
+    "verify:quiet": "node scripts/verify-quiet.mjs"
   },
   "private": true,
   "packageManager": "npm@11.17.0",

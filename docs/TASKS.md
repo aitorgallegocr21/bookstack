@@ -2,19 +2,18 @@
 
 > **Agent Protocol:** This document is the single high-level phase registry and active sprint index. For milestone definitions migrated from the original product roadmap, see [docs/ROADMAP.md](ROADMAP.md). For atomic task specifications, inspect the corresponding phase directory inside `docs/tasks/`.
 >
-> **Execution Loop:** `[Targeted Spec] ➔ [Minimal Code Edit + Tests] ➔ [Validation: npm run verify] ➔ [Update Docs/Tasks] ➔ [Semantic Git Commit]`
+> **Execution Loop:** `[Targeted Spec] ➔ [Minimal Code Edit + Tests] ➔ [Validation: npm run verify:quiet] ➔ [Two-Tier Doc Sync] ➔ [Semantic Git Commit]`
 
 ---
 
 ## Active Phase
 
-- [x] **[Phase 07: Catalog Filtering, Search & View Density](tasks/phase-07-catalog-filtering-search/index.md)** — _Completed 2026-11_ (Three switchable view modes [Bookshelf Grid, Detailed Cards, Compact List], live omni-search, status chips with real-time counters, 7 sort options, collapsible advanced filters with smooth CSS Grid transition, uniform card sizing, contextual 1-click reset, accessible mobile status menu, and 32 Playwright E2E tests).
+- [ ] **Phase 08: Advanced Analytics** — _Next Up_ (Interactive reading velocity charts, monthly/yearly trends, and genre/format breakdowns in `/stats`).
 
 ---
 
 ## Upcoming Phases (Backlog & Roadmapped)
 
-- [ ] **Phase 08: Advanced Analytics** — _Roadmapped_ (Interactive reading velocity charts, monthly/yearly trends, and genre/format breakdowns in `/stats`).
 - [ ] **Phase 09: Settings, Data Portability & Backup Engine** — _Roadmapped_ (CSP meta hardening, Zod-validated JSON/CSV export & import, storage quota inspector, and reset controls in `/settings`).
 - [ ] **Phase 10: ISBN Barcode Scanner & Series Management** — _Roadmapped_ (Camera ISBN scanning via `html5-qrcode`, Open Library / Google Books metadata lookup, and chronological saga organization).
 

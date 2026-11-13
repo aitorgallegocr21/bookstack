@@ -1,54 +1,33 @@
 ---
 name: bookstack-architecture-workflow
-description: Enforce Angular 22+ Signals architecture, Local-First IndexedDB persistence, Zod runtime validation, i18n readiness, and continuous English documentation sync across BookStack.
+description: On-demand code recipes for Angular 22+ Signals, Zod runtime schemas, IndexedDB StorageAdapter patterns, i18n dictionary extension, and Two-Tier documentation sync. Activate only when implementing new services, schemas, or phase-end syncs.
 ---
 
-# BookStack Architecture & Workflow Skill
+# BookStack Architecture Recipes (On-Demand Reference)
 
-This skill guides AI agents and engineers working on BookStack to preserve architectural consistency, strict TypeScript/Angular standards, Local-First data integrity, and synchronized English documentation.
+> Core invariants are already loaded in `AGENTS.md`. Use this skill strictly for implementation patterns and checklists.
 
----
+## 1. Signal Service & Zod Persistence Pattern
 
-## 1. Golden Architectural Principles
+- **State Exposure:** Hold private mutable state (`private readonly _items = signal<T[]>([])`) and expose `readonly items = this._items.asReadonly()` plus `computed()` projections.
+- **Zod Boundary:** Parse every `StorageAdapterService` read or external import with `safeParse()` before writing into signals. Filter or reject invalid records without throwing unhandled exceptions.
+- **Cover URL Guard:** Always validate external/data cover URLs via `isSafeCoverUrl` (`src/app/features/books/schemas/book.schema.ts`) to block `javascript:` and `data:text/html` payloads.
 
-### A. Domain Single Source of Truth (SSOT)
+## 2. Adding i18n Keys Checklist
 
-- **Contracts:** All book, reading log, series, and analytics models live in `src/app/features/books/models/book.model.ts`.
-- **Runtime Validation:** Persistent records loaded from `IndexedDB`/`LocalStorage` or external JSON imports must be validated with **Zod** schemas (`src/app/features/books/schemas/`) before entering signal state.
-- **Strict Typing:** Zero `any`, zero non-null assertions without guards, and zero `// TODO` placeholders.
+When adding UI copy:
 
-### B. i18n-Ready Copy Separation
+1. Add the typed key contract to `src/app/core/i18n/i18n.types.ts`.
+2. Add the Spanish default string in `src/app/core/i18n/es.ts`.
+3. Add the English mirror string in `src/app/core/i18n/en.ts`.
+4. Format dates/months exclusively via `src/app/core/utils/date-formatter.ts`.
 
-- **Default Active Locale:** Spanish (`es`).
-- **Centralized Dictionaries:** UI labels, navigation items, status labels, validation messages, and confirmation prompts must be resolved via `I18nService` (`src/app/core/i18n/`) instead of scattering inline strings across templates and services.
-- **Locale Formatting:** All dates and numbers displayed to users must pass through `src/app/core/utils/date-formatter.ts` using the active locale (`es-ES` by default).
-- **Engineering Language:** All code identifiers, comments, JSDoc, error logs, tests, commit messages, and documentation must remain strictly in **English**.
+## 3. Two-Tier Documentation Sync Checklist
 
-### C. Angular 22+ Signal-First Standards
-
-- **Components:** Standalone + `ChangeDetectionStrategy.OnPush`.
-- **State:** `signal()`, `computed()`, and `effect()` only. Never introduce RxJS `BehaviorSubject` or `from(...).subscribe(...)` for local state management.
-- **Signals API:** Use `input()`, `output()`, `model()`, and `viewChild()` instead of legacy `@Input`, `@Output`, and `@ViewChild` decorators.
-- **DI & Host Bindings:** Use `inject()` instead of constructor parameters, and `host: { ... }` instead of `@HostBinding`/`@HostListener`.
-- **Control Flow & Bindings:** Always use `@if`, `@for (track ...)`, `@switch`, `[class]`, and `[style]`. Never use `*ngIf`, `*ngFor`, `ngClass`, or `ngStyle`.
-
-### D. Local-First Persistence & Image Pipeline
-
-- **Storage Strategy:** `StorageAdapterService` (`src/app/core/services/storage-adapter.service.ts`) uses `IndexedDB` (`bookstackDB`) as primary storage and falls back to `LocalStorage` only when `IndexedDB` is unavailable or fails—never blindly duplicating base64 payloads into `LocalStorage` on every write.
-- **Quota Resilience:** Catch `QuotaExceededError` cleanly and surface boolean/typed failures without crashing the UI.
-- **Bidirectional Reading Deltas:** Adding, editing, or deleting a `ReadingLog` automatically recalculates `Book.currentPage` and transitions `Book.status` (`pending` $\to$ `reading` $\to$ `completed`).
-- **Cover Compression:** All uploaded covers pass through `ImageOptimizerService` (max `400px`, WebP/JPEG at `0.75` quality) before storage.
-
----
-
-## 2. Verification & Documentation Synchronization
-
-Before finishing any task or committing:
-
-1. Run `npm run verify` (`check` + `lint` + `format` + `test` + `build`).
-2. Run `npm run test:e2e` whenever routes, shell layout, modals, or multi-step flows change.
-3. **Continuous Zero-Loss Rule:**
-   - Update the active task checklist (`[x]`) in `docs/tasks/<phase>/`.
-   - Update `CONTEXT.md`, `docs/DESIGN_SYSTEM.md`, `README.md`, and `README.es.md` whenever architecture, routes, design tokens, dependencies, or commands change.
-   - Upon finishing a phase, move it to `Completed Phases` in `docs/TASKS.md` and update the phase `index.md`.
-4. **Git Discipline:** Work on feature/fix branches created from `develop`; merge locally into `develop` after verification; open GitHub Pull Requests from `develop` into `main`.
+- **Intermediate Subtask (`Task X.Y`):**
+  - [ ] Mark `[x]` on the task in `docs/tasks/phase-XX-<name>/index.md`.
+  - [ ] Update `CONTEXT.md` Section 3 ONLY if a new file/directory or service contract was introduced.
+- **Final Task of a Phase (`Phase XX Complete`):**
+  - [ ] Set `**Status:** Completed` in `docs/tasks/phase-XX-<name>/index.md`.
+  - [ ] Move the phase from `Active Phase` to `Completed Phases` in `docs/TASKS.md` and promote the next phase to `Active Phase`.
+  - [ ] Synchronize feature summaries in `CONTEXT.md`, `docs/DESIGN_SYSTEM.md`, `README.md`, and `README.es.md`.

@@ -57,16 +57,18 @@ npm run dev
 
 ## Quality & Verification Commands
 
-| Command               | Description                                                        |
-| :-------------------- | :----------------------------------------------------------------- |
-| `npm run verify`      | Full quality gate (`check` + `lint` + `format` + `test` + `build`) |
-| `npm run verify:fast` | Quick quality gate (`check` + `lint` + `format` + `test`)          |
-| `npm run check`       | Strict TypeScript type checking (`app` and `spec`)                 |
-| `npm run lint`        | ESLint + `angular-eslint` + template accessibility rules           |
-| `npm run format`      | Prettier formatting and Tailwind v4 class sorting check            |
-| `npm test`            | Run Vitest unit & component tests                                  |
-| `npm run test:e2e`    | Run Playwright End-to-End browser tests                            |
-| `npm run build`       | Production build to `dist/bookstack/browser`                       |
+| Command                    | Description                                                                           |
+| :------------------------- | :------------------------------------------------------------------------------------ |
+| `npm run verify:quiet`     | Token-optimized gate (auto-fixes format/lint + compact `check`/`lint`/`test`/`build`) |
+| `npm run verify`           | Full verbose quality gate (`check` + `lint` + `format` + `test` + `build`)            |
+| `npm run verify:fast`      | Quick quality gate (`check` + `lint` + `format` + `test`)                             |
+| `npm run test:file -- <f>` | Run Vitest on a single spec file with minimal output                                  |
+| `npm run check`            | Strict TypeScript type checking (`app` and `spec`)                                    |
+| `npm run lint`             | ESLint + `angular-eslint` + template accessibility rules                              |
+| `npm run format`           | Prettier formatting and Tailwind v4 class sorting check                               |
+| `npm test`                 | Run Vitest unit & component tests                                                     |
+| `npm run test:e2e`         | Run Playwright End-to-End browser tests                                               |
+| `npm run build`            | Production build to `dist/bookstack/browser`                                          |
 
 ---
 

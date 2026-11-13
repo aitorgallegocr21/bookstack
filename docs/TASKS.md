@@ -8,18 +8,19 @@
 
 ## Active Phase
 
-- [ ] **[Phase 08: Advanced Analytics](tasks/phase-08-advanced-analytics/index.md)** — _Active_ (Reactive time-horizon selector, 4 executive KPI cards with micro-indicators, hybrid `ReadingLog` + direct book progress engine, 3-metric interactive SVG/CSS velocity chart, format donut + status stacked bar + rating histogram & top authors, weekday reading pace, and period highlights in `/stats`).
+- [ ] **Phase 09: Settings, Data Portability & Backup Engine** — _Active_ (CSP meta hardening, Zod-validated JSON/CSV export & import, storage quota inspector, and reset controls in `/settings`).
 
 ---
 
 ## Upcoming Phases (Backlog & Roadmapped)
 
-- [ ] **Phase 09: Settings, Data Portability & Backup Engine** — _Roadmapped_ (CSP meta hardening, Zod-validated JSON/CSV export & import, storage quota inspector, and reset controls in `/settings`).
 - [ ] **Phase 10: ISBN Barcode Scanner & Series Management** — _Roadmapped_ (Camera ISBN scanning via `html5-qrcode`, Open Library / Google Books metadata lookup, and chronological saga organization).
 
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 08: Advanced Analytics](tasks/phase-08-advanced-analytics/index.md)** — _Completed 2026-11_ (Reactive time-horizon selector, 4 executive KPI cards with micro-indicators, hybrid `ReadingLog` + direct book progress engine, 3-metric interactive SVG/CSS velocity chart, format donut + status stacked bar + rating histogram & top authors, weekday reading pace, period highlights in `/stats`, `StatsPage` integration tests, and 35 Playwright E2E tests).
 
 - [x] **[Phase 07: Catalog Filtering, Search & View Density](tasks/phase-07-catalog-filtering-search/index.md)** — _Completed 2026-11_ (Three switchable view modes [Bookshelf Grid, Detailed Cards, Compact List], live omni-search, status chips with real-time counters, 7 sort options, collapsible advanced filters with smooth CSS Grid transition, uniform card sizing, contextual 1-click reset, accessible mobile status menu, and 32 Playwright E2E tests).
 - [x] **[Phase 06: Interactive Dashboard Hub](tasks/phase-06-interactive-dashboard-hub/index.md)** — _Completed 2026-11_ (Redesigned home `/` into an interactive reading launchpad: "Currently Reading" hero showcase with inline fast page progress updater and parallel active reads switcher, smart dual empty states, daily reading streak with animated flame and weekly activity indicators, combined annual goals tracking books & pages with modal editor, and recent activity feed).

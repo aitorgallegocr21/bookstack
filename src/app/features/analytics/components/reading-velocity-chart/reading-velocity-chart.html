@@ -19,7 +19,7 @@
       <div
         role="group"
         [attr.aria-label]="i18n.t().stats.velocity.metricsAria"
-        class="inline-flex w-full rounded-xl bg-slate-100 p-1 sm:w-auto dark:bg-slate-800/80"
+        class="flex w-full flex-wrap gap-1 rounded-xl bg-slate-100 p-1 sm:inline-flex sm:w-auto sm:flex-nowrap sm:gap-0 dark:bg-slate-800/80"
       >
         @for (option of metricOptions; track option.key) {
           <button
@@ -27,7 +27,7 @@
             [attr.data-testid]="'velocity-metric-' + option.key"
             [attr.aria-pressed]="analytics.trendMetric() === option.key"
             (click)="selectMetric(option.key)"
-            class="min-h-11 flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:flex-initial sm:text-sm"
+            class="min-h-11 flex-1 rounded-lg px-2.5 py-2 text-center text-xs font-semibold transition-colors sm:flex-initial sm:px-3 sm:text-sm"
             [class]="
               analytics.trendMetric() === option.key
                 ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-950 dark:text-white'

@@ -56,6 +56,7 @@ Defined centrally in `src/app/features/books/models/book.model.ts`:
 
 ## 4. Rendering Performance Rules
 
-- **No `transition-all`:** Use discrete property transitions (`transition-colors`, `transition-opacity`, `transition-[width]`, `transition-[margin]`, `transition-transform`).
+- **No `transition-all`:** Use discrete property transitions (`transition-colors`, `transition-opacity`, `transition-[width]`, `transition-[margin]`, `transition-transform`, `transition-[height]`, `transition-[height,background-color]`).
+- **Native SVG & CSS Visualizations:** Analytics charts (velocity bars, format donut, status stacked bar, rating histogram, weekday pace) use pure reactive SVG/CSS with zero external chart libraries and wrapping pill controls for `320px` overflow safety.
 - **List Containment:** Catalog cards apply `contain: layout paint; content-visibility: auto;`.
 - **Image Optimization:** Cover uploads compress to WebP/JPEG (`<= 400px`, `0.75` quality) via `ImageOptimizerService`; cover `<img>` tags include `loading="lazy"` and `decoding="async"`.

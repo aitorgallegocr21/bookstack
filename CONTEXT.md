@@ -70,12 +70,12 @@ src/
         ├── analytics/                         # Reading analytics domain (/stats)
         │   ├── models/analytics.model.ts      # Period, KPI, trend, distribution, weekday pace & highlights contracts
         │   ├── services/analytics.service.ts  # Reactive period filtering & hybrid ReadingLog + Book aggregation
-        │   ├── components/{analytics-header,analytics-kpi-grid,reading-velocity-chart}/ # Period filter header, KPI cards & velocity trend chart
-        │   └── pages/stats-page/              # Analytics view (/stats) & empty library state
+        │   ├── components/{analytics-header,analytics-kpi-grid,reading-velocity-chart,library-composition-section,reading-habits-section}/
+        │   └── pages/stats-page/              # Analytics coordinator (/stats), empty library state & integration spec
         ├── settings/pages/settings-page/      # Language switcher, settings & future backup hub (/settings)
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)
 
-tests/e2e/                                     # Playwright specs: overflow, navigation-and-theme, books-flow, dashboard-flow, catalog-flow
+tests/e2e/                                     # Playwright specs: overflow, navigation-and-theme, books-flow, dashboard-flow, catalog-flow, analytics-flow
 scripts/verify-quiet.mjs                       # Token-optimized auto-fix + quiet verification gate
 ```
 

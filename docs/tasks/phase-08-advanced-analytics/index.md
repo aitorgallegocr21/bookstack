@@ -1,6 +1,6 @@
 # Phase 08: Advanced Analytics (`/stats`)
 
-**Status:** Active (In Progress)  
+**Status:** Completed  
 **Target Branch:** `feature/08-advanced-analytics` $\to$ `develop`  
 **Core Mission:** Transform `/stats` from a static placeholder into a rich, visual, 100% client-side reading analytics suite powered by Angular Signals and accessible native SVG/CSS visualizations. Deliver reactive period filtering, executive KPI summaries, an interactive reading velocity bar chart with metric toggling, library composition breakdowns (format donut, status stacked bar, rating histogram & top authors), weekday habit patterns, period record highlights, and intelligent hybrid aggregation that seamlessly combines `ReadingLog` sessions with directly completed/updated books.
 
@@ -43,4 +43,4 @@
 - [x] **[Task 8.3: Interactive Temporal Velocity & Trend Chart](task-8.3-velocity-trend-chart.md)** — Build `ReadingVelocityChartComponent` with metric switcher (`Pages` | `Books` | `Time`), 12-month / all-time SVG/CSS bars, dashed average line, and accessible bar inspection.
 - [x] **[Task 8.4: Library Composition & Distribution Panels](task-8.4-composition-distribution-panels.md)** — Build `LibraryCompositionSectionComponent` featuring the SVG format donut chart, segmented status bar with completion rate, ratings histogram, and top authors list.
 - [x] **[Task 8.5: Reading Habits (Weekday Pace) & Period Highlights](task-8.5-habits-weekday-and-highlights.md)** — Build `ReadingHabitsSectionComponent` with the Monday–Sunday reading pace chart ("Star Day" badge) and the 4 Period Highlights milestone cards.
-- [ ] **[Task 8.6: Analytics QA, Responsive Polish & Playwright E2E Suite](task-8.6-analytics-qa-and-e2e-suite.md)** — Complete `StatsPage` integration tests, responsive `320px–1280px` audit, and Playwright E2E suite (`tests/e2e/analytics-flow.spec.ts`) + Tier 2 Per-Phase documentation sync.
+- [x] **[Task 8.6: Analytics QA, Responsive Polish & Playwright E2E Suite](task-8.6-analytics-qa-and-e2e-suite.md)** — Complete `StatsPage` integration tests, responsive `320px–1280px` audit, and Playwright E2E suite (`tests/e2e/analytics-flow.spec.ts`) + Tier 2 Per-Phase documentation sync.

@@ -1,0 +1,155 @@
+<section
+  class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+  [attr.aria-label]="i18n.t().stats.title"
+>
+  <!-- 1. Completed Books -->
+  <article
+    data-testid="kpi-card-completed-books"
+    class="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900"
+  >
+    <div class="flex items-center justify-between gap-3">
+      <h2 class="text-xs font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
+        {{ i18n.t().stats.kpis.completedBooks }}
+      </h2>
+      <span
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400"
+        aria-hidden="true"
+      >
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      </span>
+    </div>
+
+    <div class="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+      {{ kpi().completedBooks }}
+    </div>
+
+    <div class="mt-3 flex flex-wrap items-center gap-2">
+      <span
+        class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-300"
+      >
+        {{ i18n.t().stats.kpis.completionRate }}: {{ kpi().completionRatePercent }}%
+      </span>
+    </div>
+  </article>
+
+  <!-- 2. Pages Read -->
+  <article
+    data-testid="kpi-card-pages-read"
+    class="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900"
+  >
+    <div class="flex items-center justify-between gap-3">
+      <h2 class="text-xs font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
+        {{ i18n.t().stats.kpis.pagesRead }}
+      </h2>
+      <span
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400"
+        aria-hidden="true"
+      >
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          />
+        </svg>
+      </span>
+    </div>
+
+    <div class="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+      {{ formattedPagesRead() }}
+    </div>
+
+    <div class="mt-3 text-xs font-medium text-slate-600 dark:text-slate-400">
+      {{ kpi().averagePagesPerDay }} {{ i18n.t().stats.kpis.pagesPerDay }}
+    </div>
+  </article>
+
+  <!-- 3. Reading Time -->
+  <article
+    data-testid="kpi-card-reading-time"
+    class="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900"
+  >
+    <div class="flex items-center justify-between gap-3">
+      <h2 class="text-xs font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
+        {{ i18n.t().stats.kpis.readingTime }}
+      </h2>
+      <span
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400"
+        aria-hidden="true"
+      >
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      </span>
+    </div>
+
+    <div class="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+      {{ formattedReadingTime() }}
+    </div>
+
+    <div class="mt-3 text-xs font-medium text-slate-600 dark:text-slate-400">
+      {{ kpi().averageSpeedPagesPerHour }} {{ i18n.t().stats.kpis.pagesPerHour }}
+    </div>
+  </article>
+
+  <!-- 4. Streak & Consistency -->
+  <article
+    data-testid="kpi-card-streak"
+    class="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900"
+  >
+    <div class="flex items-center justify-between gap-3">
+      <h2 class="text-xs font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
+        {{ i18n.t().stats.kpis.streakAndConsistency }}
+      </h2>
+      <span
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400"
+        aria-hidden="true"
+      >
+        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+          <path
+            d="M12.87 2.05a1 1 0 0 0-1.42.27c-.89 1.34-1.89 3.01-1.89 4.68 0 .84.26 1.63.7 2.29a3.86 3.86 0 0 1-1.39-.77 1 1 0 0 0-1.58.55C7.03 10.42 7 11.66 7 13c0 2.76 2.24 5 5 5s5-2.24 5-5c0-4.04-3.15-8.8-4.13-10.95z"
+          />
+        </svg>
+      </span>
+    </div>
+
+    <div class="mt-3 flex items-baseline gap-1.5">
+      <span class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+        {{ kpi().activeDaysCount }}
+      </span>
+      <span class="text-sm font-medium text-slate-500 dark:text-slate-400">
+        {{ i18n.t().stats.kpis.activeDays }}
+      </span>
+    </div>
+
+    <div
+      class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-slate-600 dark:text-slate-400"
+    >
+      <span>
+        {{ i18n.t().stats.kpis.bestStreak }}:
+        <strong class="font-semibold text-slate-800 dark:text-slate-200">
+          {{ kpi().longestStreak }} {{ i18n.t().stats.kpis.daysUnit }}
+        </strong>
+      </span>
+      <span
+        class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/50 dark:text-amber-300"
+      >
+        {{ i18n.t().stats.kpis.currentStreak }}: {{ kpi().currentStreak }}
+        {{ i18n.t().stats.kpis.daysUnit }}
+      </span>
+    </div>
+  </article>
+</section>

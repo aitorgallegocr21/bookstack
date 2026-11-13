@@ -39,7 +39,7 @@
 ## 2. Atomic Task Breakdown
 
 - [x] **[Task 8.1: Analytics Period Models, Hybrid Aggregation Engine & Bilingual i18n](task-8.1-analytics-engine-and-models.md)** — Define analytics domain contracts, implement `AnalyticsService` with period filtering and hybrid `ReadingLog` + `Book` aggregation, and extend `es`/`en` i18n dictionaries.
-- [ ] **[Task 8.2: Analytics Header, Period Filter Toolbar & Executive KPI Cards](task-8.2-header-period-filter-and-kpi-cards.md)** — Build `AnalyticsHeaderComponent` (period pills + year selector), `AnalyticsKpiGridComponent` (4 KPI cards with secondary metrics), and empty library state in `StatsPage`.
+- [x] **[Task 8.2: Analytics Header, Period Filter Toolbar & Executive KPI Cards](task-8.2-header-period-filter-and-kpi-cards.md)** — Build `AnalyticsHeaderComponent` (period pills + year selector), `AnalyticsKpiGridComponent` (4 KPI cards with secondary metrics), and empty library state in `StatsPage`.
 - [ ] **[Task 8.3: Interactive Temporal Velocity & Trend Chart](task-8.3-velocity-trend-chart.md)** — Build `ReadingVelocityChartComponent` with metric switcher (`Pages` | `Books` | `Time`), 12-month / all-time SVG/CSS bars, dashed average line, and accessible bar inspection.
 - [ ] **[Task 8.4: Library Composition & Distribution Panels](task-8.4-composition-distribution-panels.md)** — Build `LibraryCompositionSectionComponent` featuring the SVG format donut chart, segmented status bar with completion rate, ratings histogram, and top authors list.
 - [ ] **[Task 8.5: Reading Habits (Weekday Pace) & Period Highlights](task-8.5-habits-weekday-and-highlights.md)** — Build `ReadingHabitsSectionComponent` with the Monday–Sunday reading pace chart ("Star Day" badge) and the 4 Period Highlights milestone cards.

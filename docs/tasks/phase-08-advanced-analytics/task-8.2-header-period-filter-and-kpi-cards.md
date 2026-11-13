@@ -1,7 +1,7 @@
 # Task 8.2: Analytics Header, Period Filter Toolbar & Executive KPI Cards
 
 **Phase:** Phase 08: Advanced Analytics (`/stats`)  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** Medium (new standalone `OnPush` components for period selection and 4 executive KPI cards, plus empty library state in `StatsPage`).
 
 ---
@@ -52,6 +52,6 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/analytics/components/analytics-header/analytics-header.spec.ts`
-- [ ] `npm run test:file -- src/app/features/analytics/components/analytics-kpi-grid/analytics-kpi-grid.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/analytics/components/analytics-header/analytics-header.spec.ts`
+- [x] `npm run test:file -- src/app/features/analytics/components/analytics-kpi-grid/analytics-kpi-grid.spec.ts`
+- [x] `npm run verify:quiet`

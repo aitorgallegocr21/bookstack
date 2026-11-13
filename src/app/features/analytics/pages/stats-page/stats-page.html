@@ -1,17 +1,50 @@
-<div class="mx-auto min-h-screen w-full max-w-[1720px] px-4 py-6 sm:px-6 lg:px-8">
-  <header class="mb-4">
-    <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">
-      {{ i18n.t().stats.title }}
-    </h1>
-    <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
-      {{ i18n.t().stats.subtitle }}
-    </p>
-  </header>
-  <section
-    class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
-  >
-    <p class="text-sm text-slate-600 dark:text-slate-400">
-      {{ i18n.t().stats.placeholderNote }}
-    </p>
-  </section>
+<div class="mx-auto min-h-screen w-full max-w-[1720px] space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+  @if (!hasBooks()) {
+    <header>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
+        {{ i18n.t().stats.title }}
+      </h1>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+        {{ i18n.t().stats.subtitle }}
+      </p>
+    </header>
+
+    <section
+      data-testid="stats-empty-state"
+      class="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-xs dark:border-slate-800 dark:bg-slate-900"
+    >
+      <div
+        class="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400"
+        aria-hidden="true"
+      >
+        <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          />
+        </svg>
+      </div>
+
+      <h2 class="mt-4 max-w-lg text-lg font-bold text-slate-900 sm:text-xl dark:text-slate-100">
+        {{ i18n.t().stats.emptyState.title }}
+      </h2>
+      <p class="mt-2 max-w-md text-sm text-slate-600 dark:text-slate-400">
+        {{ i18n.t().stats.emptyState.description }}
+      </p>
+
+      <button
+        type="button"
+        data-testid="stats-empty-cta"
+        (click)="handleOpenCreateModal()"
+        class="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:bg-blue-500 dark:hover:bg-blue-600"
+      >
+        {{ i18n.t().stats.emptyState.ctaAddBook }}
+      </button>
+    </section>
+  } @else {
+    <app-analytics-header />
+    <app-analytics-kpi-grid />
+  }
 </div>

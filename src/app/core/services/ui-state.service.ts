@@ -12,6 +12,7 @@ export class UiStateService {
 
   // Expanded by default on desktop/tablet unless a saved preference exists
   readonly isSidebarCollapsed = signal<boolean>(this.getInitialValue());
+  readonly isCreateModalOpen = signal<boolean>(false);
 
   constructor() {
     effect(() => {
@@ -26,6 +27,14 @@ export class UiStateService {
 
   toggleSidebar(): void {
     this.isSidebarCollapsed.update((val) => !val);
+  }
+
+  openCreateModal(): void {
+    this.isCreateModalOpen.set(true);
+  }
+
+  closeCreateModal(): void {
+    this.isCreateModalOpen.set(false);
   }
 
   acquireScrollLock(): void {

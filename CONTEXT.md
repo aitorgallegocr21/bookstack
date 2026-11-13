@@ -45,7 +45,7 @@ src/
     │   ├── services/
     │   │   ├── storage-adapter.service.ts     # L1-246: IndexedDB + LocalStorage fallback + catalog view/sort prefs
     │   │   ├── theme.service.ts               # L1-83: Light/dark theme signal & persistence
-    │   │   └── ui-state.service.ts            # L1-46: Sidebar collapse & reference-counted scroll lock
+    │   │   └── ui-state.service.ts            # L1-55: Sidebar collapse, create modal trigger & scroll lock
     │   └── utils/date-formatter.ts            # Locale-aware Intl date & month formatters
     └── features/
         ├── dashboard/                         # Home launchpad (/)
@@ -70,7 +70,8 @@ src/
         ├── analytics/                         # Reading analytics domain (/stats)
         │   ├── models/analytics.model.ts      # Period, KPI, trend, distribution, weekday pace & highlights contracts
         │   ├── services/analytics.service.ts  # Reactive period filtering & hybrid ReadingLog + Book aggregation
-        │   └── pages/stats-page/              # Analytics view (/stats)
+        │   ├── components/{analytics-header,analytics-kpi-grid}/ # Period filter header & executive KPI cards
+        │   └── pages/stats-page/              # Analytics view (/stats) & empty library state
         ├── settings/pages/settings-page/      # Language switcher, settings & future backup hub (/settings)
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)
 

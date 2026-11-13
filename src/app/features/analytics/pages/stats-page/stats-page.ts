@@ -5,6 +5,7 @@ import { BooksService } from '../../../books/services/books.service';
 import { AnalyticsHeaderComponent } from '../../components/analytics-header/analytics-header';
 import { AnalyticsKpiGridComponent } from '../../components/analytics-kpi-grid/analytics-kpi-grid';
 import { LibraryCompositionSectionComponent } from '../../components/library-composition-section/library-composition-section';
+import { ReadingHabitsSectionComponent } from '../../components/reading-habits-section/reading-habits-section';
 import { ReadingVelocityChartComponent } from '../../components/reading-velocity-chart/reading-velocity-chart';
 
 @Component({
@@ -15,6 +16,7 @@ import { ReadingVelocityChartComponent } from '../../components/reading-velocity
     AnalyticsKpiGridComponent,
     ReadingVelocityChartComponent,
     LibraryCompositionSectionComponent,
+    ReadingHabitsSectionComponent,
   ],
   templateUrl: './stats-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

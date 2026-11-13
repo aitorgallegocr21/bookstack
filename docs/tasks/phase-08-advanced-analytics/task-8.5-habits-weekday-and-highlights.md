@@ -1,7 +1,7 @@
 # Task 8.5: Reading Habits (Weekday Pace) & Period Highlights
 
 **Phase:** Phase 08: Advanced Analytics (`/stats`)  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** Medium (Weekday reading pace visualization `Mon`–`Sun` with peak day callout + 4 Period Highlights milestone cards).
 
 ---
@@ -45,5 +45,5 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/analytics/components/reading-habits-section/reading-habits-section.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/analytics/components/reading-habits-section/reading-habits-section.spec.ts`
+- [x] `npm run verify:quiet`

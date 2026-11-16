@@ -3,6 +3,11 @@ import { StorageAdapterService } from '../../../core/services/storage-adapter.se
 import { Book } from '../models/book.model';
 import { parseStoredBooks } from '../schemas/book.schema';
 
+export interface CreateBookPrefill {
+  seriesName?: string;
+  seriesVolumeNumber?: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BooksService {
   private readonly storage = inject(StorageAdapterService);
@@ -11,6 +16,7 @@ export class BooksService {
 
   readonly books = signal<Book[]>([]);
   readonly isCreateModalOpen = signal<boolean>(false);
+  readonly createModalPrefill = signal<CreateBookPrefill | null>(null);
 
   constructor() {
     void this.ensureInitialized();
@@ -115,11 +121,13 @@ export class BooksService {
     this.books.set([]);
   }
 
-  openCreateModal(): void {
+  openCreateModal(prefill?: CreateBookPrefill): void {
+    this.createModalPrefill.set(prefill ?? null);
     this.isCreateModalOpen.set(true);
   }
 
   closeCreateModal(): void {
     this.isCreateModalOpen.set(false);
+    this.createModalPrefill.set(null);
   }
 }

@@ -4,17 +4,30 @@ import { vi } from 'vitest';
 import { Book } from '../../models/book.model';
 import { BookMetadataCandidate } from '../../models/book-metadata.model';
 import { BookMetadataService } from '../../services/book-metadata.service';
-import { BooksService } from '../../services/books.service';
+import { BooksService, CreateBookPrefill } from '../../services/books.service';
+import { ExistingSeriesOption, SeriesService } from '../../../series/services/series.service';
 import { BookCreateModalComponent } from './book-create-modal';
 
 describe('BookCreateModalComponent', () => {
   let addMock: ReturnType<typeof vi.fn>;
   let lookupByIsbnMock: ReturnType<typeof vi.fn>;
+  let createModalPrefillSignal: ReturnType<typeof signal<CreateBookPrefill | null>>;
+  let existingSeriesOptionsSignal: ReturnType<typeof signal<ExistingSeriesOption[]>>;
 
   beforeEach(async () => {
     document.body.classList.remove('overflow-hidden');
     addMock = vi.fn(async () => undefined);
     lookupByIsbnMock = vi.fn(async () => null);
+    createModalPrefillSignal = signal<CreateBookPrefill | null>(null);
+    existingSeriesOptionsSignal = signal<ExistingSeriesOption[]>([
+      {
+        id: 'series-cosmere-1',
+        normalizedKey: 'el archivo de las tormentas',
+        name: 'El Archivo de las Tormentas',
+        count: 2,
+        nextVolumeNumber: 3,
+      },
+    ]);
 
     await TestBed.configureTestingModule({
       imports: [BookCreateModalComponent],
@@ -23,7 +36,14 @@ describe('BookCreateModalComponent', () => {
           provide: BooksService,
           useValue: {
             books: signal<Book[]>([]),
+            createModalPrefill: createModalPrefillSignal,
             add: addMock,
+          },
+        },
+        {
+          provide: SeriesService,
+          useValue: {
+            existingSeriesOptions: existingSeriesOptionsSignal,
           },
         },
         {
@@ -162,5 +182,69 @@ describe('BookCreateModalComponent', () => {
       '2008'
     );
     expect((root.querySelector('#create-book-total-pages') as HTMLInputElement).value).toBe('336');
+  });
+
+  it('should prefill series fields when createModalPrefill is set', () => {
+    createModalPrefillSignal.set({
+      seriesName: 'El Archivo de las Tormentas',
+      seriesVolumeNumber: 4,
+    });
+
+    const fixture = TestBed.createComponent(BookCreateModalComponent);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const toggle = root.querySelector('input[formcontrolname="seriesEnabled"]') as HTMLInputElement;
+    const nameInput = root.querySelector('#create-book-series-name') as HTMLInputElement;
+    const volumeInput = root.querySelector('#create-book-series-volume') as HTMLInputElement;
+
+    expect(toggle.checked).toBe(true);
+    expect(nameInput.value).toBe('El Archivo de las Tormentas');
+    expect(volumeInput.value).toBe('4');
+  });
+
+  it('should suggest next volume and reuse canonical series ID when matching an existing saga', async () => {
+    const fixture = TestBed.createComponent(BookCreateModalComponent);
+    const savedSpy = vi.fn<(book: Book) => void>();
+    fixture.componentInstance.saved.subscribe(savedSpy);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    (root.querySelector('#create-book-title') as HTMLInputElement).value = 'Juramentada';
+    root.querySelector('#create-book-title')!.dispatchEvent(new Event('input'));
+    (root.querySelector('#create-book-author') as HTMLInputElement).value = 'Brandon Sanderson';
+    root.querySelector('#create-book-author')!.dispatchEvent(new Event('input'));
+    (root.querySelector('#create-book-total-pages') as HTMLInputElement).value = '1408';
+    root.querySelector('#create-book-total-pages')!.dispatchEvent(new Event('input'));
+
+    const seriesToggle = root.querySelector(
+      'input[formcontrolname="seriesEnabled"]'
+    ) as HTMLInputElement;
+    seriesToggle.click();
+    fixture.detectChanges();
+
+    // Quick-pick chip should appear when seriesName is empty
+    const quickPickBtn = Array.from(root.querySelectorAll('button')).find((btn) =>
+      btn.textContent?.includes('El Archivo de las Tormentas')
+    ) as HTMLButtonElement;
+    expect(quickPickBtn).toBeTruthy();
+    quickPickBtn.click();
+    fixture.detectChanges();
+
+    const seriesNameInput = root.querySelector('#create-book-series-name') as HTMLInputElement;
+    const seriesVolumeInput = root.querySelector('#create-book-series-volume') as HTMLInputElement;
+    expect(seriesNameInput.value).toBe('El Archivo de las Tormentas');
+    expect(seriesVolumeInput.value).toBe('3');
+
+    const form = root.querySelector('form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit'));
+    await Promise.resolve();
+
+    expect(savedSpy).toHaveBeenCalledTimes(1);
+    expect(savedSpy.mock.calls[0][0].series).toEqual({
+      id: 'series-cosmere-1',
+      name: 'El Archivo de las Tormentas',
+      volumeNumber: 3,
+    });
   });
 });

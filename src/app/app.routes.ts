@@ -14,6 +14,11 @@ export const routes: Routes = [
       import('./features/books/pages/books-page/books-page').then((m) => m.BooksPage),
   },
   {
+    path: 'series',
+    loadComponent: () =>
+      import('./features/series/pages/series-page/series-page').then((m) => m.SeriesPage),
+  },
+  {
     path: 'stats',
     loadComponent: () =>
       import('./features/analytics/pages/stats-page/stats-page').then((m) => m.StatsPage),

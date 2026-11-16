@@ -1,7 +1,7 @@
 # Task 11.3: Series Autocomplete, Create-Modal Prefill & Desktop/Mobile Navigation Shell
 
 **Phase:** Phase 11: Sagas, Series & Collections Management (`/series`)  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** Medium (Global create-modal prefill in `BooksService`, series autocomplete & canonical ID reuse in `BookCreateModalComponent` and `BookEditModalComponent`, lazy `/series` route, Desktop `SidebarComponent` link, and mobile `Libros | Sagas` segmented switcher on `BooksPage`).
 
 ---
@@ -60,8 +60,8 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/books/services/books.service.spec.ts`
-- [ ] `npm run test:file -- src/app/features/books/components/book-create-modal/book-create-modal.spec.ts`
-- [ ] `npm run test:file -- src/app/features/books/components/book-edit-modal/book-edit-modal.spec.ts`
-- [ ] `npm run test:file -- src/app/core/components/sidebar/sidebar.component.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/books/services/books.service.spec.ts`
+- [x] `npm run test:file -- src/app/features/books/components/book-create-modal/book-create-modal.spec.ts`
+- [x] `npm run test:file -- src/app/features/books/components/book-edit-modal/book-edit-modal.spec.ts`
+- [x] `npm run test:file -- src/app/core/components/sidebar/sidebar.component.spec.ts`
+- [x] `npm run verify:quiet`

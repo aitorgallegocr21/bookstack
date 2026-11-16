@@ -18,6 +18,7 @@ describe('SidebarComponent', () => {
         provideRouter([
           { path: '', component: DummyRouteComponent },
           { path: 'books', component: DummyRouteComponent },
+          { path: 'series', component: DummyRouteComponent },
           { path: 'stats', component: DummyRouteComponent },
           { path: 'settings', component: DummyRouteComponent },
           { path: 'about', component: DummyRouteComponent },
@@ -74,8 +75,10 @@ describe('SidebarComponent', () => {
     const root = fixture.nativeElement as HTMLElement;
     const homeLink = root.querySelector('a[href="/"]');
     const booksLink = root.querySelector('a[href="/books"]');
+    const seriesLink = root.querySelector('a[href="/series"]');
     expect(homeLink?.classList.contains('font-semibold')).toBe(false);
     expect(booksLink?.classList.contains('font-semibold')).toBe(true);
+    expect(seriesLink).not.toBeNull();
 
     const createBtn = root.querySelector(
       'button[aria-label="Crear nuevo libro"]'

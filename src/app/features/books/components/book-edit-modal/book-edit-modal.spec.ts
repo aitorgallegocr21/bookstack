@@ -5,6 +5,7 @@ import { Book } from '../../models/book.model';
 import { BookMetadataCandidate } from '../../models/book-metadata.model';
 import { BookMetadataService } from '../../services/book-metadata.service';
 import { BooksService } from '../../services/books.service';
+import { ExistingSeriesOption, SeriesService } from '../../../series/services/series.service';
 import { BookEditModalComponent } from './book-edit-modal';
 
 describe('BookEditModalComponent', () => {
@@ -38,6 +39,20 @@ describe('BookEditModalComponent', () => {
           useValue: {
             books: signal<Book[]>([sampleBook]),
             update: updateMock,
+          },
+        },
+        {
+          provide: SeriesService,
+          useValue: {
+            existingSeriesOptions: signal<ExistingSeriesOption[]>([
+              {
+                id: 'series-dune-1',
+                normalizedKey: 'dune',
+                name: 'Dune',
+                count: 2,
+                nextVolumeNumber: 3,
+              },
+            ]),
           },
         },
         {
@@ -167,5 +182,39 @@ describe('BookEditModalComponent', () => {
     expect((root.querySelector('#edit-book-publication-year') as HTMLInputElement).value).toBe(
       '2008'
     );
+  });
+
+  it('should suggest next volume and reuse canonical series ID when linking to an existing saga', async () => {
+    const fixture = TestBed.createComponent(BookEditModalComponent);
+    fixture.componentRef.setInput('bookId', sampleBook.id);
+    const savedSpy = vi.fn<(book: Book) => void>();
+    fixture.componentInstance.saved.subscribe(savedSpy);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const seriesToggle = root.querySelector(
+      'input[formcontrolname="seriesEnabled"]'
+    ) as HTMLInputElement;
+    seriesToggle.click();
+    fixture.detectChanges();
+
+    const seriesNameInput = root.querySelector('#edit-book-series-name') as HTMLInputElement;
+    seriesNameInput.value = 'dune';
+    seriesNameInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const seriesVolumeInput = root.querySelector('#edit-book-series-volume') as HTMLInputElement;
+    expect(seriesVolumeInput.value).toBe('3');
+
+    const form = root.querySelector('form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit'));
+    await Promise.resolve();
+
+    expect(savedSpy).toHaveBeenCalledTimes(1);
+    expect(savedSpy.mock.calls[0][0].series).toEqual({
+      id: 'series-dune-1',
+      name: 'dune',
+      volumeNumber: 3,
+    });
   });
 });

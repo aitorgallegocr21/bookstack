@@ -9,6 +9,7 @@ import {
   LucideGitBranch,
   LucideHome,
   LucideInfo,
+  LucideLayers,
   LucideMoon,
   LucidePlus,
   LucideSettings,
@@ -40,6 +41,7 @@ export class SidebarComponent {
   protected readonly Sun = LucideSun;
   protected readonly Moon = LucideMoon;
   protected readonly Book = LucideBook;
+  protected readonly Series = LucideLayers;
   protected readonly Stats = LucideBarChart2;
   protected readonly Settings = LucideSettings;
   protected readonly Home = LucideHome;
@@ -52,6 +54,7 @@ export class SidebarComponent {
     return [
       { path: '/', label: nav.home, icon: this.Home },
       { path: '/books', label: nav.books, icon: this.Book },
+      { path: '/series', label: nav.series, icon: this.Series },
       { path: '/stats', label: nav.stats, icon: this.Stats },
     ] as const;
   });

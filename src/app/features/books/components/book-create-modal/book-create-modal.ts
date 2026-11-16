@@ -13,20 +13,23 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { BOOK_RATING_MAX, BOOK_RATING_MIN, Book, BookStatus } from '../../models/book.model';
+import { BookMetadataApplyMode, BookMetadataCandidate } from '../../models/book-metadata.model';
 import { BooksService } from '../../services/books.service';
 import {
   BOOK_STATUS_VALUES,
   buildBookSeriesPayload,
+  buildMetadataFormPatch,
   getCompletedAutofillValues,
   normalizeBookFormat,
   normalizeBookRating,
 } from '../../utils/book-form.utils';
+import { BookMetadataLookupComponent } from '../book-metadata-lookup/book-metadata-lookup';
 import { CoverPickerComponent } from '../cover-picker/cover-picker';
 
 @Component({
   selector: 'app-book-create-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, CoverPickerComponent],
+  imports: [ReactiveFormsModule, CoverPickerComponent, BookMetadataLookupComponent],
   templateUrl: './book-create-modal.html',
   styleUrl: './book-create-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,6 +47,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
   readonly saved = output<Book>();
 
   private readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
+  private readonly metadataLookup = viewChild(BookMetadataLookupComponent);
 
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
@@ -54,7 +58,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     author: ['', [Validators.required, Validators.minLength(1)]],
     isbn: [''],
     publisher: [''],
-    publicationYear: [null],
+    publicationYear: [null as number | null],
     totalPages: [null as number | null, [Validators.required, Validators.min(1)]],
     currentPage: [0, [Validators.min(0)]],
     totalCharacters: [0, [Validators.min(0)]],
@@ -115,6 +119,38 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
 
   protected onCoverUrlChange(coverUrl: string): void {
     this.createForm.controls.coverUrl.setValue(coverUrl);
+  }
+
+  protected triggerInlineIsbnLookup(): void {
+    void this.metadataLookup()?.triggerIsbnLookup(this.createForm.controls.isbn.value || '');
+  }
+
+  protected onMetadataCandidateApplied(event: {
+    candidate: BookMetadataCandidate;
+    applyMode: BookMetadataApplyMode;
+  }): void {
+    const raw = this.createForm.getRawValue();
+    const patch = buildMetadataFormPatch(
+      {
+        title: raw.title,
+        author: raw.author,
+        isbn: raw.isbn,
+        publisher: raw.publisher,
+        publicationYear: raw.publicationYear,
+        totalPages: raw.totalPages,
+        coverUrl: raw.coverUrl,
+      },
+      event.candidate,
+      event.applyMode
+    );
+
+    this.createForm.patchValue(patch);
+
+    for (const key of Object.keys(patch) as Array<keyof typeof patch>) {
+      const control = this.createForm.get(key);
+      control?.markAsDirty();
+      control?.markAsTouched();
+    }
   }
 
   protected async save(): Promise<void> {

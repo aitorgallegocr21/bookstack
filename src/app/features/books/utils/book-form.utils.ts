@@ -1,4 +1,5 @@
 import { TranslationDictionary } from '../../../core/i18n/i18n.types';
+import { BookMetadataApplyMode, BookMetadataCandidate } from '../models/book-metadata.model';
 import {
   BOOK_RATING_MAX,
   BOOK_RATING_MIN,
@@ -97,4 +98,87 @@ export function buildBookSeriesPayload(params: {
     name: trimmedName,
     volumeNumber: params.volumeNumber ? Number(params.volumeNumber) : undefined,
   };
+}
+
+export interface MetadataFormValuesSnapshot {
+  title?: string | null;
+  author?: string | null;
+  isbn?: string | null;
+  publisher?: string | null;
+  publicationYear?: number | null;
+  totalPages?: number | null;
+  coverUrl?: string | null;
+}
+
+export interface MetadataFormPatch {
+  title?: string;
+  author?: string;
+  isbn?: string;
+  publisher?: string;
+  publicationYear?: number | null;
+  totalPages?: number | null;
+  coverUrl?: string;
+}
+
+/**
+ * Builds a partial form patch from a public metadata candidate while respecting
+ * `fill-empty` vs `overwrite-public` mode and never touching personal tracking fields.
+ */
+export function buildMetadataFormPatch(
+  currentFormValues: MetadataFormValuesSnapshot,
+  candidate: BookMetadataCandidate,
+  applyMode: BookMetadataApplyMode
+): MetadataFormPatch {
+  const patch: MetadataFormPatch = {};
+  const overwrite = applyMode === 'overwrite-public';
+
+  const shouldApplyText = (
+    current: string | null | undefined,
+    next: string | undefined
+  ): string | undefined => {
+    const trimmedNext = next?.trim();
+    if (!trimmedNext) {
+      return undefined;
+    }
+    if (overwrite || !current?.trim()) {
+      return trimmedNext;
+    }
+    return undefined;
+  };
+
+  const title = shouldApplyText(currentFormValues.title, candidate.title);
+  if (title !== undefined) patch.title = title;
+
+  const author = shouldApplyText(currentFormValues.author, candidate.author);
+  if (author !== undefined) patch.author = author;
+
+  const isbn = shouldApplyText(currentFormValues.isbn, candidate.isbn);
+  if (isbn !== undefined) patch.isbn = isbn;
+
+  const publisher = shouldApplyText(currentFormValues.publisher, candidate.publisher);
+  if (publisher !== undefined) patch.publisher = publisher;
+
+  const coverUrl = shouldApplyText(currentFormValues.coverUrl, candidate.coverUrl);
+  if (coverUrl !== undefined) patch.coverUrl = coverUrl;
+
+  if (
+    typeof candidate.publicationYear === 'number' &&
+    candidate.publicationYear > 0 &&
+    (overwrite || !currentFormValues.publicationYear)
+  ) {
+    patch.publicationYear = candidate.publicationYear;
+  }
+
+  if (
+    typeof candidate.totalPages === 'number' &&
+    candidate.totalPages > 0 &&
+    (overwrite ||
+      currentFormValues.totalPages === null ||
+      currentFormValues.totalPages === undefined ||
+      currentFormValues.totalPages === 0)
+  ) {
+    patch.totalPages = candidate.totalPages;
+  }
+
+  return patch;
 }

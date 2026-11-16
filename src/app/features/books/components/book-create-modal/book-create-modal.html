@@ -47,6 +47,14 @@
       class="modal-form flex max-h-[calc(90dvh-76px)] flex-col"
     >
       <div class="space-y-5 overflow-y-auto p-6">
+        <app-book-metadata-lookup
+          mode="create"
+          [currentIsbn]="createForm.controls.isbn.value || ''"
+          [currentTitle]="createForm.controls.title.value || ''"
+          [currentAuthor]="createForm.controls.author.value || ''"
+          (candidateApplied)="onMetadataCandidateApplied($event)"
+        />
+
         <section
           class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/50"
         >
@@ -91,13 +99,23 @@
               <label for="create-book-isbn" class="field-label">{{
                 i18n.t().bookForm.isbnLabel
               }}</label>
-              <input
-                id="create-book-isbn"
-                type="text"
-                formControlName="isbn"
-                [placeholder]="i18n.t().bookForm.isbnPlaceholder"
-                class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
-              />
+              <div class="flex items-stretch gap-2">
+                <input
+                  id="create-book-isbn"
+                  type="text"
+                  formControlName="isbn"
+                  [placeholder]="i18n.t().bookForm.isbnPlaceholder"
+                  class="field-input min-w-0 flex-1 border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                />
+                <button
+                  type="button"
+                  (click)="triggerInlineIsbnLookup()"
+                  [attr.aria-label]="i18n.t().bookForm.lookup.isbnLookupAria"
+                  class="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                >
+                  {{ i18n.t().bookForm.lookup.isbnLookupButton }}
+                </button>
+              </div>
             </div>
             <div>
               <label for="create-book-publication-year" class="field-label">{{

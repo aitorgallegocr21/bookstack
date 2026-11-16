@@ -66,7 +66,9 @@ src/
         │   │   ├── catalog-filter.service.ts  # L1-377: Omni-search, status/format/rating filters, 7 sorts & view mode state
         │   │   ├── image-optimizer.service.ts # L1-132: Canvas WebP/JPEG compression & remote cover fetch
         │   │   └── book-metadata.service.ts   # L1-278: Privacy-first Open Library + Google Books lookup, session cache & duplicate detector
-        │   ├── utils/book-form.utils.ts       # Shared status/autofill/format/rating/series helpers
+        │   ├── utils/
+        │   │   ├── book-form.utils.ts         # Shared status/autofill/format/rating/series & metadata form-patch helpers
+        │   │   └── isbn.utils.ts              # Pure ISBN-10/13 checksum & normalization helpers
         │   ├── pages/books-page/              # Catalog coordinator, 3 view modes & zero-match empty state
         │   └── components/{cover-picker,isbn-scanner,book-metadata-lookup,book-create-modal,book-edit-modal,book-detail-modal,reading-log-editor,catalog-toolbar,book-grid-card,book-detailed-card,book-compact-row}/
         ├── analytics/                         # Reading analytics domain (/stats)
@@ -82,7 +84,7 @@ src/
         │   └── pages/settings-page/                   # /settings coordinator & reactive storage breakdown
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)
 
-tests/e2e/                                     # Playwright specs: overflow, navigation-and-theme, books-flow, dashboard-flow, catalog-flow, analytics-flow, settings-flow
+tests/e2e/                                     # Playwright specs: overflow, navigation-and-theme, books-flow, dashboard-flow, catalog-flow, analytics-flow, settings-flow, isbn-lookup-flow
 scripts/verify-quiet.mjs                       # Token-optimized auto-fix + quiet verification gate
 ```
 

@@ -17,20 +17,23 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { BOOK_RATING_MAX, BOOK_RATING_MIN, Book, BookStatus } from '../../models/book.model';
+import { BookMetadataApplyMode, BookMetadataCandidate } from '../../models/book-metadata.model';
 import { BooksService } from '../../services/books.service';
 import {
   BOOK_STATUS_VALUES,
   buildBookSeriesPayload,
+  buildMetadataFormPatch,
   getCompletedAutofillValues,
   normalizeBookFormat,
   normalizeBookRating,
 } from '../../utils/book-form.utils';
+import { BookMetadataLookupComponent } from '../book-metadata-lookup/book-metadata-lookup';
 import { CoverPickerComponent } from '../cover-picker/cover-picker';
 
 @Component({
   selector: 'app-book-edit-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CoverPickerComponent],
+  imports: [CommonModule, ReactiveFormsModule, CoverPickerComponent, BookMetadataLookupComponent],
   templateUrl: './book-edit-modal.html',
   styleUrl: './book-edit-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,6 +52,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
   readonly saved = output<Book>();
 
   private readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
+  private readonly metadataLookup = viewChild(BookMetadataLookupComponent);
 
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
@@ -162,6 +166,38 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
 
   protected onCoverUrlChange(coverUrl: string): void {
     this.editForm.controls.coverUrl.setValue(coverUrl);
+  }
+
+  protected triggerInlineIsbnLookup(): void {
+    void this.metadataLookup()?.triggerIsbnLookup(this.editForm.controls.isbn.value || '');
+  }
+
+  protected onMetadataCandidateApplied(event: {
+    candidate: BookMetadataCandidate;
+    applyMode: BookMetadataApplyMode;
+  }): void {
+    const raw = this.editForm.getRawValue();
+    const patch = buildMetadataFormPatch(
+      {
+        title: raw.title,
+        author: raw.author,
+        isbn: raw.isbn,
+        publisher: raw.publisher,
+        publicationYear: raw.publicationYear,
+        totalPages: raw.totalPages,
+        coverUrl: raw.coverUrl,
+      },
+      event.candidate,
+      event.applyMode
+    );
+
+    this.editForm.patchValue(patch);
+
+    for (const key of Object.keys(patch) as Array<keyof typeof patch>) {
+      const control = this.editForm.get(key);
+      control?.markAsDirty();
+      control?.markAsTouched();
+    }
   }
 
   protected async save(): Promise<void> {

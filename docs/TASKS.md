@@ -8,17 +8,19 @@
 
 ## Active Phase
 
-- [ ] **[Phase 10: ISBN Barcode Scanner & Public Metadata Auto-Fill](tasks/phase-10-isbn-scanner-metadata-lookup/index.md)** — _Active_ (Privacy-first camera & photo ISBN-10/13 barcode scanner via lazy-loaded `html5-qrcode`, on-demand Open Library + Google Books hybrid metadata waterfall with Zod validation, automatic local cover optimization via `ImageOptimizerService`, non-blocking local duplicate detection, and smart field protection in Create & Edit modals).
+- [ ] **Phase 11: Sagas, Series & Collections Management (`/series`)** — _Active (Pending Discovery)_ (Dedicated `/series` route, chronological volume ordering, saga completion tracking, and series progress badges).
 
 ---
 
 ## Upcoming Phases (Backlog & Roadmapped)
 
-- [ ] **Phase 11: Sagas, Series & Collections Management (`/series`)** — _Planned_ (Dedicated `/series` route, chronological volume ordering, saga completion tracking, and series progress badges).
+- _No additional phases queued yet._
 
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 10: ISBN Barcode Scanner & Public Metadata Auto-Fill](tasks/phase-10-isbn-scanner-metadata-lookup/index.md)** — _Completed 2026-11_ (Privacy-first camera & photo ISBN-10/13 barcode scanner via lazy-loaded `html5-qrcode`, on-demand Open Library + Google Books hybrid metadata waterfall with Zod validation, automatic local cover compression via `ImageOptimizerService`, non-blocking local duplicate detection, smart field protection in Create & Edit modals via `buildMetadataFormPatch()`, and 3 Playwright E2E tests).
 
 - [x] **[Phase 09: Settings, Data Portability & Backup Engine](tasks/phase-09-settings-portability-backup/index.md)** — _Completed 2026-11_ (CSP meta hardening, unified interface preferences [language, theme, default catalog view], 4-category storage quota & byte inspector, Zod-validated JSON full backup & RFC 4180 CSV catalog export/import with validation preview [`Merge` vs `Overwrite`], 2-tier Danger Zone reset modal with 1-click backup in `/settings`, `SettingsPage` integration tests, and 5 Playwright E2E tests).
 

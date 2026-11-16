@@ -1,7 +1,7 @@
 # Task 10.5: Modal Integration (Create & Edit), Direct ISBN Field Lookup & Playwright E2E Suite
 
 **Phase:** Phase 10: ISBN Barcode Scanner & Public Metadata Auto-Fill  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** High (Integration of `<app-book-metadata-lookup>` and direct ISBN lookup button in `BookCreateModalComponent` and `BookEditModalComponent`, pure form-patching helper in `book-form.utils.ts`, unit/component tests, Playwright E2E suite `tests/e2e/isbn-lookup-flow.spec.ts`, and Tier 2 Per-Phase documentation sync).
 
 ---
@@ -60,8 +60,8 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/books/utils/book-form.utils.spec.ts`
-- [ ] `npm run test:file -- src/app/features/books/components/book-create-modal/book-create-modal.spec.ts`
-- [ ] `npm run test:file -- src/app/features/books/components/book-edit-modal/book-edit-modal.spec.ts`
-- [ ] `npm run verify:quiet`
-- [ ] `npm run test:e2e`
+- [x] `npm run test:file -- src/app/features/books/utils/book-form.utils.spec.ts`
+- [x] `npm run test:file -- src/app/features/books/components/book-create-modal/book-create-modal.spec.ts`
+- [x] `npm run test:file -- src/app/features/books/components/book-edit-modal/book-edit-modal.spec.ts`
+- [x] `npm run verify:quiet`
+- [x] `npm run test:e2e`

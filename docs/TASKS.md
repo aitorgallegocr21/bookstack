@@ -8,17 +8,19 @@
 
 ## Active Phase
 
-- [ ] **[Phase 09: Settings, Data Portability & Backup Engine](tasks/phase-09-settings-portability-backup/index.md)** — _Active_ (CSP meta hardening, unified interface preferences [language, theme, default catalog view], 4-category storage quota & byte inspector, Zod-validated JSON full backup & RFC 4180 CSV catalog export/import with validation preview [`Merge` vs `Overwrite`], and 2-tier Danger Zone reset modal with 1-click backup in `/settings`).
+- [ ] **Phase 10: ISBN Barcode Scanner & Series Management** — _Active_ (Camera ISBN scanning via `html5-qrcode`, Open Library / Google Books metadata lookup, and chronological saga organization).
 
 ---
 
 ## Upcoming Phases (Backlog & Roadmapped)
 
-- [ ] **Phase 10: ISBN Barcode Scanner & Series Management** — _Roadmapped_ (Camera ISBN scanning via `html5-qrcode`, Open Library / Google Books metadata lookup, and chronological saga organization).
+- _None currently queued beyond Phase 10._
 
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 09: Settings, Data Portability & Backup Engine](tasks/phase-09-settings-portability-backup/index.md)** — _Completed 2026-11_ (CSP meta hardening, unified interface preferences [language, theme, default catalog view], 4-category storage quota & byte inspector, Zod-validated JSON full backup & RFC 4180 CSV catalog export/import with validation preview [`Merge` vs `Overwrite`], 2-tier Danger Zone reset modal with 1-click backup in `/settings`, `SettingsPage` integration tests, and 5 Playwright E2E tests).
 
 - [x] **[Phase 08: Advanced Analytics](tasks/phase-08-advanced-analytics/index.md)** — _Completed 2026-11_ (Reactive time-horizon selector, 4 executive KPI cards with micro-indicators, hybrid `ReadingLog` + direct book progress engine, 3-metric interactive SVG/CSS velocity chart, format donut + status stacked bar + rating histogram & top authors, weekday reading pace, period highlights in `/stats`, `StatsPage` integration tests, and 35 Playwright E2E tests).
 

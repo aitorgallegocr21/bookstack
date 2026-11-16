@@ -1,6 +1,6 @@
 # Phase 09: Settings, Data Portability & Backup Engine (`/settings`)
 
-**Status:** Active (In Progress)  
+**Status:** Completed  
 **Target Branch:** `feature/09-settings-portability-backup` $\to$ `develop`  
 **Core Mission:** Transform `/settings` from a minimal language-switcher page into a comprehensive **Local-First Control, Data Portability & Storage Hub**. Deliver strict Content-Security-Policy (CSP) hardening in `src/index.html`, a unified interface preferences panel (language, light/dark theme, default catalog view), a real-time IndexedDB/LocalStorage quota & category byte inspector, a Zod-validated JSON (full backup) and RFC 4180 CSV (catalog table) export/import engine with interactive pre-import preview (`Merge` vs. `Overwrite`), and a two-tier Danger Zone reset workflow with 1-click pre-reset backup download.
 
@@ -33,4 +33,4 @@
 - [x] **[Task 9.2: Data Portability Service (JSON Backup, RFC 4180 CSV w/ Formula Guard & Storage Inspector Engine)](task-9.2-data-portability-and-inspector-service.md)** — Implement `DataPortabilityService` for JSON/CSV export, Zod-validated import preview, `merge` vs. `overwrite` execution with rollback protection, and 4-category byte/quota calculation.
 - [x] **[Task 9.3: Interface Preferences Hub & Storage Quota Inspector UI Components](task-9.3-preferences-and-storage-inspector-ui.md)** — Build `SettingsPreferencesSectionComponent` (language, theme, default catalog view) and `StorageQuotaInspectorComponent` (segmented byte bar, 4-category cards, engine & quota badges).
 - [x] **[Task 9.4: Data Portability Panel (Export/Import Preview Flow) & Danger Zone Reset Modal](task-9.4-portability-panel-and-danger-zone-ui.md)** — Build `DataPortabilitySectionComponent` (JSON/CSV export buttons, file picker, validation preview & `Merge`/`Overwrite` confirmation) and `DangerZoneSectionComponent` (session reset vs. factory reset modal with 1-click backup button).
-- [ ] **[Task 9.5: Settings Page Coordinator, Responsive Polish & Playwright E2E Suite](task-9.5-settings-qa-and-e2e-suite.md)** — Integrate all panels into `SettingsPage`, verify `320px–1280px` responsive ergonomics, add `settings-page.spec.ts` & Playwright E2E suite (`tests/e2e/settings-flow.spec.ts`), and perform Tier 2 Per-Phase documentation sync + autonomous branch hygiene.
+- [x] **[Task 9.5: Settings Page Coordinator, Responsive Polish & Playwright E2E Suite](task-9.5-settings-qa-and-e2e-suite.md)** — Integrate all panels into `SettingsPage`, verify `320px–1280px` responsive ergonomics, add `settings-page.spec.ts` & Playwright E2E suite (`tests/e2e/settings-flow.spec.ts`), and perform Tier 2 Per-Phase documentation sync + autonomous branch hygiene.

@@ -162,17 +162,23 @@ export class StorageAdapterService {
       await new Promise<void>((resolve) => {
         const transaction = db.transaction(storeName, 'readwrite');
         const store = transaction.objectStore(storeName);
-        const request = store.clear();
 
-        request.onsuccess = () => {
+        transaction.oncomplete = () => {
           this.clearFromLocalStorage(storeName);
           resolve();
         };
 
-        request.onerror = () => {
+        transaction.onerror = () => {
           this.clearFromLocalStorage(storeName);
           resolve();
         };
+
+        transaction.onabort = () => {
+          this.clearFromLocalStorage(storeName);
+          resolve();
+        };
+
+        store.clear();
       });
     } catch {
       this.clearFromLocalStorage(storeName);

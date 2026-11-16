@@ -73,10 +73,15 @@ src/
         │   ├── services/analytics.service.ts  # Reactive period filtering & hybrid ReadingLog + Book aggregation
         │   ├── components/{analytics-header,analytics-kpi-grid,reading-velocity-chart,library-composition-section,reading-habits-section}/
         │   └── pages/stats-page/              # Analytics coordinator (/stats), empty library state & integration spec
-        ├── settings/pages/settings-page/      # Language switcher, settings & future backup hub (/settings)
+        ├── settings/                          # Settings, Data Portability & Backup Engine (/settings)
+        │   ├── models/data-portability.model.ts       # BackupEnvelope, ImportPreviewSummary, StorageBreakdownSummary
+        │   ├── schemas/backup.schema.ts               # Zod BackupEnvelopeSchema & versioned restore validation
+        │   ├── services/data-portability.service.ts   # JSON/CSV export, Zod import preview, Merge/Overwrite & quota inspector
+        │   ├── components/{settings-preferences-section,storage-quota-inspector,data-portability-section,danger-zone-section}/
+        │   └── pages/settings-page/                   # /settings coordinator & reactive storage breakdown
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)
 
-tests/e2e/                                     # Playwright specs: overflow, navigation-and-theme, books-flow, dashboard-flow, catalog-flow, analytics-flow
+tests/e2e/                                     # Playwright specs: overflow, navigation-and-theme, books-flow, dashboard-flow, catalog-flow, analytics-flow, settings-flow
 scripts/verify-quiet.mjs                       # Token-optimized auto-fix + quiet verification gate
 ```
 

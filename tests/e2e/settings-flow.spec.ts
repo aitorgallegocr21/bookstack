@@ -1,0 +1,319 @@
+import { expect, Page, test } from '@playwright/test';
+import { Book, ReadingLog } from '../../src/app/features/books/models/book.model';
+
+const SAMPLE_BASE64_COVER =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+async function seedLibrary(page: Page, books: Book[], logs: ReadingLog[]): Promise<void> {
+  await page.goto('/settings');
+  await page.evaluate(
+    async ({ bookList, logList }) => {
+      return new Promise<void>((resolve, reject) => {
+        const openReq = indexedDB.open('bookstackDB', 1);
+        openReq.onupgradeneeded = (event) => {
+          const db = (event.target as IDBOpenDBRequest).result;
+          if (!db.objectStoreNames.contains('books')) {
+            db.createObjectStore('books', { keyPath: 'id' });
+          }
+          if (!db.objectStoreNames.contains('readingLogs')) {
+            db.createObjectStore('readingLogs', { keyPath: 'id' });
+          }
+        };
+        openReq.onerror = () => reject(openReq.error);
+        openReq.onsuccess = () => {
+          const db = openReq.result;
+          const storeNames: string[] = [];
+          if (db.objectStoreNames.contains('books')) storeNames.push('books');
+          if (db.objectStoreNames.contains('readingLogs')) storeNames.push('readingLogs');
+          const tx = db.transaction(storeNames, 'readwrite');
+          if (db.objectStoreNames.contains('books')) {
+            const bookStore = tx.objectStore('books');
+            bookStore.clear();
+            for (const b of bookList) {
+              bookStore.put(b);
+            }
+          }
+          if (db.objectStoreNames.contains('readingLogs')) {
+            const logStore = tx.objectStore('readingLogs');
+            logStore.clear();
+            for (const l of logList) {
+              logStore.put(l);
+            }
+          }
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+      });
+    },
+    { bookList: books, logList: logs }
+  );
+  await page.reload();
+}
+
+test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
+  test('updates language, theme, and default catalog view mode and persists across routes', async ({
+    page,
+  }) => {
+    await seedLibrary(
+      page,
+      [
+        {
+          id: 'pref-book-1',
+          title: 'Elantris',
+          author: 'Brandon Sanderson',
+          totalPages: 600,
+          currentPage: 150,
+          status: 'reading',
+          format: 'Físico',
+          createdAt: '2026-01-10T10:00:00.000Z',
+          updatedAt: '2026-01-10T10:00:00.000Z',
+        },
+      ],
+      []
+    );
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Ajustes' })).toBeVisible();
+
+    // Switch language to English and verify reactive heading
+    await page.locator('#settings-language').selectOption('en');
+    await expect(page.getByRole('heading', { level: 1, name: 'Settings' })).toBeVisible();
+
+    // Switch back to Spanish
+    await page.locator('#settings-language').selectOption('es');
+    await expect(page.getByRole('heading', { level: 1, name: 'Ajustes' })).toBeVisible();
+
+    // Toggle dark theme and verify root class
+    await page.getByTestId('theme-dark-btn').click();
+    await expect(page.locator('html')).toHaveClass(/dark/);
+
+    // Change default catalog view to compact
+    await page.locator('#settings-default-view').selectOption('compact');
+
+    // Navigate to /books and verify compact view + dark theme persist
+    await page.goto('/books');
+    await expect(page.locator('html')).toHaveClass(/dark/);
+    await expect(page.locator('app-book-compact-row')).toHaveCount(1);
+    await expect(page.getByText('Elantris')).toBeVisible();
+  });
+
+  test('displays non-zero storage quota breakdown for seeded books, Base64 cover, and logs', async ({
+    page,
+  }) => {
+    const books: Book[] = [
+      {
+        id: 'quota-book-1',
+        title: 'Dune',
+        author: 'Frank Herbert',
+        totalPages: 500,
+        currentPage: 250,
+        status: 'reading',
+        format: 'Físico',
+        coverUrl: SAMPLE_BASE64_COVER,
+        createdAt: '2026-02-01T10:00:00.000Z',
+        updatedAt: '2026-02-01T10:00:00.000Z',
+      },
+    ];
+    const logs: ReadingLog[] = [
+      {
+        id: 'quota-log-1',
+        bookId: 'quota-book-1',
+        date: '2026-02-02T19:00:00.000Z',
+        pagesRead: 50,
+        timeSpentMinutes: 45,
+        createdAt: '2026-02-02T19:00:00.000Z',
+      },
+    ];
+
+    await seedLibrary(page, books, logs);
+
+    await expect(page.getByTestId('storage-total-used')).not.toHaveText(/^0 B$/);
+    await expect(page.getByTestId('storage-card-metadata')).toContainText('1');
+    await expect(page.getByTestId('storage-card-covers')).toContainText('1');
+    await expect(page.getByTestId('storage-card-logs')).toContainText('1');
+  });
+
+  test('imports JSON backup with Merge mode and CSV catalog with Overwrite mode', async ({
+    page,
+  }) => {
+    await seedLibrary(
+      page,
+      [
+        {
+          id: 'existing-book-1',
+          title: 'Libro Existente',
+          author: 'Autor Uno',
+          totalPages: 200,
+          currentPage: 50,
+          status: 'reading',
+          createdAt: '2026-01-01T10:00:00.000Z',
+          updatedAt: '2026-01-01T10:00:00.000Z',
+        },
+      ],
+      []
+    );
+
+    const jsonBackup = {
+      schemaVersion: 1,
+      app: 'BookStack',
+      exportedAt: '2026-03-01T12:00:00.000Z',
+      books: [
+        {
+          id: 'imported-json-1',
+          title: 'Fundación',
+          author: 'Isaac Asimov',
+          totalPages: 320,
+          currentPage: 320,
+          status: 'completed',
+          format: 'Ebook',
+          rating: 9,
+          createdAt: '2026-03-01T12:00:00.000Z',
+          updatedAt: '2026-03-01T12:00:00.000Z',
+        },
+      ],
+      readingLogs: [
+        {
+          id: 'imported-log-1',
+          bookId: 'imported-json-1',
+          date: '2026-03-01T12:00:00.000Z',
+          pagesRead: 120,
+          createdAt: '2026-03-01T12:00:00.000Z',
+        },
+      ],
+    };
+
+    // 1. Upload JSON and Merge
+    await page.getByTestId('import-file-input').setInputFiles({
+      name: 'bookstack-backup.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(jsonBackup), 'utf-8'),
+    });
+
+    await expect(page.getByTestId('import-preview-panel')).toBeVisible();
+    await expect(page.getByTestId('import-preview-format')).toContainText(/json/i);
+    await page.getByTestId('import-mode-merge').click();
+    await page.getByTestId('confirm-import-btn').click();
+    await expect(page.getByTestId('portability-status-banner')).toBeVisible();
+
+    await page.goto('/books');
+    await expect(page.getByText('Libro Existente')).toBeVisible();
+    await expect(page.getByText('Fundación')).toBeVisible();
+
+    // 2. Upload CSV and Overwrite
+    await page.goto('/settings');
+    const csvContent = [
+      'id,title,author,totalPages,currentPage,status,format,rating',
+      'csv-book-1,Neuromante,William Gibson,271,271,completed,Físico,8.5',
+    ].join('\n');
+
+    await page.getByTestId('import-file-input').setInputFiles({
+      name: 'catalog.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from(csvContent, 'utf-8'),
+    });
+
+    await expect(page.getByTestId('import-preview-panel')).toBeVisible();
+    await expect(page.getByTestId('import-preview-format')).toContainText(/csv/i);
+    await page.getByTestId('import-mode-overwrite').click();
+    await expect(page.getByTestId('import-overwrite-warning')).toBeVisible();
+    await page.getByTestId('confirm-import-btn').click();
+    await expect(page.getByTestId('portability-status-banner')).toBeVisible();
+
+    await page.goto('/books');
+    await expect(page.getByText('Neuromante')).toBeVisible();
+    await expect(page.getByText('Libro Existente')).toHaveCount(0);
+    await expect(page.getByText('Fundación')).toHaveCount(0);
+  });
+
+  test('executes Danger Zone session reset (with Escape check) and full factory reset', async ({
+    page,
+  }) => {
+    await seedLibrary(
+      page,
+      [
+        {
+          id: 'danger-book-1',
+          title: 'Solaris',
+          author: 'Stanislaw Lem',
+          totalPages: 240,
+          currentPage: 100,
+          status: 'reading',
+          createdAt: '2026-01-01T10:00:00.000Z',
+          updatedAt: '2026-01-01T10:00:00.000Z',
+        },
+      ],
+      [
+        {
+          id: 'danger-log-1',
+          bookId: 'danger-book-1',
+          date: '2026-01-02T10:00:00.000Z',
+          pagesRead: 40,
+          createdAt: '2026-01-02T10:00:00.000Z',
+        },
+      ]
+    );
+
+    // Open Clear Reading Sessions modal and verify Escape closes it
+    await page.getByTestId('reset-sessions-btn').click();
+    await expect(page.getByTestId('danger-reset-modal')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('danger-reset-modal')).toHaveCount(0);
+
+    // Reopen and confirm session deletion
+    await page.getByTestId('reset-sessions-btn').click();
+    await page.getByTestId('confirm-danger-reset-btn').click();
+    await expect(page.getByTestId('danger-reset-modal')).toHaveCount(0);
+    await expect(page.getByTestId('danger-zone-status-banner')).toBeVisible();
+    await expect(page.getByTestId('storage-card-metadata')).toContainText('1 libros');
+    await expect(page.getByTestId('storage-card-logs')).toContainText('0 sesiones');
+
+    // Open Factory Reset modal and confirm full wipe
+    await page.getByTestId('factory-reset-btn').click();
+    await expect(page.getByTestId('danger-reset-modal')).toBeVisible();
+    await page.getByTestId('confirm-danger-reset-btn').click();
+    await expect(page.getByTestId('danger-reset-modal')).toHaveCount(0);
+    await expect(page.getByTestId('danger-zone-status-banner')).toBeVisible();
+    await expect(page.getByTestId('storage-card-metadata')).toContainText('0 libros');
+
+    await page.goto('/books');
+    await expect(page.getByText('Solaris')).toHaveCount(0);
+  });
+
+  test('has zero CSP console violations and zero horizontal overflow across 320px-1280px', async ({
+    page,
+  }) => {
+    const cspErrors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error' && /content security policy|csp|violated/i.test(msg.text())) {
+        cspErrors.push(msg.text());
+      }
+    });
+    page.on('pageerror', (err) => {
+      if (/content security policy|csp/i.test(err.message)) {
+        cspErrors.push(err.message);
+      }
+    });
+
+    const viewports = [
+      { width: 320, height: 640 },
+      { width: 375, height: 812 },
+      { width: 768, height: 1024 },
+      { width: 1280, height: 800 },
+    ];
+
+    for (const vp of viewports) {
+      await page.setViewportSize(vp);
+      await page.goto('/settings');
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+
+      const hasOverflow = await page.evaluate(() => {
+        return document.documentElement.scrollWidth > document.documentElement.clientWidth;
+      });
+      expect(hasOverflow, `Horizontal overflow detected at ${vp.width}px`).toBe(false);
+    }
+
+    expect(cspErrors).toEqual([]);
+  });
+});

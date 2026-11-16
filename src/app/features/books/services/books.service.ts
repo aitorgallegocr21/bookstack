@@ -100,6 +100,21 @@ export class BooksService {
     this.books.update((current) => current.filter((b) => b.id !== id));
   }
 
+  async replaceAll(books: Book[]): Promise<void> {
+    await this.ensureInitialized();
+    const persisted = await this.storage.replaceStore(this.storeName, books);
+    if (!persisted) {
+      throw new Error('Failed to persist replaced books collection.');
+    }
+    this.books.set([...books]);
+  }
+
+  async clearAll(): Promise<void> {
+    await this.ensureInitialized();
+    await this.storage.clearStore(this.storeName);
+    this.books.set([]);
+  }
+
   openCreateModal(): void {
     this.isCreateModalOpen.set(true);
   }

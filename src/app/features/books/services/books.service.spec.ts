@@ -21,7 +21,10 @@ function makeBook(overrides: Partial<Book> = {}): Book {
 
 describe('BooksService', () => {
   let storedRecords: unknown[];
-  let storageMock: Pick<StorageAdapterService, 'getAll' | 'set' | 'remove'>;
+  let storageMock: Pick<
+    StorageAdapterService,
+    'getAll' | 'set' | 'remove' | 'replaceStore' | 'clearStore'
+  >;
 
   beforeEach(() => {
     storedRecords = [makeBook(), { id: 'corrupted-book', title: '', totalPages: -5 }];
@@ -30,6 +33,8 @@ describe('BooksService', () => {
       getAll: async <T>(): Promise<T[]> => storedRecords as T[],
       set: vi.fn(async () => true),
       remove: vi.fn(async () => undefined),
+      replaceStore: vi.fn(async () => true),
+      clearStore: vi.fn(async () => undefined),
     };
 
     TestBed.configureTestingModule({
@@ -104,5 +109,23 @@ describe('BooksService', () => {
 
     service.closeCreateModal();
     expect(service.isCreateModalOpen()).toBe(false);
+  });
+
+  it('should replaceAll and clearAll books atomically in storage and signal', async () => {
+    const service = TestBed.inject(BooksService);
+    await service.add(makeBook({ id: 'book-1', title: 'Original' }));
+
+    const replacement = [
+      makeBook({ id: 'book-2', title: 'Replaced 1' }),
+      makeBook({ id: 'book-3', title: 'Replaced 2' }),
+    ];
+    await service.replaceAll(replacement);
+
+    expect(service.books().map((b) => b.id)).toEqual(['book-2', 'book-3']);
+    expect((await service.getAll()).map((b) => b.id)).toEqual(['book-2', 'book-3']);
+
+    await service.clearAll();
+    expect(service.books()).toEqual([]);
+    expect(await service.getAll()).toEqual([]);
   });
 });

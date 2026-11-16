@@ -125,4 +125,91 @@ describe('StorageAdapterService', () => {
       expect(service.getCatalogSort()).toBe('rating-desc');
     });
   });
+
+  describe('Batch store primitives & quota estimation', () => {
+    it('should replaceStore and clearStore in IndexedDB while preserving unrelated localStorage keys', async () => {
+      localStorage.setItem('books_stale', JSON.stringify({ id: 'stale' }));
+      localStorage.setItem('bookstack_catalog_view_mode', JSON.stringify('grid'));
+
+      await service.set('books', { id: 'old-1', label: 'Old Book' });
+
+      const replaced = await service.replaceStore<TestRecord>('books', [
+        { id: 'new-1', label: 'New Book 1' },
+        { id: 'new-2', label: 'New Book 2' },
+      ]);
+
+      expect(replaced).toBe(true);
+      const allAfterReplace = await service.getAll<TestRecord>('books');
+      expect(allAfterReplace).toHaveLength(2);
+      expect(allAfterReplace.map((r) => r.id).sort()).toEqual(['new-1', 'new-2']);
+      expect(localStorage.getItem('books_stale')).toBeNull();
+      expect(localStorage.getItem('bookstack_catalog_view_mode')).not.toBeNull();
+
+      await service.clearStore('books');
+      expect(await service.getAll<TestRecord>('books')).toEqual([]);
+      expect(localStorage.getItem('bookstack_catalog_view_mode')).not.toBeNull();
+    });
+
+    it('should fall back to localStorage for replaceStore and clearStore when IndexedDB is unavailable', async () => {
+      Object.defineProperty(globalThis, 'indexedDB', {
+        writable: true,
+        configurable: true,
+        value: undefined,
+      });
+
+      localStorage.setItem('books_legacy', JSON.stringify({ id: 'legacy', label: 'Legacy' }));
+
+      const replaced = await service.replaceStore<TestRecord>('books', [
+        { id: 'fb-1', label: 'Fallback 1' },
+      ]);
+      expect(replaced).toBe(true);
+      expect(localStorage.getItem('books_legacy')).toBeNull();
+      expect(await service.getAll<TestRecord>('books')).toEqual([
+        { id: 'fb-1', label: 'Fallback 1' },
+      ]);
+
+      await service.clearStore('books');
+      expect(await service.getAll<TestRecord>('books')).toEqual([]);
+    });
+
+    it('should report isUsingIndexedDb accurately based on IndexedDB availability', async () => {
+      expect(await service.isUsingIndexedDb()).toBe(true);
+
+      Object.defineProperty(globalThis, 'indexedDB', {
+        writable: true,
+        configurable: true,
+        value: undefined,
+      });
+      const fallbackService = TestBed.resetTestingModule().inject(StorageAdapterService);
+      expect(await fallbackService.isUsingIndexedDb()).toBe(false);
+    });
+
+    it('should safely estimate browser quota or return nulls when unsupported', async () => {
+      const estimateSpy = vi.fn().mockResolvedValue({ usage: 1024, quota: 5242880 });
+      Object.defineProperty(navigator, 'storage', {
+        configurable: true,
+        value: { estimate: estimateSpy },
+      });
+
+      expect(await service.estimateBrowserQuota()).toEqual({
+        usageBytes: 1024,
+        quotaBytes: 5242880,
+      });
+
+      estimateSpy.mockRejectedValueOnce(new Error('Storage estimate blocked'));
+      expect(await service.estimateBrowserQuota()).toEqual({
+        usageBytes: null,
+        quotaBytes: null,
+      });
+
+      Object.defineProperty(navigator, 'storage', {
+        configurable: true,
+        value: undefined,
+      });
+      expect(await service.estimateBrowserQuota()).toEqual({
+        usageBytes: null,
+        quotaBytes: null,
+      });
+    });
+  });
 });

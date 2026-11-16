@@ -38,7 +38,10 @@ describe('ReadingLogService', () => {
     initialBooks = [makeBook('book-1', 0), makeBook('book-2', 50)];
     initialLogs = [];
 
-    const storageMock: Pick<StorageAdapterService, 'getAll' | 'set' | 'remove'> = {
+    const storageMock: Pick<
+      StorageAdapterService,
+      'getAll' | 'set' | 'remove' | 'replaceStore' | 'clearStore'
+    > = {
       getAll: async <T>(storeName: string): Promise<T[]> => {
         if (storeName === 'books') {
           return initialBooks as T[];
@@ -47,6 +50,8 @@ describe('ReadingLogService', () => {
       },
       set: vi.fn(async () => true),
       remove: vi.fn(async () => undefined),
+      replaceStore: vi.fn(async () => true),
+      clearStore: vi.fn(async () => undefined),
     };
 
     TestBed.configureTestingModule({
@@ -95,5 +100,23 @@ describe('ReadingLogService', () => {
 
     expect(await logService.getAll()).toHaveLength(0);
     expect((await booksService.getById('book-1'))?.currentPage).toBe(0);
+  });
+
+  it('should replaceAll and clearAll reading logs in storage and signal', async () => {
+    const logService = TestBed.inject(ReadingLogService);
+    await logService.add(makeLog({ id: 'log-1', bookId: 'book-1', pagesRead: 20 }));
+
+    const replacement = [
+      makeLog({ id: 'log-2', bookId: 'book-2', pagesRead: 35 }),
+      makeLog({ id: 'log-3', bookId: 'book-2', pagesRead: 15 }),
+    ];
+    await logService.replaceAll(replacement);
+
+    expect(logService.readingLogs().map((l) => l.id)).toEqual(['log-2', 'log-3']);
+    expect((await logService.getAll()).map((l) => l.id)).toEqual(['log-2', 'log-3']);
+
+    await logService.clearAll();
+    expect(logService.readingLogs()).toEqual([]);
+    expect(await logService.getAll()).toEqual([]);
   });
 });

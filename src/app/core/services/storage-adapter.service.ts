@@ -156,6 +156,90 @@ export class StorageAdapterService {
     }
   }
 
+  async clearStore(storeName: string): Promise<void> {
+    try {
+      const db = await this.getDB();
+      await new Promise<void>((resolve) => {
+        const transaction = db.transaction(storeName, 'readwrite');
+        const store = transaction.objectStore(storeName);
+        const request = store.clear();
+
+        request.onsuccess = () => {
+          this.clearFromLocalStorage(storeName);
+          resolve();
+        };
+
+        request.onerror = () => {
+          this.clearFromLocalStorage(storeName);
+          resolve();
+        };
+      });
+    } catch {
+      this.clearFromLocalStorage(storeName);
+    }
+  }
+
+  async replaceStore<T extends { id: string }>(storeName: string, items: T[]): Promise<boolean> {
+    try {
+      const db = await this.getDB();
+      return await new Promise<boolean>((resolve) => {
+        const transaction = db.transaction(storeName, 'readwrite');
+        const store = transaction.objectStore(storeName);
+
+        transaction.oncomplete = () => {
+          this.clearFromLocalStorage(storeName);
+          resolve(true);
+        };
+
+        transaction.onerror = () => {
+          console.warn(
+            `[StorageAdapter] IndexedDB replaceStore failed for "${storeName}"; falling back to localStorage.`
+          );
+          resolve(this.replaceInLocalStorage(storeName, items));
+        };
+
+        transaction.onabort = () => {
+          console.warn(
+            `[StorageAdapter] IndexedDB replaceStore aborted for "${storeName}"; falling back to localStorage.`
+          );
+          resolve(this.replaceInLocalStorage(storeName, items));
+        };
+
+        store.clear();
+        for (const item of items) {
+          store.put(item);
+        }
+      });
+    } catch {
+      return this.replaceInLocalStorage(storeName, items);
+    }
+  }
+
+  async isUsingIndexedDb(): Promise<boolean> {
+    try {
+      await this.getDB();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async estimateBrowserQuota(): Promise<{ usageBytes: number | null; quotaBytes: number | null }> {
+    try {
+      if (typeof navigator === 'undefined' || !navigator.storage?.estimate) {
+        return { usageBytes: null, quotaBytes: null };
+      }
+
+      const estimate = await navigator.storage.estimate();
+      return {
+        usageBytes: typeof estimate.usage === 'number' ? estimate.usage : null,
+        quotaBytes: typeof estimate.quota === 'number' ? estimate.quota : null,
+      };
+    } catch {
+      return { usageBytes: null, quotaBytes: null };
+    }
+  }
+
   getItem<T>(key: string): T | null {
     try {
       const raw = localStorage.getItem(key);
@@ -242,5 +326,27 @@ export class StorageAdapterService {
     } catch {
       // Ignore storage removal errors in restricted environments
     }
+  }
+
+  private clearFromLocalStorage(storeName: string): void {
+    try {
+      const prefix = `${storeName}_`;
+      const keys = Object.keys(localStorage).filter((k) => k.startsWith(prefix));
+      for (const k of keys) {
+        localStorage.removeItem(k);
+      }
+    } catch {
+      // Ignore storage clear errors in restricted environments
+    }
+  }
+
+  private replaceInLocalStorage<T extends { id: string }>(storeName: string, items: T[]): boolean {
+    this.clearFromLocalStorage(storeName);
+    for (const item of items) {
+      if (!this.setToLocalStorage(storeName, item)) {
+        return false;
+      }
+    }
+    return true;
   }
 }

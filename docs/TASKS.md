@@ -1,6 +1,6 @@
 # Tasks Backlog & Roadmap
 
-> **Agent Protocol:** This document is the single high-level phase registry and active sprint index. For milestone definitions migrated from the original product roadmap, see [docs/ROADMAP.md](ROADMAP.md). For atomic task specifications, inspect the corresponding phase directory inside `docs/tasks/`.
+> **Agent Protocol:** This document is the single high-level phase registry and active sprint index. For atomic task specifications, inspect the corresponding phase directory inside `docs/tasks/`.
 >
 > **Execution Loop:** `[Targeted Spec] ➔ [Minimal Code Edit + Tests] ➔ [Validation: npm run verify:quiet] ➔ [Two-Tier Doc Sync] ➔ [Semantic Git Commit]`
 
@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- [ ] **Phase 11: Sagas, Series & Collections Management (`/series`)** — _Active (Pending Discovery)_ (Dedicated `/series` route, chronological volume ordering, saga completion tracking, and series progress badges).
+- [ ] **[Phase 11: Sagas, Series & Collections Management (`/series`)](tasks/phase-11-sagas-series-management/index.md)** — _Active (Ready for Implementation)_ (Variable-scale Saga Bento Gallery [`1×1` / `2×1` / `2×2`], Hybrid `Book.series` + persisted `SeriesMetadata` in IndexedDB v2 & JSON backups, missing-volume gap radar, search/status/sort toolbar, series autocomplete & prefill, interactive Saga Detail Modal with chronological timeline & bulk linker, and desktop/mobile navigation parity).
 
 ---
 

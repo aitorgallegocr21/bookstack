@@ -13,7 +13,7 @@ import {
 })
 export class StorageAdapterService {
   private readonly dbName = 'bookstackDB';
-  private readonly dbVersion = 1;
+  private readonly dbVersion = 2;
   private dbPromise: Promise<IDBDatabase> | null = null;
   readonly goalsStorageKey = 'bookstack_reading_goals';
   readonly catalogViewModeKey = 'bookstack_catalog_view_mode';
@@ -62,6 +62,9 @@ export class StorageAdapterService {
         }
         if (!db.objectStoreNames.contains('readingLogs')) {
           db.createObjectStore('readingLogs', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('seriesMetadata')) {
+          db.createObjectStore('seriesMetadata', { keyPath: 'id' });
         }
       };
     });

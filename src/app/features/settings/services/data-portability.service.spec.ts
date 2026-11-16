@@ -21,6 +21,7 @@ import { BooksService } from '../../books/services/books.service';
 import { CatalogFilterService } from '../../books/services/catalog-filter.service';
 import { ReadingLogService } from '../../books/services/reading-log.service';
 import { ReadingStatsService } from '../../books/services/reading-stats.service';
+import { SeriesMetadata } from '../../series/models/series.model';
 import { DataPortabilityService } from './data-portability.service';
 
 const makeBook = (overrides: Partial<Book> = {}): Book => ({
@@ -76,9 +77,13 @@ describe('DataPortabilityService', () => {
     setViewMode: ReturnType<typeof vi.fn>;
     setSortOption: ReturnType<typeof vi.fn>;
   };
+  let seriesMetadataStore: SeriesMetadata[];
   let storageAdapterMock: {
     isUsingIndexedDb: ReturnType<typeof vi.fn>;
     estimateBrowserQuota: ReturnType<typeof vi.fn>;
+    getAll: ReturnType<typeof vi.fn>;
+    replaceStore: ReturnType<typeof vi.fn>;
+    clearStore: ReturnType<typeof vi.fn>;
   };
   let themeServiceMock: {
     getTheme: ReturnType<typeof vi.fn>;
@@ -137,12 +142,27 @@ describe('DataPortabilityService', () => {
       }),
     };
 
+    seriesMetadataStore = [];
     storageAdapterMock = {
       isUsingIndexedDb: vi.fn(async () => true),
       estimateBrowserQuota: vi.fn(async () => ({
         usageBytes: 500_000,
         quotaBytes: 100_000_000,
       })),
+      getAll: vi.fn(async (storeName: string) =>
+        storeName === 'seriesMetadata' ? [...seriesMetadataStore] : []
+      ),
+      replaceStore: vi.fn(async (storeName: string, items: unknown[]) => {
+        if (storeName === 'seriesMetadata') {
+          seriesMetadataStore = [...(items as SeriesMetadata[])];
+        }
+        return true;
+      }),
+      clearStore: vi.fn(async (storeName: string) => {
+        if (storeName === 'seriesMetadata') {
+          seriesMetadataStore = [];
+        }
+      }),
     };
 
     themeServiceMock = {
@@ -176,14 +196,26 @@ describe('DataPortabilityService', () => {
   });
 
   describe('JSON backup export & round-trip import', () => {
-    it('builds a valid BookstackBackupEnvelope with books, logs, goals, and preferences', () => {
-      const envelope = service.buildJsonBackupEnvelope();
+    it('builds a valid BookstackBackupEnvelope with books, logs, seriesMetadata, goals, and preferences', async () => {
+      seriesMetadataStore = [
+        {
+          id: 'series-1',
+          normalizedKey: 'cosmere',
+          name: 'Cosmere',
+          expectedVolumes: 10,
+          publicationStatus: 'ongoing',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-02T00:00:00.000Z',
+        },
+      ];
+      const envelope = await service.buildJsonBackupEnvelope();
 
       expect(envelope.schemaVersion).toBe(1);
       expect(envelope.app).toBe('BookStack');
       expect(Date.parse(envelope.exportedAt)).not.toBeNaN();
       expect(envelope.books).toHaveLength(1);
       expect(envelope.readingLogs).toHaveLength(1);
+      expect(envelope.seriesMetadata).toHaveLength(1);
       expect(envelope.readingGoals).toEqual({ year: 2026, targetBooks: 24, targetPages: 6000 });
       expect(envelope.preferences).toEqual({
         locale: 'es',
@@ -441,6 +473,73 @@ describe('DataPortabilityService', () => {
       const localStorageNearLimit = await service.computeStorageBreakdown();
       expect(localStorageNearLimit.engine).toBe('localstorage');
       expect(localStorageNearLimit.healthStatus).toBe('near-limit');
+    });
+
+    it('exports, merges, overwrites, resets, and measures seriesMetadata in backups and storage', async () => {
+      const existingSeries: SeriesMetadata = {
+        id: 'series-local-1',
+        normalizedKey: 'dune',
+        name: 'Dune',
+        expectedVolumes: 6,
+        publicationStatus: 'completed',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-10T00:00:00.000Z',
+      };
+      seriesMetadataStore = [existingSeries];
+
+      const beforeBreakdown = await service.computeStorageBreakdown();
+      seriesMetadataStore = [];
+      const emptySeriesBreakdown = await service.computeStorageBreakdown();
+      expect(beforeBreakdown.booksMetadataBytes).toBeGreaterThan(
+        emptySeriesBreakdown.booksMetadataBytes
+      );
+
+      seriesMetadataStore = [existingSeries];
+      const payload = {
+        schemaVersion: 1,
+        app: 'BookStack',
+        exportedAt: '2026-02-01T00:00:00.000Z',
+        books: [makeBook()],
+        readingLogs: [],
+        seriesMetadata: [
+          {
+            id: 'series-incoming-dune',
+            normalizedKey: 'dune',
+            name: 'Dune Saga',
+            expectedVolumes: 8,
+            publicationStatus: 'completed',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-02-01T00:00:00.000Z',
+          },
+          {
+            id: 'series-2',
+            normalizedKey: 'cosmere',
+            name: 'Cosmere',
+            expectedVolumes: 10,
+            publicationStatus: 'ongoing',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-05T00:00:00.000Z',
+          },
+          { id: 'bad-series', name: '' },
+        ],
+      };
+
+      const preview = service.analyzeImportFile('backup.json', JSON.stringify(payload));
+      expect(preview.validSeriesMetadata).toHaveLength(2);
+      expect(preview.invalidSeriesMetadataCount).toBe(1);
+
+      const mergeResult = await service.executeImport(preview, 'merge');
+      expect(mergeResult.seriesMetadataImported).toBe(2);
+      expect(mergeResult.skippedRecords).toBe(1);
+      expect(seriesMetadataStore).toHaveLength(2);
+      expect(seriesMetadataStore[0]).toMatchObject({
+        id: 'series-local-1',
+        name: 'Dune Saga',
+        expectedVolumes: 8,
+      });
+
+      await service.factoryResetAllData();
+      expect(seriesMetadataStore).toEqual([]);
     });
   });
 });

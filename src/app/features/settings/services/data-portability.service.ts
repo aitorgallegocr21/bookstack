@@ -18,6 +18,8 @@ import { BooksService } from '../../books/services/books.service';
 import { CatalogFilterService } from '../../books/services/catalog-filter.service';
 import { ReadingLogService } from '../../books/services/reading-log.service';
 import { ReadingStatsService } from '../../books/services/reading-stats.service';
+import { SeriesMetadata } from '../../series/models/series.model';
+import { parseStoredSeriesMetadata } from '../../series/schemas/series.schema';
 import {
   BackupPreferences,
   BookstackBackupEnvelope,
@@ -57,6 +59,7 @@ type CsvColumnName = (typeof CSV_COLUMNS)[number];
 interface DataSnapshot {
   books: Book[];
   readingLogs: ReadingLog[];
+  seriesMetadata: SeriesMetadata[];
   readingGoals: ReadingGoals;
   preferences: BackupPreferences;
 }
@@ -85,24 +88,26 @@ export class DataPortabilityService {
   // JSON Backup Export
   // ==========================================
 
-  buildJsonBackupEnvelope(): BookstackBackupEnvelope {
+  async buildJsonBackupEnvelope(): Promise<BookstackBackupEnvelope> {
+    const seriesMetadata = await this.loadSeriesMetadata();
     return {
       schemaVersion: 1,
       app: 'BookStack',
       exportedAt: new Date().toISOString(),
       books: [...this.booksService.books()],
       readingLogs: [...this.readingLogService.readingLogs()],
+      seriesMetadata,
       readingGoals: { ...this.readingStatsService.goals() },
       preferences: this.captureCurrentPreferences(),
     };
   }
 
-  exportJsonBackup(): string {
-    return JSON.stringify(this.buildJsonBackupEnvelope(), null, 2);
+  async exportJsonBackup(): Promise<string> {
+    return JSON.stringify(await this.buildJsonBackupEnvelope(), null, 2);
   }
 
-  downloadJsonBackup(): void {
-    const json = this.exportJsonBackup();
+  async downloadJsonBackup(): Promise<void> {
+    const json = await this.exportJsonBackup();
     const dateStamp = this.formatDateStamp(new Date());
     this.triggerFileDownload(
       json,
@@ -198,10 +203,12 @@ export class DataPortabilityService {
         fileName,
         validBooks: validation.data.validBooks,
         validReadingLogs: validation.data.validReadingLogs,
+        validSeriesMetadata: validation.data.validSeriesMetadata,
         readingGoals: validation.data.readingGoals,
         preferences: validation.data.preferences,
         invalidBooksCount: validation.data.invalidBooksCount,
         invalidLogsCount: validation.data.invalidLogsCount,
+        invalidSeriesMetadataCount: validation.data.invalidSeriesMetadataCount,
         duplicateBooksCount,
         newBooksCount,
       };
@@ -215,10 +222,12 @@ export class DataPortabilityService {
       fileName,
       validBooks: csvResult.validBooks,
       validReadingLogs: [],
+      validSeriesMetadata: [],
       readingGoals: null,
       preferences: null,
       invalidBooksCount: csvResult.invalidBooksCount,
       invalidLogsCount: 0,
+      invalidSeriesMetadataCount: 0,
       duplicateBooksCount,
       newBooksCount,
     };
@@ -228,12 +237,13 @@ export class DataPortabilityService {
     preview: ImportPreviewSummary,
     mode: ImportConflictMode
   ): Promise<ImportExecutionResult> {
-    const snapshot = this.captureSnapshot();
+    const snapshot = await this.captureSnapshot();
 
     try {
       if (mode === 'overwrite') {
         await this.booksService.replaceAll(preview.validBooks);
         await this.readingLogService.replaceAll(preview.validReadingLogs);
+        await this.storageAdapter.replaceStore('seriesMetadata', preview.validSeriesMetadata);
       } else {
         const { mergedBooks, mergedLogs } = this.buildMergedCollections(
           snapshot.books,
@@ -241,8 +251,13 @@ export class DataPortabilityService {
           preview.validBooks,
           preview.validReadingLogs
         );
+        const mergedSeriesMetadata = this.mergeSeriesMetadata(
+          snapshot.seriesMetadata,
+          preview.validSeriesMetadata
+        );
         await this.booksService.replaceAll(mergedBooks);
         await this.readingLogService.replaceAll(mergedLogs);
+        await this.storageAdapter.replaceStore('seriesMetadata', mergedSeriesMetadata);
       }
 
       let goalsRestored = false;
@@ -261,7 +276,9 @@ export class DataPortabilityService {
         format: preview.format,
         booksImported: preview.validBooks.length,
         logsImported: preview.validReadingLogs.length,
-        skippedRecords: preview.invalidBooksCount + preview.invalidLogsCount,
+        seriesMetadataImported: preview.validSeriesMetadata.length,
+        skippedRecords:
+          preview.invalidBooksCount + preview.invalidLogsCount + preview.invalidSeriesMetadataCount,
         goalsRestored,
         preferencesRestored,
       };
@@ -282,6 +299,7 @@ export class DataPortabilityService {
   async factoryResetAllData(): Promise<void> {
     await this.booksService.clearAll();
     await this.readingLogService.clearAll();
+    await this.storageAdapter.clearStore('seriesMetadata');
     this.readingStatsService.saveGoals({
       ...DEFAULT_READING_GOALS,
       year: new Date().getFullYear(),
@@ -298,6 +316,7 @@ export class DataPortabilityService {
   async computeStorageBreakdown(): Promise<StorageBreakdownSummary> {
     const books = this.booksService.books();
     const readingLogs = this.readingLogService.readingLogs();
+    const seriesMetadata = await this.loadSeriesMetadata();
     const readingGoals = this.readingStatsService.goals();
     const preferences = this.captureCurrentPreferences();
 
@@ -315,7 +334,9 @@ export class DataPortabilityService {
       }
     }
 
-    const booksMetadataBytes = this.measureUtf8Bytes(JSON.stringify(metadataOnlyBooks));
+    const booksMetadataBytes =
+      this.measureUtf8Bytes(JSON.stringify(metadataOnlyBooks)) +
+      this.measureUtf8Bytes(JSON.stringify(seriesMetadata));
     const readingLogsBytes = this.measureUtf8Bytes(JSON.stringify(readingLogs));
     const preferencesBytes = this.measureUtf8Bytes(
       JSON.stringify({ readingGoals, ...preferences })
@@ -361,10 +382,16 @@ export class DataPortabilityService {
     };
   }
 
-  private captureSnapshot(): DataSnapshot {
+  private async loadSeriesMetadata(): Promise<SeriesMetadata[]> {
+    const raw = await this.storageAdapter.getAll<unknown>('seriesMetadata');
+    return parseStoredSeriesMetadata(raw);
+  }
+
+  private async captureSnapshot(): Promise<DataSnapshot> {
     return {
       books: [...this.booksService.books()],
       readingLogs: [...this.readingLogService.readingLogs()],
+      seriesMetadata: await this.loadSeriesMetadata(),
       readingGoals: { ...this.readingStatsService.goals() },
       preferences: this.captureCurrentPreferences(),
     };
@@ -374,6 +401,7 @@ export class DataPortabilityService {
     try {
       await this.booksService.replaceAll(snapshot.books);
       await this.readingLogService.replaceAll(snapshot.readingLogs);
+      await this.storageAdapter.replaceStore('seriesMetadata', snapshot.seriesMetadata);
       this.readingStatsService.saveGoals(snapshot.readingGoals);
       this.applyPreferences(snapshot.preferences);
     } catch (rollbackError) {
@@ -497,6 +525,48 @@ export class DataPortabilityService {
     }
 
     return { mergedBooks, mergedLogs };
+  }
+
+  private mergeSeriesMetadata(
+    existing: readonly SeriesMetadata[],
+    incoming: readonly SeriesMetadata[]
+  ): SeriesMetadata[] {
+    const merged = [...existing];
+    const indexById = new Map<string, number>();
+    const indexByKey = new Map<string, number>();
+
+    merged.forEach((item, idx) => {
+      indexById.set(item.id, idx);
+      indexByKey.set(item.normalizedKey, idx);
+    });
+
+    for (const item of incoming) {
+      const matchedIdx = indexById.get(item.id) ?? indexByKey.get(item.normalizedKey);
+      if (matchedIdx !== undefined) {
+        const current = merged[matchedIdx];
+        const incomingTime = Date.parse(item.updatedAt);
+        const currentTime = Date.parse(current.updatedAt);
+        const shouldUseIncoming =
+          Number.isNaN(currentTime) || (!Number.isNaN(incomingTime) && incomingTime >= currentTime);
+
+        if (shouldUseIncoming) {
+          const updated: SeriesMetadata = {
+            ...current,
+            ...item,
+            id: current.id,
+          };
+          merged[matchedIdx] = updated;
+          indexByKey.set(updated.normalizedKey, matchedIdx);
+        }
+      } else {
+        const nextIdx = merged.length;
+        merged.push(item);
+        indexById.set(item.id, nextIdx);
+        indexByKey.set(item.normalizedKey, nextIdx);
+      }
+    }
+
+    return merged;
   }
 
   private extractCsvField(book: Book, column: CsvColumnName): string {

@@ -4,6 +4,7 @@ export interface TranslationDictionary {
   nav: {
     home: string;
     books: string;
+    series: string;
     stats: string;
     settings: string;
     about: string;
@@ -102,6 +103,8 @@ export interface TranslationDictionary {
     emptyState: string;
     confirmDeleteBook: string;
     confirmDeleteLog: string;
+    viewCatalog: string;
+    viewSeries: string;
   };
   catalog: {
     searchPlaceholder: string;
@@ -188,6 +191,8 @@ export interface TranslationDictionary {
     seriesNamePlaceholder: string;
     seriesVolumeLabel: string;
     seriesVolumePlaceholder: string;
+    seriesAutocompleteHint: string;
+    seriesSuggestionsAria: string;
     startDateLabel: string;
     endDateLabel: string;
     notesPlaceholder: string;
@@ -530,6 +535,80 @@ export interface TranslationDictionary {
       persistence: string;
     };
     footerTagline: string;
+  };
+  series: {
+    title: string;
+    subtitle: string;
+    galleryAria: string;
+    searchPlaceholder: string;
+    searchAria: string;
+    clearSearchAria: string;
+    filters: {
+      all: string;
+      reading: string;
+      completed: string;
+      pending: string;
+      hasGaps: string;
+    };
+    sortOptions: {
+      recent: string;
+      progressDesc: string;
+      volumesDesc: string;
+      ratingDesc: string;
+      titleAsc: string;
+    };
+    sortAria: string;
+    publicationStatus: {
+      ongoing: string;
+      completed: string;
+      hiatus: string;
+    };
+    card: {
+      volumeShort: string;
+      volumesOf: string;
+      ownedVolumes: string;
+      missingSingle: string;
+      missingPlural: string;
+      continueReading: string;
+      startVolume: string;
+      upToDate: string;
+      pagesProgress: string;
+      averageRating: string;
+      readingTime: string;
+      openDetailsAria: string;
+    };
+    empty: {
+      noSeriesTitle: string;
+      noSeriesDescription: string;
+      addBookToSeries: string;
+      noMatchesTitle: string;
+      noMatchesDescription: string;
+      resetFilters: string;
+    };
+    detail: {
+      modalAria: string;
+      metadataTitle: string;
+      nameLabel: string;
+      expectedVolumesLabel: string;
+      expectedVolumesPlaceholder: string;
+      publicationStatusLabel: string;
+      notesLabel: string;
+      notesPlaceholder: string;
+      saveMetadata: string;
+      timelineTitle: string;
+      missingSlotLabel: string;
+      addMissingVolume: string;
+      volumeNumberLabel: string;
+      unnumberedVolume: string;
+      unlinkBook: string;
+      unlinkBookAria: string;
+      openBookDetails: string;
+      bulkLinkerTitle: string;
+      bulkLinkerPlaceholder: string;
+      bulkLinkerEmpty: string;
+      linkBookAction: string;
+      linkedBooksCount: string;
+    };
   };
   common: {
     save: string;

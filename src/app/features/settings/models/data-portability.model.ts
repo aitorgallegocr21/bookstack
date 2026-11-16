@@ -1,6 +1,7 @@
 import { SupportedLocale } from '../../../core/i18n/i18n.types';
 import { Book, ReadingGoals, ReadingLog } from '../../books/models/book.model';
 import { CatalogSortOption, CatalogViewMode } from '../../books/models/catalog-filter.model';
+import { SeriesMetadata } from '../../series/models/series.model';
 
 export type ImportFormat = 'json' | 'csv';
 export type ImportConflictMode = 'merge' | 'overwrite';
@@ -20,6 +21,7 @@ export interface BookstackBackupEnvelope {
   exportedAt: string;
   books: Book[];
   readingLogs: ReadingLog[];
+  seriesMetadata?: SeriesMetadata[];
   readingGoals?: ReadingGoals | null;
   preferences?: BackupPreferences;
 }
@@ -29,10 +31,12 @@ export interface ImportPreviewSummary {
   fileName: string;
   validBooks: Book[];
   validReadingLogs: ReadingLog[];
+  validSeriesMetadata: SeriesMetadata[];
   readingGoals: ReadingGoals | null;
   preferences: BackupPreferences | null;
   invalidBooksCount: number;
   invalidLogsCount: number;
+  invalidSeriesMetadataCount: number;
   duplicateBooksCount: number;
   newBooksCount: number;
 }
@@ -42,6 +46,7 @@ export interface ImportExecutionResult {
   format: ImportFormat;
   booksImported: number;
   logsImported: number;
+  seriesMetadataImported: number;
   skippedRecords: number;
   goalsRestored: boolean;
   preferencesRestored: boolean;

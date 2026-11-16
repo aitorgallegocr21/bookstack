@@ -211,5 +211,22 @@ describe('StorageAdapterService', () => {
         quotaBytes: null,
       });
     });
+
+    it('should provision the seriesMetadata object store on IndexedDB v2', async () => {
+      const metadataRecord: TestRecord = { id: 'series-1', label: 'Cosmere' };
+
+      const persisted = await service.set('seriesMetadata', metadataRecord);
+      expect(persisted).toBe(true);
+      expect(await service.get<TestRecord>('seriesMetadata', 'series-1')).toEqual(metadataRecord);
+      expect(await service.getAll<TestRecord>('seriesMetadata')).toEqual([metadataRecord]);
+
+      await service.replaceStore('seriesMetadata', [{ id: 'series-2', label: 'Dune' }]);
+      expect(await service.getAll<TestRecord>('seriesMetadata')).toEqual([
+        { id: 'series-2', label: 'Dune' },
+      ]);
+
+      await service.clearStore('seriesMetadata');
+      expect(await service.getAll<TestRecord>('seriesMetadata')).toEqual([]);
+    });
   });
 });

@@ -1,7 +1,7 @@
 # Task 10.4: Inline Accordion Metadata Lookup Panel & Edition Selector Component
 
 **Phase:** Phase 10: ISBN Barcode Scanner & Public Metadata Auto-Fill  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** High (Reusable `BookMetadataLookupComponent` integrating the `@defer`-loaded `IsbnScannerComponent`, on-demand ISBN/Title/Author search, edition selector cards, local duplicate warning banner, and smart `fill-empty` vs. `overwrite-public` application modes).
 
 ---
@@ -54,5 +54,5 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/books/components/book-metadata-lookup/book-metadata-lookup.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/books/components/book-metadata-lookup/book-metadata-lookup.spec.ts`
+- [x] `npm run verify:quiet`

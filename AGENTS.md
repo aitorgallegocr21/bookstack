@@ -19,14 +19,16 @@ Build and maintain **BookStack**, a minimalist, visual, private, high-performanc
    - Strictly **FORBIDDEN** to use `any` (use explicit types, generics, or `unknown`) or leave `// TODO` / mocked implementations.
 3. **Two-Tier Documentation Synchronization (Zero Loss + Low Token Overhead):**
    - **Tier 1 — Per-Task Sync (Lightweight):** On completing an atomic task (`Task X.Y`), update ONLY the task checkbox `[x]` in `docs/tasks/phase-XX-<name>/index.md` (and `CONTEXT.md` ONLY if new directories/services were created). Do NOT touch `README*.md`, `docs/TASKS.md`, or `docs/DESIGN_SYSTEM.md` on intermediate subtasks.
-   - **Tier 2 — Per-Phase Sync (Milestone Completion):** On completing the final task of a phase, perform the full sync in one batch: move the phase to `Completed Phases` in `docs/TASKS.md`, mark `docs/tasks/phase-XX-<name>/index.md` as `Completed`, and update `CONTEXT.md`, `docs/DESIGN_SYSTEM.md`, `README.md`, and `README.es.md`.
+   - **Tier 2 — Per-Phase Sync (Milestone Completion):** On completing the final task of a phase, perform the full sync in one batch: move the phase to `Completed Phases` in `docs/TASKS.md`, mark `docs/tasks/phase-XX-<name>/index.md` as `Completed`, update `CONTEXT.md`, `docs/DESIGN_SYSTEM.md`, `README.md`, and `README.es.md`, integrate the branch into `develop` (`origin/develop`), and execute the Autonomous Branch Hygiene cleanup (Rule 5).
 4. **Mandatory Test-Per-Feature & Regression-Per-Bug Policy:**
    - Every new feature, service method, pipe, or component MUST include unit/component tests (Vitest + Angular TestBed).
    - Every bug fixed MUST include a dedicated **regression test** reproducing the exact defect scenario.
    - UI, navigation, responsive layout, and multi-step user flow changes MUST include or update Playwright E2E tests (`tests/e2e/`).
-5. **Dual-Branch Strategy (`main` & `develop`):**
+5. **Dual-Branch Strategy (`main` & `develop`) & Autonomous Branch Hygiene:**
    - `main`: Production release branch deployed to GitHub Pages via verified Pull Requests from `develop`.
    - `develop`: Primary integration branch for daily feature (`feat/*`), fix (`fix/*`), refactor (`refactor/*`), and docs (`docs/*`) work.
+   - **Autonomous Completed-Branch Cleanup:** Whenever a phase finishes development OR before starting/defining a new phase, run `git fetch --all --prune`. For every auxiliary branch (`feature/*`, `fix/*`, `refactor/*`), strictly verify that: (a) its phase tasks in `docs/tasks/phase-XX-*/index.md` are 100% `[x]` (`Status: Completed`), and (b) its commits are fully merged/fast-forwarded into `develop` AND pushed to `origin/develop`. Once verified, **autonomously delete** the completed branch both locally (`git branch -d <branch>`) and on GitHub (`git push origin --delete <branch>`) **without asking the user for confirmation**.
+   - **Deletion Safety Guard:** NEVER force-delete (`git branch -D`) or delete any branch that has unmerged commits or incomplete tasks without explicit user confirmation, and NEVER delete `main` or `develop`.
 6. **Token-Optimized Pre-Delivery Verification Gate:**
    - During single-spec iteration, run `npm run test:file -- <path-to-spec.ts>` instead of the full test suite.
    - Before committing any task, run `npm run verify:quiet` (auto-fixes formatting/lint silently and runs `check` + `lint` + `format` + `test` + `build` with minimal console output, saving ~3,000+ tokens per run).

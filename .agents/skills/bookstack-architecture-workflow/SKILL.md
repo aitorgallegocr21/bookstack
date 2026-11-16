@@ -31,3 +31,4 @@ When adding UI copy:
   - [ ] Set `**Status:** Completed` in `docs/tasks/phase-XX-<name>/index.md`.
   - [ ] Move the phase from `Active Phase` to `Completed Phases` in `docs/TASKS.md` and promote the next phase to `Active Phase`.
   - [ ] Synchronize feature summaries in `CONTEXT.md`, `docs/DESIGN_SYSTEM.md`, `README.md`, and `README.es.md`.
+  - [ ] Fast-forward/merge the completed phase branch into `develop`, push `origin/develop`, and autonomously delete verified completed/merged branches locally (`git branch -d`) and on GitHub (`git push origin --delete`) without prompting the user.

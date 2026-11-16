@@ -9,6 +9,7 @@
 - **Branching & CI/CD Model:**
   - `develop`: Primary integration branch for daily feature, fix, and refactoring work.
   - `main`: Production branch. Pre-merge quality checks (`ci.yml`) run on `pull_request` to `main`; merging into `main` triggers `deploy.yml` (GitHub Pages deploy) without duplicating test runs.
+  - **Autonomous Branch Hygiene:** Upon completing a phase or before defining/starting a new phase, fetch remote refs (`git fetch --all --prune`), ensure completed phase branches are fast-forwarded into `develop` and pushed to `origin/develop`, and autonomously delete verified completed/merged branches both locally (`git branch -d`) and on GitHub (`git push origin --delete`) without prompting the user. Never delete unmerged or incomplete branches without explicit user confirmation.
 
 ---
 
@@ -100,10 +101,12 @@ To maximize engineering intelligence while minimizing token and credit usage in 
 
 Whenever the user requests documenting a new phase or planning major features:
 
-1. **Interactive Interview (`/grill-me` in Spanish):**
+1. **Pre-Phase Autonomous Branch Hygiene:**
+   - Run `git fetch --all --prune`, verify that any completed previous phase branches are fully merged into `develop` (`origin/develop`), and autonomously delete verified completed branches locally (`git branch -d`) and remotely (`git push origin --delete`) without asking the user (never delete unmerged/incomplete branches without confirmation).
+2. **Interactive Interview (`/grill-me` in Spanish):**
    - Conduct a step-by-step interview walking through the decision tree one question at a time via `ask_question`.
    - Maintain high-standard UX/UI and architecture focus aligned with BookStack's vision and provide opinionated recommendations prefixed with `(Recommended)`.
-2. **Zero-Ambiguity Phase Artifacts Synthesis:**
+3. **Zero-Ambiguity Phase Artifacts Synthesis:**
    - Translate resolved decisions into `docs/tasks/phase-XX-<name>/index.md` and atomic `task-X.Y-*.md` files.
    - **Mandatory JIT Requirement:** Every `task-X.Y-*.md` MUST include a `## Target Files & Line Pointers` section listing the exact files and line ranges to read/edit so the implementing agent requires zero exploratory searches.
    - Synchronize `docs/TASKS.md`, `README.md`, `README.es.md`, and `CONTEXT.md` (Tier 2 Per-Phase Sync).

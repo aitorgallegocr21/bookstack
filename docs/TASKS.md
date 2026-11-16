@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- [ ] **Phase 09: Settings, Data Portability & Backup Engine** — _Active_ (CSP meta hardening, Zod-validated JSON/CSV export & import, storage quota inspector, and reset controls in `/settings`).
+- [ ] **[Phase 09: Settings, Data Portability & Backup Engine](tasks/phase-09-settings-portability-backup/index.md)** — _Active_ (CSP meta hardening, unified interface preferences [language, theme, default catalog view], 4-category storage quota & byte inspector, Zod-validated JSON full backup & RFC 4180 CSV catalog export/import with validation preview [`Merge` vs `Overwrite`], and 2-tier Danger Zone reset modal with 1-click backup in `/settings`).
 
 ---
 

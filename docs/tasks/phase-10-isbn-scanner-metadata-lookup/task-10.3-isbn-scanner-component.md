@@ -1,7 +1,7 @@
 # Task 10.3: Lazy-Loaded ISBN Barcode Scanner Component (`html5-qrcode` Camera Stream & Image File Upload)
 
 **Phase:** Phase 10: ISBN Barcode Scanner & Public Metadata Auto-Fill  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** Medium-High (Standalone `IsbnScannerComponent` with dynamic `import('html5-qrcode')`, rear/multi-camera live stream, photo barcode scanning, strict ISBN checksum gate, and guaranteed hardware stream teardown).
 
 ---
@@ -54,5 +54,5 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/books/components/isbn-scanner/isbn-scanner.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/books/components/isbn-scanner/isbn-scanner.spec.ts`
+- [x] `npm run verify:quiet`

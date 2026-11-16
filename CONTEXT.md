@@ -68,7 +68,7 @@ src/
         │   │   └── book-metadata.service.ts   # L1-278: Privacy-first Open Library + Google Books lookup, session cache & duplicate detector
         │   ├── utils/book-form.utils.ts       # Shared status/autofill/format/rating/series helpers
         │   ├── pages/books-page/              # Catalog coordinator, 3 view modes & zero-match empty state
-        │   └── components/{cover-picker,book-create-modal,book-edit-modal,book-detail-modal,reading-log-editor,catalog-toolbar,book-grid-card,book-detailed-card,book-compact-row}/
+        │   └── components/{cover-picker,isbn-scanner,book-create-modal,book-edit-modal,book-detail-modal,reading-log-editor,catalog-toolbar,book-grid-card,book-detailed-card,book-compact-row}/
         ├── analytics/                         # Reading analytics domain (/stats)
         │   ├── models/analytics.model.ts      # Period, KPI, trend, distribution, weekday pace & highlights contracts
         │   ├── services/analytics.service.ts  # Reactive period filtering & hybrid ReadingLog + Book aggregation

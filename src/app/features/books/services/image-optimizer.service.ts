@@ -44,6 +44,38 @@ export class ImageOptimizerService {
     return dataUrl;
   }
 
+  /**
+   * Fetches a remote HTTPS cover image without credentials or referrer and optimizes it
+   * into a local compressed WebP/JPEG data URL. Falls back gracefully to the remote URL
+   * if CORS or network errors prevent local canvas extraction.
+   */
+  async optimizeRemoteUrl(remoteUrl: string): Promise<string> {
+    const trimmed = remoteUrl.trim();
+    if (!trimmed.startsWith('https://')) {
+      throw new Error('Remote cover URL must use HTTPS.');
+    }
+
+    try {
+      const response = await fetch(trimmed, {
+        mode: 'cors',
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+      });
+
+      if (!response.ok) {
+        return trimmed;
+      }
+
+      const blob = await response.blob();
+      const mimeType = blob.type || 'image/jpeg';
+      const file = new File([blob], 'remote-cover', { type: mimeType });
+
+      return await this.optimize(file);
+    } catch {
+      return trimmed;
+    }
+  }
+
   private validateFile(file: File): void {
     if (!(file instanceof File)) {
       throw new Error('The provided file is not valid.');

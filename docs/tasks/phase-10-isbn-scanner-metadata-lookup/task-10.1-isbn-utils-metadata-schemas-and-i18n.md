@@ -1,7 +1,7 @@
 # Task 10.1: ISBN-10/13 Checksum Utilities, Metadata Contracts, Zod External Schemas, Remote Cover Optimizer & i18n
 
 **Phase:** Phase 10: ISBN Barcode Scanner & Public Metadata Auto-Fill  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** Medium-High (Pure ISBN validation/conversion utilities, external metadata contracts & Zod schemas, remote cover optimization in `ImageOptimizerService`, CSP `connect-src` update, and bilingual i18n keys).
 
 ---

@@ -214,6 +214,47 @@ export interface TranslationDictionary {
       previewAlt: string;
       uploadError: string;
     };
+    lookup: {
+      panelTitle: string;
+      panelSubtitle: string;
+      expandAria: string;
+      collapseAria: string;
+      scanTab: string;
+      searchTab: string;
+      searchPlaceholder: string;
+      searchButton: string;
+      searchEmptyHint: string;
+      isbnLookupButton: string;
+      isbnLookupAria: string;
+      startCamera: string;
+      stopCamera: string;
+      switchCamera: string;
+      uploadPhoto: string;
+      scanningHint: string;
+      permissionError: string;
+      cameraUnavailableError: string;
+      invalidBarcodeError: string;
+      noBarcodeInImageError: string;
+      searchingMetadata: string;
+      optimizingCover: string;
+      resultsTitle: string;
+      noResults: string;
+      networkError: string;
+      pagesUnit: string;
+      useEditionButton: string;
+      sources: {
+        openlibrary: string;
+        googlebooks: string;
+        merged: string;
+      };
+      duplicateWarningTitle: string;
+      duplicateWarningByIsbn: string;
+      duplicateWarningByTitle: string;
+      applyFillEmpty: string;
+      applyOverwritePublic: string;
+      appliedFeedback: string;
+      editProtectionHint: string;
+    };
   };
   bookDetail: {
     closeModalAria: string;

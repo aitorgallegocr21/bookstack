@@ -80,4 +80,64 @@ describe('ImageOptimizerService', () => {
     expect(toDataURL).toHaveBeenCalledWith('image/webp', 0.75);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-cover');
   });
+
+  describe('optimizeRemoteUrl', () => {
+    const originalFetch = globalThis.fetch;
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch;
+    });
+
+    it('rejects non-HTTPS remote URLs', async () => {
+      await expect(service.optimizeRemoteUrl('http://example.com/cover.jpg')).rejects.toThrow(
+        'Remote cover URL must use HTTPS.'
+      );
+    });
+
+    it('fetches HTTPS cover with no-referrer/omit credentials and optimizes it locally', async () => {
+      const mockBlob = new Blob(['webp-bytes'], { type: 'image/webp' });
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        blob: async () => mockBlob,
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const optimizeSpy = vi
+        .spyOn(service, 'optimize')
+        .mockResolvedValue('data:image/webp;base64,localCover');
+
+      const result = await service.optimizeRemoteUrl('https://covers.openlibrary.org/b/id/1-L.jpg');
+
+      expect(result).toBe('data:image/webp;base64,localCover');
+      expect(fetchMock).toHaveBeenCalledWith('https://covers.openlibrary.org/b/id/1-L.jpg', {
+        mode: 'cors',
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+      });
+      expect(optimizeSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back gracefully to the remote URL when fetch or optimization fails', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockRejectedValue(new TypeError('CORS blocked')) as unknown as typeof fetch;
+
+      const remoteUrl = 'https://books.google.com/books/content?id=123';
+      const result = await service.optimizeRemoteUrl(remoteUrl);
+
+      expect(result).toBe(remoteUrl);
+    });
+
+    it('falls back to the remote URL when response is not ok', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+      }) as unknown as typeof fetch;
+
+      const remoteUrl = 'https://covers.openlibrary.org/b/id/missing-L.jpg';
+      const result = await service.optimizeRemoteUrl(remoteUrl);
+
+      expect(result).toBe(remoteUrl);
+    });
+  });
 });

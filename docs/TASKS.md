@@ -8,13 +8,13 @@
 
 ## Active Phase
 
-- [ ] **Phase 10: ISBN Barcode Scanner & Series Management** — _Active_ (Camera ISBN scanning via `html5-qrcode`, Open Library / Google Books metadata lookup, and chronological saga organization).
+- [ ] **[Phase 10: ISBN Barcode Scanner & Public Metadata Auto-Fill](tasks/phase-10-isbn-scanner-metadata-lookup/index.md)** — _Active_ (Privacy-first camera & photo ISBN-10/13 barcode scanner via lazy-loaded `html5-qrcode`, on-demand Open Library + Google Books hybrid metadata waterfall with Zod validation, automatic local cover optimization via `ImageOptimizerService`, non-blocking local duplicate detection, and smart field protection in Create & Edit modals).
 
 ---
 
 ## Upcoming Phases (Backlog & Roadmapped)
 
-- _None currently queued beyond Phase 10._
+- [ ] **Phase 11: Sagas, Series & Collections Management (`/series`)** — _Planned_ (Dedicated `/series` route, chronological volume ordering, saga completion tracking, and series progress badges).
 
 ---
 

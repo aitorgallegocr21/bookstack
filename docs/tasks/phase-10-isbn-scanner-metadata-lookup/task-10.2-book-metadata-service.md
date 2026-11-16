@@ -1,7 +1,7 @@
 # Task 10.2: Privacy-First Book Metadata Service (Open Library + Google Books Waterfall, Session Cache & Duplicate Detector)
 
 **Phase:** Phase 10: ISBN Barcode Scanner & Public Metadata Auto-Fill  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** High (Core `BookMetadataService` orchestrating Open Library + Google Books waterfall queries, candidate deduplication, session caching, local cover compression, and library duplicate detection).
 
 ---
@@ -57,5 +57,5 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/books/services/book-metadata.service.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/books/services/book-metadata.service.spec.ts`
+- [x] `npm run verify:quiet`

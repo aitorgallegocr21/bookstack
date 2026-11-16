@@ -64,7 +64,8 @@ src/
         │   │   ├── reading-log.service.ts     # L1-83: Session logs + bidirectional page delta sync
         │   │   ├── reading-stats.service.ts   # L1-324: Computed stats, streaks & annual goals progress
         │   │   ├── catalog-filter.service.ts  # L1-377: Omni-search, status/format/rating filters, 7 sorts & view mode state
-        │   │   └── image-optimizer.service.ts # L1-100: Canvas WebP/JPEG compression
+        │   │   ├── image-optimizer.service.ts # L1-132: Canvas WebP/JPEG compression & remote cover fetch
+        │   │   └── book-metadata.service.ts   # L1-278: Privacy-first Open Library + Google Books lookup, session cache & duplicate detector
         │   ├── utils/book-form.utils.ts       # Shared status/autofill/format/rating/series helpers
         │   ├── pages/books-page/              # Catalog coordinator, 3 view modes & zero-match empty state
         │   └── components/{cover-picker,book-create-modal,book-edit-modal,book-detail-modal,reading-log-editor,catalog-toolbar,book-grid-card,book-detailed-card,book-compact-row}/

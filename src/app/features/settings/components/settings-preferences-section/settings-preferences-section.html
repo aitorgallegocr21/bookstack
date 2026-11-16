@@ -16,14 +16,14 @@
 
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
     <!-- Active Language -->
-    <div>
-      <label for="settings-language" class="field-label">
+    <div class="flex flex-col justify-between">
+      <label for="settings-language" class="field-label truncate">
         {{ i18n.t().settings.languageLabel }}
       </label>
       <div class="select-wrap">
         <select
           id="settings-language"
-          class="field-select min-h-[44px]"
+          class="field-select h-11 py-0"
           [value]="i18n.locale()"
           (change)="onLocaleChange($event)"
         >
@@ -34,19 +34,19 @@
     </div>
 
     <!-- Visual Theme -->
-    <div>
-      <span id="settings-theme-label" class="field-label">
+    <div class="flex flex-col justify-between">
+      <span id="settings-theme-label" class="field-label truncate">
         {{ i18n.t().settings.preferences.themeLabel }}
       </span>
       <div
         role="group"
         aria-labelledby="settings-theme-label"
-        class="grid grid-cols-2 gap-1 rounded-xl border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-800"
+        class="grid h-11 grid-cols-2 gap-1 rounded-[0.875rem] border border-slate-200 bg-slate-100 p-1 dark:border-slate-600 dark:bg-slate-800"
       >
         <button
           type="button"
           data-testid="theme-light-btn"
-          class="min-h-[44px] rounded-lg px-3 py-2 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+          class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
           [class]="
             !themeService.isDark()
               ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-slate-100'
@@ -60,7 +60,7 @@
         <button
           type="button"
           data-testid="theme-dark-btn"
-          class="min-h-[44px] rounded-lg px-3 py-2 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+          class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
           [class]="
             themeService.isDark()
               ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-slate-100'
@@ -75,14 +75,14 @@
     </div>
 
     <!-- Default Catalog View -->
-    <div>
-      <label for="settings-default-view" class="field-label">
+    <div class="flex flex-col justify-between">
+      <label for="settings-default-view" class="field-label truncate">
         {{ i18n.t().settings.preferences.defaultViewLabel }}
       </label>
       <div class="select-wrap">
         <select
           id="settings-default-view"
-          class="field-select min-h-[44px]"
+          class="field-select h-11 py-0"
           [value]="catalogFilter.viewMode()"
           (change)="onViewModeChange($event)"
         >

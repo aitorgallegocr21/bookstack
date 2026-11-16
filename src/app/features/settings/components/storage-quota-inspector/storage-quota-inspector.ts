@@ -18,6 +18,9 @@ export interface StorageCategoryItem {
   standalone: true,
   templateUrl: './storage-quota-inspector.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block',
+  },
 })
 export class StorageQuotaInspectorComponent {
   protected readonly i18n = inject(I18nService);

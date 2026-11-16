@@ -93,4 +93,40 @@ describe('SettingsPreferencesSectionComponent', () => {
     fixture.detectChanges();
     expect(catalogFilter.viewMode()).toBe('compact');
   });
+
+  it('should render block host, single-line aligned labels, and unified h-11 control heights', () => {
+    const fixture = TestBed.createComponent(SettingsPreferencesSectionComponent);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.classList.contains('block')).toBe(true);
+
+    const grid = host.querySelector('.grid.sm\\:grid-cols-3') as HTMLElement;
+    expect(grid).toBeTruthy();
+
+    const columns = Array.from(grid.children) as HTMLElement[];
+    expect(columns).toHaveLength(3);
+    for (const column of columns) {
+      expect(column.classList.contains('flex')).toBe(true);
+      expect(column.classList.contains('flex-col')).toBe(true);
+      expect(column.classList.contains('justify-between')).toBe(true);
+    }
+
+    const labels = Array.from(host.querySelectorAll('.field-label')) as HTMLElement[];
+    expect(labels).toHaveLength(3);
+    for (const label of labels) {
+      expect(label.classList.contains('truncate')).toBe(true);
+    }
+
+    const languageSelect = host.querySelector('#settings-language') as HTMLSelectElement;
+    const themeGroup = host.querySelector(
+      '[role="group"][aria-labelledby="settings-theme-label"]'
+    ) as HTMLElement;
+    const defaultViewSelect = host.querySelector('#settings-default-view') as HTMLSelectElement;
+
+    for (const control of [languageSelect, themeGroup, defaultViewSelect]) {
+      expect(control).toBeTruthy();
+      expect(control.classList.contains('h-11')).toBe(true);
+    }
+  });
 });

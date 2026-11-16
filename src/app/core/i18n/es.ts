@@ -367,7 +367,7 @@ export const ES_TRANSLATIONS: TranslationDictionary = {
       themeLabel: 'Tema visual',
       themeLight: 'Claro',
       themeDark: 'Oscuro',
-      defaultViewLabel: 'Vista predeterminada del catálogo',
+      defaultViewLabel: 'Vista del catálogo',
       viewGrid: 'Cuadrícula',
       viewDetailed: 'Detallada',
       viewCompact: 'Compacta',

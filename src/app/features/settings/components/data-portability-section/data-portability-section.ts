@@ -21,6 +21,9 @@ import { DataPortabilityService } from '../../services/data-portability.service'
   standalone: true,
   templateUrl: './data-portability-section.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block',
+  },
 })
 export class DataPortabilitySectionComponent {
   private readonly dataPortabilityService = inject(DataPortabilityService);

@@ -362,7 +362,7 @@ export const EN_TRANSLATIONS: TranslationDictionary = {
       themeLabel: 'Visual theme',
       themeLight: 'Light',
       themeDark: 'Dark',
-      defaultViewLabel: 'Default catalog view',
+      defaultViewLabel: 'Catalog view',
       viewGrid: 'Grid',
       viewDetailed: 'Detailed',
       viewCompact: 'Compact',

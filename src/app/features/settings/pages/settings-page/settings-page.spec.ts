@@ -175,4 +175,24 @@ describe('SettingsPage', () => {
 
     expect(el.querySelector('h1')?.textContent).toContain('Settings');
   });
+
+  it('uses flex-col gap-6 container and block section hosts to prevent card border collapse', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const container = el.firstElementChild as HTMLElement;
+    expect(container.classList.contains('flex')).toBe(true);
+    expect(container.classList.contains('flex-col')).toBe(true);
+    expect(container.classList.contains('gap-6')).toBe(true);
+
+    const sectionSelectors = [
+      'app-settings-preferences-section',
+      'app-storage-quota-inspector',
+      'app-data-portability-section',
+      'app-danger-zone-section',
+    ];
+    for (const selector of sectionSelectors) {
+      const host = el.querySelector(selector) as HTMLElement | null;
+      expect(host).toBeTruthy();
+      expect(host?.classList.contains('block')).toBe(true);
+    }
+  });
 });

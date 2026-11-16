@@ -10,6 +10,9 @@ import { CatalogFilterService } from '../../../books/services/catalog-filter.ser
   standalone: true,
   templateUrl: './settings-preferences-section.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block',
+  },
 })
 export class SettingsPreferencesSectionComponent {
   protected readonly i18n = inject(I18nService);

@@ -312,6 +312,65 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
         return document.documentElement.scrollWidth > document.documentElement.clientWidth;
       });
       expect(hasOverflow, `Horizontal overflow detected at ${vp.width}px`).toBe(false);
+
+      // Verify vertical spacing (>= 20px) between all 4 settings cards
+      const cards = page.locator('app-settings-page section');
+      await expect(cards).toHaveCount(4);
+      const cardBoxes = await Promise.all(
+        [0, 1, 2, 3].map(async (index) => {
+          const box = await cards.nth(index).boundingBox();
+          expect(box, `Card ${index} boundingBox missing at ${vp.width}px`).not.toBeNull();
+          return box!;
+        })
+      );
+      for (let i = 1; i < cardBoxes.length; i++) {
+        const gap = cardBoxes[i].y - (cardBoxes[i - 1].y + cardBoxes[i - 1].height);
+        expect(
+          gap,
+          `Card ${i - 1} -> ${i} vertical gap too small at ${vp.width}px`
+        ).toBeGreaterThanOrEqual(20);
+      }
+
+      // Verify all 3 interface preference controls share exact 44px height
+      const languageControl = page.locator('#settings-language');
+      const themeControl = page.locator('[role="group"][aria-labelledby="settings-theme-label"]');
+      const viewControl = page.locator('#settings-default-view');
+      const controlBoxes = await Promise.all([
+        languageControl.boundingBox(),
+        themeControl.boundingBox(),
+        viewControl.boundingBox(),
+      ]);
+      for (const box of controlBoxes) {
+        expect(box).not.toBeNull();
+        expect(
+          Math.abs(box!.height - 44),
+          `Control height ${box!.height}px != 44px at ${vp.width}px`
+        ).toBeLessThanOrEqual(1);
+      }
+
+      // On tablet/desktop multi-column layout, verify single-line labels & aligned controls
+      if (vp.width >= 768) {
+        const labels = page.locator('app-settings-preferences-section .field-label');
+        await expect(labels).toHaveCount(3);
+        const labelBoxes = await Promise.all(
+          [0, 1, 2].map(async (index) => {
+            const box = await labels.nth(index).boundingBox();
+            expect(box).not.toBeNull();
+            return box!;
+          })
+        );
+        const baseLabelY = labelBoxes[0].y;
+        const baseLabelHeight = labelBoxes[0].height;
+        for (let i = 1; i < labelBoxes.length; i++) {
+          expect(Math.abs(labelBoxes[i].y - baseLabelY)).toBeLessThanOrEqual(1);
+          expect(Math.abs(labelBoxes[i].height - baseLabelHeight)).toBeLessThanOrEqual(1);
+        }
+
+        const baseControlY = controlBoxes[0]!.y;
+        for (let i = 1; i < controlBoxes.length; i++) {
+          expect(Math.abs(controlBoxes[i]!.y - baseControlY)).toBeLessThanOrEqual(1);
+        }
+      }
     }
 
     expect(cspErrors).toEqual([]);

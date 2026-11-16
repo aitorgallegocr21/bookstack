@@ -21,6 +21,7 @@ export type DangerResetKind = 'sessions' | 'factory';
   templateUrl: './danger-zone-section.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
+    class: 'block',
     '(document:keydown.escape)': 'onEscapeKey($event)',
   },
 })

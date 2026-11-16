@@ -1,7 +1,7 @@
 # Task 11.2: `SeriesService` Signal Store, Normalized Grouping Engine, Missing-Volume Radar & Bulk Linking
 
 **Phase:** Phase 11: Sagas, Series & Collections Management (`/series`)  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** High (Core `SeriesService` Signal engine, pure normalization/gap helpers, reactive Bento filtering & sorting, and batch book-series mutations).
 
 ---
@@ -54,6 +54,6 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/series/utils/series.utils.spec.ts`
-- [ ] `npm run test:file -- src/app/features/series/services/series.service.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/series/utils/series.utils.spec.ts`
+- [x] `npm run test:file -- src/app/features/series/services/series.service.spec.ts`
+- [x] `npm run verify:quiet`

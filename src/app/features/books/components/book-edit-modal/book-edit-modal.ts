@@ -16,6 +16,8 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
+import { ExistingSeriesOption, SeriesService } from '../../../series/services/series.service';
+import { normalizeSeriesKey } from '../../../series/utils/series.utils';
 import { BOOK_RATING_MAX, BOOK_RATING_MIN, Book, BookStatus } from '../../models/book.model';
 import { BookMetadataApplyMode, BookMetadataCandidate } from '../../models/book-metadata.model';
 import { BooksService } from '../../services/books.service';
@@ -45,6 +47,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
   private readonly uiState = inject(UiStateService);
   protected readonly i18n = inject(I18nService);
   private readonly booksService = inject(BooksService);
+  private readonly seriesService = inject(SeriesService);
   private readonly fb = inject(FormBuilder);
 
   readonly bookId = input.required<string>();
@@ -57,6 +60,10 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
   protected readonly statusValues = BOOK_STATUS_VALUES;
+  protected readonly existingSeriesOptions = this.seriesService.existingSeriesOptions;
+  protected readonly quickPickSeriesOptions = computed(() =>
+    this.existingSeriesOptions().slice(0, 5)
+  );
 
   protected readonly book = computed<Book | undefined>(() => {
     return this.booksService.books().find((b) => b.id === this.bookId());
@@ -144,6 +151,27 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
     this.uiState.releaseScrollLock();
   }
 
+  protected onSeriesNameInput(rawName: string): void {
+    const key = normalizeSeriesKey(rawName);
+    if (!key) {
+      return;
+    }
+
+    const matched = this.existingSeriesOptions().find((opt) => opt.normalizedKey === key);
+    const currentVolume = this.editForm.get('seriesVolumeNumber')?.value;
+    if (matched && !currentVolume) {
+      this.editForm.patchValue({ seriesVolumeNumber: matched.nextVolumeNumber });
+    }
+  }
+
+  protected selectSeriesOption(option: ExistingSeriesOption): void {
+    const currentVolume = this.editForm.get('seriesVolumeNumber')?.value;
+    this.editForm.patchValue({
+      seriesName: option.name,
+      seriesVolumeNumber: currentVolume || option.nextVolumeNumber,
+    });
+  }
+
   protected onStatusChange(status: BookStatus): void {
     const totalPages = Number(this.editForm.get('totalPages')?.value) || 0;
     const currentPage = Number(this.editForm.get('currentPage')?.value) || 0;
@@ -225,11 +253,20 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
     this.isSaving.set(true);
     const val = this.editForm.getRawValue();
 
+    const normalizedSeriesKey = normalizeSeriesKey(val.seriesName ?? '');
+    const matchedSeries = normalizedSeriesKey
+      ? this.existingSeriesOptions().find((opt) => opt.normalizedKey === normalizedSeriesKey)
+      : undefined;
+    const sameExistingSeries =
+      normalizedSeriesKey &&
+      normalizeSeriesKey(currentBook.series?.name ?? '') === normalizedSeriesKey;
+
     const series = buildBookSeriesPayload({
       enabled: val.seriesEnabled,
       name: val.seriesName,
       volumeNumber: val.seriesVolumeNumber,
-      existingSeriesId: currentBook.series?.id,
+      existingSeriesId:
+        matchedSeries?.id ?? (sameExistingSeries ? currentBook.series?.id : undefined),
     });
     const normalizedRating = normalizeBookRating(val.rating);
 

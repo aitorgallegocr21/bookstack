@@ -99,16 +99,26 @@ describe('BooksService', () => {
     expect((await service.getById('book-1'))?.currentPage).toBe(450);
   });
 
-  it('should toggle global create modal state', () => {
+  it('should toggle global create modal state and manage prefill payload', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const service = TestBed.inject(BooksService);
     expect(service.isCreateModalOpen()).toBe(false);
+    expect(service.createModalPrefill()).toBeNull();
 
-    service.openCreateModal();
+    service.openCreateModal({ seriesName: 'Mistborn', seriesVolumeNumber: 2 });
     expect(service.isCreateModalOpen()).toBe(true);
+    expect(service.createModalPrefill()).toEqual({
+      seriesName: 'Mistborn',
+      seriesVolumeNumber: 2,
+    });
 
     service.closeCreateModal();
     expect(service.isCreateModalOpen()).toBe(false);
+    expect(service.createModalPrefill()).toBeNull();
+
+    service.openCreateModal();
+    expect(service.isCreateModalOpen()).toBe(true);
+    expect(service.createModalPrefill()).toBeNull();
   });
 
   it('should replaceAll and clearAll books atomically in storage and signal', async () => {

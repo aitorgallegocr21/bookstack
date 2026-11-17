@@ -38,7 +38,7 @@ src/
 ├── test-setup.ts                              # Global Vitest setup (fake-indexeddb + matchMedia mock)
 ├── styles.css                                 # Tailwind CSS v4 entry, dark variant & shared modal/form styles
 └── app/
-    ├── app.config.ts / app.routes.ts          # Root config & lazy routes (/, /books, /stats, /settings, /about)
+    ├── app.config.ts / app.routes.ts          # Root config & lazy routes (/, /books, /series, /stats, /settings, /about)
     ├── app.ts / app.html / app.spec.ts        # Root shell (<app-sidebar>, <app-header>, <main>, <app-bottom-nav>, @defer modal)
     ├── core/
     │   ├── components/{sidebar,header,bottom-nav}/  # Asymmetric shell components
@@ -76,6 +76,13 @@ src/
         │   ├── services/analytics.service.ts  # Reactive period filtering & hybrid ReadingLog + Book aggregation
         │   ├── components/{analytics-header,analytics-kpi-grid,reading-velocity-chart,library-composition-section,reading-habits-section}/
         │   └── pages/stats-page/              # Analytics coordinator (/stats), empty library state & integration spec
+        ├── series/                            # Sagas, Series & Collections domain (/series)
+        │   ├── models/series.model.ts         # SeriesMetadata, SagaAggregation, SagaVolumeSlot, SagaBentoScale
+        │   ├── schemas/series.schema.ts       # Zod SeriesMetadataSchema runtime persistence validator
+        │   ├── services/series.service.ts     # Normalized grouping, gap radar, filters/sorts & bulk link/unlink
+        │   ├── utils/series.utils.ts          # Pure normalization, timeline slots, bento scale & aggregation helpers
+        │   ├── components/{series-toolbar,saga-bento-card,saga-detail-modal}/
+        │   └── pages/series-page/             # Variable-scale Bento gallery (/series) & modal coordinator
         ├── settings/                          # Settings, Data Portability & Backup Engine (/settings)
         │   ├── models/data-portability.model.ts       # BackupEnvelope, ImportPreviewSummary, StorageBreakdownSummary
         │   ├── schemas/backup.schema.ts               # Zod BackupEnvelopeSchema & versioned restore validation
@@ -84,7 +91,7 @@ src/
         │   └── pages/settings-page/                   # /settings coordinator & reactive storage breakdown
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)
 
-tests/e2e/                                     # Playwright specs: overflow, navigation-and-theme, books-flow, dashboard-flow, catalog-flow, analytics-flow, settings-flow, isbn-lookup-flow
+tests/e2e/                                     # Playwright specs: overflow, navigation-and-theme, books-flow, dashboard-flow, catalog-flow, analytics-flow, settings-flow, isbn-lookup-flow, series-flow
 scripts/verify-quiet.mjs                       # Token-optimized auto-fix + quiet verification gate
 ```
 

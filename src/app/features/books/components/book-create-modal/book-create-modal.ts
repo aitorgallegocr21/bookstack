@@ -4,6 +4,8 @@ import {
   Component,
   ElementRef,
   OnDestroy,
+  computed,
+  effect,
   inject,
   output,
   signal,
@@ -12,6 +14,8 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
+import { ExistingSeriesOption, SeriesService } from '../../../series/services/series.service';
+import { normalizeSeriesKey } from '../../../series/utils/series.utils';
 import { BOOK_RATING_MAX, BOOK_RATING_MIN, Book, BookStatus } from '../../models/book.model';
 import { BookMetadataApplyMode, BookMetadataCandidate } from '../../models/book-metadata.model';
 import { BooksService } from '../../services/books.service';
@@ -41,6 +45,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
   private readonly uiState = inject(UiStateService);
   protected readonly i18n = inject(I18nService);
   private readonly booksService = inject(BooksService);
+  private readonly seriesService = inject(SeriesService);
   private readonly fb = inject(FormBuilder);
 
   readonly closed = output<void>();
@@ -52,6 +57,10 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
   protected readonly statusValues = BOOK_STATUS_VALUES;
+  protected readonly existingSeriesOptions = this.seriesService.existingSeriesOptions;
+  protected readonly quickPickSeriesOptions = computed(() =>
+    this.existingSeriesOptions().slice(0, 5)
+  );
 
   protected readonly createForm = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(1)]],
@@ -73,7 +82,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     notes: [''],
     seriesEnabled: [false],
     seriesName: [''],
-    seriesVolumeNumber: [null],
+    seriesVolumeNumber: [null as number | null],
   });
 
   constructor() {
@@ -85,6 +94,19 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
         return { currentPageExceedsTotal: true };
       }
       return null;
+    });
+
+    effect(() => {
+      const prefill = this.booksService.createModalPrefill();
+      if (!prefill) {
+        return;
+      }
+
+      this.createForm.patchValue({
+        seriesEnabled: true,
+        seriesName: prefill.seriesName ?? '',
+        seriesVolumeNumber: prefill.seriesVolumeNumber ?? null,
+      });
     });
   }
 
@@ -98,6 +120,27 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
 
   protected handleEscape(): void {
     this.cancel();
+  }
+
+  protected onSeriesNameInput(rawName: string): void {
+    const key = normalizeSeriesKey(rawName);
+    if (!key) {
+      return;
+    }
+
+    const matched = this.existingSeriesOptions().find((opt) => opt.normalizedKey === key);
+    const currentVolume = this.createForm.get('seriesVolumeNumber')?.value;
+    if (matched && !currentVolume) {
+      this.createForm.patchValue({ seriesVolumeNumber: matched.nextVolumeNumber });
+    }
+  }
+
+  protected selectSeriesOption(option: ExistingSeriesOption): void {
+    const currentVolume = this.createForm.get('seriesVolumeNumber')?.value;
+    this.createForm.patchValue({
+      seriesName: option.name,
+      seriesVolumeNumber: currentVolume || option.nextVolumeNumber,
+    });
   }
 
   protected onStatusChange(status: BookStatus): void {
@@ -178,10 +221,16 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     const val = this.createForm.getRawValue();
     const now = new Date().toISOString();
 
+    const normalizedSeriesKey = normalizeSeriesKey(val.seriesName ?? '');
+    const matchedSeries = normalizedSeriesKey
+      ? this.existingSeriesOptions().find((opt) => opt.normalizedKey === normalizedSeriesKey)
+      : undefined;
+
     const series = buildBookSeriesPayload({
       enabled: val.seriesEnabled,
       name: val.seriesName,
       volumeNumber: val.seriesVolumeNumber,
+      existingSeriesId: matchedSeries?.id,
     });
     const normalizedRating = normalizeBookRating(val.rating);
 

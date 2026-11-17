@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import {
   LucideDynamicIcon,
   LucideEdit2,
@@ -35,6 +36,7 @@ import { normalizeBookFormat, translateBookFormat } from '../../utils/book-form.
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     LucideDynamicIcon,
     BookEditModalComponent,
     BookDetailModalComponent,

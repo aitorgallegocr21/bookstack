@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { Book, ReadingGoals, ReadingLog } from '../../books/models/book.model';
 import { BookSchema, ReadingLogSchema } from '../../books/schemas/book.schema';
 import { ReadingGoalsSchema } from '../../books/schemas/reading-goals.schema';
+import { SeriesMetadata } from '../../series/models/series.model';
+import { SeriesMetadataSchema } from '../../series/schemas/series.schema';
 import { BackupPreferences } from '../models/data-portability.model';
 
 export const BackupPreferencesSchema = z.object({
@@ -27,6 +29,7 @@ export const BackupEnvelopeSchema = z.object({
   exportedAt: z.string().min(1),
   books: z.array(z.unknown()),
   readingLogs: z.array(z.unknown()).default([]),
+  seriesMetadata: z.array(z.unknown()).default([]),
   readingGoals: ReadingGoalsSchema.nullable().optional(),
   preferences: BackupPreferencesSchema.optional(),
 });
@@ -34,10 +37,12 @@ export const BackupEnvelopeSchema = z.object({
 export interface ParsedBackupPayload {
   validBooks: Book[];
   validReadingLogs: ReadingLog[];
+  validSeriesMetadata: SeriesMetadata[];
   readingGoals: ReadingGoals | null;
   preferences: BackupPreferences | null;
   invalidBooksCount: number;
   invalidLogsCount: number;
+  invalidSeriesMetadataCount: number;
 }
 
 export type BackupParseResult =
@@ -78,10 +83,29 @@ function filterReadingLogs(rawLogs: unknown[]): {
   return { validReadingLogs, invalidLogsCount };
 }
 
+function filterSeriesMetadata(rawSeriesMetadata: unknown[]): {
+  validSeriesMetadata: SeriesMetadata[];
+  invalidSeriesMetadataCount: number;
+} {
+  const validSeriesMetadata: SeriesMetadata[] = [];
+  let invalidSeriesMetadataCount = 0;
+
+  for (const item of rawSeriesMetadata) {
+    const parsed = SeriesMetadataSchema.safeParse(item);
+    if (parsed.success) {
+      validSeriesMetadata.push(parsed.data);
+    } else {
+      invalidSeriesMetadataCount += 1;
+    }
+  }
+
+  return { validSeriesMetadata, invalidSeriesMetadataCount };
+}
+
 /**
  * Parses either a full BookStack versioned backup envelope or a legacy raw Book[] array,
- * validating individual book and reading log records without rejecting the entire payload
- * when a subset of entries is malformed.
+ * validating individual book, reading log, and series metadata records without rejecting
+ * the entire payload when a subset of entries is malformed.
  */
 export function parseBackupJson(raw: unknown): BackupParseResult {
   if (Array.isArray(raw)) {
@@ -91,10 +115,12 @@ export function parseBackupJson(raw: unknown): BackupParseResult {
       data: {
         validBooks,
         validReadingLogs: [],
+        validSeriesMetadata: [],
         readingGoals: null,
         preferences: null,
         invalidBooksCount,
         invalidLogsCount: 0,
+        invalidSeriesMetadataCount: 0,
       },
     };
   }
@@ -109,16 +135,21 @@ export function parseBackupJson(raw: unknown): BackupParseResult {
 
   const { validBooks, invalidBooksCount } = filterBooks(envelope.data.books);
   const { validReadingLogs, invalidLogsCount } = filterReadingLogs(envelope.data.readingLogs);
+  const { validSeriesMetadata, invalidSeriesMetadataCount } = filterSeriesMetadata(
+    envelope.data.seriesMetadata
+  );
 
   return {
     success: true,
     data: {
       validBooks,
       validReadingLogs,
+      validSeriesMetadata,
       readingGoals: envelope.data.readingGoals ?? null,
       preferences: envelope.data.preferences ?? null,
       invalidBooksCount,
       invalidLogsCount,
+      invalidSeriesMetadataCount,
     },
   };
 }

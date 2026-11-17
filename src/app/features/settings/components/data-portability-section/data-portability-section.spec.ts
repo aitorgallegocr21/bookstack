@@ -31,6 +31,7 @@ function buildPreview(overrides: Partial<ImportPreviewSummary> = {}): ImportPrev
         createdAt: '2026-01-02T10:00:00.000Z',
       },
     ],
+    validSeriesMetadata: [],
     readingGoals: {
       year: 2026,
       targetBooks: 24,
@@ -39,6 +40,7 @@ function buildPreview(overrides: Partial<ImportPreviewSummary> = {}): ImportPrev
     preferences: null,
     invalidBooksCount: 1,
     invalidLogsCount: 0,
+    invalidSeriesMetadataCount: 0,
     duplicateBooksCount: 0,
     newBooksCount: 1,
     ...overrides,

@@ -112,7 +112,7 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
 
     const lookupPanel = page.locator('app-book-metadata-lookup');
     await expect(lookupPanel.getByText('Ediciones encontradas')).toBeVisible();
-    await expect(lookupPanel.getByText('1984')).toBeVisible();
+    await expect(lookupPanel.getByRole('heading', { name: '1984', exact: true })).toBeVisible();
     await expect(lookupPanel.getByText('Combinado')).toBeVisible();
 
     await lookupPanel.getByRole('button', { name: 'Usar edición' }).first().click();
@@ -137,7 +137,7 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
     await page.getByRole('button', { name: 'Buscar metadatos para este ISBN' }).click();
 
     await expect(lookupPanel.getByText('Posible libro duplicado en tu biblioteca')).toBeVisible();
-    await expect(lookupPanel.getByText('1984')).toBeVisible();
+    await expect(lookupPanel.getByRole('heading', { name: '1984', exact: true })).toBeVisible();
 
     // Scenario 2: Title/Author search & edition selection
     const searchInput = lookupPanel.locator('input[type="search"]');

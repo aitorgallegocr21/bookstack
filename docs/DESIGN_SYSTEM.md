@@ -38,8 +38,8 @@ Defined centrally in `src/app/features/books/models/book.model.ts`:
 | Viewport               | Breakpoint         | Navigation Pattern                                                                               | Layout Rules                                                                                                 |
 | :--------------------- | :----------------- | :----------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
 | **Ultra-Small Mobile** | `< 360px`          | Compact `HeaderComponent` + `BottomNavComponent` (4 primary tabs, `/about` hidden below `350px`) | Book cards stack vertically (`max-[359px]:flex-col`), cover switches to `aspect-[5/2]`                       |
-| **Mobile**             | `< 768px` (`< md`) | `HeaderComponent` (top) + `BottomNavComponent` (fixed bottom, `>= 48px` hit targets)             | Main container uses `pb-20` bottom clearance for fixed nav                                                   |
-| **Tablet & Desktop**   | `>= 768px` (`md:`) | Fixed collapsible `SidebarComponent` (`68px` collapsed / `240px` expanded)                       | Both `app-sidebar` host and `app.html` align strictly on `hidden md:flex` and `md:ml-[var(--sidebar-width)]` |
+| **Mobile**             | `< 768px` (`< md`) | `HeaderComponent` (top) + `BottomNavComponent` (fixed bottom, `>= 48px` hit targets) + `md:hidden` `Libros \| Sagas` segmented switcher | Main container uses `pb-20` bottom clearance for fixed nav                                                   |
+| **Tablet & Desktop**   | `>= 768px` (`md:`) | Fixed collapsible `SidebarComponent` (`68px` collapsed / `240px` expanded)                       | Both `app-sidebar` host and `app.html` align strictly on `hidden md:flex` and `md:ml-[var(--sidebar-width)]`. `/series` uses a 12-column variable-scale Bento grid (`1×1` / `2×1` / `2×2`) |
 
 ---
 

@@ -73,7 +73,7 @@ async function seedIndexedDbBooks(page: Page, books: Book[]): Promise<void> {
     localStorage.removeItem('bookstack_catalog_sort');
 
     return new Promise<void>((resolve, reject) => {
-      const openReq = indexedDB.open('bookstackDB', 1);
+      const openReq = indexedDB.open('bookstackDB', 2);
       openReq.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
         if (!db.objectStoreNames.contains('books')) {

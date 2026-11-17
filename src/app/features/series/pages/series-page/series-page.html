@@ -1,5 +1,5 @@
 <div
-  class="mx-auto flex min-h-screen w-full max-w-[1720px] flex-col gap-6 bg-slate-100/80 px-4 py-6 text-slate-900 transition-colors duration-200 sm:px-6 lg:px-8 dark:bg-slate-950 dark:text-slate-100"
+  class="mx-auto flex min-h-screen w-full max-w-[1720px] min-w-0 flex-col gap-6 overflow-x-hidden bg-slate-100/80 px-4 py-6 text-slate-900 transition-colors duration-200 sm:px-6 lg:px-8 dark:bg-slate-950 dark:text-slate-100"
 >
   <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <div>
@@ -108,7 +108,7 @@
   } @else {
     <!-- 12-Column Responsive Bento Grid -->
     <section
-      class="grid grid-cols-1 gap-4 md:auto-rows-[minmax(200px,auto)] md:grid-cols-12"
+      class="grid min-w-0 grid-cols-1 gap-4 md:auto-rows-[minmax(200px,auto)] md:grid-cols-12"
       [attr.aria-label]="i18n.t().series.galleryAria"
     >
       @for (saga of filteredSagas(); track saga.id) {
@@ -121,6 +121,16 @@
         />
       }
     </section>
+  }
+
+  <!-- Saga Detail Modal -->
+  @if (selectedSaga(); as activeSaga) {
+    <app-saga-detail-modal
+      [saga]="activeSaga"
+      (closed)="closeSagaModal()"
+      (openBook)="openDetailModal($event)"
+      (addMissingVolume)="handleAddMissingVolume($event)"
+    />
   }
 
   <!-- Book & Reading Log Modals -->

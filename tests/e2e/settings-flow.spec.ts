@@ -9,7 +9,7 @@ async function seedLibrary(page: Page, books: Book[], logs: ReadingLog[]): Promi
   await page.evaluate(
     async ({ bookList, logList }) => {
       return new Promise<void>((resolve, reject) => {
-        const openReq = indexedDB.open('bookstackDB', 1);
+        const openReq = indexedDB.open('bookstackDB', 2);
         openReq.onupgradeneeded = (event) => {
           const db = (event.target as IDBOpenDBRequest).result;
           if (!db.objectStoreNames.contains('books')) {
@@ -17,6 +17,9 @@ async function seedLibrary(page: Page, books: Book[], logs: ReadingLog[]): Promi
           }
           if (!db.objectStoreNames.contains('readingLogs')) {
             db.createObjectStore('readingLogs', { keyPath: 'id' });
+          }
+          if (!db.objectStoreNames.contains('seriesMetadata')) {
+            db.createObjectStore('seriesMetadata', { keyPath: 'id' });
           }
         };
         openReq.onerror = () => reject(openReq.error);

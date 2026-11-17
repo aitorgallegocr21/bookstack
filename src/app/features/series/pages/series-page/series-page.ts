@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   LucideDynamicIcon,
@@ -14,6 +14,7 @@ import { ReadingLogEditorComponent } from '../../../books/components/reading-log
 import { Book } from '../../../books/models/book.model';
 import { BooksService } from '../../../books/services/books.service';
 import { SagaBentoCardComponent } from '../../components/saga-bento-card/saga-bento-card.component';
+import { SagaDetailModalComponent } from '../../components/saga-detail-modal/saga-detail-modal.component';
 import { SeriesToolbarComponent } from '../../components/series-toolbar/series-toolbar.component';
 import { SagaAggregation } from '../../models/series.model';
 import { SeriesService } from '../../services/series.service';
@@ -26,6 +27,7 @@ import { SeriesService } from '../../services/series.service';
     LucideDynamicIcon,
     SeriesToolbarComponent,
     SagaBentoCardComponent,
+    SagaDetailModalComponent,
     BookDetailModalComponent,
     BookEditModalComponent,
     ReadingLogEditorComponent,
@@ -46,7 +48,20 @@ export class SeriesPage {
   protected readonly sagas = this.seriesService.sagas;
   protected readonly filteredSagas = this.seriesService.filteredSagas;
 
-  protected readonly selectedSagaForDetail = signal<SagaAggregation | null>(null);
+  protected readonly selectedSagaNormalizedKey = signal<string | null>(null);
+  private readonly selectedSagaId = signal<string | null>(null);
+  protected readonly selectedSaga = computed<SagaAggregation | null>(() => {
+    const key = this.selectedSagaNormalizedKey();
+    const id = this.selectedSagaId();
+    if (!key && !id) {
+      return null;
+    }
+    return (
+      this.sagas().find(
+        (s) => (key !== null && s.normalizedKey === key) || (id !== null && s.id === id)
+      ) ?? null
+    );
+  });
   protected readonly selectedBookForDetailId = signal<string | null>(null);
   protected readonly selectedBookForEditId = signal<string | null>(null);
 
@@ -54,7 +69,13 @@ export class SeriesPage {
   protected readonly readingLogBookId = signal<string | undefined>(undefined);
 
   protected openSagaModal(saga: SagaAggregation): void {
-    this.selectedSagaForDetail.set(saga);
+    this.selectedSagaNormalizedKey.set(saga.normalizedKey);
+    this.selectedSagaId.set(saga.id);
+  }
+
+  protected closeSagaModal(): void {
+    this.selectedSagaNormalizedKey.set(null);
+    this.selectedSagaId.set(null);
   }
 
   protected openDetailModal(bookId: string): void {

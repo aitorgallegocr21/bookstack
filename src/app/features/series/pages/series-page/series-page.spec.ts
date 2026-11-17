@@ -89,6 +89,10 @@ describe('SeriesPage', () => {
       searchQuerySig.set('');
       statusFilterSig.set('all');
     }),
+    upsertSeriesMetadata: vi.fn(),
+    linkBooksToSeries: vi.fn(),
+    unlinkBookFromSeries: vi.fn(),
+    updateBookVolumeNumber: vi.fn(),
   };
 
   const mockBooksService = {
@@ -221,5 +225,44 @@ describe('SeriesPage', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('app-reading-log-editor')).toBeTruthy();
+  });
+
+  it('should open SagaDetailModalComponent reactively and close it', () => {
+    const book = makeBook();
+    const saga = makeSaga(book);
+    booksSig.set([book]);
+    sagasSig.set([saga]);
+    filteredSagasSig.set([saga]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-saga-detail-modal')).toBeNull();
+
+    (
+      fixture.componentInstance as unknown as { openSagaModal: (s: SagaAggregation) => void }
+    ).openSagaModal(saga);
+    fixture.detectChanges();
+
+    const modalEl = fixture.nativeElement.querySelector('app-saga-detail-modal') as HTMLElement;
+    expect(modalEl).toBeTruthy();
+    expect(modalEl.textContent).toContain('Nacidos de la bruma');
+
+    // Live update when sagas signal changes
+    const updatedSaga: SagaAggregation = {
+      ...saga,
+      expectedVolumes: 3,
+      missingVolumes: [2, 3],
+      timelineSlots: [
+        { volumeNumber: 1, kind: 'owned', book },
+        { volumeNumber: 2, kind: 'missing' },
+        { volumeNumber: 3, kind: 'missing' },
+      ],
+    };
+    sagasSig.set([updatedSaga]);
+    fixture.detectChanges();
+    expect(modalEl.textContent).toContain('+ Añadir Vol. 2');
+
+    (fixture.componentInstance as unknown as { closeSagaModal: () => void }).closeSagaModal();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-saga-detail-modal')).toBeNull();
   });
 });

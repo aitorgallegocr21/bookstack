@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- [ ] **[Phase 11: Sagas, Series & Collections Management (`/series`)](tasks/phase-11-sagas-series-management/index.md)** — _Active (Ready for Implementation)_ (Variable-scale Saga Bento Gallery [`1×1` / `2×1` / `2×2`], Hybrid `Book.series` + persisted `SeriesMetadata` in IndexedDB v2 & JSON backups, missing-volume gap radar, search/status/sort toolbar, series autocomplete & prefill, interactive Saga Detail Modal with chronological timeline & bulk linker, and desktop/mobile navigation parity).
+- _No active phase currently in progress._
 
 ---
 
@@ -19,6 +19,8 @@
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 11: Sagas, Series & Collections Management (`/series`)](tasks/phase-11-sagas-series-management/index.md)** — _Completed 2026-11_ (Variable-scale Saga Bento Gallery [`1×1` / `2×1` / `2×2`], Hybrid `Book.series` + persisted `SeriesMetadata` in IndexedDB v2 & JSON backups, missing-volume gap radar, search/status/sort toolbar, series autocomplete & prefill, interactive Saga Detail Modal with chronological timeline & bulk linker, desktop/mobile navigation parity, and 5 Playwright E2E scenarios).
 
 - [x] **[Phase 10: ISBN Barcode Scanner & Public Metadata Auto-Fill](tasks/phase-10-isbn-scanner-metadata-lookup/index.md)** — _Completed 2026-11_ (Privacy-first camera & photo ISBN-10/13 barcode scanner via lazy-loaded `html5-qrcode`, on-demand Open Library + Google Books hybrid metadata waterfall with Zod validation, automatic local cover compression via `ImageOptimizerService`, non-blocking local duplicate detection, smart field protection in Create & Edit modals via `buildMetadataFormPatch()`, and 3 Playwright E2E tests).
 

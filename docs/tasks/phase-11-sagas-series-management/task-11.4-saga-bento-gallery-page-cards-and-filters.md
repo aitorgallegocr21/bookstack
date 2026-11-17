@@ -1,7 +1,7 @@
 # Task 11.4: Saga Bento Gallery Page (`/series`), Variable-Scale Bento Cards & Filter Toolbar
 
 **Phase:** Phase 11: Sagas, Series & Collections Management (`/series`)  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** High (New `/series` page, `SeriesToolbarComponent`, variable-scale `SagaBentoCardComponent` (`compact` 1×1, `medium` 2×1, `showcase` 2×2), empty states, 1-click "Continue / Next Volume" CTA, and `320px` responsive overflow safety).
 
 ---
@@ -58,7 +58,7 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/series/components/series-toolbar/series-toolbar.component.spec.ts`
-- [ ] `npm run test:file -- src/app/features/series/components/saga-bento-card/saga-bento-card.component.spec.ts`
-- [ ] `npm run test:file -- src/app/features/series/pages/series-page/series-page.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/series/components/series-toolbar/series-toolbar.component.spec.ts`
+- [x] `npm run test:file -- src/app/features/series/components/saga-bento-card/saga-bento-card.component.spec.ts`
+- [x] `npm run test:file -- src/app/features/series/pages/series-page/series-page.spec.ts`
+- [x] `npm run verify:quiet`

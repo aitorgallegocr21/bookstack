@@ -121,26 +121,11 @@ const OpenLibraryBookDataSchema = z
 
 const OpenLibraryBibkeyResponseSchema = z.record(z.string(), OpenLibraryBookDataSchema);
 
-/**
- * Validates and maps an Open Library `/api/books?bibkeys=...&jscmd=data` payload.
- */
-export function parseOpenLibraryBibkeyResponse(
-  payload: unknown,
-  requestedIsbn: string
+function mapOpenLibraryBookData(
+  entry: z.infer<typeof OpenLibraryBookDataSchema>,
+  cleanedRequested: string,
+  normalizedRequested: string | null
 ): BookMetadataCandidate | null {
-  const parsed = OpenLibraryBibkeyResponseSchema.safeParse(payload);
-  if (!parsed.success) {
-    return null;
-  }
-
-  const cleanedRequested = cleanIsbnInput(requestedIsbn);
-  const normalizedRequested = normalizeIsbn(cleanedRequested);
-
-  const entry =
-    parsed.data[`ISBN:${cleanedRequested}`] ??
-    (normalizedRequested ? parsed.data[`ISBN:${normalizedRequested}`] : undefined) ??
-    Object.values(parsed.data)[0];
-
   if (!entry?.title) {
     return null;
   }
@@ -186,6 +171,72 @@ export function parseOpenLibraryBibkeyResponse(
     coverUrl,
     source: 'openlibrary',
   };
+}
+
+/**
+ * Validates and maps an Open Library `/api/books?bibkeys=...&jscmd=data` payload.
+ */
+export function parseOpenLibraryBibkeyResponse(
+  payload: unknown,
+  requestedIsbn: string
+): BookMetadataCandidate | null {
+  const parsed = OpenLibraryBibkeyResponseSchema.safeParse(payload);
+  if (!parsed.success) {
+    return null;
+  }
+
+  const cleanedRequested = cleanIsbnInput(requestedIsbn);
+  const normalizedRequested = normalizeIsbn(cleanedRequested);
+
+  const entry =
+    parsed.data[`ISBN:${cleanedRequested}`] ??
+    (normalizedRequested ? parsed.data[`ISBN:${normalizedRequested}`] : undefined) ??
+    Object.values(parsed.data)[0];
+
+  if (!entry) {
+    return null;
+  }
+
+  return mapOpenLibraryBookData(entry, cleanedRequested, normalizedRequested);
+}
+
+/**
+ * Validates and maps a multi-ISBN Open Library `/api/books?bibkeys=ISBN:...,ISBN:...&jscmd=data`
+ * batch payload into a Map keyed by normalized ISBN-13.
+ */
+export function parseOpenLibraryBibkeyBatchResponse(
+  payload: unknown,
+  requestedIsbns: readonly string[]
+): Map<string, BookMetadataCandidate> {
+  const results = new Map<string, BookMetadataCandidate>();
+  const parsed = OpenLibraryBibkeyResponseSchema.safeParse(payload);
+  if (!parsed.success) {
+    return results;
+  }
+
+  for (const rawIsbn of requestedIsbns) {
+    const cleaned = cleanIsbnInput(rawIsbn);
+    const normalized = normalizeIsbn(cleaned);
+    if (!normalized) {
+      continue;
+    }
+
+    const entry =
+      parsed.data[`ISBN:${normalized}`] ??
+      parsed.data[`ISBN:${cleaned}`] ??
+      parsed.data[`ISBN:${rawIsbn.trim()}`];
+
+    if (!entry) {
+      continue;
+    }
+
+    const candidate = mapOpenLibraryBookData(entry, cleaned, normalized);
+    if (candidate) {
+      results.set(normalized, candidate);
+    }
+  }
+
+  return results;
 }
 
 // ==========================================

@@ -2,6 +2,12 @@ import { Injectable } from '@angular/core';
 
 export type OptimizedImageMimeType = 'image/webp' | 'image/jpeg';
 
+export interface RemoteCoverOptimizationOptions {
+  timeoutMs?: number;
+  minWidth?: number;
+  minHeight?: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ImageOptimizerService {
   private readonly maxInputSizeBytes = 10 * 1024 * 1024;
@@ -14,15 +20,25 @@ export class ImageOptimizerService {
     'image/avif',
   ]);
 
-  async optimize(file: File): Promise<string> {
+  async optimize(
+    file: File,
+    options?: Pick<RemoteCoverOptimizationOptions, 'minWidth' | 'minHeight'>
+  ): Promise<string> {
     this.validateFile(file);
 
     const image = await this.loadImage(file);
+    const naturalWidth = image.naturalWidth || image.width;
+    const naturalHeight = image.naturalHeight || image.height;
+
+    if (
+      (options?.minWidth !== undefined && naturalWidth < options.minWidth) ||
+      (options?.minHeight !== undefined && naturalHeight < options.minHeight)
+    ) {
+      return '';
+    }
+
     const targetFormat = this.getPreferredOutputFormat(file.type);
-    const { width, height } = this.calculateScaledDimensions(
-      image.naturalWidth || image.width,
-      image.naturalHeight || image.height
-    );
+    const { width, height } = this.calculateScaledDimensions(naturalWidth, naturalHeight);
 
     const canvas = document.createElement('canvas');
     canvas.width = width;
@@ -47,13 +63,23 @@ export class ImageOptimizerService {
   /**
    * Fetches a remote HTTPS cover image without credentials or referrer and optimizes it
    * into a local compressed WebP/JPEG data URL. Returns an empty string on timeout,
-   * invalid MIME type (e.g. SVG), CORS, or network errors so persisted covers remain self-contained.
+   * invalid MIME type (e.g. SVG), undersized placeholder dimensions, CORS, or network errors
+   * so persisted covers remain self-contained.
    */
-  async optimizeRemoteUrl(remoteUrl: string, timeoutMs = 6000): Promise<string> {
+  async optimizeRemoteUrl(
+    remoteUrl: string,
+    optionsOrTimeout: number | RemoteCoverOptimizationOptions = 6000
+  ): Promise<string> {
     const trimmed = remoteUrl.trim();
     if (!trimmed.startsWith('https://')) {
       throw new Error('Remote cover URL must use HTTPS.');
     }
+
+    const {
+      timeoutMs = 6000,
+      minWidth,
+      minHeight,
+    } = typeof optionsOrTimeout === 'number' ? { timeoutMs: optionsOrTimeout } : optionsOrTimeout;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -77,6 +103,10 @@ export class ImageOptimizerService {
       }
 
       const file = new File([blob], 'remote-cover', { type: mimeType });
+
+      if (minWidth !== undefined || minHeight !== undefined) {
+        return await this.optimize(file, { minWidth, minHeight });
+      }
 
       return await this.optimize(file);
     } catch {

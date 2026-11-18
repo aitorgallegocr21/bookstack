@@ -179,5 +179,87 @@ describe('ImageOptimizerService', () => {
         vi.useRealTimers();
       }
     });
+
+    it('rejects undersized placeholder images when minWidth or minHeight is specified', async () => {
+      URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-pixel');
+      URL.revokeObjectURL = vi.fn();
+
+      class TinyMockImage {
+        naturalWidth = 1;
+        naturalHeight = 1;
+        width = 1;
+        height = 1;
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        set src(_value: string) {
+          queueMicrotask(() => this.onload?.());
+        }
+      }
+
+      globalThis.Image = TinyMockImage as unknown as typeof Image;
+
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        blob: async () => new Blob(['pixel-bytes'], { type: 'image/png' }),
+      }) as unknown as typeof fetch;
+
+      const result = await service.optimizeRemoteUrl(
+        'https://covers.openlibrary.org/b/id/1-S.jpg',
+        { minWidth: 80, minHeight: 120 }
+      );
+
+      expect(result).toBe('');
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-pixel');
+    });
+
+    it('accepts remote images meeting minWidth and minHeight thresholds', async () => {
+      URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-valid');
+      URL.revokeObjectURL = vi.fn();
+
+      class ValidMockImage {
+        naturalWidth = 180;
+        naturalHeight = 280;
+        width = 180;
+        height = 280;
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        set src(_value: string) {
+          queueMicrotask(() => this.onload?.());
+        }
+      }
+
+      globalThis.Image = ValidMockImage as unknown as typeof Image;
+
+      const drawImage = vi.fn();
+      const toDataURL = vi.fn().mockReturnValue('data:image/webp;base64,validCover');
+      const mockCanvas = {
+        width: 0,
+        height: 0,
+        getContext: vi.fn().mockReturnValue({ drawImage }),
+        toDataURL,
+      } as unknown as HTMLCanvasElement;
+
+      vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+        if (tagName === 'canvas') {
+          return mockCanvas;
+        }
+        return document.createElement(tagName);
+      });
+
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        blob: async () => new Blob(['valid-bytes'], { type: 'image/webp' }),
+      }) as unknown as typeof fetch;
+
+      const result = await service.optimizeRemoteUrl(
+        'https://covers.openlibrary.org/b/id/123-L.jpg',
+        { minWidth: 80, minHeight: 120 }
+      );
+
+      expect(result).toBe('data:image/webp;base64,validCover');
+      expect(drawImage).toHaveBeenCalledTimes(1);
+    });
   });
 });

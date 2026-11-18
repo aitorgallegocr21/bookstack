@@ -1,6 +1,7 @@
 import {
   extractPublicationYear,
   parseGoogleBooksVolumesResponse,
+  parseOpenLibraryBibkeyBatchResponse,
   parseOpenLibraryBibkeyResponse,
   parseOpenLibrarySearchResponse,
   sanitizeExternalCoverUrl,
@@ -164,6 +165,47 @@ describe('book-metadata.schema', () => {
     it('returns empty array when items are missing or malformed', () => {
       expect(parseGoogleBooksVolumesResponse({ totalItems: 0 })).toEqual([]);
       expect(parseGoogleBooksVolumesResponse(null)).toEqual([]);
+    });
+  });
+
+  describe('parseOpenLibraryBibkeyBatchResponse', () => {
+    it('maps multiple requested ISBNs to normalized ISBN-13 keys and skips missing entries', () => {
+      const payload = {
+        'ISBN:9780140328721': {
+          title: 'Fantastic Mr. Fox',
+          authors: [{ name: 'Roald Dahl' }],
+          cover: { medium: 'http://covers.openlibrary.org/b/id/12345-M.jpg' },
+        },
+        'ISBN:0141036141': {
+          title: '1984',
+          authors: [{ name: 'George Orwell' }],
+          cover: { large: 'https://covers.openlibrary.org/b/id/7222246-L.jpg' },
+        },
+      };
+
+      const result = parseOpenLibraryBibkeyBatchResponse(payload, [
+        '978-0-14-032872-1',
+        '0-141-03614-1',
+        '9780306406157',
+        'invalid-isbn',
+      ]);
+
+      expect(result.size).toBe(2);
+      expect(result.get('9780140328721')).toMatchObject({
+        title: 'Fantastic Mr. Fox',
+        author: 'Roald Dahl',
+        coverUrl: 'https://covers.openlibrary.org/b/id/12345-M.jpg',
+      });
+      expect(result.get('9780141036144')).toMatchObject({
+        title: '1984',
+        author: 'George Orwell',
+        coverUrl: 'https://covers.openlibrary.org/b/id/7222246-L.jpg',
+      });
+      expect(result.has('9780306406157')).toBe(false);
+    });
+
+    it('returns an empty map for malformed payloads', () => {
+      expect(parseOpenLibraryBibkeyBatchResponse('bad-payload', ['9780140328721']).size).toBe(0);
     });
   });
 });

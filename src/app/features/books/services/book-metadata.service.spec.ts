@@ -413,4 +413,131 @@ describe('BookMetadataService', () => {
       ).toBeNull();
     });
   });
+
+  describe('lookupBatchByIsbns', () => {
+    it('deduplicates, normalizes, queries Open Library in chunks of 20, and populates cache', async () => {
+      const validIsbns = [
+        '0-141-03614-1', // normalizes to 9780141036144
+        '9780141036144', // duplicate
+        '9780140328721',
+        'invalid-isbn',
+      ];
+
+      fetchSpy.mockResolvedValueOnce(
+        jsonResponse({
+          'ISBN:9780141036144': {
+            title: '1984',
+            authors: [{ name: 'George Orwell' }],
+            cover: { large: 'https://covers.openlibrary.org/b/id/1-L.jpg' },
+          },
+          'ISBN:9780140328721': {
+            title: 'Fantastic Mr. Fox',
+            authors: [{ name: 'Roald Dahl' }],
+            cover: { large: 'https://covers.openlibrary.org/b/id/2-L.jpg' },
+          },
+        })
+      );
+
+      const firstBatch = await service.lookupBatchByIsbns(validIsbns);
+      expect(firstBatch.size).toBe(2);
+      expect(firstBatch.get('9780141036144')?.title).toBe('1984');
+      expect(firstBatch.get('9780140328721')?.title).toBe('Fantastic Mr. Fox');
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+      const calledUrl = String(fetchSpy.mock.calls[0][0]);
+      expect(calledUrl).toContain('bibkeys=ISBN:9780141036144,ISBN:9780140328721');
+
+      // Second call with already-cached ISBNs should not trigger fetch
+      const cachedBatch = await service.lookupBatchByIsbns(['9780141036144']);
+      expect(cachedBatch.get('9780141036144')?.title).toBe('1984');
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('chunks more than 20 unique valid ISBNs into multiple requests', async () => {
+      // Generate 21 valid ISBN-13 numbers with valid check digits
+      const isbns: string[] = [];
+      for (let i = 0; i < 21; i++) {
+        const prefix12 = `9780000000${String(i).padStart(2, '0')}`;
+        let sum = 0;
+        for (let j = 0; j < 12; j++) {
+          sum += Number(prefix12[j]) * (j % 2 === 0 ? 1 : 3);
+        }
+        const check = (10 - (sum % 10)) % 10;
+        isbns.push(`${prefix12}${check}`);
+      }
+
+      fetchSpy.mockResolvedValueOnce(jsonResponse({})).mockResolvedValueOnce(jsonResponse({}));
+
+      await service.lookupBatchByIsbns(isbns);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('verifyStrictTitleAuthorCandidate', () => {
+    it('rejects candidates without coverUrl or with mismatched title/author', () => {
+      const result = service.verifyStrictTitleAuthorCandidate(
+        {
+          title: 'Dune',
+          author: 'Frank Herbert',
+        },
+        [
+          {
+            id: '1',
+            title: 'Dune',
+            author: 'Frank Herbert',
+            source: 'openlibrary',
+          },
+          {
+            id: '2',
+            title: 'Dune Messiah',
+            author: 'Frank Herbert',
+            coverUrl: 'https://covers.openlibrary.org/b/id/2-L.jpg',
+            source: 'openlibrary',
+          },
+          {
+            id: '3',
+            title: 'Dune',
+            author: 'Brian Herbert',
+            coverUrl: 'https://covers.openlibrary.org/b/id/3-L.jpg',
+            source: 'openlibrary',
+          },
+        ]
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('matches primary title before subtitle and ranks by publisher and publicationYear', () => {
+      const result = service.verifyStrictTitleAuthorCandidate(
+        {
+          title: 'El nombre del viento',
+          author: 'Patrick Rothfuss',
+          publisher: 'Plaza & Janés',
+          publicationYear: 2009,
+        },
+        [
+          {
+            id: 'generic',
+            title: 'El nombre del viento: Crónica del asesino de reyes',
+            author: 'Patrick Rothfuss',
+            publisher: 'DAW Books',
+            publicationYear: 2007,
+            coverUrl: 'https://covers.openlibrary.org/b/id/10-L.jpg',
+            source: 'openlibrary',
+          },
+          {
+            id: 'exact-edition',
+            title: 'El nombre del viento',
+            author: 'Patrick Rothfuss',
+            publisher: 'Plaza & Janes',
+            publicationYear: 2009,
+            coverUrl: 'https://covers.openlibrary.org/b/id/11-L.jpg',
+            source: 'googlebooks',
+          },
+        ]
+      );
+
+      expect(result?.id).toBe('exact-edition');
+    });
+  });
 });

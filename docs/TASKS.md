@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- _No active phase currently in progress._
+- [ ] **[Phase 13: Post-Import Bulk Cover Enrichment & Library Cover Assistant](tasks/phase-13-bulk-cover-enrichment/index.md)** — _In Progress_ (Post-import & on-demand missing-cover detector in `/settings`, multi-ISBN batch lookup with strict $\ge 80\times120\text{px}$ anti-placeholder cover verification, rate-limited pausable/cancellable queue with incremental IndexedDB `updateMany` persistence, step-by-step Visual Cover Picker Assistant, warning-gated strict Title+Author automated fallback, and expandable verification report).
 
 ---
 

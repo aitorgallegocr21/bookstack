@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { BookMetadataCandidate, DuplicateLibraryMatch } from '../models/book-metadata.model';
 import {
   parseGoogleBooksVolumesResponse,
+  parseOpenLibraryBibkeyBatchResponse,
   parseOpenLibraryBibkeyResponse,
   parseOpenLibrarySearchResponse,
 } from '../schemas/book-metadata.schema';
@@ -24,6 +25,7 @@ export class BookMetadataError extends Error {
 const DEFAULT_TIMEOUT_MS = 6500;
 const MAX_SEARCH_RESULTS = 5;
 const MAX_CACHE_ENTRIES = 50;
+const MAX_OPEN_LIBRARY_BATCH_SIZE = 20;
 
 function normalizeTextForComparison(value?: string | null): string {
   if (!value) {
@@ -37,6 +39,47 @@ function normalizeTextForComparison(value?: string | null): string {
     .replace(/[^\p{L}\p{N}\s]/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function extractPrimaryTitle(rawTitle: string): string {
+  const primarySegment = rawTitle.split(/\s*[:–—]\s*|\s+-\s+/)[0] ?? rawTitle;
+  return normalizeTextForComparison(primarySegment);
+}
+
+function isStrictTitleMatch(bookTitle: string, candidateTitle: string): boolean {
+  const normBook = normalizeTextForComparison(bookTitle);
+  const normCandidate = normalizeTextForComparison(candidateTitle);
+  if (!normBook || !normCandidate) {
+    return false;
+  }
+
+  if (normBook === normCandidate) {
+    return true;
+  }
+
+  const primaryBook = extractPrimaryTitle(bookTitle);
+  const primaryCandidate = extractPrimaryTitle(candidateTitle);
+
+  return primaryBook.length >= 4 && primaryBook === primaryCandidate;
+}
+
+function isStrictAuthorMatch(bookAuthor: string, candidateAuthor: string): boolean {
+  const normBook = normalizeTextForComparison(bookAuthor);
+  const normCandidate = normalizeTextForComparison(candidateAuthor);
+  if (!normBook || !normCandidate) {
+    return false;
+  }
+
+  if (normBook === normCandidate) {
+    return true;
+  }
+
+  const allBookTokens = normBook.split(' ').filter(Boolean);
+  const significantBookTokens = allBookTokens.filter((token) => token.length >= 2);
+  const tokensToMatch = significantBookTokens.length > 0 ? significantBookTokens : allBookTokens;
+
+  const candidateTokenSet = new Set(normCandidate.split(' ').filter(Boolean));
+  return tokensToMatch.every((token) => candidateTokenSet.has(token));
 }
 
 function hasAllKeyFields(candidate: BookMetadataCandidate): boolean {
@@ -145,6 +188,100 @@ export class BookMetadataService {
     }
 
     return resolved;
+  }
+
+  /**
+   * Queries Open Library's multi-bibkey endpoint in chunks of up to 20 normalized ISBNs,
+   * reusing cached entries first and populating `isbnCache` for all resolved hits.
+   */
+  async lookupBatchByIsbns(
+    rawIsbns: readonly string[]
+  ): Promise<Map<string, BookMetadataCandidate>> {
+    const result = new Map<string, BookMetadataCandidate>();
+    const uncachedIsbns: string[] = [];
+    const seen = new Set<string>();
+
+    for (const rawIsbn of rawIsbns) {
+      const normalized = normalizeIsbn(rawIsbn);
+      if (!normalized || seen.has(normalized)) {
+        continue;
+      }
+      seen.add(normalized);
+
+      const cached = this.getFromCache(this.isbnCache, normalized);
+      if (cached) {
+        result.set(normalized, cached);
+      } else {
+        uncachedIsbns.push(normalized);
+      }
+    }
+
+    for (let i = 0; i < uncachedIsbns.length; i += MAX_OPEN_LIBRARY_BATCH_SIZE) {
+      const chunk = uncachedIsbns.slice(i, i + MAX_OPEN_LIBRARY_BATCH_SIZE);
+      const bibkeys = chunk.map((isbn) => `ISBN:${isbn}`).join(',');
+      const olUrl = `https://openlibrary.org/api/books?bibkeys=${bibkeys}&format=json&jscmd=data`;
+
+      try {
+        const payload = await this.fetchJsonWithTimeout(olUrl);
+        const parsedMap = parseOpenLibraryBibkeyBatchResponse(payload, chunk);
+        for (const [isbn, candidate] of parsedMap.entries()) {
+          this.setInCache(this.isbnCache, isbn, candidate);
+          result.set(isbn, candidate);
+        }
+      } catch {
+        // Ignore transient batch chunk failures so callers can fall back per ISBN
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Evaluates search candidates against a local book requiring a cover URL, strict normalized
+   * title agreement, and strict author token agreement, ranking matches by completeness
+   * plus publisher/publicationYear bonuses.
+   */
+  verifyStrictTitleAuthorCandidate(
+    book: { title: string; author: string; publisher?: string; publicationYear?: number },
+    candidates: readonly BookMetadataCandidate[]
+  ): BookMetadataCandidate | null {
+    const normalizedBookPublisher = normalizeTextForComparison(book.publisher);
+    let bestCandidate: BookMetadataCandidate | null = null;
+    let bestScore = -1;
+
+    for (const candidate of candidates) {
+      if (!candidate.coverUrl?.trim()) {
+        continue;
+      }
+      if (
+        !isStrictTitleMatch(book.title, candidate.title) ||
+        !isStrictAuthorMatch(book.author, candidate.author)
+      ) {
+        continue;
+      }
+
+      let score = scoreCandidateCompleteness(candidate);
+      if (book.publicationYear && candidate.publicationYear === book.publicationYear) {
+        score += 4;
+      }
+      if (normalizedBookPublisher && candidate.publisher) {
+        const normalizedCandPublisher = normalizeTextForComparison(candidate.publisher);
+        if (
+          normalizedCandPublisher &&
+          (normalizedCandPublisher.includes(normalizedBookPublisher) ||
+            normalizedBookPublisher.includes(normalizedCandPublisher))
+        ) {
+          score += 3;
+        }
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestCandidate = candidate;
+      }
+    }
+
+    return bestCandidate;
   }
 
   async searchByQuery(rawQuery: string): Promise<BookMetadataCandidate[]> {

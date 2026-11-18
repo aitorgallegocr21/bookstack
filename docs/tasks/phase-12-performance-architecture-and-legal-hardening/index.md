@@ -1,6 +1,6 @@
 # Phase 12: Performance, Caching, Architecture & Legal Hardening
 
-**Status:** In Progress  
+**Status:** Completed  
 **Target Branch:** `feature/12-performance-architecture-and-legal-hardening` $\to$ `develop`  
 **Core Mission:** Harden BookStack across five non-visual engineering pillars—**AI Token & Verification Efficiency**, **Legal/Privacy/CSP Compliance**, **True Offline App Shell Caching (PWA/Service Worker)**, **IndexedDB Transaction Resilience & Single-Pass $O(N)$ Runtime Performance**, and **Clean Architecture Boundaries (`shared/`, zero `core` $\to$ `features` inversion, and unified Angular 22+ file naming)**—maximizing runtime speed and resource efficiency while preserving 100% functional backward compatibility.
 
@@ -43,4 +43,4 @@
 - [x] **[Task 12.5: Runtime Performance — Cached `Intl.*` Formatters & Single-Pass $O(N)$ Domain Engines](task-12.5-intl-cache-and-single-pass-domain-engines.md)** — Memoize `Intl.DateTimeFormat` / `NumberFormat` / `Collator`, refactor `ReadingStatsService`, `CatalogFilterService`, `AnalyticsService`, and `SeriesService` to single-pass $O(N)$ loops, and add custom `equal` comparators to derived signals.
 - [x] **[Task 12.6: Bundle Splitting (`@defer` Modals), Preloading Strategy & Render Micro-Optimizations](task-12.6-deferred-modals-bundle-splitting-and-render-polish.md)** — Wrap secondary modals in `@defer (when ...)` across `/books`, `/series`, and `/`, replace residual `transition-all` classes with `transition-[width]`, and tighten production bundle budgets in `angular.json`.
 - [x] **[Task 12.7: Clean Architecture Boundaries, Shared UI Primitives (`src/app/shared/`) & File Naming Unification](task-12.7-clean-architecture-shared-layer-and-file-naming.md)** — Remove `core/` $\to$ `features/` imports, centralize create-modal state in `UiStateService`, extract `src/app/shared/utils/book-display.utils.ts`, and standardize the 10 legacy `.component.ts` files to suffixless Angular 22+ naming.
-- [ ] **[Task 12.8: Phase 12 End-to-End Verification, Regression Suite & Tier-2 Documentation Sync](task-12.8-phase-12-regression-e2e-suite-and-tier-2-sync.md)** — Add/update Playwright E2E and unit regression specs for `/about` legal sections, camera consent gate, batch transactions, and offline/defer flows; execute full verification gates and Tier 2 Per-Phase documentation sync.
+- [x] **[Task 12.8: Phase 12 End-to-End Verification, Regression Suite & Tier-2 Documentation Sync](task-12.8-phase-12-regression-e2e-suite-and-tier-2-sync.md)** — Add/update Playwright E2E and unit regression specs for `/about` legal sections, camera consent gate, batch transactions, and offline/defer flows; execute full verification gates and Tier 2 Per-Phase documentation sync.

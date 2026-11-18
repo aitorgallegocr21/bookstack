@@ -1,7 +1,7 @@
 # Task 13.2: Bulk Cover Enrichment Service, Rate-Limited Queue, Incremental IndexedDB Sync & Verification Report
 
 **Phase:** Phase 13: Post-Import Bulk Cover Enrichment & Library Cover Assistant  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** High (`CoverEnrichmentService` Signal state machine, rate-limited batch ISBN & strict Title+Author queues, incremental `BooksService.updateMany()` persistence, and `DataPortabilityService` missing-cover summary integration).
 
 ---
@@ -63,6 +63,6 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/settings/services/cover-enrichment.service.spec.ts`
-- [ ] `npm run test:file -- src/app/features/settings/services/data-portability.service.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/settings/services/cover-enrichment.service.spec.ts`
+- [x] `npm run test:file -- src/app/features/settings/services/data-portability.service.spec.ts`
+- [x] `npm run verify:quiet`

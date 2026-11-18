@@ -216,6 +216,8 @@ describe('DataPortabilitySectionComponent', () => {
       skippedRecords: 1,
       goalsRestored: true,
       preferencesRestored: false,
+      missingCoversCount: 0,
+      missingCoversWithIsbnCount: 0,
     });
     const emitSpy = vi.spyOn(component.dataChanged, 'emit');
     fixture.detectChanges();

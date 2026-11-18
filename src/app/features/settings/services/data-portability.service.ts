@@ -15,6 +15,7 @@ import {
 } from '../../books/models/catalog-filter.model';
 import { BookSchema } from '../../books/schemas/book.schema';
 import { BooksService } from '../../books/services/books.service';
+import { isValidIsbn } from '../../books/utils/isbn.utils';
 import { CatalogFilterService } from '../../books/services/catalog-filter.service';
 import { ReadingLogService } from '../../books/services/reading-log.service';
 import { ReadingStatsService } from '../../books/services/reading-stats.service';
@@ -276,6 +277,11 @@ export class DataPortabilityService {
         preferencesRestored = true;
       }
 
+      const booksWithoutCovers = this.booksService.books().filter((book) => !book.coverUrl?.trim());
+      const missingCoversWithIsbnCount = booksWithoutCovers.filter((book) =>
+        Boolean(book.isbn && isValidIsbn(book.isbn))
+      ).length;
+
       return {
         mode,
         format: preview.format,
@@ -286,6 +292,8 @@ export class DataPortabilityService {
           preview.invalidBooksCount + preview.invalidLogsCount + preview.invalidSeriesMetadataCount,
         goalsRestored,
         preferencesRestored,
+        missingCoversCount: booksWithoutCovers.length,
+        missingCoversWithIsbnCount,
       };
     } catch (error) {
       await this.restoreSnapshot(snapshot);

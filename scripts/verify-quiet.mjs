@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 /**
  * Quiet, token-optimized verification runner for AI agents and local workflows.
- * Automatically applies Prettier & ESLint auto-fixes first (0 LLM retry turns),
- * then executes each quality gate step and prints a single summary line per step
- * unless an error occurs.
+ * Uses cached Prettier & ESLint passes (single scan with auto-fix by default)
+ * and prints a single summary line per step unless an error occurs.
  */
 import { execSync } from 'node:child_process';
 import { performance } from 'node:perf_hooks';
@@ -11,28 +10,23 @@ import { performance } from 'node:perf_hooks';
 const isFast = process.argv.includes('--fast');
 const skipAutoFix = process.argv.includes('--no-fix');
 
-function runSilentAutoFix() {
-  try {
-    execSync('npx prettier --write . --log-level silent', { stdio: 'ignore' });
-    execSync('npx eslint . --fix --quiet', { stdio: 'ignore' });
-  } catch {
-    // Subsequent verification steps will capture and report any remaining errors.
-  }
-}
+const formatCmd = skipAutoFix
+  ? 'npx prettier --check . --cache --cache-location .cache/prettier --log-level warn'
+  : 'npx prettier --write . --cache --cache-location .cache/prettier --log-level warn';
+
+const lintCmd = skipAutoFix
+  ? 'npx eslint . --cache --cache-location .cache/eslint --quiet --max-warnings=0'
+  : 'npx eslint . --fix --cache --cache-location .cache/eslint --quiet --max-warnings=0';
 
 const steps = [
   { name: 'check', cmd: 'npm run check --silent' },
-  { name: 'lint', cmd: 'npx eslint . --quiet' },
-  { name: 'format', cmd: 'npx prettier --check . --log-level warn' },
+  { name: 'lint', cmd: lintCmd },
+  { name: 'format', cmd: formatCmd },
   { name: 'test', cmd: 'npx ng test --watch=false --no-progress' },
   ...(isFast
     ? []
     : [{ name: 'build', cmd: 'npx ng build --configuration production --no-progress' }]),
 ];
-
-if (!skipAutoFix) {
-  runSilentAutoFix();
-}
 
 const totalStart = performance.now();
 

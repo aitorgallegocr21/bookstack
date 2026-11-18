@@ -16,6 +16,7 @@
     "test:file": "ng test --watch=false --no-progress --include",
     "test:watch": "ng test",
     "test:e2e": "playwright test",
+    "test:e2e:quiet": "PW_QUIET=1 playwright test",
     "verify:fast": "npm run check && npm run lint && npm run format && npm test",
     "verify": "npm run verify:fast && npm run build",
     "verify:fast:quiet": "node scripts/verify-quiet.mjs --fast",

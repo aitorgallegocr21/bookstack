@@ -6,10 +6,7 @@
 - **Purpose:** Minimalist, visual, private, high-performance **Local-First** web application for personal reading tracking, session logging, habit analytics, and private library management.
 - **Current Stage (Local-First Priority):** 100% client-side browser execution with local persistence (`IndexedDB` primary store + safe `LocalStorage` fallback) and zero mandatory backend.
 - **Long-Term Future Roadmap:** Native **Android client (Kotlin + Jetpack Compose)** and optional **cloud backend for multi-device sync**. Keep domain contracts (`Book`, `ReadingLog`, `ReadingStats`, `ReadingGoals`) purely serializable, UUID-identified, and UTC ISO-8601 timestamped, treating `StorageAdapterService` as the repository boundary.
-- **Branching & CI/CD Model:**
-  - `develop`: Primary integration branch for daily feature, fix, and refactoring work.
-  - `main`: Production branch. Pre-merge quality checks (`ci.yml`) run on `pull_request` to `main`; merging into `main` triggers `deploy.yml` (GitHub Pages deploy) without duplicating test runs.
-  - **Autonomous Branch Hygiene:** Upon completing a phase or before defining/starting a new phase, fetch remote refs (`git fetch --all --prune`), ensure completed phase branches are fast-forwarded into `develop` and pushed to `origin/develop`, and autonomously delete verified completed/merged branches both locally (`git branch -d`) and on GitHub (`git push origin --delete`) without prompting the user. Never delete unmerged or incomplete branches without explicit user confirmation.
+- **Branching & CI/CD Model:** `develop` is the primary integration branch; `main` is the production release branch (CI runs on `pull_request` to `main`, deployment runs via `deploy.yml` on merge). For full branch hygiene and cleanup rules, see `AGENTS.md` Section 2.5.
 
 ---
 
@@ -42,9 +39,10 @@ src/
     ├── app.ts / app.html / app.spec.ts        # Root shell (<app-sidebar>, <app-header>, <main>, <app-bottom-nav>, @defer modal)
     ├── core/
     │   ├── components/{sidebar,header,bottom-nav}/  # Asymmetric shell components
-    │   ├── i18n/                              # i18n.types.ts (L1-320), es.ts (L1-328), en.ts (L1-324), i18n.service.ts (L1-49)
+    │   ├── i18n/                              # i18n.types.ts (L1-18), es.ts (L1-18), en.ts (L1-18), i18n.service.ts (L1-49)
+    │   │   └── domains/                       # shell (L1-101), dashboard (L1-198), books (L1-649), analytics (L1-276), series (L1-232), settings (L1-354), about (L1-135)
     │   ├── services/
-    │   │   ├── storage-adapter.service.ts     # L1-246: IndexedDB + LocalStorage fallback + catalog view/sort prefs
+    │   │   ├── storage-adapter.service.ts     # L1-361: IndexedDB + LocalStorage fallback + catalog view/sort prefs
     │   │   ├── theme.service.ts               # L1-83: Light/dark theme signal & persistence
     │   │   └── ui-state.service.ts            # L1-55: Sidebar collapse, create modal trigger & scroll lock
     │   └── utils/date-formatter.ts            # Locale-aware Intl date & month formatters
@@ -55,17 +53,19 @@ src/
         ├── books/                             # Books catalog & reading logs domain (/books)
         │   ├── models/
         │   │   ├── book.model.ts              # L1-185: Book, BookSeries, ReadingLog, ReadingStats, ReadingGoals, StreakInfo
+        │   │   ├── book-metadata.model.ts     # L1-28: Metadata lookup result & duplicate check models
         │   │   └── catalog-filter.model.ts    # L1-51: CatalogViewMode, CatalogSortOption, CatalogFilterState, StatusCounts
         │   ├── schemas/
         │   │   ├── book.schema.ts             # L1-119: BookSchema, ReadingLogSchema, isSafeCoverUrl
+        │   │   ├── book-metadata.schema.ts    # L1-381: Open Library + Google Books Zod response schemas
         │   │   └── reading-goals.schema.ts    # L1-28: ReadingGoalsSchema
         │   ├── services/
-        │   │   ├── books.service.ts           # L1-110: CRUD + persistence orchestration
-        │   │   ├── reading-log.service.ts     # L1-83: Session logs + bidirectional page delta sync
+        │   │   ├── books.service.ts           # L1-133: CRUD + persistence orchestration
+        │   │   ├── reading-log.service.ts     # L1-98: Session logs + bidirectional page delta sync
         │   │   ├── reading-stats.service.ts   # L1-324: Computed stats, streaks & annual goals progress
         │   │   ├── catalog-filter.service.ts  # L1-377: Omni-search, status/format/rating filters, 7 sorts & view mode state
         │   │   ├── image-optimizer.service.ts # L1-132: Canvas WebP/JPEG compression & remote cover fetch
-        │   │   └── book-metadata.service.ts   # L1-278: Privacy-first Open Library + Google Books lookup, session cache & duplicate detector
+        │   │   └── book-metadata.service.ts   # L1-304: Privacy-first Open Library + Google Books lookup, session cache & duplicate detector
         │   ├── utils/
         │   │   ├── book-form.utils.ts         # Shared status/autofill/format/rating/series & metadata form-patch helpers
         │   │   └── isbn.utils.ts              # Pure ISBN-10/13 checksum & normalization helpers
@@ -99,16 +99,7 @@ scripts/verify-quiet.mjs                       # Token-optimized auto-fix + quie
 
 ## 4. Antigravity Token, Quota & Dynamic Model Routing Strategy
 
-To maximize engineering intelligence while minimizing token and credit usage in Antigravity:
-
-| Workflow Scenario                                               | Target Model / Execution Mode                                                             | Why It Saves Quota & Tokens                                                                                                                      |
-| :-------------------------------------------------------------- | :---------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Phase Discovery (`/grill-me`) & Complex Architecture**        | **Gemini 4 Argon** / **Gemini 4 Hydrogen (High)**                                         | Resolves edge cases and UX contracts upfront in 1 pass, eliminating expensive code rewrites later.                                               |
-| **Atomic Task Implementation (`task-X.Y.md`)**                  | **Gemini 4 Hydrogen (Low / Medium)** + `npm run test:file` + `npm run verify:quiet`       | Higher coding intelligence than legacy Flash while using the fast-resetting quota pool; quiet verification saves ~3,000+ console tokens per run. |
-| **Swarm Workers (`swarm` tool)**                                | `gemini-4-hydrogen-low` / `gemini-4-hydrogen-medium`                                      | Directly targets Hydrogen in multi-agent runs without consuming weekly Argon/Claude quotas.                                                      |
-| **Multi-File Search / Mechanical Subagent (`invoke_subagent`)** | `Model: "inherit"` (if main chat is Hydrogen) or `"flash"` (if main chat is Argon/Claude) | Isolates bulky reads/boilerplate; `"inherit"` keeps Hydrogen active, while `"flash"` protects weekly Argon/Claude quota.                         |
-| **Browser UI / Viewport Inspection (`browser` subagent)**       | `invoke_subagent(TypeName: "browser", Model: "flash")`                                    | Default `flash` tier for DOM/screenshot checks unless requested otherwise.                                                                       |
-| **Between Tasks (`Task X.1` $\to$ `Task X.2`)**                 | Fresh Chat Session or `/compact`                                                          | Resets quadratic multi-turn history accumulation (cuts session token spend by 50–70%).                                                           |
+See `AGENTS.md` Section 3 for the full Dynamic Model Routing, Subagent Delegation, and Quota Optimization rules.
 
 ---
 
@@ -116,8 +107,7 @@ To maximize engineering intelligence while minimizing token and credit usage in 
 
 Whenever the user requests documenting a new phase or planning major features:
 
-1. **Pre-Phase Autonomous Branch Hygiene:**
-   - Run `git fetch --all --prune`, verify that any completed previous phase branches are fully merged into `develop` (`origin/develop`), and autonomously delete verified completed branches locally (`git branch -d`) and remotely (`git push origin --delete`) without asking the user (never delete unmerged/incomplete branches without confirmation).
+1. **Pre-Phase Autonomous Branch Hygiene:** Follow `AGENTS.md` Section 2.5 before starting/defining a new phase.
 2. **Interactive Interview (`/grill-me` in Spanish):**
    - Conduct a step-by-step interview walking through the decision tree one question at a time via `ask_question`.
    - Maintain high-standard UX/UI and architecture focus aligned with BookStack's vision and provide opinionated recommendations prefixed with `(Recommended)`.

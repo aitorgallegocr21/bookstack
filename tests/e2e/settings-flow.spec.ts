@@ -454,6 +454,27 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
     });
 
     await page.route('https://openlibrary.org/search.json**', async (route) => {
+      const url = decodeURIComponent(route.request().url());
+      if (url.includes('El imperio final')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            docs: [
+              {
+                key: '/works/OL100W',
+                title: 'The Final Empire',
+                author_name: ['Brandon Sanderson'],
+                cover_i: 2002,
+                first_publish_year: 2006,
+                publisher: ['Tor Books'],
+              },
+            ],
+          }),
+        });
+        return;
+      }
+
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -466,6 +487,14 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
               cover_i: 2002,
               first_publish_year: 1951,
               publisher: ['Gnome Press'],
+            },
+            {
+              key: '/works/OL46126W',
+              title: 'Foundation (Collector Edition)',
+              author_name: ['Isaac Asimov'],
+              cover_i: 2003,
+              first_publish_year: 1991,
+              publisher: ['Bantam'],
             },
           ],
         }),
@@ -482,7 +511,11 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
 
     await page.route('https://covers.openlibrary.org/**', async (route) => {
       const url = route.request().url();
-      if (!url.includes('1001-L.jpg') && !url.includes('2002-L.jpg')) {
+      if (
+        !url.includes('1001-L.jpg') &&
+        !url.includes('2002-L.jpg') &&
+        !url.includes('2003-L.jpg')
+      ) {
         await route.fulfill({ status: 404 });
         return;
       }
@@ -506,6 +539,16 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
           author: 'George Orwell',
           isbn: '9780141036144',
           totalPages: 328,
+          currentPage: 0,
+          status: 'pending',
+          createdAt: '2026-03-01T12:00:00.000Z',
+          updatedAt: '2026-03-01T12:00:00.000Z',
+        },
+        {
+          id: 'enrich-single-cover-book',
+          title: 'El imperio final',
+          author: 'Brandon Sanderson',
+          totalPages: 672,
           currentPage: 0,
           status: 'pending',
           createdAt: '2026-03-01T12:00:00.000Z',

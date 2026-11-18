@@ -539,5 +539,31 @@ describe('BookMetadataService', () => {
 
       expect(result?.id).toBe('exact-edition');
     });
+
+    it('accepts a single cover candidate when author matches even if returned title is in English', () => {
+      const result = service.verifyStrictTitleAuthorCandidate(
+        {
+          title: 'El imperio final',
+          author: 'Brandon Sanderson',
+        },
+        [
+          {
+            id: 'en-single',
+            title: 'The Final Empire',
+            author: 'Brandon Sanderson',
+            coverUrl: 'https://covers.openlibrary.org/b/id/55-L.jpg',
+            source: 'openlibrary',
+          },
+          {
+            id: 'no-cover',
+            title: 'Other Result Without Cover',
+            author: 'Brandon Sanderson',
+            source: 'openlibrary',
+          },
+        ]
+      );
+
+      expect(result?.id).toBe('en-single');
+    });
   });
 });

@@ -307,6 +307,37 @@ describe('BookMetadataService', () => {
       expect(cached).toEqual(results);
       expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
+
+    it('evicts the least-recently-used queryCache entry when exceeding MAX_CACHE_ENTRIES (50)', async () => {
+      fetchSpy.mockImplementation(async (input: string | URL | Request) => {
+        const url = String(input);
+        if (url.includes('openlibrary.org/search.json')) {
+          return jsonResponse({
+            docs: [{ key: `/works/${url}`, title: `Book ${url}`, author_name: ['Author'] }],
+          });
+        }
+        return jsonResponse({ items: [] });
+      });
+
+      for (let i = 0; i < 50; i++) {
+        await service.searchByQuery(`query-${i}`);
+      }
+      expect(fetchSpy).toHaveBeenCalledTimes(100);
+
+      // Refresh query-0 so query-1 becomes the least recently used entry
+      await service.searchByQuery('query-0');
+      expect(fetchSpy).toHaveBeenCalledTimes(100);
+
+      // Inserting a 51st entry should evict query-1, keeping query-0 cached
+      await service.searchByQuery('query-50');
+      expect(fetchSpy).toHaveBeenCalledTimes(102);
+
+      await service.searchByQuery('query-0');
+      expect(fetchSpy).toHaveBeenCalledTimes(102);
+
+      await service.searchByQuery('query-1');
+      expect(fetchSpy).toHaveBeenCalledTimes(104);
+    });
   });
 
   describe('resolveLocalCover', () => {

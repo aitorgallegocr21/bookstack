@@ -57,6 +57,22 @@ export class BooksService {
     this.books.update((current) => current.map((b) => (b.id === id ? updatedBook : b)));
   }
 
+  async updateMany(updatedBooks: Book[]): Promise<boolean> {
+    await this.ensureInitialized();
+    if (updatedBooks.length === 0) {
+      return true;
+    }
+
+    const persisted = await this.storage.putMany(this.storeName, updatedBooks);
+    if (!persisted) {
+      return false;
+    }
+
+    const updatedById = new Map<string, Book>(updatedBooks.map((book) => [book.id, book]));
+    this.books.update((current) => current.map((book) => updatedById.get(book.id) ?? book));
+    return true;
+  }
+
   async applyReadingDelta(bookId: string, deltaPages: number): Promise<void> {
     await this.ensureInitialized();
 

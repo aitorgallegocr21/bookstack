@@ -308,4 +308,41 @@ describe('SeriesService', () => {
     u2 = await booksService.getById('u2');
     expect(u2?.series).toBeUndefined();
   });
+
+  it('batches book updates into a single BooksService.updateMany call for upsertSeriesMetadata and linkBooksToSeries', async () => {
+    await booksService.replaceAll([
+      makeBook({
+        id: 'b1',
+        title: 'Book 1',
+        series: { id: 's-old', name: 'Old Saga', volumeNumber: 1 },
+      }),
+      makeBook({
+        id: 'b2',
+        title: 'Book 2',
+        series: { id: 's-old', name: 'Old Saga', volumeNumber: 2 },
+      }),
+      makeBook({ id: 'b3', title: 'Standalone 1' }),
+      makeBook({ id: 'b4', title: 'Standalone 2' }),
+    ]);
+
+    const updateManySpy = vi.spyOn(booksService, 'updateMany');
+    const updateSpy = vi.spyOn(booksService, 'update');
+
+    await seriesService.upsertSeriesMetadata({
+      normalizedKey: 'old saga',
+      name: 'Renamed Saga',
+      expectedVolumes: 4,
+    });
+
+    expect(updateManySpy).toHaveBeenCalledTimes(1);
+    expect(updateManySpy.mock.calls[0][0]).toHaveLength(2);
+    expect(updateSpy).not.toHaveBeenCalled();
+
+    updateManySpy.mockClear();
+
+    await seriesService.linkBooksToSeries('Renamed Saga', ['b3', 'b4']);
+    expect(updateManySpy).toHaveBeenCalledTimes(1);
+    expect(updateManySpy.mock.calls[0][0]).toHaveLength(2);
+    expect(updateSpy).not.toHaveBeenCalled();
+  });
 });

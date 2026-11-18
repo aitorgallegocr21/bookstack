@@ -228,5 +228,49 @@ describe('StorageAdapterService', () => {
       await service.clearStore('seriesMetadata');
       expect(await service.getAll<TestRecord>('seriesMetadata')).toEqual([]);
     });
+
+    it('should persist multiple items with putMany in IndexedDB and handle empty arrays', async () => {
+      expect(await service.putMany<TestRecord>('books', [])).toBe(true);
+
+      const batch: TestRecord[] = [
+        { id: 'batch-1', label: 'First' },
+        { id: 'batch-2', label: 'Second' },
+      ];
+      expect(await service.putMany('books', batch)).toBe(true);
+
+      expect(await service.get<TestRecord>('books', 'batch-1')).toEqual(batch[0]);
+      expect(await service.get<TestRecord>('books', 'batch-2')).toEqual(batch[1]);
+    });
+
+    it('should fall back to localStorage for putMany when IndexedDB is unavailable', async () => {
+      Object.defineProperty(globalThis, 'indexedDB', {
+        writable: true,
+        configurable: true,
+        value: undefined,
+      });
+      const fallbackService = TestBed.resetTestingModule().inject(StorageAdapterService);
+
+      const batch: TestRecord[] = [
+        { id: 'ls-batch-1', label: 'LS First' },
+        { id: 'ls-batch-2', label: 'LS Second' },
+      ];
+      expect(await fallbackService.putMany('books', batch)).toBe(true);
+      expect(await fallbackService.getAll<TestRecord>('books')).toEqual(batch);
+    });
+
+    it('should reset dbPromise when an open IndexedDB connection closes unexpectedly', async () => {
+      expect(await service.set('books', { id: 'reopen-1', label: 'Before close' })).toBe(true);
+
+      const internalService = service as unknown as { dbPromise: Promise<IDBDatabase> | null };
+      const db = await internalService.dbPromise;
+      expect(db).not.toBeNull();
+      db?.onclose?.(new Event('close'));
+      expect(internalService.dbPromise).toBeNull();
+
+      expect(await service.get<TestRecord>('books', 'reopen-1')).toEqual({
+        id: 'reopen-1',
+        label: 'Before close',
+      });
+    });
   });
 });

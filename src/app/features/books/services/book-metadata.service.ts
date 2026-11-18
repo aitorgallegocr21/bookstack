@@ -23,6 +23,7 @@ export class BookMetadataError extends Error {
 
 const DEFAULT_TIMEOUT_MS = 6500;
 const MAX_SEARCH_RESULTS = 5;
+const MAX_CACHE_ENTRIES = 50;
 
 function normalizeTextForComparison(value?: string | null): string {
   if (!value) {
@@ -92,7 +93,7 @@ export class BookMetadataService {
       throw new BookMetadataError('INVALID_ISBN', 'Invalid ISBN checksum or format.');
     }
 
-    const cached = this.isbnCache.get(normalizedIsbn);
+    const cached = this.getFromCache(this.isbnCache, normalizedIsbn);
     if (cached) {
       return cached;
     }
@@ -140,7 +141,7 @@ export class BookMetadataService {
     }
 
     if (resolved) {
-      this.isbnCache.set(normalizedIsbn, resolved);
+      this.setInCache(this.isbnCache, normalizedIsbn, resolved);
     }
 
     return resolved;
@@ -158,7 +159,7 @@ export class BookMetadataService {
     }
 
     const cacheKey = query.toLowerCase();
-    const cached = this.queryCache.get(cacheKey);
+    const cached = this.getFromCache(this.queryCache, cacheKey);
     if (cached) {
       return cached;
     }
@@ -200,8 +201,30 @@ export class BookMetadataService {
       .sort((a, b) => scoreCandidateCompleteness(b) - scoreCandidateCompleteness(a))
       .slice(0, MAX_SEARCH_RESULTS);
 
-    this.queryCache.set(cacheKey, ranked);
+    this.setInCache(this.queryCache, cacheKey, ranked);
     return ranked;
+  }
+
+  private getFromCache<T>(cache: Map<string, T>, key: string): T | undefined {
+    const value = cache.get(key);
+    if (value !== undefined) {
+      // Refresh insertion order for bounded LRU eviction
+      cache.delete(key);
+      cache.set(key, value);
+    }
+    return value;
+  }
+
+  private setInCache<T>(cache: Map<string, T>, key: string, value: T): void {
+    if (cache.has(key)) {
+      cache.delete(key);
+    } else if (cache.size >= MAX_CACHE_ENTRIES) {
+      const oldestKey = cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        cache.delete(oldestKey);
+      }
+    }
+    cache.set(key, value);
   }
 
   async resolveLocalCover(coverUrl?: string): Promise<string | undefined> {

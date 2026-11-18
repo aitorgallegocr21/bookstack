@@ -421,10 +421,11 @@ export class SeriesService {
       return [...filtered, nextMetadata];
     });
 
-    // Propagate canonical name and id across all member books if changed
+    // Propagate canonical name and id across all member books in a single batch if changed
+    const modifiedBooks: Book[] = [];
     for (const book of matchingBooks) {
       if (book.series?.name !== trimmedName || book.series?.id !== canonicalId) {
-        const updatedBook: Book = {
+        modifiedBooks.push({
           ...book,
           series: {
             ...book.series,
@@ -432,9 +433,12 @@ export class SeriesService {
             name: trimmedName,
           },
           updatedAt: now,
-        };
-        await this.booksService.update(book.id, updatedBook);
+        });
       }
+    }
+
+    if (modifiedBooks.length > 0) {
+      await this.booksService.updateMany(modifiedBooks);
     }
 
     return nextMetadata;
@@ -466,6 +470,7 @@ export class SeriesService {
 
     const now = new Date().toISOString();
     const currentBooks = this.booksService.books();
+    const modifiedBooks: Book[] = [];
 
     for (const bookId of bookIds) {
       const book = currentBooks.find((b) => b.id === bookId);
@@ -473,7 +478,7 @@ export class SeriesService {
         continue;
       }
 
-      const updatedBook: Book = {
+      modifiedBooks.push({
         ...book,
         series: {
           ...book.series,
@@ -482,9 +487,12 @@ export class SeriesService {
           volumeNumber: nextVolume,
         },
         updatedAt: now,
-      };
+      });
       nextVolume++;
-      await this.booksService.update(book.id, updatedBook);
+    }
+
+    if (modifiedBooks.length > 0) {
+      await this.booksService.updateMany(modifiedBooks);
     }
   }
 

@@ -52,6 +52,15 @@ export class StorageAdapterService {
           console.error('[StorageAdapter] Database error:', (event.target as IDBRequest).error);
         };
 
+        db.onclose = () => {
+          this.dbPromise = null;
+        };
+
+        db.onversionchange = () => {
+          db.close();
+          this.dbPromise = null;
+        };
+
         resolve(db);
       };
 
@@ -118,21 +127,73 @@ export class StorageAdapterService {
       return await new Promise<boolean>((resolve) => {
         const transaction = db.transaction(storeName, 'readwrite');
         const store = transaction.objectStore(storeName);
-        const request = store.put(value);
+        let settled = false;
 
-        request.onsuccess = () => {
+        const handleFailure = (error: unknown) => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          this.logWriteFailure(storeName, 'set', error);
+          resolve(this.setToLocalStorage(storeName, value));
+        };
+
+        transaction.oncomplete = () => {
+          if (settled) {
+            return;
+          }
+          settled = true;
           resolve(true);
         };
 
-        request.onerror = () => {
-          console.warn(
-            `[StorageAdapter] IndexedDB write failed for "${storeName}"; falling back to localStorage.`
-          );
-          resolve(this.setToLocalStorage(storeName, value));
-        };
+        transaction.onerror = () => handleFailure(transaction.error);
+        transaction.onabort = () => handleFailure(transaction.error);
+
+        store.put(value);
       });
     } catch {
       return this.setToLocalStorage(storeName, value);
+    }
+  }
+
+  async putMany<T extends { id: string }>(storeName: string, items: T[]): Promise<boolean> {
+    if (items.length === 0) {
+      return true;
+    }
+
+    try {
+      const db = await this.getDB();
+      return await new Promise<boolean>((resolve) => {
+        const transaction = db.transaction(storeName, 'readwrite');
+        const store = transaction.objectStore(storeName);
+        let settled = false;
+
+        const handleFailure = (error: unknown) => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          this.logWriteFailure(storeName, 'putMany', error);
+          resolve(this.putManyInLocalStorage(storeName, items));
+        };
+
+        transaction.oncomplete = () => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          resolve(true);
+        };
+
+        transaction.onerror = () => handleFailure(transaction.error);
+        transaction.onabort = () => handleFailure(transaction.error);
+
+        for (const item of items) {
+          store.put(item);
+        }
+      });
+    } catch {
+      return this.putManyInLocalStorage(storeName, items);
     }
   }
 
@@ -142,17 +203,22 @@ export class StorageAdapterService {
       await new Promise<void>((resolve) => {
         const transaction = db.transaction(storeName, 'readwrite');
         const store = transaction.objectStore(storeName);
-        const request = store.delete(key);
+        let settled = false;
 
-        request.onsuccess = () => {
+        const finalize = () => {
+          if (settled) {
+            return;
+          }
+          settled = true;
           this.removeFromLocalStorage(storeName, key);
           resolve();
         };
 
-        request.onerror = () => {
-          this.removeFromLocalStorage(storeName, key);
-          resolve();
-        };
+        transaction.oncomplete = finalize;
+        transaction.onerror = finalize;
+        transaction.onabort = finalize;
+
+        store.delete(key);
       });
     } catch {
       this.removeFromLocalStorage(storeName, key);
@@ -349,13 +415,36 @@ export class StorageAdapterService {
     }
   }
 
-  private replaceInLocalStorage<T extends { id: string }>(storeName: string, items: T[]): boolean {
-    this.clearFromLocalStorage(storeName);
+  private isQuotaExceededError(error: unknown): boolean {
+    return (
+      error instanceof DOMException && (error.name === 'QuotaExceededError' || error.code === 22)
+    );
+  }
+
+  private logWriteFailure(storeName: string, operation: string, error: unknown): void {
+    if (this.isQuotaExceededError(error)) {
+      console.error(
+        `[StorageAdapter] IndexedDB quota exceeded during ${operation} on "${storeName}"; falling back to localStorage.`,
+        error
+      );
+      return;
+    }
+    console.warn(
+      `[StorageAdapter] IndexedDB ${operation} failed for "${storeName}"; falling back to localStorage.`
+    );
+  }
+
+  private putManyInLocalStorage<T extends { id: string }>(storeName: string, items: T[]): boolean {
     for (const item of items) {
       if (!this.setToLocalStorage(storeName, item)) {
         return false;
       }
     }
     return true;
+  }
+
+  private replaceInLocalStorage<T extends { id: string }>(storeName: string, items: T[]): boolean {
+    this.clearFromLocalStorage(storeName);
+    return this.putManyInLocalStorage(storeName, items);
   }
 }

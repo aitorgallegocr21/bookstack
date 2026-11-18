@@ -139,23 +139,29 @@
   }
 
   <!-- Modals -->
-  @if (selectedBookForEditId(); as editBookId) {
-    <app-book-edit-modal [bookId]="editBookId" (closed)="closeEditModal()" />
+  @defer (when selectedBookForEditId()) {
+    @if (selectedBookForEditId(); as editBookId) {
+      <app-book-edit-modal [bookId]="editBookId" (closed)="closeEditModal()" />
+    }
   }
 
-  @if (selectedBookForDetailId(); as detailBookId) {
-    <app-book-detail-modal
-      [bookId]="detailBookId"
-      (closed)="closeDetailModal()"
-      (editRequested)="handleEditRequestedFromDetail($event)"
-    />
+  @defer (when selectedBookForDetailId()) {
+    @if (selectedBookForDetailId(); as detailBookId) {
+      <app-book-detail-modal
+        [bookId]="detailBookId"
+        (closed)="closeDetailModal()"
+        (editRequested)="handleEditRequestedFromDetail($event)"
+      />
+    }
   }
 
-  @if (showReadingLogEditor() && readingLogBookId(); as currentBookId) {
-    <app-reading-log-editor
-      [bookId]="currentBookId"
-      [existingLog]="editingReadingLog()"
-      (closed)="closeReadingLogEditor()"
-    />
+  @defer (when showReadingLogEditor() && readingLogBookId()) {
+    @if (showReadingLogEditor() && readingLogBookId(); as currentBookId) {
+      <app-reading-log-editor
+        [bookId]="currentBookId"
+        [existingLog]="editingReadingLog()"
+        (closed)="closeReadingLogEditor()"
+      />
+    }
   }
 </div>

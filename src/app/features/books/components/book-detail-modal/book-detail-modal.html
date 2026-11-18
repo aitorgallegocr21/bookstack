@@ -352,10 +352,12 @@
   </div>
 </div>
 
-@if (showLogEditor()) {
-  <app-reading-log-editor
-    [bookId]="bookId()"
-    [existingLog]="editingLog()"
-    (closed)="closeLogEditor()"
-  />
+@defer (when showLogEditor()) {
+  @if (showLogEditor()) {
+    <app-reading-log-editor
+      [bookId]="bookId()"
+      [existingLog]="editingLog()"
+      (closed)="closeLogEditor()"
+    />
+  }
 }

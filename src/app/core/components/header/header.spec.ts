@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { BooksService } from '../../../features/books/services/books.service';
 import { ThemeService } from '../../services/theme.service';
-import { HeaderComponent } from './header.component';
+import { UiStateService } from '../../services/ui-state.service';
+import { HeaderComponent } from './header';
 
 describe('HeaderComponent', () => {
   beforeEach(async () => {
@@ -39,7 +39,7 @@ describe('HeaderComponent', () => {
   it('should toggle theme and open create book modal from header buttons', () => {
     const fixture = TestBed.createComponent(HeaderComponent);
     const themeService = TestBed.inject(ThemeService);
-    const booksService = TestBed.inject(BooksService);
+    const uiState = TestBed.inject(UiStateService);
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
@@ -52,6 +52,6 @@ describe('HeaderComponent', () => {
       'button[aria-label="Crear nuevo libro"]'
     ) as HTMLButtonElement;
     addButton.click();
-    expect(booksService.isCreateModalOpen()).toBe(true);
+    expect(uiState.isCreateModalOpen()).toBe(true);
   });
 });

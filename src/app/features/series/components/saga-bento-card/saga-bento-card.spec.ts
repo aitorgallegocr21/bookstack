@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Book } from '../../../books/models/book.model';
 import { SagaAggregation } from '../../models/series.model';
-import { SagaBentoCardComponent } from './saga-bento-card.component';
+import { SagaBentoCardComponent } from './saga-bento-card';
 
 function makeBook(overrides: Partial<Book> = {}): Book {
   return {

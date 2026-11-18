@@ -15,7 +15,6 @@ import {
   LucideSettings,
   LucideSun,
 } from '@lucide/angular';
-import { BooksService } from '../../../features/books/services/books.service';
 import { I18nService } from '../../i18n/i18n.service';
 import { ThemeService } from '../../services/theme.service';
 import { UiStateService } from '../../services/ui-state.service';
@@ -24,8 +23,8 @@ import { UiStateService } from '../../services/ui-state.service';
   selector: 'app-sidebar',
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive, LucideDynamicIcon],
-  templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.css',
+  templateUrl: './sidebar.html',
+  styleUrl: './sidebar.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'hidden md:flex',
@@ -33,7 +32,6 @@ import { UiStateService } from '../../services/ui-state.service';
 })
 export class SidebarComponent {
   protected readonly uiState = inject(UiStateService);
-  protected readonly booksService = inject(BooksService);
   protected readonly themeService = inject(ThemeService);
   protected readonly i18n = inject(I18nService);
 
@@ -72,7 +70,7 @@ export class SidebarComponent {
   }
 
   protected openCreate(): void {
-    this.booksService.openCreateModal();
+    this.uiState.openCreateModal();
   }
 
   protected toggleTheme(): void {

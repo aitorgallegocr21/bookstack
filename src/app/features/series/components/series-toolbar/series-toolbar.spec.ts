@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { SeriesToolbarComponent } from './series-toolbar.component';
+import { SeriesToolbarComponent } from './series-toolbar';
 import { SagaStatusCounts } from '../../models/series.model';
 
 describe('SeriesToolbarComponent', () => {

@@ -41,11 +41,14 @@ src/
     │   ├── components/{sidebar,header,bottom-nav}/  # Asymmetric shell components
     │   ├── i18n/                              # i18n.types.ts (L1-18), es.ts (L1-18), en.ts (L1-18), i18n.service.ts (L1-49)
     │   │   └── domains/                       # shell (L1-101), dashboard (L1-198), books (L1-649), analytics (L1-276), series (L1-232), settings (L1-354), about (L1-135)
+    │   ├── models/catalog-preferences.model.ts # CatalogViewMode, CatalogSortOption & runtime guards
     │   ├── services/
     │   │   ├── storage-adapter.service.ts     # L1-361: IndexedDB + LocalStorage fallback + catalog view/sort prefs
     │   │   ├── theme.service.ts               # L1-83: Light/dark theme signal & persistence
-    │   │   └── ui-state.service.ts            # L1-55: Sidebar collapse, create modal trigger & scroll lock
+    │   │   └── ui-state.service.ts            # L1-66: Sidebar collapse, create modal state/prefill & scroll lock
     │   └── utils/date-formatter.ts            # Locale-aware Intl date & month formatters
+    ├── shared/
+    │   └── utils/book-display.utils.ts        # Shared getStatusBadgeClass & formatRatingBadge helpers
     └── features/
         ├── dashboard/                         # Home launchpad (/)
         │   ├── pages/dashboard-page/          # Dashboard layout coordinator

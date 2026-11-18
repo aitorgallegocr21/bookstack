@@ -13,9 +13,9 @@ import { BookEditModalComponent } from '../../../books/components/book-edit-moda
 import { ReadingLogEditorComponent } from '../../../books/components/reading-log-editor/reading-log-editor';
 import { Book } from '../../../books/models/book.model';
 import { BooksService } from '../../../books/services/books.service';
-import { SagaBentoCardComponent } from '../../components/saga-bento-card/saga-bento-card.component';
-import { SagaDetailModalComponent } from '../../components/saga-detail-modal/saga-detail-modal.component';
-import { SeriesToolbarComponent } from '../../components/series-toolbar/series-toolbar.component';
+import { SagaBentoCardComponent } from '../../components/saga-bento-card/saga-bento-card';
+import { SagaDetailModalComponent } from '../../components/saga-detail-modal/saga-detail-modal';
+import { SeriesToolbarComponent } from '../../components/series-toolbar/series-toolbar';
 import { SagaAggregation } from '../../models/series.model';
 import { SeriesService } from '../../services/series.service';
 

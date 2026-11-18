@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { BooksService } from '../../../features/books/services/books.service';
 import { ThemeService } from '../../services/theme.service';
 import { UiStateService } from '../../services/ui-state.service';
-import { SidebarComponent } from './sidebar.component';
+import { SidebarComponent } from './sidebar';
 
 @Component({ selector: 'app-dummy-route', standalone: true, template: '' })
 class DummyRouteComponent {}
@@ -64,7 +63,7 @@ describe('SidebarComponent', () => {
 
   it('should match root "/" strictly and trigger create modal & theme toggle', async () => {
     const router = TestBed.inject(Router);
-    const booksService = TestBed.inject(BooksService);
+    const uiState = TestBed.inject(UiStateService);
     const themeService = TestBed.inject(ThemeService);
 
     const fixture = TestBed.createComponent(SidebarComponent);
@@ -84,7 +83,7 @@ describe('SidebarComponent', () => {
       'button[aria-label="Crear nuevo libro"]'
     ) as HTMLButtonElement | null;
     createBtn?.click();
-    expect(booksService.isCreateModalOpen()).toBe(true);
+    expect(uiState.isCreateModalOpen()).toBe(true);
 
     const initialDark = themeService.isDark();
     const themeBtn = root.querySelector(

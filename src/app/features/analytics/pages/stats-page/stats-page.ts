@@ -30,6 +30,5 @@ export class StatsPage {
 
   protected handleOpenCreateModal(): void {
     this.uiState.openCreateModal();
-    this.booksService.openCreateModal();
   }
 }

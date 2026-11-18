@@ -56,7 +56,6 @@ describe('StatsPage Integration', () => {
     ctaBtn?.click();
 
     expect(uiOpenCreateSpy).toHaveBeenCalledTimes(1);
-    expect(booksOpenCreateSpy).toHaveBeenCalledTimes(1);
   });
 
   it('coordinates all analytics child sections and updates reactively when period filter changes', () => {

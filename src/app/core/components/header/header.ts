@@ -9,21 +9,21 @@ import {
   LucidePlus,
   LucideSun,
 } from '@lucide/angular';
-import { BooksService } from '../../../features/books/services/books.service';
 import { I18nService } from '../../i18n/i18n.service';
 import { ThemeService } from '../../services/theme.service';
+import { UiStateService } from '../../services/ui-state.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [CommonModule, RouterLink, LucideDynamicIcon],
-  templateUrl: './header.component.html',
-  styleUrl: './header.component.css',
+  templateUrl: './header.html',
+  styleUrl: './header.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent {
   protected readonly themeService = inject(ThemeService);
-  protected readonly booksService = inject(BooksService);
+  protected readonly uiState = inject(UiStateService);
   protected readonly i18n = inject(I18nService);
 
   protected readonly Sun = LucideSun;
@@ -37,6 +37,6 @@ export class HeaderComponent {
   }
 
   protected openCreateModal(): void {
-    this.booksService.openCreateModal();
+    this.uiState.openCreateModal();
   }
 }

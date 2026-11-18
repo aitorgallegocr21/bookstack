@@ -1,22 +1,21 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { StorageAdapterService } from '../../../core/services/storage-adapter.service';
+import { CreateBookPrefill, UiStateService } from '../../../core/services/ui-state.service';
 import { Book } from '../models/book.model';
 import { parseStoredBooks } from '../schemas/book.schema';
 
-export interface CreateBookPrefill {
-  seriesName?: string;
-  seriesVolumeNumber?: number;
-}
+export type { CreateBookPrefill } from '../../../core/services/ui-state.service';
 
 @Injectable({ providedIn: 'root' })
 export class BooksService {
   private readonly storage = inject(StorageAdapterService);
+  private readonly uiState = inject(UiStateService);
   private readonly storeName = 'books';
   private initPromise: Promise<void> | null = null;
 
   readonly books = signal<Book[]>([]);
-  readonly isCreateModalOpen = signal<boolean>(false);
-  readonly createModalPrefill = signal<CreateBookPrefill | null>(null);
+  readonly isCreateModalOpen = this.uiState.isCreateModalOpen;
+  readonly createModalPrefill = this.uiState.createModalPrefill;
 
   constructor() {
     void this.ensureInitialized();
@@ -138,12 +137,10 @@ export class BooksService {
   }
 
   openCreateModal(prefill?: CreateBookPrefill): void {
-    this.createModalPrefill.set(prefill ?? null);
-    this.isCreateModalOpen.set(true);
+    this.uiState.openCreateModal(prefill);
   }
 
   closeCreateModal(): void {
-    this.isCreateModalOpen.set(false);
-    this.createModalPrefill.set(null);
+    this.uiState.closeCreateModal();
   }
 }

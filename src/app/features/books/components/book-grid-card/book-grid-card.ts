@@ -8,6 +8,7 @@ import {
   LucideTrash2,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { getStatusBadgeClass } from '../../../../shared/utils/book-display.utils';
 import { BOOK_STATUS_CONFIG, Book } from '../../models/book.model';
 import { translateBookFormat } from '../../utils/book-form.utils';
 
@@ -15,7 +16,7 @@ import { translateBookFormat } from '../../utils/book-form.utils';
   selector: 'app-book-grid-card',
   standalone: true,
   imports: [CommonModule, LucideDynamicIcon],
-  templateUrl: './book-grid-card.component.html',
+  templateUrl: './book-grid-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'block h-full',
@@ -54,7 +55,5 @@ export class BookGridCardComponent {
     return Math.min(100, Math.max(0, (b.currentPage / b.totalPages) * 100));
   });
 
-  protected getStatusBadgeClass(status: Book['status']): string {
-    return BOOK_STATUS_CONFIG[status]?.badgeClass ?? 'bg-slate-100 text-slate-700';
-  }
+  protected readonly getStatusBadgeClass = getStatusBadgeClass;
 }

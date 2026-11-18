@@ -29,6 +29,7 @@ import {
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
+import { getStatusBadgeClass } from '../../../../shared/utils/book-display.utils';
 import { Book, BookStatus } from '../../../books/models/book.model';
 import { BooksService } from '../../../books/services/books.service';
 import { SagaAggregation, SeriesPublicationStatus } from '../../models/series.model';
@@ -38,7 +39,7 @@ import { SeriesService } from '../../services/series.service';
   selector: 'app-saga-detail-modal',
   standalone: true,
   imports: [FormsModule, LucideDynamicIcon],
-  templateUrl: './saga-detail-modal.component.html',
+  templateUrl: './saga-detail-modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(document:keydown.escape)': 'handleEscape()',
@@ -229,16 +230,5 @@ export class SagaDetailModalComponent implements OnDestroy {
     return this.i18n.t().status[status];
   }
 
-  protected getBookStatusClass(status: BookStatus): string {
-    switch (status) {
-      case 'reading':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300';
-      case 'completed':
-        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300';
-      case 'pending':
-        return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
-      case 'abandoned':
-        return 'bg-rose-100 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300';
-    }
-  }
+  protected readonly getBookStatusClass = getStatusBadgeClass;
 }

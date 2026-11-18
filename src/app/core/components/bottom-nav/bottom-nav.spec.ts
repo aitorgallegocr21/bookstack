@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { BottomNavComponent } from './bottom-nav.component';
+import { BottomNavComponent } from './bottom-nav';
 
 @Component({ selector: 'app-dummy-bottom-route', standalone: true, template: '' })
 class DummyBottomRouteComponent {}

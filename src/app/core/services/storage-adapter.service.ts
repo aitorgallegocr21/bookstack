@@ -6,7 +6,7 @@ import {
   DEFAULT_CATALOG_VIEW_MODE,
   isCatalogSortOption,
   isCatalogViewMode,
-} from '../../features/books/models/catalog-filter.model';
+} from '../models/catalog-preferences.model';
 
 @Injectable({
   providedIn: 'root',

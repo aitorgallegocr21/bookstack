@@ -145,8 +145,8 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
     await lookupPanel.getByRole('button', { name: 'Buscar', exact: true }).click();
 
     await expect(lookupPanel.getByText('Dune: Deluxe Edition')).toBeVisible();
-    await expect(lookupPanel.getByText('Open Library')).toBeVisible();
-    await expect(lookupPanel.getByText('Google Books')).toBeVisible();
+    await expect(lookupPanel.getByText('Open Library', { exact: true })).toBeVisible();
+    await expect(lookupPanel.getByText('Google Books', { exact: true })).toBeVisible();
 
     await lookupPanel.getByRole('button', { name: 'Usar edición' }).first().click();
     await expect(page.locator('#create-book-title')).toHaveValue('Dune');
@@ -217,6 +217,12 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
     const lookupPanel = page.locator('app-book-metadata-lookup');
     await lookupPanel.getByRole('button', { name: /Expandir panel/ }).click();
 
+    await expect(
+      lookupPanel.getByText(
+        'Las búsquedas consultan Open Library y Google Books directamente desde tu navegador y optimizan las portadas localmente.'
+      )
+    ).toBeVisible();
+
     await lookupPanel.locator('input[type="search"]').fill('Dune');
     await lookupPanel.getByRole('button', { name: 'Buscar', exact: true }).click();
     await expect(lookupPanel.getByText('Dune: Deluxe Edition')).toBeVisible();
@@ -225,5 +231,47 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth
     );
     expect(hasHorizontalOverflow).toBe(false);
+  });
+
+  test('should gate camera initialization behind explicit user consent in IsbnScannerComponent', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      let getUserMediaCalls = 0;
+      (window as unknown as { __getUserMediaCalls: () => number }).__getUserMediaCalls = () =>
+        getUserMediaCalls;
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: {
+          getUserMedia: () => {
+            getUserMediaCalls += 1;
+            return Promise.reject(new Error('NotAllowedError'));
+          },
+          enumerateDevices: () => Promise.resolve([]),
+        },
+      });
+    });
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/books');
+
+    await page.getByRole('button', { name: 'Crear nuevo libro' }).click();
+    await expect(page.locator('#create-modal-title')).toBeVisible();
+
+    const lookupPanel = page.locator('app-book-metadata-lookup');
+    await lookupPanel.getByRole('button', { name: 'Escanear código' }).click();
+
+    const consentButton = page.getByTestId('enable-camera-consent-btn');
+    await expect(consentButton).toBeVisible();
+    await expect(
+      lookupPanel.getByText(
+        'La cámara se procesa únicamente en tu navegador para leer códigos ISBN. No se graban ni envían imágenes.'
+      )
+    ).toBeVisible();
+
+    const callsBeforeConsent = await page.evaluate(() =>
+      (window as unknown as { __getUserMediaCalls: () => number }).__getUserMediaCalls()
+    );
+    expect(callsBeforeConsent).toBe(0);
   });
 });

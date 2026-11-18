@@ -23,9 +23,9 @@ Aplicación web moderna, minimalista y **Local-First** para el seguimiento de le
 - **Analítica de Lectura:** Métricas reactivas de velocidad de lectura (`pp/h`), distribución por estado y actividad mensual.
 - **Optimización de Portadas en Cliente:** Pipeline HTML5 Canvas que comprime las portadas subidas ($\le 400\text{px}$, WebP/JPEG) antes de guardarlas localmente.
 - **Shell Responsiva Asimétrica:** Barra lateral colapsable (`68px` / `240px`) en escritorio y tablet ($\ge 768\text{px}$) y cabecera compacta con barra inferior táctil en móvil ($< 768\text{px}$), con persistencia de tema claro/oscuro.
-- **Privacidad Total Local-First:** Tus datos nunca salen de tu navegador gracias a `IndexedDB` (con respaldo seguro en `LocalStorage` y validación Zod). Sin backend obligatorio.
+- **Privacidad Total Local-First y PWA Offline:** Tus datos nunca salen de tu navegador gracias a transacciones por lotes en `IndexedDB` (con respaldo seguro en `LocalStorage` y validación Zod), mientras `@angular/service-worker` cachea el app shell para uso 100 % sin conexión. Incluye sección transparente de privacidad, licencia MIT y atribuciones en `/about` junto con consentimiento explícito de cámara para el escáner.
 - **Ajustes, Portabilidad y Motor de Backups (`/settings`):** Preferencias unificadas (idioma, tema claro/oscuro, vista por defecto del catálogo), inspector de cuota y bytes en 4 categorías en tiempo real, exportación e importación JSON (backup completo validado con Zod) y CSV (RFC 4180) con vista previa (`Combinar` o `Reemplazar todo`), y zona de peligro de 2 niveles con copia de seguridad previa en 1 clic.
-- **Internacionalización (`es` / `en`):** Interfaz en español (`es`) por defecto con diccionarios completos reactivos en español e inglés intercambiables en tiempo real desde `/settings`.
+- **Internacionalización (`es` / `en`):** Interfaz en español (`es`) por defecto con diccionarios modulares completos reactivos en español e inglés intercambiables en tiempo real desde `/settings`.
 
 ---
 

@@ -1,5 +1,5 @@
 import { signal } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 import { Book, ReadingLog } from '../../models/book.model';
@@ -34,6 +34,7 @@ describe('BooksPage', () => {
           },
         },
       ],
+      deferBlockBehavior: DeferBlockBehavior.Playthrough,
     }).compileComponents();
   });
 
@@ -82,6 +83,7 @@ describe('BooksPage', () => {
     ) as HTMLButtonElement;
     detailsButton.click();
     fixture.detectChanges();
+    await fixture.whenStable();
     expect(root.querySelector('app-book-detail-modal')).not.toBeNull();
     expect(document.body.classList.contains('overflow-hidden')).toBe(true);
 
@@ -90,6 +92,7 @@ describe('BooksPage', () => {
     ) as HTMLButtonElement;
     editButton.click();
     fixture.detectChanges();
+    await fixture.whenStable();
     expect(root.querySelector('app-book-edit-modal')).not.toBeNull();
   });
 

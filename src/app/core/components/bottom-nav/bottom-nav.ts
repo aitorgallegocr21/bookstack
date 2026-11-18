@@ -15,8 +15,8 @@ import { I18nService } from '../../i18n/i18n.service';
   selector: 'app-bottom-nav',
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive, LucideDynamicIcon],
-  templateUrl: './bottom-nav.component.html',
-  styleUrl: './bottom-nav.component.css',
+  templateUrl: './bottom-nav.html',
+  styleUrl: './bottom-nav.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BottomNavComponent {

@@ -231,7 +231,7 @@ export class BookMetadataLookupComponent {
       const optimizedCover = await this.bookMetadataService.resolveLocalCover(candidate.coverUrl);
       return {
         ...candidate,
-        coverUrl: optimizedCover ?? candidate.coverUrl,
+        coverUrl: optimizedCover || candidate.coverUrl,
       };
     } catch {
       return candidate;

@@ -19,9 +19,14 @@ describe('ImageOptimizerService', () => {
     vi.restoreAllMocks();
   });
 
-  it('should reject unsupported image MIME types', async () => {
+  it('should reject unsupported image MIME types and SVG extensions', async () => {
     const gifFile = new File(['gif-bytes'], 'cover.gif', { type: 'image/gif' });
     await expect(service.optimize(gifFile)).rejects.toThrow(
+      'Unsupported image format. Use JPEG, PNG, WebP, or AVIF.'
+    );
+
+    const svgFile = new File(['<svg></svg>'], 'cover.svg', { type: 'image/png' });
+    await expect(service.optimize(svgFile)).rejects.toThrow(
       'Unsupported image format. Use JPEG, PNG, WebP, or AVIF.'
     );
   });
@@ -74,10 +79,10 @@ describe('ImageOptimizerService', () => {
     const result = await service.optimize(pngFile);
 
     expect(result).toBe('data:image/webp;base64,optimized');
-    expect(mockCanvas.width).toBe(200);
-    expect(mockCanvas.height).toBe(400);
+    expect(mockCanvas.width).toBe(180);
+    expect(mockCanvas.height).toBe(360);
     expect(drawImage).toHaveBeenCalledTimes(1);
-    expect(toDataURL).toHaveBeenCalledWith('image/webp', 0.75);
+    expect(toDataURL).toHaveBeenCalledWith('image/webp', 0.7);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-cover');
   });
 
@@ -113,11 +118,12 @@ describe('ImageOptimizerService', () => {
         mode: 'cors',
         credentials: 'omit',
         referrerPolicy: 'no-referrer',
+        signal: expect.any(AbortSignal),
       });
       expect(optimizeSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('falls back gracefully to the remote URL when fetch or optimization fails', async () => {
+    it('returns empty string when fetch or optimization fails', async () => {
       globalThis.fetch = vi
         .fn()
         .mockRejectedValue(new TypeError('CORS blocked')) as unknown as typeof fetch;
@@ -125,10 +131,10 @@ describe('ImageOptimizerService', () => {
       const remoteUrl = 'https://books.google.com/books/content?id=123';
       const result = await service.optimizeRemoteUrl(remoteUrl);
 
-      expect(result).toBe(remoteUrl);
+      expect(result).toBe('');
     });
 
-    it('falls back to the remote URL when response is not ok', async () => {
+    it('returns empty string when response is not ok', async () => {
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 404,
@@ -137,7 +143,41 @@ describe('ImageOptimizerService', () => {
       const remoteUrl = 'https://covers.openlibrary.org/b/id/missing-L.jpg';
       const result = await service.optimizeRemoteUrl(remoteUrl);
 
-      expect(result).toBe(remoteUrl);
+      expect(result).toBe('');
+    });
+
+    it('rejects SVG or non-image blobs by returning empty string', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        blob: async () => new Blob(['<svg></svg>'], { type: 'image/svg+xml' }),
+      }) as unknown as typeof fetch;
+
+      const result = await service.optimizeRemoteUrl('https://covers.openlibrary.org/b/id/1-L.svg');
+      expect(result).toBe('');
+    });
+
+    it('aborts and returns empty string when request exceeds timeout', async () => {
+      vi.useFakeTimers();
+      try {
+        globalThis.fetch = vi.fn(
+          (_input: RequestInfo | URL, init?: RequestInit) =>
+            new Promise<Response>((_resolve, reject) => {
+              init?.signal?.addEventListener('abort', () => {
+                reject(new DOMException('Aborted', 'AbortError'));
+              });
+            })
+        ) as unknown as typeof fetch;
+
+        const promise = service.optimizeRemoteUrl(
+          'https://covers.openlibrary.org/b/id/slow.jpg',
+          50
+        );
+        await vi.advanceTimersByTimeAsync(60);
+
+        await expect(promise).resolves.toBe('');
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 });

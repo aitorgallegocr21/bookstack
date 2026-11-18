@@ -49,4 +49,44 @@ test.describe('Navigation and Theme persistence', () => {
     await bottomNav.getByRole('link', { name: 'Inicio' }).click();
     await expect(page).toHaveURL(/\/$/);
   });
+
+  test('should render /about privacy, legal, and attribution sections in ES and EN with zero horizontal overflow at 320px', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto('/about');
+
+    await expect(
+      page.getByRole('heading', { name: 'Privacidad y Permisos del Dispositivo' })
+    ).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Aviso Legal, Licencia y Atribuciones' })
+    ).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'APIs de terceros y stack de código abierto' })
+    ).toBeVisible();
+
+    const overflowEs = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth
+    );
+    expect(overflowEs).toBe(false);
+
+    // Switch language to English via /settings and verify /about in EN
+    await page.goto('/settings');
+    await page.locator('#settings-language').selectOption('en');
+    await page.goto('/about');
+
+    await expect(page.getByRole('heading', { name: 'Privacy & Device Permissions' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Legal Notice, License & Attributions' })
+    ).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Third-Party APIs & Open-Source Stack' })
+    ).toBeVisible();
+
+    const overflowEn = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth
+    );
+    expect(overflowEn).toBe(false);
+  });
 });

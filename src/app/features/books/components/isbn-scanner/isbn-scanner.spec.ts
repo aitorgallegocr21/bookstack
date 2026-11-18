@@ -35,7 +35,20 @@ describe('IsbnScannerComponent', () => {
     return fixture;
   };
 
+  const clickEnableCamera = async (
+    fixture: ComponentFixture<IsbnScannerComponent>
+  ): Promise<void> => {
+    const btn = (fixture.nativeElement as HTMLElement).querySelector(
+      '[data-testid="enable-camera-consent-btn"]'
+    ) as HTMLButtonElement | null;
+    expect(btn).not.toBeNull();
+    btn!.click();
+    await flushMicrotasks();
+    fixture.detectChanges();
+  };
+
   beforeEach(async () => {
+    IsbnScannerComponent.resetSessionConsent();
     localStorage.clear();
     capturedSuccessCallback = null;
     mockCameras = [
@@ -86,11 +99,19 @@ describe('IsbnScannerComponent', () => {
     vi.restoreAllMocks();
   });
 
-  it('starts rear camera on init with 1D barcode qrbox config', async () => {
+  it('stays idle without starting camera on init until user grants consent, then auto-starts in same session', async () => {
     const fixture = createFixture();
     fixture.detectChanges();
     await flushMicrotasks();
     fixture.detectChanges();
+
+    expect(startMock).not.toHaveBeenCalled();
+    const root = fixture.nativeElement as HTMLElement;
+    const i18n = TestBed.inject(I18nService);
+    expect(root.textContent).toContain(i18n.t().bookForm.lookup.cameraConsentHint);
+    expect(root.textContent).toContain(i18n.t().bookForm.lookup.enableCamera);
+
+    await clickEnableCamera(fixture);
 
     expect(getCamerasMock).toHaveBeenCalledTimes(1);
     expect(startMock).toHaveBeenCalledWith(
@@ -99,9 +120,13 @@ describe('IsbnScannerComponent', () => {
       expect.any(Function),
       expect.any(Function)
     );
+    expect(root.textContent).toContain(i18n.t().bookForm.lookup.stopCamera);
 
-    const root = fixture.nativeElement as HTMLElement;
-    expect(root.textContent).toContain(TestBed.inject(I18nService).t().bookForm.lookup.stopCamera);
+    // Subsequent mount in the same session reuses granted consent
+    const secondFixture = createFixture();
+    secondFixture.detectChanges();
+    await flushMicrotasks();
+    expect(startMock).toHaveBeenCalledTimes(2);
   });
 
   it('ignores non-ISBN barcodes without stopping camera and emits normalized ISBN-13 on valid scan', async () => {
@@ -110,8 +135,7 @@ describe('IsbnScannerComponent', () => {
     fixture.componentInstance.isbnDetected.subscribe((isbn) => emitted.push(isbn));
 
     fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
+    await clickEnableCamera(fixture);
 
     expect(capturedSuccessCallback).not.toBeNull();
 
@@ -139,7 +163,7 @@ describe('IsbnScannerComponent', () => {
   it('guarantees camera stream teardown on ngOnDestroy', async () => {
     const fixture = createFixture();
     fixture.detectChanges();
-    await flushMicrotasks();
+    await clickEnableCamera(fixture);
 
     fixture.destroy();
     await flushMicrotasks();
@@ -151,8 +175,7 @@ describe('IsbnScannerComponent', () => {
   it('switches cameras when multiple devices are available', async () => {
     const fixture = createFixture();
     fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
+    await clickEnableCamera(fixture);
 
     const root = fixture.nativeElement as HTMLElement;
     const selectEl = root.querySelector('select') as HTMLSelectElement;
@@ -177,8 +200,7 @@ describe('IsbnScannerComponent', () => {
 
     const fixture = createFixture();
     fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
+    await clickEnableCamera(fixture);
 
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain(
@@ -194,8 +216,7 @@ describe('IsbnScannerComponent', () => {
 
     const fixture = createFixture();
     fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
+    await clickEnableCamera(fixture);
 
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain(
@@ -209,8 +230,7 @@ describe('IsbnScannerComponent', () => {
     fixture.componentInstance.isbnDetected.subscribe((isbn) => emitted.push(isbn));
 
     fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
+    await clickEnableCamera(fixture);
 
     const root = fixture.nativeElement as HTMLElement;
     const fileInput = root.querySelector('input[type="file"]') as HTMLInputElement;

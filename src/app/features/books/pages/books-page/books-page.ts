@@ -11,15 +11,18 @@ import {
   LucideTrash2,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
-import { BookCompactRowComponent } from '../../components/book-compact-row/book-compact-row.component';
+import {
+  formatRatingBadge,
+  getStatusBadgeClass,
+} from '../../../../shared/utils/book-display.utils';
+import { BookCompactRowComponent } from '../../components/book-compact-row/book-compact-row';
 import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
-import { BookDetailedCardComponent } from '../../components/book-detailed-card/book-detailed-card.component';
+import { BookDetailedCardComponent } from '../../components/book-detailed-card/book-detailed-card';
 import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
-import { BookGridCardComponent } from '../../components/book-grid-card/book-grid-card.component';
-import { CatalogToolbarComponent } from '../../components/catalog-toolbar/catalog-toolbar.component';
+import { BookGridCardComponent } from '../../components/book-grid-card/book-grid-card';
+import { CatalogToolbarComponent } from '../../components/catalog-toolbar/catalog-toolbar';
 import { ReadingLogEditorComponent } from '../../components/reading-log-editor/reading-log-editor';
 import {
-  BOOK_RATING_MAX,
   BOOK_STATUS_CONFIG,
   Book,
   BookFormat,
@@ -202,9 +205,7 @@ export class BooksPage {
     }
   }
 
-  protected getStatusBadgeClass(status: BookStatus): string {
-    return BOOK_STATUS_CONFIG[status].badgeClass;
-  }
+  protected readonly getStatusBadgeClass = getStatusBadgeClass;
 
   protected getFormatLabel(format?: BookFormat | string): string {
     return (
@@ -213,12 +214,7 @@ export class BooksPage {
   }
 
   protected getRatingBadge(rating?: number): string {
-    if (rating === undefined || rating === null || Number.isNaN(rating)) {
-      return this.i18n.t().books.noRating;
-    }
-
-    const normalized = Math.min(BOOK_RATING_MAX, Math.max(0, rating));
-    return `★ ${normalized.toFixed(1).replace(/\.0$/, '')}/10`;
+    return formatRatingBadge(rating, this.i18n.t().books.noRating);
   }
 
   protected getStatusBarColor(status: BookStatus): string {

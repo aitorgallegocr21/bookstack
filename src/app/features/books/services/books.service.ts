@@ -1,22 +1,21 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { StorageAdapterService } from '../../../core/services/storage-adapter.service';
+import { CreateBookPrefill, UiStateService } from '../../../core/services/ui-state.service';
 import { Book } from '../models/book.model';
 import { parseStoredBooks } from '../schemas/book.schema';
 
-export interface CreateBookPrefill {
-  seriesName?: string;
-  seriesVolumeNumber?: number;
-}
+export type { CreateBookPrefill } from '../../../core/services/ui-state.service';
 
 @Injectable({ providedIn: 'root' })
 export class BooksService {
   private readonly storage = inject(StorageAdapterService);
+  private readonly uiState = inject(UiStateService);
   private readonly storeName = 'books';
   private initPromise: Promise<void> | null = null;
 
   readonly books = signal<Book[]>([]);
-  readonly isCreateModalOpen = signal<boolean>(false);
-  readonly createModalPrefill = signal<CreateBookPrefill | null>(null);
+  readonly isCreateModalOpen = this.uiState.isCreateModalOpen;
+  readonly createModalPrefill = this.uiState.createModalPrefill;
 
   constructor() {
     void this.ensureInitialized();
@@ -55,6 +54,22 @@ export class BooksService {
     await this.ensureInitialized();
     await this.storage.set(this.storeName, updatedBook);
     this.books.update((current) => current.map((b) => (b.id === id ? updatedBook : b)));
+  }
+
+  async updateMany(updatedBooks: Book[]): Promise<boolean> {
+    await this.ensureInitialized();
+    if (updatedBooks.length === 0) {
+      return true;
+    }
+
+    const persisted = await this.storage.putMany(this.storeName, updatedBooks);
+    if (!persisted) {
+      return false;
+    }
+
+    const updatedById = new Map<string, Book>(updatedBooks.map((book) => [book.id, book]));
+    this.books.update((current) => current.map((book) => updatedById.get(book.id) ?? book));
+    return true;
   }
 
   async applyReadingDelta(bookId: string, deltaPages: number): Promise<void> {
@@ -122,12 +137,10 @@ export class BooksService {
   }
 
   openCreateModal(prefill?: CreateBookPrefill): void {
-    this.createModalPrefill.set(prefill ?? null);
-    this.isCreateModalOpen.set(true);
+    this.uiState.openCreateModal(prefill);
   }
 
   closeCreateModal(): void {
-    this.isCreateModalOpen.set(false);
-    this.createModalPrefill.set(null);
+    this.uiState.closeCreateModal();
   }
 }

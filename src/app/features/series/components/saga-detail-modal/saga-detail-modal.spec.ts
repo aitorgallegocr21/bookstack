@@ -6,7 +6,7 @@ import { Book } from '../../../books/models/book.model';
 import { BooksService } from '../../../books/services/books.service';
 import { SagaAggregation } from '../../models/series.model';
 import { SeriesService } from '../../services/series.service';
-import { SagaDetailModalComponent } from './saga-detail-modal.component';
+import { SagaDetailModalComponent } from './saga-detail-modal';
 
 function makeBook(overrides: Partial<Book> = {}): Book {
   return {

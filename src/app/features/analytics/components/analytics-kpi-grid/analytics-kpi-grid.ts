@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { formatLocalizedNumber } from '../../../../core/utils/date-formatter';
 import { AnalyticsService } from '../../services/analytics.service';
 
 @Component({
@@ -18,7 +19,7 @@ export class AnalyticsKpiGridComponent {
   protected readonly kpi = this.analyticsService.kpiSummary;
 
   protected readonly formattedPagesRead = computed(() =>
-    new Intl.NumberFormat(this.i18n.intlLocale()).format(this.kpi().pagesRead)
+    formatLocalizedNumber(this.kpi().pagesRead, this.i18n.intlLocale())
   );
 
   protected readonly formattedReadingTime = computed(() => {

@@ -54,6 +54,15 @@ describe('BookMetadataLookupComponent', () => {
     expect(el.textContent).toContain('Buscar libro');
   });
 
+  it('displays external lookup privacy notice when search tab is opened', () => {
+    component.openTab('search');
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Open Library');
+    expect(el.textContent).toContain('Google Books');
+  });
+
   it('does not search on input typing and submits unified query on form submit', async () => {
     const candidates = Array.from({ length: 6 }, (_, index) =>
       createCandidate({
@@ -228,5 +237,22 @@ describe('BookMetadataLookupComponent', () => {
     expect(banner.textContent).toContain('Coincide por ISBN con:');
     expect(banner.textContent).toContain('Dune');
     expect(banner.textContent).toContain('Leyendo');
+  });
+
+  it('preserves remote coverUrl fallback when resolveLocalCover returns empty or undefined', async () => {
+    const candidate = createCandidate({
+      coverUrl: 'https://books.google.com/books/content?id=fallback',
+    });
+    mockMetadataService.resolveLocalCover.mockResolvedValueOnce('');
+
+    const emitted: Array<{ candidate: BookMetadataCandidate; applyMode: string }> = [];
+    component.candidateApplied.subscribe((payload) => emitted.push(payload));
+
+    await component.applyCandidate(candidate, 'overwrite-public');
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0].candidate.coverUrl).toBe(
+      'https://books.google.com/books/content?id=fallback'
+    );
   });
 });

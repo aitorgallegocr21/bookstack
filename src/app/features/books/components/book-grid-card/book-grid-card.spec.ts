@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { Book } from '../../models/book.model';
-import { BookGridCardComponent } from './book-grid-card.component';
+import { BookGridCardComponent } from './book-grid-card';
 
 @Component({
   standalone: true,

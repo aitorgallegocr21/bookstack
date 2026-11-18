@@ -162,16 +162,20 @@
   </div>
 
   <!-- Full Log Editor Modal (Opened from Hero) -->
-  @if (selectedBookForLog(); as targetBook) {
-    <app-reading-log-editor
-      [bookId]="targetBook.id"
-      (closed)="handleCloseFullLog()"
-      (saved)="handleCloseFullLog()"
-    />
+  @defer (when selectedBookForLog()) {
+    @if (selectedBookForLog(); as targetBook) {
+      <app-reading-log-editor
+        [bookId]="targetBook.id"
+        (closed)="handleCloseFullLog()"
+        (saved)="handleCloseFullLog()"
+      />
+    }
   }
 
   <!-- Book Detail Modal (Opened from Recent Activity Feed) -->
-  @if (selectedBookForDetail(); as detailBook) {
-    <app-book-detail-modal [bookId]="detailBook.id" (closed)="handleCloseDetail()" />
+  @defer (when selectedBookForDetail()) {
+    @if (selectedBookForDetail(); as detailBook) {
+      <app-book-detail-modal [bookId]="detailBook.id" (closed)="handleCloseDetail()" />
+    }
   }
 </div>

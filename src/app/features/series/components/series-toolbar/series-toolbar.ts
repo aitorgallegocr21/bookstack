@@ -23,7 +23,7 @@ export const SAGA_SORT_OPTIONS: readonly SagaSortOption[] = [
   selector: 'app-series-toolbar',
   standalone: true,
   imports: [LucideDynamicIcon],
-  templateUrl: './series-toolbar.component.html',
+  templateUrl: './series-toolbar.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'block',

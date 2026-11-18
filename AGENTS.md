@@ -37,6 +37,8 @@ Build and maintain **BookStack**, a minimalist, visual, private, high-performanc
    - Preserve zero horizontal overflow down to `320px–375px`, touch targets $\ge 44\times44\text{px}$, `100dvh` viewport safety, and full keyboard/a11y compliance. Activate `.agents/skills/responsive-mobile-design/SKILL.md` only when building complex responsive layouts or modals.
 8. **JIT Context & Token Hygiene:**
    - Consult `CONTEXT.md` once for exact file and line pointers (`StartLine`/`EndLine`). Do NOT load `.agents/skills/*/SKILL.md` unless you need their specific boilerplate templates.
+9. **Periodic Project Hardening & Consolidation Sweep (On-Demand):**
+   - After completing several feature phases (or whenever the user explicitly requests a project-wide hardening, optimization, security, or architectural cleanup sweep), activate `.agents/skills/periodic-project-hardening/SKILL.md` to execute the 8-Pillar Low-Token Diagnostic & Hardening Protocol.
 
 ---
 

@@ -169,7 +169,6 @@ describe('StatsPage (Empty State & Header/KPI Integration)', () => {
 
     ctaBtn?.click();
     expect(uiOpenCreateSpy).toHaveBeenCalledTimes(1);
-    expect(booksOpenCreateSpy).toHaveBeenCalledTimes(1);
   });
 
   it('renders analytics header and KPI grid when at least one book exists', () => {

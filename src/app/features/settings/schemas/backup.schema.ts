@@ -23,13 +23,18 @@ export const BackupPreferencesSchema = z.object({
     .optional(),
 });
 
+const MAX_BACKUP_RECORDS = 25_000;
+
 export const BackupEnvelopeSchema = z.object({
   schemaVersion: z.literal(1),
   app: z.literal('BookStack'),
-  exportedAt: z.string().min(1),
-  books: z.array(z.unknown()),
-  readingLogs: z.array(z.unknown()).default([]),
-  seriesMetadata: z.array(z.unknown()).default([]),
+  exportedAt: z.string().min(1).max(64),
+  books: z.array(z.unknown()).max(MAX_BACKUP_RECORDS),
+  readingLogs: z
+    .array(z.unknown())
+    .max(MAX_BACKUP_RECORDS * 5)
+    .default([]),
+  seriesMetadata: z.array(z.unknown()).max(MAX_BACKUP_RECORDS).default([]),
   readingGoals: ReadingGoalsSchema.nullable().optional(),
   preferences: BackupPreferencesSchema.optional(),
 });

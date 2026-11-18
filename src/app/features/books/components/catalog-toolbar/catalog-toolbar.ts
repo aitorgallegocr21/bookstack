@@ -41,7 +41,7 @@ export interface RatingFilterOption {
   selector: 'app-catalog-toolbar',
   standalone: true,
   imports: [CommonModule, LucideDynamicIcon],
-  templateUrl: './catalog-toolbar.component.html',
+  templateUrl: './catalog-toolbar.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'block',

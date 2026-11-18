@@ -5,8 +5,8 @@ export type OptimizedImageMimeType = 'image/webp' | 'image/jpeg';
 @Injectable({ providedIn: 'root' })
 export class ImageOptimizerService {
   private readonly maxInputSizeBytes = 10 * 1024 * 1024;
-  private readonly maxDimension = 400;
-  private readonly quality = 0.75;
+  private readonly maxDimension = 360;
+  private readonly quality = 0.7;
   private readonly allowedMimeTypes = new Set([
     'image/jpeg',
     'image/png',
@@ -46,39 +46,54 @@ export class ImageOptimizerService {
 
   /**
    * Fetches a remote HTTPS cover image without credentials or referrer and optimizes it
-   * into a local compressed WebP/JPEG data URL. Falls back gracefully to the remote URL
-   * if CORS or network errors prevent local canvas extraction.
+   * into a local compressed WebP/JPEG data URL. Returns an empty string on timeout,
+   * invalid MIME type (e.g. SVG), CORS, or network errors so persisted covers remain self-contained.
    */
-  async optimizeRemoteUrl(remoteUrl: string): Promise<string> {
+  async optimizeRemoteUrl(remoteUrl: string, timeoutMs = 6000): Promise<string> {
     const trimmed = remoteUrl.trim();
     if (!trimmed.startsWith('https://')) {
       throw new Error('Remote cover URL must use HTTPS.');
     }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const response = await fetch(trimmed, {
         mode: 'cors',
         credentials: 'omit',
         referrerPolicy: 'no-referrer',
+        signal: controller.signal,
       });
 
       if (!response.ok) {
-        return trimmed;
+        return '';
       }
 
       const blob = await response.blob();
-      const mimeType = blob.type || 'image/jpeg';
+      const mimeType = blob.type.toLowerCase();
+      if (!mimeType.startsWith('image/') || mimeType === 'image/svg+xml') {
+        return '';
+      }
+
       const file = new File([blob], 'remote-cover', { type: mimeType });
 
       return await this.optimize(file);
     } catch {
-      return trimmed;
+      return '';
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
   private validateFile(file: File): void {
     if (!(file instanceof File)) {
       throw new Error('The provided file is not valid.');
+    }
+
+    const lowerName = file.name.trim().toLowerCase();
+    if (lowerName.endsWith('.svg') || lowerName.endsWith('.svgz')) {
+      throw new Error('Unsupported image format. Use JPEG, PNG, WebP, or AVIF.');
     }
 
     if (!this.allowedMimeTypes.has(file.type)) {

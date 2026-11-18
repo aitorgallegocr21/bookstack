@@ -19,7 +19,8 @@ import type { Html5Qrcode } from 'html5-qrcode';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { isValidIsbn, normalizeIsbn } from '../../utils/isbn.utils';
 
-export type IsbnScannerState = 'idle' | 'starting' | 'scanning' | 'processing-file' | 'error';
+export type IsbnScannerState =
+  'idle' | 'starting' | 'scanning' | 'processing-file' | 'error' | 'permission-denied';
 
 export interface ScannerCameraDevice {
   id: string;
@@ -38,6 +39,11 @@ export interface ScannerCameraDevice {
 })
 export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
   private static nextElementId = 0;
+  private static sessionCameraConsent = false;
+
+  static resetSessionConsent(): void {
+    IsbnScannerComponent.sessionCameraConsent = false;
+  }
 
   protected readonly i18n = inject(I18nService);
   protected readonly Camera = LucideCamera;
@@ -63,7 +69,14 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
   private handlingDetection = false;
 
   ngAfterViewInit(): void {
-    void this.startCamera();
+    if (IsbnScannerComponent.sessionCameraConsent) {
+      void this.startCamera();
+    }
+  }
+
+  protected grantCameraConsentAndStart(preferredCameraId?: string): void {
+    IsbnScannerComponent.sessionCameraConsent = true;
+    void this.startCamera(preferredCameraId);
   }
 
   ngOnDestroy(): void {
@@ -145,8 +158,17 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
         return;
       }
 
-      this.errorMessage.set(this.mapCameraError(error));
-      this.scannerState.set('error');
+      const isPermissionError = this.isPermissionDeniedError(error);
+      if (isPermissionError) {
+        IsbnScannerComponent.sessionCameraConsent = false;
+      }
+
+      this.errorMessage.set(
+        isPermissionError
+          ? this.i18n.t().bookForm.lookup.permissionError
+          : this.i18n.t().bookForm.lookup.cameraUnavailableError
+      );
+      this.scannerState.set(isPermissionError ? 'permission-denied' : 'error');
     }
   }
 
@@ -318,21 +340,14 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private mapCameraError(error: unknown): string {
-    const t = this.i18n.t().bookForm.lookup;
+  private isPermissionDeniedError(error: unknown): boolean {
     const rawName =
       error instanceof Error
         ? `${error.name} ${error.message}`.toLowerCase()
         : String(error ?? '').toLowerCase();
 
-    if (
-      rawName.includes('notallowed') ||
-      rawName.includes('permission') ||
-      rawName.includes('denied')
-    ) {
-      return t.permissionError;
-    }
-
-    return t.cameraUnavailableError;
+    return (
+      rawName.includes('notallowed') || rawName.includes('permission') || rawName.includes('denied')
+    );
   }
 }

@@ -19,7 +19,7 @@ import { CatalogFilterService } from '../../books/services/catalog-filter.servic
 import { ReadingLogService } from '../../books/services/reading-log.service';
 import { ReadingStatsService } from '../../books/services/reading-stats.service';
 import { SeriesMetadata } from '../../series/models/series.model';
-import { parseStoredSeriesMetadata } from '../../series/schemas/series.schema';
+import { SeriesService } from '../../series/services/series.service';
 import {
   BackupPreferences,
   BookstackBackupEnvelope,
@@ -32,6 +32,7 @@ import {
 import { parseBackupJson } from '../schemas/backup.schema';
 
 const UTF8_BOM = '\uFEFF';
+const UTF8_ENCODER = new TextEncoder();
 const LOCALSTORAGE_NEAR_LIMIT_BYTES = 4 * 1024 * 1024;
 const FORMULA_PREFIX_CHARS = new Set(['=', '+', '-', '@', '\t', '\r']);
 
@@ -77,19 +78,19 @@ export class DataPortabilityService {
   private readonly booksService = inject(BooksService);
   private readonly readingLogService = inject(ReadingLogService);
   private readonly readingStatsService = inject(ReadingStatsService);
+  private readonly seriesService = inject(SeriesService);
   private readonly catalogFilterService = inject(CatalogFilterService);
   private readonly storageAdapter = inject(StorageAdapterService);
   private readonly themeService = inject(ThemeService);
   private readonly i18n = inject(I18nService);
-
-  private readonly textEncoder = new TextEncoder();
 
   // ==========================================
   // JSON Backup Export
   // ==========================================
 
   async buildJsonBackupEnvelope(): Promise<BookstackBackupEnvelope> {
-    const seriesMetadata = await this.loadSeriesMetadata();
+    await this.seriesService.ensureInitialized();
+    const seriesMetadata = [...this.seriesService.metadata()];
     return {
       schemaVersion: 1,
       app: 'BookStack',
@@ -152,6 +153,10 @@ export class DataPortabilityService {
         headerIndex.set(header, idx);
       }
     });
+
+    if (!headerIndex.has('title') || !headerIndex.has('author') || !headerIndex.has('totalpages')) {
+      return { validBooks: [], invalidBooksCount: 0 };
+    }
 
     const validBooks: Book[] = [];
     let invalidBooksCount = 0;
@@ -243,7 +248,7 @@ export class DataPortabilityService {
       if (mode === 'overwrite') {
         await this.booksService.replaceAll(preview.validBooks);
         await this.readingLogService.replaceAll(preview.validReadingLogs);
-        await this.storageAdapter.replaceStore('seriesMetadata', preview.validSeriesMetadata);
+        await this.seriesService.replaceAllMetadata(preview.validSeriesMetadata);
       } else {
         const { mergedBooks, mergedLogs } = this.buildMergedCollections(
           snapshot.books,
@@ -257,7 +262,7 @@ export class DataPortabilityService {
         );
         await this.booksService.replaceAll(mergedBooks);
         await this.readingLogService.replaceAll(mergedLogs);
-        await this.storageAdapter.replaceStore('seriesMetadata', mergedSeriesMetadata);
+        await this.seriesService.replaceAllMetadata(mergedSeriesMetadata);
       }
 
       let goalsRestored = false;
@@ -299,7 +304,7 @@ export class DataPortabilityService {
   async factoryResetAllData(): Promise<void> {
     await this.booksService.clearAll();
     await this.readingLogService.clearAll();
-    await this.storageAdapter.clearStore('seriesMetadata');
+    await this.seriesService.clearAllMetadata();
     this.readingStatsService.saveGoals({
       ...DEFAULT_READING_GOALS,
       year: new Date().getFullYear(),
@@ -314,28 +319,26 @@ export class DataPortabilityService {
   // ==========================================
 
   async computeStorageBreakdown(): Promise<StorageBreakdownSummary> {
+    await this.seriesService.ensureInitialized();
     const books = this.booksService.books();
     const readingLogs = this.readingLogService.readingLogs();
-    const seriesMetadata = await this.loadSeriesMetadata();
+    const seriesMetadata = this.seriesService.metadata();
     const readingGoals = this.readingStatsService.goals();
     const preferences = this.captureCurrentPreferences();
 
     let coversBase64Bytes = 0;
     let coversCount = 0;
-    const metadataOnlyBooks: Book[] = [];
 
     for (const book of books) {
       if (book.coverUrl && book.coverUrl.startsWith('data:image/')) {
         coversBase64Bytes += this.measureUtf8Bytes(book.coverUrl);
         coversCount++;
-        metadataOnlyBooks.push({ ...book, coverUrl: '' });
-      } else {
-        metadataOnlyBooks.push(book);
       }
     }
 
+    const totalBooksBytes = this.measureUtf8Bytes(JSON.stringify(books));
     const booksMetadataBytes =
-      this.measureUtf8Bytes(JSON.stringify(metadataOnlyBooks)) +
+      Math.max(0, totalBooksBytes - coversBase64Bytes) +
       this.measureUtf8Bytes(JSON.stringify(seriesMetadata));
     const readingLogsBytes = this.measureUtf8Bytes(JSON.stringify(readingLogs));
     const preferencesBytes = this.measureUtf8Bytes(
@@ -382,16 +385,12 @@ export class DataPortabilityService {
     };
   }
 
-  private async loadSeriesMetadata(): Promise<SeriesMetadata[]> {
-    const raw = await this.storageAdapter.getAll<unknown>('seriesMetadata');
-    return parseStoredSeriesMetadata(raw);
-  }
-
   private async captureSnapshot(): Promise<DataSnapshot> {
+    await this.seriesService.ensureInitialized();
     return {
       books: [...this.booksService.books()],
       readingLogs: [...this.readingLogService.readingLogs()],
-      seriesMetadata: await this.loadSeriesMetadata(),
+      seriesMetadata: [...this.seriesService.metadata()],
       readingGoals: { ...this.readingStatsService.goals() },
       preferences: this.captureCurrentPreferences(),
     };
@@ -401,7 +400,7 @@ export class DataPortabilityService {
     try {
       await this.booksService.replaceAll(snapshot.books);
       await this.readingLogService.replaceAll(snapshot.readingLogs);
-      await this.storageAdapter.replaceStore('seriesMetadata', snapshot.seriesMetadata);
+      await this.seriesService.replaceAllMetadata(snapshot.seriesMetadata);
       this.readingStatsService.saveGoals(snapshot.readingGoals);
       this.applyPreferences(snapshot.preferences);
     } catch (rollbackError) {
@@ -431,6 +430,9 @@ export class DataPortabilityService {
     }
     if (lowerName.endsWith('.csv')) {
       return 'csv';
+    }
+    if (lowerName.includes('.')) {
+      throw new Error('Unsupported backup file extension. Use .json or .csv.');
     }
     return rawContent.trimStart().startsWith('{') ? 'json' : 'csv';
   }
@@ -799,7 +801,7 @@ export class DataPortabilityService {
   }
 
   private measureUtf8Bytes(value: string): number {
-    return this.textEncoder.encode(value).byteLength;
+    return UTF8_ENCODER.encode(value).byteLength;
   }
 
   private formatDateStamp(date: Date): string {

@@ -8,17 +8,24 @@ import {
   LucideTrash2,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import {
+  formatRatingBadge,
+  getStatusBadgeClass,
+} from '../../../../shared/utils/book-display.utils';
 import { BOOK_STATUS_CONFIG, Book } from '../../models/book.model';
 import { translateBookFormat } from '../../utils/book-form.utils';
 
 @Component({
-  selector: 'app-book-compact-row',
+  selector: 'app-book-detailed-card',
   standalone: true,
   imports: [CommonModule, LucideDynamicIcon],
-  templateUrl: './book-compact-row.component.html',
+  templateUrl: './book-detailed-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block h-full',
+  },
 })
-export class BookCompactRowComponent {
+export class BookDetailedCardComponent {
   protected readonly i18n = inject(I18nService);
 
   readonly book = input.required<Book>();
@@ -51,7 +58,6 @@ export class BookCompactRowComponent {
     return Math.min(100, Math.max(0, (b.currentPage / b.totalPages) * 100));
   });
 
-  protected getStatusBadgeClass(status: Book['status']): string {
-    return BOOK_STATUS_CONFIG[status]?.badgeClass ?? 'bg-slate-100 text-slate-700';
-  }
+  protected readonly getStatusBadgeClass = getStatusBadgeClass;
+  protected readonly getRatingBadge = formatRatingBadge;
 }

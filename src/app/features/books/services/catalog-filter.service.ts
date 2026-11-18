@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { StorageAdapterService } from '../../../core/services/storage-adapter.service';
+import { getLocaleCollator } from '../../../core/utils/date-formatter';
 import { Book, BookFormat, BookStatus } from '../models/book.model';
 import {
   CatalogFilterCriteria,
@@ -25,11 +26,16 @@ export function normalizeSearchText(text: string | null | undefined): string {
     .trim();
 }
 
+const FORMAT_ALIASES: Readonly<Record<'physical' | 'ebook' | 'audiobook', readonly string[]>> = {
+  physical: ['fisico', 'físico', 'physical', 'hardcover', 'paperback', 'tapa blanda', 'tapa dura'],
+  ebook: ['ebook', 'e-book', 'digital'],
+  audiobook: ['audiolibro', 'audiobook', 'audio'],
+};
+
 /**
- * Checks whether a book matches the search query across title, author, and series.
+ * Checks whether a book matches an already-normalized search query across title, author, and series.
  */
-export function matchesSearch(book: Book, query: string): boolean {
-  const normalizedQuery = normalizeSearchText(query);
+export function matchesNormalizedSearch(book: Book, normalizedQuery: string): boolean {
   if (!normalizedQuery) {
     return true;
   }
@@ -46,6 +52,13 @@ export function matchesSearch(book: Book, query: string): boolean {
 
   const seriesName = normalizeSearchText(book.series?.name ?? book.seriesInfo?.seriesName);
   return seriesName.includes(normalizedQuery);
+}
+
+/**
+ * Checks whether a book matches the search query across title, author, and series.
+ */
+export function matchesSearch(book: Book, query: string): boolean {
+  return matchesNormalizedSearch(book, normalizeSearchText(query));
 }
 
 /**
@@ -66,22 +79,7 @@ export function matchesFormat(
     return true;
   }
 
-  // Canonical cross-language aliases
-  const aliases: Record<string, string[]> = {
-    physical: [
-      'fisico',
-      'físico',
-      'physical',
-      'hardcover',
-      'paperback',
-      'tapa blanda',
-      'tapa dura',
-    ],
-    ebook: ['ebook', 'e-book', 'digital'],
-    audiobook: ['audiolibro', 'audiobook', 'audio'],
-  };
-
-  for (const group of Object.values(aliases)) {
+  for (const group of Object.values(FORMAT_ALIASES)) {
     if (group.includes(target) && group.includes(normalized)) {
       return true;
     }
@@ -127,11 +125,13 @@ export function matchesSeries(book: Book, seriesId?: string): boolean {
  * Filters a list of books by search query, status, format, minRating, and optional series.
  */
 export function filterBooks(books: readonly Book[], criteria: CatalogFilterCriteria): Book[] {
+  const normalizedQuery = normalizeSearchText(criteria.searchQuery);
+
   return books.filter((book) => {
     if (criteria.status !== 'all' && book.status !== criteria.status) {
       return false;
     }
-    if (!matchesSearch(book, criteria.searchQuery)) {
+    if (!matchesNormalizedSearch(book, normalizedQuery)) {
       return false;
     }
     if (!matchesFormat(book.format, criteria.format)) {
@@ -156,32 +156,38 @@ export function sortBooks(
   locale = 'es-ES'
 ): Book[] {
   const result = [...books];
+  const collator = getLocaleCollator(locale);
+  const baseCollator = getLocaleCollator(locale, { sensitivity: 'base' });
+
+  let timestampByBook: Map<Book, number> | null = null;
+  if (sortOption === 'recent') {
+    timestampByBook = new Map<Book, number>();
+    for (const book of result) {
+      const rawDate = book.updatedAt || book.createdAt;
+      const parsed = rawDate ? Date.parse(rawDate) : 0;
+      timestampByBook.set(book, Number.isNaN(parsed) ? 0 : parsed);
+    }
+  }
 
   return result.sort((a, b) => {
     switch (sortOption) {
       case 'recent': {
-        const timeA = new Date(a.updatedAt || a.createdAt || 0).getTime();
-        const timeB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+        const timeA = timestampByBook?.get(a) ?? 0;
+        const timeB = timestampByBook?.get(b) ?? 0;
         if (timeB !== timeA) {
           return timeB - timeA;
         }
-        return a.title.localeCompare(b.title, locale) || a.id.localeCompare(b.id);
+        return collator.compare(a.title, b.title) || collator.compare(a.id, b.id);
       }
       case 'title-asc':
-        return (
-          a.title.localeCompare(b.title, locale, { sensitivity: 'base' }) ||
-          a.id.localeCompare(b.id)
-        );
+        return baseCollator.compare(a.title, b.title) || collator.compare(a.id, b.id);
       case 'title-desc':
-        return (
-          b.title.localeCompare(a.title, locale, { sensitivity: 'base' }) ||
-          b.id.localeCompare(a.id)
-        );
+        return baseCollator.compare(b.title, a.title) || collator.compare(b.id, a.id);
       case 'author-asc':
         return (
-          a.author.localeCompare(b.author, locale, { sensitivity: 'base' }) ||
-          a.title.localeCompare(b.title, locale, { sensitivity: 'base' }) ||
-          a.id.localeCompare(b.id)
+          baseCollator.compare(a.author, b.author) ||
+          baseCollator.compare(a.title, b.title) ||
+          collator.compare(a.id, b.id)
         );
       case 'rating-desc': {
         const hasRatingA =
@@ -201,7 +207,7 @@ export function sortBooks(
             return diff;
           }
         }
-        return a.title.localeCompare(b.title, locale) || a.id.localeCompare(b.id);
+        return collator.compare(a.title, b.title) || collator.compare(a.id, b.id);
       }
       case 'progress-desc': {
         const progressA = a.totalPages > 0 ? a.currentPage / a.totalPages : 0;
@@ -209,13 +215,13 @@ export function sortBooks(
         if (progressB !== progressA) {
           return progressB - progressA;
         }
-        return a.title.localeCompare(b.title, locale) || a.id.localeCompare(b.id);
+        return collator.compare(a.title, b.title) || collator.compare(a.id, b.id);
       }
       case 'pages-desc': {
         if (b.totalPages !== a.totalPages) {
           return b.totalPages - a.totalPages;
         }
-        return a.title.localeCompare(b.title, locale) || a.id.localeCompare(b.id);
+        return collator.compare(a.title, b.title) || collator.compare(a.id, b.id);
       }
       default:
         return 0;
@@ -239,18 +245,20 @@ export function computeStatusCounts(
     abandoned: 0,
   };
 
-  const candidateBooks = criteria
-    ? books.filter(
-        (book) =>
-          matchesSearch(book, criteria.searchQuery) &&
-          matchesFormat(book.format, criteria.format) &&
-          matchesRating(book.rating, criteria.minRating) &&
-          matchesSeries(book, criteria.seriesId)
-      )
-    : books;
+  const normalizedQuery = criteria ? normalizeSearchText(criteria.searchQuery) : '';
 
-  counts.all = candidateBooks.length;
-  for (const book of candidateBooks) {
+  for (const book of books) {
+    if (
+      criteria &&
+      (!matchesNormalizedSearch(book, normalizedQuery) ||
+        !matchesFormat(book.format, criteria.format) ||
+        !matchesRating(book.rating, criteria.minRating) ||
+        !matchesSeries(book, criteria.seriesId))
+    ) {
+      continue;
+    }
+
+    counts.all++;
     if (book.status in counts) {
       counts[book.status]++;
     }
@@ -311,11 +319,21 @@ export class CatalogFilterService {
     return sortBooks(filtered, sort, locale);
   });
 
-  readonly statusCounts = computed(() => {
-    const books = this.booksService.books();
-    const criteria = this.criteria();
-    return computeStatusCounts(books, criteria);
-  });
+  readonly statusCounts = computed(
+    () => {
+      const books = this.booksService.books();
+      const criteria = this.criteria();
+      return computeStatusCounts(books, criteria);
+    },
+    {
+      equal: (a, b) =>
+        a.all === b.all &&
+        a.reading === b.reading &&
+        a.completed === b.completed &&
+        a.pending === b.pending &&
+        a.abandoned === b.abandoned,
+    }
+  );
 
   readonly activeSecondaryFilterCount = computed(() => {
     return countActiveSecondaryFilters(this.criteria());

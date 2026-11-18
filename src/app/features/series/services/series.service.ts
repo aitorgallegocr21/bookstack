@@ -15,7 +15,7 @@ import { parseStoredSeriesMetadata } from '../schemas/series.schema';
 import {
   buildTimelineSlots,
   computeMissingVolumes,
-  matchesSagaSearch,
+  matchesNormalizedSagaSearch,
   matchesSagaStatusFilter,
   normalizeSeriesKey,
   resolveSagaBentoScale,
@@ -287,35 +287,48 @@ export class SeriesService {
     return options.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
   });
 
-  readonly statusCounts = computed<SagaStatusCounts>(() => {
-    const query = this.searchQuery();
-    const candidateSagas = this.sagas().filter((saga) => matchesSagaSearch(saga, query));
+  readonly statusCounts = computed<SagaStatusCounts>(
+    () => {
+      const normalizedQuery = normalizeSeriesKey(this.searchQuery());
+      const counts: SagaStatusCounts = {
+        all: 0,
+        reading: 0,
+        completed: 0,
+        pending: 0,
+        hasGaps: 0,
+      };
 
-    const counts: SagaStatusCounts = {
-      all: candidateSagas.length,
-      reading: 0,
-      completed: 0,
-      pending: 0,
-      hasGaps: 0,
-    };
-
-    for (const saga of candidateSagas) {
-      counts[saga.statusCategory]++;
-      if (saga.missingVolumes.length > 0) {
-        counts.hasGaps++;
+      for (const saga of this.sagas()) {
+        if (!matchesNormalizedSagaSearch(saga, normalizedQuery)) {
+          continue;
+        }
+        counts.all++;
+        counts[saga.statusCategory]++;
+        if (saga.missingVolumes.length > 0) {
+          counts.hasGaps++;
+        }
       }
-    }
 
-    return counts;
-  });
+      return counts;
+    },
+    {
+      equal: (a, b) =>
+        a.all === b.all &&
+        a.reading === b.reading &&
+        a.completed === b.completed &&
+        a.pending === b.pending &&
+        a.hasGaps === b.hasGaps,
+    }
+  );
 
   readonly filteredSagas = computed<SagaAggregation[]>(() => {
-    const query = this.searchQuery();
+    const normalizedQuery = normalizeSeriesKey(this.searchQuery());
     const status = this.statusFilter();
     const sort = this.sortOption();
 
     const filtered = this.sagas().filter(
-      (saga) => matchesSagaSearch(saga, query) && matchesSagaStatusFilter(saga, status)
+      (saga) =>
+        matchesNormalizedSagaSearch(saga, normalizedQuery) && matchesSagaStatusFilter(saga, status)
     );
 
     return sortSagas(filtered, sort);
@@ -421,10 +434,11 @@ export class SeriesService {
       return [...filtered, nextMetadata];
     });
 
-    // Propagate canonical name and id across all member books if changed
+    // Propagate canonical name and id across all member books in a single batch if changed
+    const modifiedBooks: Book[] = [];
     for (const book of matchingBooks) {
       if (book.series?.name !== trimmedName || book.series?.id !== canonicalId) {
-        const updatedBook: Book = {
+        modifiedBooks.push({
           ...book,
           series: {
             ...book.series,
@@ -432,9 +446,12 @@ export class SeriesService {
             name: trimmedName,
           },
           updatedAt: now,
-        };
-        await this.booksService.update(book.id, updatedBook);
+        });
       }
+    }
+
+    if (modifiedBooks.length > 0) {
+      await this.booksService.updateMany(modifiedBooks);
     }
 
     return nextMetadata;
@@ -466,6 +483,7 @@ export class SeriesService {
 
     const now = new Date().toISOString();
     const currentBooks = this.booksService.books();
+    const modifiedBooks: Book[] = [];
 
     for (const bookId of bookIds) {
       const book = currentBooks.find((b) => b.id === bookId);
@@ -473,7 +491,7 @@ export class SeriesService {
         continue;
       }
 
-      const updatedBook: Book = {
+      modifiedBooks.push({
         ...book,
         series: {
           ...book.series,
@@ -482,9 +500,12 @@ export class SeriesService {
           volumeNumber: nextVolume,
         },
         updatedAt: now,
-      };
+      });
       nextVolume++;
-      await this.booksService.update(book.id, updatedBook);
+    }
+
+    if (modifiedBooks.length > 0) {
+      await this.booksService.updateMany(modifiedBooks);
     }
   }
 

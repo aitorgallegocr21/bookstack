@@ -4,23 +4,26 @@ import { Book, ReadingLog } from '../models/book.model';
 export const BookStatusSchema = z.enum(['pending', 'reading', 'completed', 'abandoned']);
 
 export const BookFormatSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
+  id: z.string().min(1).max(64),
+  name: z.string().min(1).max(100),
 });
 
 export const BookSeriesSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  volumeNumber: z.number().optional(),
-  notes: z.string().optional(),
+  id: z.string().min(1).max(128),
+  name: z.string().min(1).max(300),
+  volumeNumber: z.number().min(0).max(10_000).optional(),
+  notes: z.string().max(5_000).optional(),
 });
 
 export const SeriesInfoSchema = z.object({
-  seriesName: z.string().min(1),
-  orderInSeries: z.number(),
-  prequelBookId: z.string().optional(),
-  sequelBookId: z.string().optional(),
+  seriesName: z.string().min(1).max(300),
+  orderInSeries: z.number().min(0).max(10_000),
+  prequelBookId: z.string().max(128).optional(),
+  sequelBookId: z.string().max(128).optional(),
 });
+
+const SAFE_RASTER_DATA_URL_REGEX =
+  /^data:image\/(webp|jpeg|jpg|png|gif|avif);base64,[a-z0-9+/=\s]+$/i;
 
 export function isSafeCoverUrl(url: string): boolean {
   const trimmed = url.trim();
@@ -30,42 +33,42 @@ export function isSafeCoverUrl(url: string): boolean {
 
   return (
     trimmed.startsWith('https://') ||
-    trimmed.startsWith('http://') ||
-    trimmed.startsWith('data:image/') ||
-    trimmed.startsWith('blob:')
+    trimmed.startsWith('blob:') ||
+    SAFE_RASTER_DATA_URL_REGEX.test(trimmed)
   );
 }
 
 export const BookSchema = z
   .object({
-    id: z.string().min(1),
-    isbn: z.string().optional(),
-    title: z.string().min(1),
-    author: z.string().min(1),
-    publisher: z.string().optional(),
-    publicationYear: z.number().optional(),
-    totalPages: z.number().int().min(1, 'totalPages must be at least 1'),
-    currentPage: z.number().int().min(0),
-    totalWords: z.number().min(0).optional(),
-    totalCharacters: z.number().min(0).optional(),
-    currentWords: z.number().min(0).optional(),
-    totalChapters: z.number().min(0).optional(),
-    currentChapter: z.number().min(0).optional(),
+    id: z.string().min(1).max(128),
+    isbn: z.string().max(32).optional(),
+    title: z.string().min(1).max(500),
+    author: z.string().min(1).max(500),
+    publisher: z.string().max(300).optional(),
+    publicationYear: z.number().int().min(0).max(2100).optional(),
+    totalPages: z.number().int().min(1, 'totalPages must be at least 1').max(100_000),
+    currentPage: z.number().int().min(0).max(100_000),
+    totalWords: z.number().min(0).max(100_000_000).optional(),
+    totalCharacters: z.number().min(0).max(500_000_000).optional(),
+    currentWords: z.number().min(0).max(100_000_000).optional(),
+    totalChapters: z.number().min(0).max(50_000).optional(),
+    currentChapter: z.number().min(0).max(50_000).optional(),
     status: BookStatusSchema,
-    format: z.union([BookFormatSchema, z.string()]).optional(),
+    format: z.union([BookFormatSchema, z.string().max(100)]).optional(),
     series: BookSeriesSchema.optional(),
     seriesInfo: SeriesInfoSchema.optional(),
     coverUrl: z
       .string()
+      .max(500_000)
       .refine(isSafeCoverUrl, { message: 'Unsupported or unsafe cover URL scheme' })
       .optional(),
     rating: z.number().min(0).max(10).optional(),
-    genre: z.array(z.string()).optional(),
-    startDate: z.string().optional(),
-    endDate: z.string().optional(),
-    notes: z.string().optional(),
-    createdAt: z.string().min(1),
-    updatedAt: z.string().min(1),
+    genre: z.array(z.string().max(100)).max(30).optional(),
+    startDate: z.string().max(64).optional(),
+    endDate: z.string().max(64).optional(),
+    notes: z.string().max(20_000).optional(),
+    createdAt: z.string().min(1).max(64),
+    updatedAt: z.string().min(1).max(64),
   })
   .refine((data) => data.currentPage <= data.totalPages, {
     message: 'currentPage cannot exceed totalPages',
@@ -73,13 +76,13 @@ export const BookSchema = z
   });
 
 export const ReadingLogSchema = z.object({
-  id: z.string().min(1),
-  bookId: z.string().min(1),
-  date: z.string().min(1),
-  pagesRead: z.number().min(0),
-  timeSpentMinutes: z.number().min(0).optional(),
-  notes: z.string().optional(),
-  createdAt: z.string().min(1),
+  id: z.string().min(1).max(128),
+  bookId: z.string().min(1).max(128),
+  date: z.string().min(1).max(64),
+  pagesRead: z.number().min(0).max(100_000),
+  timeSpentMinutes: z.number().min(0).max(10_080).optional(),
+  notes: z.string().max(5_000).optional(),
+  createdAt: z.string().min(1).max(64),
 });
 
 /**

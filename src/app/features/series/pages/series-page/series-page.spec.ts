@@ -1,5 +1,5 @@
 import { signal } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Book } from '../../../books/models/book.model';
@@ -125,6 +125,7 @@ describe('SeriesPage', () => {
         { provide: BooksService, useValue: mockBooksService },
         { provide: ReadingLogService, useValue: mockReadingLogService },
       ],
+      deferBlockBehavior: DeferBlockBehavior.Playthrough,
     }).compileComponents();
 
     fixture = TestBed.createComponent(SeriesPage);
@@ -191,7 +192,7 @@ describe('SeriesPage', () => {
     });
   });
 
-  it('should open BookDetailModalComponent when openDetailModal is triggered', () => {
+  it('should open BookDetailModalComponent when openDetailModal is triggered', async () => {
     const book = makeBook();
     const saga = makeSaga(book);
     booksSig.set([book]);
@@ -205,11 +206,12 @@ describe('SeriesPage', () => {
       fixture.componentInstance as unknown as { openDetailModal: (id: string) => void }
     ).openDetailModal('b1');
     fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(fixture.nativeElement.querySelector('app-book-detail-modal')).toBeTruthy();
   });
 
-  it('should open ReadingLogEditorComponent when openReadingLogForBook is triggered', () => {
+  it('should open ReadingLogEditorComponent when openReadingLogForBook is triggered', async () => {
     const book = makeBook();
     const saga = makeSaga(book);
     booksSig.set([book]);
@@ -223,11 +225,12 @@ describe('SeriesPage', () => {
       fixture.componentInstance as unknown as { openReadingLogForBook: (b: Book) => void }
     ).openReadingLogForBook(book);
     fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(fixture.nativeElement.querySelector('app-reading-log-editor')).toBeTruthy();
   });
 
-  it('should open SagaDetailModalComponent reactively and close it', () => {
+  it('should open SagaDetailModalComponent reactively and close it', async () => {
     const book = makeBook();
     const saga = makeSaga(book);
     booksSig.set([book]);
@@ -241,6 +244,7 @@ describe('SeriesPage', () => {
       fixture.componentInstance as unknown as { openSagaModal: (s: SagaAggregation) => void }
     ).openSagaModal(saga);
     fixture.detectChanges();
+    await fixture.whenStable();
 
     const modalEl = fixture.nativeElement.querySelector('app-saga-detail-modal') as HTMLElement;
     expect(modalEl).toBeTruthy();

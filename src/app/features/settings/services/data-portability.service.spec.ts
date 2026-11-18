@@ -22,6 +22,7 @@ import { CatalogFilterService } from '../../books/services/catalog-filter.servic
 import { ReadingLogService } from '../../books/services/reading-log.service';
 import { ReadingStatsService } from '../../books/services/reading-stats.service';
 import { SeriesMetadata } from '../../series/models/series.model';
+import { SeriesService } from '../../series/services/series.service';
 import { DataPortabilityService } from './data-portability.service';
 
 const makeBook = (overrides: Partial<Book> = {}): Book => ({
@@ -77,7 +78,13 @@ describe('DataPortabilityService', () => {
     setViewMode: ReturnType<typeof vi.fn>;
     setSortOption: ReturnType<typeof vi.fn>;
   };
-  let seriesMetadataStore: SeriesMetadata[];
+  let seriesMetadataSignal: ReturnType<typeof signal<SeriesMetadata[]>>;
+  let seriesServiceMock: {
+    metadata: ReturnType<typeof signal<SeriesMetadata[]>>;
+    ensureInitialized: ReturnType<typeof vi.fn>;
+    replaceAllMetadata: ReturnType<typeof vi.fn>;
+    clearAllMetadata: ReturnType<typeof vi.fn>;
+  };
   let storageAdapterMock: {
     isUsingIndexedDb: ReturnType<typeof vi.fn>;
     estimateBrowserQuota: ReturnType<typeof vi.fn>;
@@ -142,27 +149,26 @@ describe('DataPortabilityService', () => {
       }),
     };
 
-    seriesMetadataStore = [];
+    seriesMetadataSignal = signal<SeriesMetadata[]>([]);
+    seriesServiceMock = {
+      metadata: seriesMetadataSignal,
+      ensureInitialized: vi.fn(async () => undefined),
+      replaceAllMetadata: vi.fn(async (items: SeriesMetadata[]) => {
+        seriesMetadataSignal.set([...items]);
+      }),
+      clearAllMetadata: vi.fn(async () => {
+        seriesMetadataSignal.set([]);
+      }),
+    };
     storageAdapterMock = {
       isUsingIndexedDb: vi.fn(async () => true),
       estimateBrowserQuota: vi.fn(async () => ({
         usageBytes: 500_000,
         quotaBytes: 100_000_000,
       })),
-      getAll: vi.fn(async (storeName: string) =>
-        storeName === 'seriesMetadata' ? [...seriesMetadataStore] : []
-      ),
-      replaceStore: vi.fn(async (storeName: string, items: unknown[]) => {
-        if (storeName === 'seriesMetadata') {
-          seriesMetadataStore = [...(items as SeriesMetadata[])];
-        }
-        return true;
-      }),
-      clearStore: vi.fn(async (storeName: string) => {
-        if (storeName === 'seriesMetadata') {
-          seriesMetadataStore = [];
-        }
-      }),
+      getAll: vi.fn(async () => []),
+      replaceStore: vi.fn(async () => true),
+      clearStore: vi.fn(async () => undefined),
     };
 
     themeServiceMock = {
@@ -185,6 +191,7 @@ describe('DataPortabilityService', () => {
         { provide: BooksService, useValue: booksServiceMock },
         { provide: ReadingLogService, useValue: readingLogServiceMock },
         { provide: ReadingStatsService, useValue: readingStatsServiceMock },
+        { provide: SeriesService, useValue: seriesServiceMock },
         { provide: CatalogFilterService, useValue: catalogFilterServiceMock },
         { provide: StorageAdapterService, useValue: storageAdapterMock },
         { provide: ThemeService, useValue: themeServiceMock },
@@ -197,7 +204,7 @@ describe('DataPortabilityService', () => {
 
   describe('JSON backup export & round-trip import', () => {
     it('builds a valid BookstackBackupEnvelope with books, logs, seriesMetadata, goals, and preferences', async () => {
-      seriesMetadataStore = [
+      seriesMetadataSignal.set([
         {
           id: 'series-1',
           normalizedKey: 'cosmere',
@@ -207,7 +214,7 @@ describe('DataPortabilityService', () => {
           createdAt: '2026-01-01T00:00:00.000Z',
           updatedAt: '2026-01-02T00:00:00.000Z',
         },
-      ];
+      ]);
       const envelope = await service.buildJsonBackupEnvelope();
 
       expect(envelope.schemaVersion).toBe(1);
@@ -397,6 +404,16 @@ describe('DataPortabilityService', () => {
       expect(preview.duplicateBooksCount).toBe(1);
       expect(preview.newBooksCount).toBe(1);
     });
+
+    it('rejects unrelated CSV headers and unsupported file extensions', () => {
+      const unrelatedCsv = 'account,balance,currency\nES00,1200,EUR';
+      const csvPreview = service.analyzeImportFile('bank.csv', unrelatedCsv);
+      expect(csvPreview.validBooks).toEqual([]);
+
+      expect(() => service.analyzeImportFile('notes.txt', '{"books":[]}')).toThrow(
+        'Unsupported backup file extension. Use .json or .csv.'
+      );
+    });
   });
 
   describe('Destructive reset operations', () => {
@@ -485,16 +502,16 @@ describe('DataPortabilityService', () => {
         createdAt: '2026-01-01T00:00:00.000Z',
         updatedAt: '2026-01-10T00:00:00.000Z',
       };
-      seriesMetadataStore = [existingSeries];
+      seriesMetadataSignal.set([existingSeries]);
 
       const beforeBreakdown = await service.computeStorageBreakdown();
-      seriesMetadataStore = [];
+      seriesMetadataSignal.set([]);
       const emptySeriesBreakdown = await service.computeStorageBreakdown();
       expect(beforeBreakdown.booksMetadataBytes).toBeGreaterThan(
         emptySeriesBreakdown.booksMetadataBytes
       );
 
-      seriesMetadataStore = [existingSeries];
+      seriesMetadataSignal.set([existingSeries]);
       const payload = {
         schemaVersion: 1,
         app: 'BookStack',
@@ -531,15 +548,17 @@ describe('DataPortabilityService', () => {
       const mergeResult = await service.executeImport(preview, 'merge');
       expect(mergeResult.seriesMetadataImported).toBe(2);
       expect(mergeResult.skippedRecords).toBe(1);
-      expect(seriesMetadataStore).toHaveLength(2);
-      expect(seriesMetadataStore[0]).toMatchObject({
+      expect(seriesServiceMock.replaceAllMetadata).toHaveBeenCalledTimes(1);
+      expect(seriesMetadataSignal()).toHaveLength(2);
+      expect(seriesMetadataSignal()[0]).toMatchObject({
         id: 'series-local-1',
         name: 'Dune Saga',
         expectedVolumes: 8,
       });
 
       await service.factoryResetAllData();
-      expect(seriesMetadataStore).toEqual([]);
+      expect(seriesServiceMock.clearAllMetadata).toHaveBeenCalledTimes(1);
+      expect(seriesMetadataSignal()).toEqual([]);
     });
   });
 });

@@ -18,7 +18,7 @@ import { SagaAggregation, SeriesPublicationStatus } from '../../models/series.mo
   selector: 'app-saga-bento-card',
   standalone: true,
   imports: [LucideDynamicIcon],
-  templateUrl: './saga-bento-card.component.html',
+  templateUrl: './saga-bento-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[class]': 'hostClasses()',

@@ -16,6 +16,8 @@ import {
 } from '../../models/data-portability.model';
 import { DataPortabilityService } from '../../services/data-portability.service';
 
+const MAX_BACKUP_FILE_BYTES = 100 * 1024 * 1024;
+
 @Component({
   selector: 'app-data-portability-section',
   standalone: true,
@@ -76,6 +78,13 @@ export class DataPortabilitySectionComponent {
     this.errorMessage.set(null);
     this.statusMessage.set(null);
     this.lastImportResult.set(null);
+
+    if (file.size > MAX_BACKUP_FILE_BYTES) {
+      this.previewSummary.set(null);
+      this.errorMessage.set(this.i18n.t().settings.portability.importErrorInvalidFile);
+      this.resetFileInput();
+      return;
+    }
 
     try {
       const rawContent = await this.readFileAsText(file);

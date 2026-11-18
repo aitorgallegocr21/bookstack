@@ -29,32 +29,61 @@ export class ReadingStatsService {
     const logs = this.readingLogService.readingLogs();
 
     const totalBooks = books.length;
-    const completedBooks = books.filter((book) => book.status === 'completed').length;
-    const readingBooks = books.filter((book) => book.status === 'reading').length;
-    const pendingBooks = books.filter((book) => book.status === 'pending').length;
+    let completedBooks = 0;
+    let readingBooks = 0;
+    let pendingBooks = 0;
+    let abandonedBooks = 0;
+    let totalPagesRead = 0;
+    let earliestStartTimestamp = Number.POSITIVE_INFINITY;
 
-    const totalPagesRead = books.reduce((total, book) => total + Math.max(book.currentPage, 0), 0);
-    const totalTimeSpentMinutes = logs.reduce(
-      (total, log) => total + (log.timeSpentMinutes ?? 0),
-      0
-    );
+    for (const book of books) {
+      switch (book.status) {
+        case 'completed':
+          completedBooks += 1;
+          break;
+        case 'reading':
+          readingBooks += 1;
+          break;
+        case 'pending':
+          pendingBooks += 1;
+          break;
+        case 'abandoned':
+          abandonedBooks += 1;
+          break;
+      }
 
-    const startDates = books
-      .map((book) => book.startDate)
-      .filter((date): date is string => Boolean(date));
+      totalPagesRead += Math.max(book.currentPage, 0);
 
-    const daysFromStart =
-      startDates.length > 0 ? Math.max(1, this.calculateDaySpan(startDates)) : 1;
+      if (book.startDate) {
+        const parsedTime = Date.parse(book.startDate);
+        if (!Number.isNaN(parsedTime) && parsedTime < earliestStartTimestamp) {
+          earliestStartTimestamp = parsedTime;
+        }
+      }
+    }
+
+    let totalTimeSpentMinutes = 0;
+    let totalPagesLogged = 0;
+    for (const log of logs) {
+      totalPagesLogged += log.pagesRead;
+      totalTimeSpentMinutes += log.timeSpentMinutes ?? 0;
+    }
+
+    const daysFromStart = Number.isFinite(earliestStartTimestamp)
+      ? Math.max(1, this.calculateDaySpanFromTimestamp(earliestStartTimestamp))
+      : 1;
 
     const averagePagesPerDay = Math.round(totalPagesRead / daysFromStart);
-
-    const totalPagesLogged = logs.reduce((total, log) => total + log.pagesRead, 0);
-    const totalMinutesLogged = logs.reduce((total, log) => total + (log.timeSpentMinutes ?? 0), 0);
     const averageReadingSpeedPagesPerHour =
-      totalMinutesLogged > 0 ? Math.round((totalPagesLogged / totalMinutesLogged) * 60) : 0;
+      totalTimeSpentMinutes > 0 ? Math.round((totalPagesLogged / totalTimeSpentMinutes) * 60) : 0;
 
     const monthlyPages = this.calculateMonthlyPages(logs);
-    const statusDistribution = this.calculateStatusDistribution(books);
+    const statusDistribution: Array<{ status: BookStatus; count: number }> = [
+      { status: 'pending', count: pendingBooks },
+      { status: 'reading', count: readingBooks },
+      { status: 'completed', count: completedBooks },
+      { status: 'abandoned', count: abandonedBooks },
+    ];
     const streakInfo = this.calculateStreakInfo(logs);
     const annualProgress = this.calculateAnnualProgress(books, logs);
 
@@ -233,24 +262,9 @@ export class ReadingStatsService {
     });
   }
 
-  private calculateDaySpan(startDates: string[]): number {
-    if (startDates.length === 0) {
-      return 1;
-    }
-
-    const parsedDates = startDates
-      .map((date) => new Date(date))
-      .filter((date) => !Number.isNaN(date.getTime()));
-
-    if (parsedDates.length === 0) {
-      return 1;
-    }
-
-    const earliest = new Date(Math.min(...parsedDates.map((date) => date.getTime())));
-    const today = new Date();
+  private calculateDaySpanFromTimestamp(earliestTimestamp: number): number {
     const msInDay = 24 * 60 * 60 * 1000;
-
-    return Math.max(1, Math.round((today.getTime() - earliest.getTime()) / msInDay));
+    return Math.max(1, Math.round((Date.now() - earliestTimestamp) / msInDay));
   }
 
   private calculateMonthlyPages(
@@ -274,15 +288,6 @@ export class ReadingStatsService {
         month,
         pages,
       }));
-  }
-
-  private calculateStatusDistribution(
-    books: Array<{ status: BookStatus }>
-  ): Array<{ status: BookStatus; count: number }> {
-    return ['pending', 'reading', 'completed', 'abandoned'].map((status) => ({
-      status: status as BookStatus,
-      count: books.filter((book) => book.status === status).length,
-    }));
   }
 
   private extractIsoDate(rawDate?: string): string | null {

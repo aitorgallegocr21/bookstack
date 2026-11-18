@@ -8,7 +8,7 @@ import {
   CatalogViewMode,
   DEFAULT_CATALOG_FILTER_CRITERIA,
 } from '../../models/catalog-filter.model';
-import { CatalogToolbarComponent } from './catalog-toolbar.component';
+import { CatalogToolbarComponent } from './catalog-toolbar';
 
 @Component({
   standalone: true,

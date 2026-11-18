@@ -23,9 +23,9 @@ Modern, minimalist, **Local-First** web application for personal reading trackin
 - **Reading Analytics:** Real-time computed metrics for reading speed (`pp/h`), status distribution, and monthly reading activity.
 - **Client-Side Cover Optimization:** Built-in HTML5 Canvas pipeline compresses uploaded covers ($\le 400\text{px}$, WebP/JPEG) before saving locally.
 - **Asymmetric Responsive Shell:** Collapsible sidebar (`68px` / `240px`) on desktop/tablet ($\ge 768\text{px}$) and compact header + bottom navigation on mobile ($< 768\text{px}$), with full light/dark theme persistence.
-- **100% Local-First Privacy:** Data stays on your device using `IndexedDB` (with safe `LocalStorage` fallback and Zod schema validation). No external backend required.
+- **100% Local-First Privacy & Offline PWA:** Data stays on your device using ACID-resilient `IndexedDB` batch transactions (with safe `LocalStorage` fallback and Zod schema validation), while `@angular/service-worker` caches the app shell for full offline use. Includes transparent privacy, MIT license, and third-party API disclosures in `/about` plus an explicit camera consent gate for barcode scanning.
 - **Settings, Data Portability & Backup Engine (`/settings`):** Unified interface preferences (language, light/dark theme, default catalog view), real-time 4-category storage quota & byte inspector, Zod-validated JSON full backups and RFC 4180 CSV catalog export/import with pre-import validation preview (`Merge` vs. `Overwrite`), and a 2-tier Danger Zone reset modal with 1-click pre-reset backup.
-- **Multi-Language i18n (`es` / `en`):** Spanish (`es`) default UI with complete Signal-based Spanish and English translation dictionaries switchable live from `/settings`.
+- **Multi-Language i18n (`es` / `en`):** Spanish (`es`) default UI with complete modular Signal-based Spanish and English translation dictionaries switchable live from `/settings`.
 
 ---
 

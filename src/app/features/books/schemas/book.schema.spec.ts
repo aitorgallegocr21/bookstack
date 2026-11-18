@@ -60,6 +60,21 @@ describe('book.schema', () => {
       BookSchema.safeParse({ ...validBook, coverUrl: 'data:text/html,<script>1</script>' }).success
     ).toBe(false);
     expect(
+      BookSchema.safeParse({
+        ...validBook,
+        coverUrl: 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=',
+      }).success
+    ).toBe(false);
+    expect(
+      BookSchema.safeParse({ ...validBook, coverUrl: 'http://example.com/cover.jpg' }).success
+    ).toBe(false);
+    expect(
+      BookSchema.safeParse({
+        ...validBook,
+        coverUrl: 'https://covers.openlibrary.org/b/id/1-M.jpg',
+      }).success
+    ).toBe(true);
+    expect(
       BookSchema.safeParse({ ...validBook, coverUrl: 'data:image/webp;base64,abc' }).success
     ).toBe(true);
   });

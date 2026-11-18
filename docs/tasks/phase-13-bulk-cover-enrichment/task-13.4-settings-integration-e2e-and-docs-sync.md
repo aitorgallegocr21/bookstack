@@ -1,7 +1,7 @@
 # Task 13.4: Settings Integration, Playwright E2E Verification & Tier 2 Per-Phase Sync
 
 **Phase:** Phase 13: Post-Import Bulk Cover Enrichment & Library Cover Assistant  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** Medium (`SettingsPage` wiring, Playwright E2E coverage for post-import ISBN enrichment + verification report + visual cover assistant, and Tier 2 Per-Phase documentation sync).
 
 ---
@@ -53,6 +53,6 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/settings/pages/settings-page/settings-page.spec.ts`
-- [ ] `npm run verify:quiet`
-- [ ] `npm run test:e2e`
+- [x] `npm run test:file -- src/app/features/settings/pages/settings-page/settings-page.spec.ts`
+- [x] `npm run verify:quiet`
+- [x] `npm run test:e2e`

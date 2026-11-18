@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- [ ] **[Phase 13: Post-Import Bulk Cover Enrichment & Library Cover Assistant](tasks/phase-13-bulk-cover-enrichment/index.md)** — _In Progress_ (Post-import & on-demand missing-cover detector in `/settings`, multi-ISBN batch lookup with strict $\ge 80\times120\text{px}$ anti-placeholder cover verification, rate-limited pausable/cancellable queue with incremental IndexedDB `updateMany` persistence, step-by-step Visual Cover Picker Assistant, warning-gated strict Title+Author automated fallback, and expandable verification report).
+- _No active phase. Ready for next milestone definition._
 
 ---
 
@@ -19,6 +19,8 @@
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 13: Post-Import Bulk Cover Enrichment & Library Cover Assistant](tasks/phase-13-bulk-cover-enrichment/index.md)** — _Completed 2026-11_ (Post-import & on-demand missing-cover detector in `/settings`, multi-ISBN batch lookup with strict $\ge 80\times120\text{px}$ anti-placeholder cover verification, rate-limited pausable/cancellable queue with incremental IndexedDB `updateMany` persistence, step-by-step Visual Cover Picker Assistant, warning-gated strict Title+Author automated fallback, and expandable verification report).
 
 - [x] **[Phase 12: Performance, Caching, Architecture & Legal Hardening](tasks/phase-12-performance-architecture-and-legal-hardening/index.md)** — _Completed 2026-11_ (Modular domain i18n split & cached verification gate, `/about` legal/privacy/license disclosures & camera consent gate, CSP & cover URL hardening, PWA Service Worker offline app shell cache, IndexedDB connection lifecycle & `putMany` batch transactions, `DataPortabilityService` $\leftrightarrow$ `SeriesService` live sync, memoized `Intl.*` formatters & single-pass $O(N)$ engines, `@defer` modal chunk splitting, `src/app/shared/` extraction, zero `core` $\to$ `features` dependency inversion, and unified Angular 22+ file naming).
 

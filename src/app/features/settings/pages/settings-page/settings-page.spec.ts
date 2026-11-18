@@ -84,11 +84,12 @@ describe('SettingsPage', () => {
     fixture.detectChanges();
   });
 
-  it('renders all four settings sections and removes legacy roadmap placeholder', () => {
+  it('renders all five settings sections and removes legacy roadmap placeholder', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('app-settings-preferences-section')).toBeTruthy();
     expect(el.querySelector('app-storage-quota-inspector')).toBeTruthy();
     expect(el.querySelector('app-data-portability-section')).toBeTruthy();
+    expect(el.querySelector('app-cover-enrichment-section')).toBeTruthy();
     expect(el.querySelector('app-danger-zone-section')).toBeTruthy();
   });
 
@@ -187,6 +188,7 @@ describe('SettingsPage', () => {
       'app-settings-preferences-section',
       'app-storage-quota-inspector',
       'app-data-portability-section',
+      'app-cover-enrichment-section',
       'app-danger-zone-section',
     ];
     for (const selector of sectionSelectors) {
@@ -194,5 +196,21 @@ describe('SettingsPage', () => {
       expect(host).toBeTruthy();
       expect(host?.classList.contains('block')).toBe(true);
     }
+  });
+
+  it('scrolls smoothly to cover enrichment section when portability emits requestCoverEnrichment', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const enrichmentHost = el.querySelector('#cover-enrichment-section') as HTMLElement;
+    expect(enrichmentHost).toBeTruthy();
+
+    const scrollIntoViewMock = vi.fn();
+    enrichmentHost.scrollIntoView = scrollIntoViewMock;
+
+    const portabilityDe = fixture.debugElement.query(By.directive(DataPortabilitySectionComponent));
+    (
+      portabilityDe.componentInstance as DataPortabilitySectionComponent
+    ).requestCoverEnrichment.emit();
+
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
   });
 });

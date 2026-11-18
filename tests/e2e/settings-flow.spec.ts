@@ -1,8 +1,59 @@
+import { deflateSync } from 'node:zlib';
 import { expect, Page, test } from '@playwright/test';
 import { Book, ReadingLog } from '../../src/app/features/books/models/book.model';
 
 const SAMPLE_BASE64_COVER =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+function crc32(buf: Buffer): number {
+  let crc = 0xffffffff;
+  for (const byte of buf) {
+    crc ^= byte;
+    for (let i = 0; i < 8; i++) {
+      crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function pngChunk(type: string, data: Buffer): Buffer {
+  const typeBuf = Buffer.from(type, 'ascii');
+  const lenBuf = Buffer.alloc(4);
+  lenBuf.writeUInt32BE(data.length, 0);
+  const crcInput = Buffer.concat([typeBuf, data]);
+  const crcBuf = Buffer.alloc(4);
+  crcBuf.writeUInt32BE(crc32(crcInput), 0);
+  return Buffer.concat([lenBuf, typeBuf, data, crcBuf]);
+}
+
+function createSolidPngBuffer(width: number, height: number): Buffer {
+  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8; // bit depth
+  ihdr[9] = 2; // RGB
+
+  const rowSize = 1 + width * 3;
+  const raw = Buffer.alloc(rowSize * height);
+  for (let y = 0; y < height; y++) {
+    const rowStart = y * rowSize;
+    raw[rowStart] = 0;
+    for (let x = 0; x < width; x++) {
+      const px = rowStart + 1 + x * 3;
+      raw[px] = 79;
+      raw[px + 1] = 70;
+      raw[px + 2] = 229;
+    }
+  }
+
+  return Buffer.concat([
+    signature,
+    pngChunk('IHDR', ihdr),
+    pngChunk('IDAT', deflateSync(raw)),
+    pngChunk('IEND', Buffer.alloc(0)),
+  ]);
+}
 
 async function seedLibrary(page: Page, books: Book[], logs: ReadingLog[]): Promise<void> {
   await page.goto('/settings');
@@ -316,11 +367,11 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
       });
       expect(hasOverflow, `Horizontal overflow detected at ${vp.width}px`).toBe(false);
 
-      // Verify vertical spacing (>= 20px) between all 4 settings cards
+      // Verify vertical spacing (>= 20px) between all 5 settings cards
       const cards = page.locator('app-settings-page section');
-      await expect(cards).toHaveCount(4);
+      await expect(cards).toHaveCount(5);
       const cardBoxes = await Promise.all(
-        [0, 1, 2, 3].map(async (index) => {
+        [0, 1, 2, 3, 4].map(async (index) => {
           const box = await cards.nth(index).boundingBox();
           expect(box, `Card ${index} boundingBox missing at ${vp.width}px`).not.toBeNull();
           return box!;
@@ -377,5 +428,140 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
     }
 
     expect(cspErrors).toEqual([]);
+  });
+
+  test('enriches missing covers post-import via strict ISBN queue, verification report, and visual assistant', async ({
+    page,
+  }) => {
+    const validPng = createSolidPngBuffer(100, 150);
+
+    await page.route('https://openlibrary.org/api/books**', async (route) => {
+      const url = route.request().url();
+      const body = url.includes('9780141036144')
+        ? {
+            'ISBN:9780141036144': {
+              title: '1984',
+              authors: [{ name: 'George Orwell' }],
+              cover: { large: 'https://covers.openlibrary.org/b/id/1001-L.jpg' },
+            },
+          }
+        : {};
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(body),
+      });
+    });
+
+    await page.route('https://openlibrary.org/search.json**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          docs: [
+            {
+              key: '/works/OL46125W',
+              title: 'Foundation',
+              author_name: ['Isaac Asimov'],
+              cover_i: 2002,
+              first_publish_year: 1951,
+              publisher: ['Gnome Press'],
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.route('https://www.googleapis.com/books/v1/volumes**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ items: [] }),
+      });
+    });
+
+    await page.route('https://covers.openlibrary.org/**', async (route) => {
+      const url = route.request().url();
+      if (!url.includes('1001-L.jpg') && !url.includes('2002-L.jpg')) {
+        await route.fulfill({ status: 404 });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'image/png',
+        body: validPng,
+      });
+    });
+
+    await seedLibrary(page, [], []);
+
+    const backupPayload = {
+      schemaVersion: 1,
+      app: 'BookStack',
+      exportedAt: '2026-03-01T12:00:00.000Z',
+      books: [
+        {
+          id: 'enrich-isbn-book',
+          title: '1984',
+          author: 'George Orwell',
+          isbn: '9780141036144',
+          totalPages: 328,
+          currentPage: 0,
+          status: 'pending',
+          createdAt: '2026-03-01T12:00:00.000Z',
+          updatedAt: '2026-03-01T12:00:00.000Z',
+        },
+        {
+          id: 'enrich-unmatched-isbn-book',
+          title: 'Foundation',
+          author: 'Isaac Asimov',
+          isbn: '9780553293357',
+          totalPages: 255,
+          currentPage: 0,
+          status: 'pending',
+          createdAt: '2026-03-01T12:00:00.000Z',
+          updatedAt: '2026-03-01T12:00:00.000Z',
+        },
+      ],
+      readingLogs: [],
+    };
+
+    await page.getByTestId('import-file-input').setInputFiles({
+      name: 'missing-covers-backup.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(backupPayload), 'utf-8'),
+    });
+
+    await page.getByTestId('confirm-import-btn').click();
+    await expect(page.getByTestId('post-import-cover-enrichment-callout')).toBeVisible();
+    await page.getByTestId('post-import-enrich-covers-btn').click();
+
+    await expect(page.getByTestId('missing-with-isbn-badge')).toContainText('2');
+
+    // Run automated strict ISBN enrichment (1984 succeeds, Foundation is skipped)
+    await page.getByTestId('start-isbn-enrichment-btn').click();
+    await expect(page.getByTestId('missing-with-isbn-badge')).toContainText('1');
+
+    // Verify skipped/unmatched report lists Foundation
+    await expect(page.getByTestId('toggle-enrichment-report-btn')).toBeVisible();
+    await page.getByTestId('toggle-enrichment-report-btn').click();
+    await expect(page.getByTestId('enrichment-skipped-report')).toContainText('Foundation');
+
+    // Resolve remaining book via Step-by-Step Visual Cover Assistant
+    await page.getByTestId('start-visual-assistant-btn').click();
+    await expect(page.getByTestId('visual-assistant-card')).toBeVisible();
+    await expect(page.getByTestId('visual-assistant-card')).toContainText('Foundation');
+    await page.getByTestId('visual-assistant-select-btn').first().click();
+
+    await expect(page.getByTestId('cover-enrichment-all-complete')).toBeVisible();
+
+    // Verify 320px mobile layout has zero horizontal overflow
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto('/settings');
+    await expect(page.getByTestId('cover-enrichment-all-complete')).toBeVisible();
+    const hasOverflow = await page.evaluate(() => {
+      return document.documentElement.scrollWidth > document.documentElement.clientWidth;
+    });
+    expect(hasOverflow).toBe(false);
   });
 });

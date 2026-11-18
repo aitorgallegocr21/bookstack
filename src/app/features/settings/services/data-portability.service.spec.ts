@@ -404,6 +404,16 @@ describe('DataPortabilityService', () => {
       expect(preview.duplicateBooksCount).toBe(1);
       expect(preview.newBooksCount).toBe(1);
     });
+
+    it('rejects unrelated CSV headers and unsupported file extensions', () => {
+      const unrelatedCsv = 'account,balance,currency\nES00,1200,EUR';
+      const csvPreview = service.analyzeImportFile('bank.csv', unrelatedCsv);
+      expect(csvPreview.validBooks).toEqual([]);
+
+      expect(() => service.analyzeImportFile('notes.txt', '{"books":[]}')).toThrow(
+        'Unsupported backup file extension. Use .json or .csv.'
+      );
+    });
   });
 
   describe('Destructive reset operations', () => {

@@ -154,6 +154,10 @@ export class DataPortabilityService {
       }
     });
 
+    if (!headerIndex.has('title') || !headerIndex.has('author') || !headerIndex.has('totalpages')) {
+      return { validBooks: [], invalidBooksCount: 0 };
+    }
+
     const validBooks: Book[] = [];
     let invalidBooksCount = 0;
 
@@ -426,6 +430,9 @@ export class DataPortabilityService {
     }
     if (lowerName.endsWith('.csv')) {
       return 'csv';
+    }
+    if (lowerName.includes('.')) {
+      throw new Error('Unsupported backup file extension. Use .json or .csv.');
     }
     return rawContent.trimStart().startsWith('{') ? 'json' : 'csv';
   }

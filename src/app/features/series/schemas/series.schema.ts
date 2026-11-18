@@ -4,14 +4,14 @@ import { SeriesMetadata } from '../models/series.model';
 export const SeriesPublicationStatusSchema = z.enum(['ongoing', 'completed', 'hiatus']);
 
 export const SeriesMetadataSchema = z.object({
-  id: z.string().min(1),
-  normalizedKey: z.string().min(1),
-  name: z.string().min(1),
+  id: z.string().min(1).max(128),
+  normalizedKey: z.string().min(1).max(300),
+  name: z.string().min(1).max(300),
   expectedVolumes: z.number().int().min(1).max(500).optional(),
   publicationStatus: SeriesPublicationStatusSchema.optional(),
-  notes: z.string().optional(),
-  createdAt: z.string().min(1),
-  updatedAt: z.string().min(1),
+  notes: z.string().max(5_000).optional(),
+  createdAt: z.string().min(1).max(64),
+  updatedAt: z.string().min(1).max(64),
 });
 
 /**

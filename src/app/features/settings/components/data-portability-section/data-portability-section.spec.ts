@@ -162,6 +162,21 @@ describe('DataPortabilitySectionComponent', () => {
     ).toContain(i18n.t().settings.portability.importErrorNoValidRecords);
   });
 
+  it('rejects oversized backup files (>100MB) without reading them into memory', async () => {
+    const hugeFile = new File(['{}'], 'huge.json', { type: 'application/json' });
+    Object.defineProperty(hugeFile, 'size', { value: 101 * 1024 * 1024 });
+
+    await component.onFileSelected({
+      target: { files: [hugeFile] },
+    } as unknown as Event);
+    fixture.detectChanges();
+
+    expect(mockPortabilityService.analyzeImportFile).not.toHaveBeenCalled();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="portability-error-banner"]')?.textContent
+    ).toContain(i18n.t().settings.portability.importErrorInvalidFile);
+  });
+
   it('toggles between merge and overwrite conflict modes with overwrite warning', () => {
     component.previewSummary.set(buildPreview());
     fixture.detectChanges();

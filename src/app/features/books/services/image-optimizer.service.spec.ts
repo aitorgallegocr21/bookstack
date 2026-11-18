@@ -19,9 +19,14 @@ describe('ImageOptimizerService', () => {
     vi.restoreAllMocks();
   });
 
-  it('should reject unsupported image MIME types', async () => {
+  it('should reject unsupported image MIME types and SVG extensions', async () => {
     const gifFile = new File(['gif-bytes'], 'cover.gif', { type: 'image/gif' });
     await expect(service.optimize(gifFile)).rejects.toThrow(
+      'Unsupported image format. Use JPEG, PNG, WebP, or AVIF.'
+    );
+
+    const svgFile = new File(['<svg></svg>'], 'cover.svg', { type: 'image/png' });
+    await expect(service.optimize(svgFile)).rejects.toThrow(
       'Unsupported image format. Use JPEG, PNG, WebP, or AVIF.'
     );
   });
@@ -74,10 +79,10 @@ describe('ImageOptimizerService', () => {
     const result = await service.optimize(pngFile);
 
     expect(result).toBe('data:image/webp;base64,optimized');
-    expect(mockCanvas.width).toBe(200);
-    expect(mockCanvas.height).toBe(400);
+    expect(mockCanvas.width).toBe(180);
+    expect(mockCanvas.height).toBe(360);
     expect(drawImage).toHaveBeenCalledTimes(1);
-    expect(toDataURL).toHaveBeenCalledWith('image/webp', 0.75);
+    expect(toDataURL).toHaveBeenCalledWith('image/webp', 0.7);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-cover');
   });
 

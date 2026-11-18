@@ -5,8 +5,8 @@ export type OptimizedImageMimeType = 'image/webp' | 'image/jpeg';
 @Injectable({ providedIn: 'root' })
 export class ImageOptimizerService {
   private readonly maxInputSizeBytes = 10 * 1024 * 1024;
-  private readonly maxDimension = 400;
-  private readonly quality = 0.75;
+  private readonly maxDimension = 360;
+  private readonly quality = 0.7;
   private readonly allowedMimeTypes = new Set([
     'image/jpeg',
     'image/png',
@@ -89,6 +89,11 @@ export class ImageOptimizerService {
   private validateFile(file: File): void {
     if (!(file instanceof File)) {
       throw new Error('The provided file is not valid.');
+    }
+
+    const lowerName = file.name.trim().toLowerCase();
+    if (lowerName.endsWith('.svg') || lowerName.endsWith('.svgz')) {
+      throw new Error('Unsupported image format. Use JPEG, PNG, WebP, or AVIF.');
     }
 
     if (!this.allowedMimeTypes.has(file.type)) {

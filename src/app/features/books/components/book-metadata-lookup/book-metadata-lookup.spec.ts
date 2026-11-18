@@ -54,6 +54,15 @@ describe('BookMetadataLookupComponent', () => {
     expect(el.textContent).toContain('Buscar libro');
   });
 
+  it('displays external lookup privacy notice when search tab is opened', () => {
+    component.openTab('search');
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Open Library');
+    expect(el.textContent).toContain('Google Books');
+  });
+
   it('does not search on input typing and submits unified query on form submit', async () => {
     const candidates = Array.from({ length: 6 }, (_, index) =>
       createCandidate({

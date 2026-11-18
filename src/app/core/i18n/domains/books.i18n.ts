@@ -143,10 +143,13 @@ export interface BooksI18n {
       isbnLookupButton: string;
       isbnLookupAria: string;
       startCamera: string;
+      enableCamera: string;
+      cameraConsentHint: string;
       stopCamera: string;
       switchCamera: string;
       uploadPhoto: string;
       scanningHint: string;
+      externalLookupNotice: string;
       permissionError: string;
       cameraUnavailableError: string;
       invalidBarcodeError: string;
@@ -360,10 +363,15 @@ export const ES_BOOKS: BooksI18n = {
       isbnLookupButton: 'Buscar',
       isbnLookupAria: 'Buscar metadatos para este ISBN',
       startCamera: 'Iniciar cámara',
+      enableCamera: 'Activar cámara',
+      cameraConsentHint:
+        'La cámara se procesa únicamente en tu navegador para leer códigos ISBN. No se graban ni envían imágenes.',
       stopCamera: 'Detener cámara',
       switchCamera: 'Cambiar cámara',
       uploadPhoto: 'Subir foto del código',
       scanningHint: 'Apunta la cámara al código de barras ISBN (978/979) del libro.',
+      externalLookupNotice:
+        'Las búsquedas consultan Open Library y Google Books directamente desde tu navegador y optimizan las portadas localmente.',
       permissionError: 'Permiso de cámara denegado. Puedes subir una foto del código de barras.',
       cameraUnavailableError: 'No se detectó ninguna cámara disponible en este dispositivo.',
       invalidBarcodeError: 'El código leído no corresponde a un ISBN válido.',
@@ -577,10 +585,15 @@ export const EN_BOOKS: BooksI18n = {
       isbnLookupButton: 'Lookup',
       isbnLookupAria: 'Lookup metadata for this ISBN',
       startCamera: 'Start camera',
+      enableCamera: 'Enable camera',
+      cameraConsentHint:
+        'Your camera is processed locally in your browser to read ISBN barcodes. No video is recorded or sent.',
       stopCamera: 'Stop camera',
       switchCamera: 'Switch camera',
       uploadPhoto: 'Upload barcode photo',
       scanningHint: 'Point the camera at the book ISBN barcode (978/979).',
+      externalLookupNotice:
+        'Searches query Open Library and Google Books directly from your browser and optimize covers locally.',
       permissionError: 'Camera permission denied. You can upload a photo of the barcode instead.',
       cameraUnavailableError: 'No available camera was detected on this device.',
       invalidBarcodeError: 'The scanned barcode is not a valid ISBN.',

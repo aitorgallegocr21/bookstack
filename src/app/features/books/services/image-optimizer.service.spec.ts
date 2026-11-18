@@ -113,11 +113,12 @@ describe('ImageOptimizerService', () => {
         mode: 'cors',
         credentials: 'omit',
         referrerPolicy: 'no-referrer',
+        signal: expect.any(AbortSignal),
       });
       expect(optimizeSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('falls back gracefully to the remote URL when fetch or optimization fails', async () => {
+    it('returns empty string when fetch or optimization fails', async () => {
       globalThis.fetch = vi
         .fn()
         .mockRejectedValue(new TypeError('CORS blocked')) as unknown as typeof fetch;
@@ -125,10 +126,10 @@ describe('ImageOptimizerService', () => {
       const remoteUrl = 'https://books.google.com/books/content?id=123';
       const result = await service.optimizeRemoteUrl(remoteUrl);
 
-      expect(result).toBe(remoteUrl);
+      expect(result).toBe('');
     });
 
-    it('falls back to the remote URL when response is not ok', async () => {
+    it('returns empty string when response is not ok', async () => {
       globalThis.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 404,
@@ -137,7 +138,41 @@ describe('ImageOptimizerService', () => {
       const remoteUrl = 'https://covers.openlibrary.org/b/id/missing-L.jpg';
       const result = await service.optimizeRemoteUrl(remoteUrl);
 
-      expect(result).toBe(remoteUrl);
+      expect(result).toBe('');
+    });
+
+    it('rejects SVG or non-image blobs by returning empty string', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        blob: async () => new Blob(['<svg></svg>'], { type: 'image/svg+xml' }),
+      }) as unknown as typeof fetch;
+
+      const result = await service.optimizeRemoteUrl('https://covers.openlibrary.org/b/id/1-L.svg');
+      expect(result).toBe('');
+    });
+
+    it('aborts and returns empty string when request exceeds timeout', async () => {
+      vi.useFakeTimers();
+      try {
+        globalThis.fetch = vi.fn(
+          (_input: RequestInfo | URL, init?: RequestInit) =>
+            new Promise<Response>((_resolve, reject) => {
+              init?.signal?.addEventListener('abort', () => {
+                reject(new DOMException('Aborted', 'AbortError'));
+              });
+            })
+        ) as unknown as typeof fetch;
+
+        const promise = service.optimizeRemoteUrl(
+          'https://covers.openlibrary.org/b/id/slow.jpg',
+          50
+        );
+        await vi.advanceTimersByTimeAsync(60);
+
+        await expect(promise).resolves.toBe('');
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 });

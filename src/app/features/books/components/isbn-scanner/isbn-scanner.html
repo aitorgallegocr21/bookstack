@@ -22,16 +22,20 @@
 
     @if (scannerState() === 'idle') {
       <div
-        class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-950/85 px-4 text-center"
+        class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-950/90 px-4 py-4 text-center"
       >
-        <svg [lucideIcon]="CameraOff" size="24" class="text-zinc-400"></svg>
+        <svg [lucideIcon]="Camera" size="24" class="text-amber-400" aria-hidden="true"></svg>
+        <p class="max-w-xs text-xs leading-relaxed text-zinc-200">
+          {{ i18n.t().bookForm.lookup.cameraConsentHint }}
+        </p>
         <button
           type="button"
-          (click)="startCamera(selectedCameraId() ?? undefined)"
-          class="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-amber-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
+          data-testid="enable-camera-consent-btn"
+          (click)="grantCameraConsentAndStart(selectedCameraId() ?? undefined)"
+          class="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-amber-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
         >
-          <svg [lucideIcon]="Camera" size="16"></svg>
-          <span>{{ i18n.t().bookForm.lookup.startCamera }}</span>
+          <svg [lucideIcon]="Camera" size="16" aria-hidden="true"></svg>
+          <span>{{ i18n.t().bookForm.lookup.enableCamera }}</span>
         </button>
       </div>
     }
@@ -50,8 +54,8 @@
     </p>
   }
 
-  <!-- Error Banner -->
-  @if (scannerState() === 'error' && errorMessage()) {
+  <!-- Error / Permission Denied Banner -->
+  @if ((scannerState() === 'error' || scannerState() === 'permission-denied') && errorMessage()) {
     <div
       class="mt-2.5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300"
       role="alert"
@@ -75,7 +79,7 @@
     } @else {
       <button
         type="button"
-        (click)="startCamera(selectedCameraId() ?? undefined)"
+        (click)="grantCameraConsentAndStart(selectedCameraId() ?? undefined)"
         class="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
       >
         <svg [lucideIcon]="Camera" size="15"></svg>

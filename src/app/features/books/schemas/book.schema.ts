@@ -22,6 +22,9 @@ export const SeriesInfoSchema = z.object({
   sequelBookId: z.string().optional(),
 });
 
+const SAFE_RASTER_DATA_URL_REGEX =
+  /^data:image\/(webp|jpeg|jpg|png|gif|avif);base64,[a-z0-9+/=\s]+$/i;
+
 export function isSafeCoverUrl(url: string): boolean {
   const trimmed = url.trim();
   if (!trimmed) {
@@ -30,9 +33,8 @@ export function isSafeCoverUrl(url: string): boolean {
 
   return (
     trimmed.startsWith('https://') ||
-    trimmed.startsWith('http://') ||
-    trimmed.startsWith('data:image/') ||
-    trimmed.startsWith('blob:')
+    trimmed.startsWith('blob:') ||
+    SAFE_RASTER_DATA_URL_REGEX.test(trimmed)
   );
 }
 

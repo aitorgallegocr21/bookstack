@@ -334,48 +334,74 @@ describe('CoverEnrichmentService', () => {
     expect(service.state().downloadedCount).toBe(0);
   });
 
-  it('manages the step-by-step visual cover assistant and backfills valid ISBNs', async () => {
-    const b1 = makeBook({ id: 'v1', title: 'Dune', author: 'Frank Herbert' });
-    const b2 = makeBook({ id: 'v2', title: 'Foundation', author: 'Isaac Asimov' });
-    booksSignal.set([b1, b2]);
+  it('auto-applies single-cover matches in the visual assistant and pauses only on multiple or zero candidates', async () => {
+    const b1Single = makeBook({ id: 'v1', title: 'El imperio final', author: 'Brandon Sanderson' });
+    const b2Multiple = makeBook({ id: 'v2', title: 'Dune', author: 'Frank Herbert' });
+    const b3Empty = makeBook({ id: 'v3', title: 'Rare Book', author: 'Unknown' });
+    booksSignal.set([b1Single, b2Multiple, b3Empty]);
 
-    const candidate1 = makeCandidate({
+    const singleCandidate = makeCandidate({
+      id: 'c-single',
+      title: 'The Final Empire',
+      author: 'Brandon Sanderson',
+      isbn: '076531178X',
+      coverUrl: 'https://img/mistborn.jpg',
+    });
+    const candidateWithoutCover = makeCandidate({ id: 'c-no-img', title: 'No Img', coverUrl: '' });
+    const multiCandidateA = makeCandidate({
+      id: 'c-dune-a',
       title: 'Dune',
       author: 'Frank Herbert',
       isbn: '0441172717',
-      coverUrl: 'https://img/dune.jpg',
+      coverUrl: 'https://img/dune-a.jpg',
     });
-    const candidateWithoutCover = makeCandidate({ title: 'No Img', coverUrl: '' });
-    const candidate2 = makeCandidate({
-      title: 'Foundation',
-      author: 'Isaac Asimov',
-      coverUrl: 'https://img/foundation.jpg',
+    const multiCandidateB = makeCandidate({
+      id: 'c-dune-b',
+      title: 'Dune (Deluxe Edition)',
+      author: 'Frank Herbert',
+      coverUrl: 'https://img/dune-b.jpg',
     });
 
     mockMetadataService.searchByQuery.mockImplementation(async (q: string) => {
-      if (q.includes('Dune')) {
-        return [candidate1, candidateWithoutCover];
+      if (q.includes('El imperio final')) {
+        return [singleCandidate, candidateWithoutCover];
       }
-      return [candidate2];
+      if (q.includes('Dune')) {
+        return [multiCandidateA, multiCandidateB, candidateWithoutCover];
+      }
+      return [];
     });
 
     await service.startVisualAssistant();
-    expect(service.assistantActive()).toBe(true);
-    expect(service.assistantQueue().map((b) => b.id)).toEqual(['v1', 'v2']);
-    expect(service.assistantCandidates()).toEqual([candidate1]);
 
-    const selected = await service.selectAssistantCover(candidate1);
-    expect(selected).toBe(true);
+    // b1Single had exactly 1 cover candidate -> auto-applied and advanced straight to b2Multiple (index 1)
     expect(mockBooksService.update).toHaveBeenCalledWith(
       'v1',
       expect.objectContaining({
         id: 'v1',
         coverUrl: 'data:image/webp;base64,optimized',
+        isbn: '9780765311788',
+      })
+    );
+    expect(service.assistantActive()).toBe(true);
+    expect(service.assistantCurrentIndex()).toBe(1);
+    expect(service.assistantCurrentBook()?.id).toBe('v2');
+    expect(service.assistantCandidates()).toEqual([multiCandidateA, multiCandidateB]);
+
+    // Select one of the multiple options for b2Multiple -> advances to b3Empty (index 2, 0 candidates)
+    const selected = await service.selectAssistantCover(multiCandidateA);
+    expect(selected).toBe(true);
+    expect(mockBooksService.update).toHaveBeenCalledWith(
+      'v2',
+      expect.objectContaining({
+        id: 'v2',
+        coverUrl: 'data:image/webp;base64,optimized',
         isbn: '9780441172719',
       })
     );
-    expect(service.assistantCurrentIndex()).toBe(1);
-    expect(service.assistantCandidates()).toEqual([candidate2]);
+    expect(service.assistantCurrentIndex()).toBe(2);
+    expect(service.assistantCurrentBook()?.id).toBe('v3');
+    expect(service.assistantCandidates()).toEqual([]);
 
     await service.skipAssistantBook();
     expect(service.assistantActive()).toBe(false);

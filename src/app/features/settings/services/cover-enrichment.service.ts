@@ -236,27 +236,10 @@ export class CoverEnrichmentService {
 
     this.assistantLoading.set(true);
     try {
-      const optimizedCover = await this.imageOptimizer.optimizeRemoteUrl(candidate.coverUrl, {
-        minWidth: MIN_COVER_WIDTH_PX,
-        minHeight: MIN_COVER_HEIGHT_PX,
-      });
-      if (!optimizedCover) {
+      const applied = await this.applyAssistantCandidateToBook(currentBook, candidate);
+      if (!applied) {
         return false;
       }
-
-      const shouldBackfillIsbn =
-        (!currentBook.isbn?.trim() || !isValidIsbn(currentBook.isbn)) &&
-        Boolean(candidate.isbn && isValidIsbn(candidate.isbn));
-      const resolvedIsbn = shouldBackfillIsbn
-        ? (normalizeIsbn(candidate.isbn ?? '') ?? candidate.isbn)
-        : currentBook.isbn;
-
-      await this.booksService.update(currentBook.id, {
-        ...currentBook,
-        coverUrl: optimizedCover,
-        ...(resolvedIsbn ? { isbn: resolvedIsbn } : {}),
-        updatedAt: new Date().toISOString(),
-      });
 
       await this.advanceAssistantQueue();
       return true;
@@ -490,26 +473,96 @@ export class CoverEnrichmentService {
     await this.booksService.updateMany(batch);
   }
 
-  private async loadAssistantCandidatesForCurrentBook(): Promise<void> {
-    const currentBook = this.assistantCurrentBook();
-    if (!currentBook) {
-      this.assistantCandidates.set([]);
-      this.assistantLoading.set(false);
-      return;
+  private async applyAssistantCandidateToBook(
+    book: Book,
+    candidate: BookMetadataCandidate
+  ): Promise<boolean> {
+    if (!candidate.coverUrl?.trim()) {
+      return false;
     }
 
+    try {
+      const optimizedCover = await this.imageOptimizer.optimizeRemoteUrl(candidate.coverUrl, {
+        minWidth: MIN_COVER_WIDTH_PX,
+        minHeight: MIN_COVER_HEIGHT_PX,
+      });
+      if (!optimizedCover) {
+        return false;
+      }
+
+      const shouldBackfillIsbn =
+        (!book.isbn?.trim() || !isValidIsbn(book.isbn)) &&
+        Boolean(candidate.isbn && isValidIsbn(candidate.isbn));
+      const resolvedIsbn = shouldBackfillIsbn
+        ? (normalizeIsbn(candidate.isbn ?? '') ?? candidate.isbn)
+        : book.isbn;
+
+      await this.booksService.update(book.id, {
+        ...book,
+        coverUrl: optimizedCover,
+        ...(resolvedIsbn ? { isbn: resolvedIsbn } : {}),
+        updatedAt: new Date().toISOString(),
+      });
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async loadAssistantCandidatesForCurrentBook(): Promise<void> {
     this.assistantLoading.set(true);
     try {
-      const results = await this.bookMetadataService.searchByQuery(
-        `${currentBook.title} ${currentBook.author}`
-      );
-      this.assistantCandidates.set(
-        results.filter((candidate) => Boolean(candidate.coverUrl?.trim()))
-      );
-    } catch {
-      this.assistantCandidates.set([]);
+      while (this.assistantActive()) {
+        const currentBook = this.assistantCurrentBook();
+        if (!currentBook) {
+          this.assistantCandidates.set([]);
+          return;
+        }
+
+        let candidatesWithCover: BookMetadataCandidate[] = [];
+        try {
+          const results = await this.bookMetadataService.searchByQuery(
+            `${currentBook.title} ${currentBook.author}`
+          );
+          candidatesWithCover = results.filter((candidate) => Boolean(candidate.coverUrl?.trim()));
+        } catch {
+          candidatesWithCover = [];
+        }
+
+        if (!this.assistantActive()) {
+          return;
+        }
+
+        if (candidatesWithCover.length === 1) {
+          const applied = await this.applyAssistantCandidateToBook(
+            currentBook,
+            candidatesWithCover[0]
+          );
+          if (!this.assistantActive()) {
+            return;
+          }
+          if (applied) {
+            const nextIndex = this.assistantCurrentIndex() + 1;
+            if (nextIndex >= this.assistantQueue().length) {
+              this.closeVisualAssistant();
+              return;
+            }
+            this.assistantCurrentIndex.set(nextIndex);
+            continue;
+          }
+
+          this.assistantCandidates.set([]);
+          return;
+        }
+
+        this.assistantCandidates.set(candidatesWithCover);
+        return;
+      }
     } finally {
-      this.assistantLoading.set(false);
+      if (this.assistantActive()) {
+        this.assistantLoading.set(false);
+      }
     }
   }
 

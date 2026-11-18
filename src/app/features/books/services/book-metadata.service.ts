@@ -281,7 +281,21 @@ export class BookMetadataService {
       }
     }
 
-    return bestCandidate;
+    if (bestCandidate) {
+      return bestCandidate;
+    }
+
+    const candidatesWithCover = candidates.filter((candidate) =>
+      Boolean(candidate.coverUrl?.trim())
+    );
+    if (
+      candidatesWithCover.length === 1 &&
+      isStrictAuthorMatch(book.author, candidatesWithCover[0].author)
+    ) {
+      return candidatesWithCover[0];
+    }
+
+    return null;
   }
 
   async searchByQuery(rawQuery: string): Promise<BookMetadataCandidate[]> {

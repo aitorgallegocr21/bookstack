@@ -252,4 +252,68 @@ describe('DataPortabilitySectionComponent', () => {
     expect(component.conflictMode()).toBe('merge');
     expect(fixture.nativeElement.querySelector('[data-testid="import-preview-panel"]')).toBeNull();
   });
+
+  it('renders post-import cover enrichment prompt when missingCoversCount > 0 and emits requestCoverEnrichment', async () => {
+    component.previewSummary.set(buildPreview());
+    mockPortabilityService.executeImport.mockResolvedValue({
+      mode: 'merge',
+      format: 'csv',
+      booksImported: 5,
+      logsImported: 0,
+      skippedRecords: 0,
+      goalsRestored: false,
+      preferencesRestored: false,
+      missingCoversCount: 4,
+      missingCoversWithIsbnCount: 3,
+    });
+    const emitSpy = vi.spyOn(component.requestCoverEnrichment, 'emit');
+    fixture.detectChanges();
+
+    const confirmBtn = fixture.nativeElement.querySelector(
+      '[data-testid="confirm-import-btn"]'
+    ) as HTMLButtonElement;
+    confirmBtn.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const callout = fixture.nativeElement.querySelector(
+      '[data-testid="post-import-cover-enrichment-callout"]'
+    ) as HTMLElement | null;
+    expect(callout).not.toBeNull();
+    expect(callout?.textContent).toContain('4');
+    expect(callout?.textContent).toContain('3');
+
+    const enrichBtn = fixture.nativeElement.querySelector(
+      '[data-testid="post-import-enrich-covers-btn"]'
+    ) as HTMLButtonElement;
+    enrichBtn.click();
+    expect(emitSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render post-import cover enrichment prompt when missingCoversCount is 0', async () => {
+    component.previewSummary.set(buildPreview());
+    mockPortabilityService.executeImport.mockResolvedValue({
+      mode: 'merge',
+      format: 'json',
+      booksImported: 1,
+      logsImported: 1,
+      skippedRecords: 0,
+      goalsRestored: false,
+      preferencesRestored: false,
+      missingCoversCount: 0,
+      missingCoversWithIsbnCount: 0,
+    });
+    fixture.detectChanges();
+
+    const confirmBtn = fixture.nativeElement.querySelector(
+      '[data-testid="confirm-import-btn"]'
+    ) as HTMLButtonElement;
+    confirmBtn.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="post-import-cover-enrichment-callout"]')
+    ).toBeNull();
+  });
 });

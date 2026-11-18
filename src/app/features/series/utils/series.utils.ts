@@ -114,9 +114,7 @@ export function buildTimelineSlots(
     }
   }
 
-  const sortedMissing = [...missingVolumes]
-    .filter((v) => Number.isInteger(v) && v > 0)
-    .sort((a, b) => a - b);
+  const sortedMissing = missingVolumes;
 
   const slots: SagaVolumeSlot[] = [];
   let bookIdx = 0;
@@ -157,8 +155,13 @@ export function buildTimelineSlots(
 /**
  * Checks whether a saga matches the search query across saga name, authors, book titles, or notes.
  */
-export function matchesSagaSearch(saga: SagaAggregation, query: string): boolean {
-  const normalizedQuery = normalizeSeriesKey(query);
+/**
+ * Checks whether a saga matches an already-normalized search query.
+ */
+export function matchesNormalizedSagaSearch(
+  saga: SagaAggregation,
+  normalizedQuery: string
+): boolean {
   if (!normalizedQuery) {
     return true;
   }
@@ -180,6 +183,10 @@ export function matchesSagaSearch(saga: SagaAggregation, query: string): boolean
   }
 
   return false;
+}
+
+export function matchesSagaSearch(saga: SagaAggregation, query: string): boolean {
+  return matchesNormalizedSagaSearch(saga, normalizeSeriesKey(query));
 }
 
 /**

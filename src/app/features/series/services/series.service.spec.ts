@@ -345,4 +345,19 @@ describe('SeriesService', () => {
     expect(updateManySpy.mock.calls[0][0]).toHaveLength(2);
     expect(updateSpy).not.toHaveBeenCalled();
   });
+
+  it('preserves statusCounts object reference when counts remain structurally equal', async () => {
+    await booksService.replaceAll([
+      makeBook({
+        id: 'b1',
+        title: 'Saga Book 1',
+        status: 'reading',
+        series: { id: 's1', name: 'Mistborn', volumeNumber: 1 },
+      }),
+    ]);
+
+    const initialCounts = seriesService.statusCounts();
+    seriesService.setStatusFilter('reading');
+    expect(seriesService.statusCounts()).toBe(initialCounts);
+  });
 });

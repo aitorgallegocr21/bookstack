@@ -15,7 +15,7 @@ import { parseStoredSeriesMetadata } from '../schemas/series.schema';
 import {
   buildTimelineSlots,
   computeMissingVolumes,
-  matchesSagaSearch,
+  matchesNormalizedSagaSearch,
   matchesSagaStatusFilter,
   normalizeSeriesKey,
   resolveSagaBentoScale,
@@ -287,35 +287,48 @@ export class SeriesService {
     return options.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
   });
 
-  readonly statusCounts = computed<SagaStatusCounts>(() => {
-    const query = this.searchQuery();
-    const candidateSagas = this.sagas().filter((saga) => matchesSagaSearch(saga, query));
+  readonly statusCounts = computed<SagaStatusCounts>(
+    () => {
+      const normalizedQuery = normalizeSeriesKey(this.searchQuery());
+      const counts: SagaStatusCounts = {
+        all: 0,
+        reading: 0,
+        completed: 0,
+        pending: 0,
+        hasGaps: 0,
+      };
 
-    const counts: SagaStatusCounts = {
-      all: candidateSagas.length,
-      reading: 0,
-      completed: 0,
-      pending: 0,
-      hasGaps: 0,
-    };
-
-    for (const saga of candidateSagas) {
-      counts[saga.statusCategory]++;
-      if (saga.missingVolumes.length > 0) {
-        counts.hasGaps++;
+      for (const saga of this.sagas()) {
+        if (!matchesNormalizedSagaSearch(saga, normalizedQuery)) {
+          continue;
+        }
+        counts.all++;
+        counts[saga.statusCategory]++;
+        if (saga.missingVolumes.length > 0) {
+          counts.hasGaps++;
+        }
       }
-    }
 
-    return counts;
-  });
+      return counts;
+    },
+    {
+      equal: (a, b) =>
+        a.all === b.all &&
+        a.reading === b.reading &&
+        a.completed === b.completed &&
+        a.pending === b.pending &&
+        a.hasGaps === b.hasGaps,
+    }
+  );
 
   readonly filteredSagas = computed<SagaAggregation[]>(() => {
-    const query = this.searchQuery();
+    const normalizedQuery = normalizeSeriesKey(this.searchQuery());
     const status = this.statusFilter();
     const sort = this.sortOption();
 
     const filtered = this.sagas().filter(
-      (saga) => matchesSagaSearch(saga, query) && matchesSagaStatusFilter(saga, status)
+      (saga) =>
+        matchesNormalizedSagaSearch(saga, normalizedQuery) && matchesSagaStatusFilter(saga, status)
     );
 
     return sortSagas(filtered, sort);

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { formatLocalizedNumber } from '../../../../core/utils/date-formatter';
 import { AnalyticsTrendMetric, AnalyticsTrendPoint } from '../../models/analytics.model';
 import { AnalyticsService } from '../../services/analytics.service';
 
@@ -139,9 +140,9 @@ export class ReadingVelocityChartComponent {
   }
 
   protected formatInteger(value: number): string {
-    return new Intl.NumberFormat(this.i18n.intlLocale(), { maximumFractionDigits: 0 }).format(
-      Math.round(value)
-    );
+    return formatLocalizedNumber(Math.round(value), this.i18n.intlLocale(), {
+      maximumFractionDigits: 0,
+    });
   }
 
   protected formatDuration(totalMinutes: number): string {
@@ -181,9 +182,13 @@ export class ReadingVelocityChartComponent {
       return this.formatDuration(value);
     }
 
-    const formattedNumber = new Intl.NumberFormat(this.i18n.intlLocale(), {
-      maximumFractionDigits: allowDecimals ? 1 : 0,
-    }).format(allowDecimals ? value : Math.round(value));
+    const formattedNumber = formatLocalizedNumber(
+      allowDecimals ? value : Math.round(value),
+      this.i18n.intlLocale(),
+      {
+        maximumFractionDigits: allowDecimals ? 1 : 0,
+      }
+    );
 
     return metric === 'pages'
       ? `${formattedNumber} ${velocity.pagesUnit}`

@@ -1,9 +1,14 @@
 import {
   formatLocalizedDate,
   formatLocalizedMonth,
+  formatLocalizedNumber,
+  formatShortMonth,
   formatSpanishDate,
   formatSpanishMonth,
   getCurrentLocalDateTime,
+  getDateTimeFormatter,
+  getLocaleCollator,
+  getNumberFormatter,
 } from './date-formatter';
 
 describe('date-formatter utilities', () => {
@@ -47,6 +52,38 @@ describe('date-formatter utilities', () => {
 
       const enMonth = formatLocalizedMonth('2026-01', 'en-US');
       expect(enMonth).toBe('January 2026');
+    });
+  });
+
+  describe('memoized Intl registries and helpers', () => {
+    it('should return identical cached Intl instances for matching locale and options', () => {
+      const dtf1 = getDateTimeFormatter('es-ES', { month: 'short', timeZone: 'UTC' });
+      const dtf2 = getDateTimeFormatter('es-ES', { timeZone: 'UTC', month: 'short' });
+      const dtf3 = getDateTimeFormatter('en-US', { month: 'short', timeZone: 'UTC' });
+      expect(dtf1).toBe(dtf2);
+      expect(dtf1).not.toBe(dtf3);
+
+      const nf1 = getNumberFormatter('es-ES', { maximumFractionDigits: 1 });
+      const nf2 = getNumberFormatter('es-ES', { maximumFractionDigits: 1 });
+      const nf3 = getNumberFormatter('en-US', { maximumFractionDigits: 1 });
+      expect(nf1).toBe(nf2);
+      expect(nf1).not.toBe(nf3);
+
+      const col1 = getLocaleCollator('es-ES', { sensitivity: 'base' });
+      const col2 = getLocaleCollator('es-ES', { sensitivity: 'base' });
+      const col3 = getLocaleCollator('en-US', { sensitivity: 'base' });
+      expect(col1).toBe(col2);
+      expect(col1).not.toBe(col3);
+    });
+
+    it('should format numbers using formatLocalizedNumber', () => {
+      expect(formatLocalizedNumber(1234.5, 'en-US', { maximumFractionDigits: 1 })).toBe('1,234.5');
+    });
+
+    it('should format both YYYY-MM strings and Date instances with formatShortMonth', () => {
+      expect(formatShortMonth('2026-01', 'en-US')).toBe('Jan');
+      expect(formatShortMonth(new Date('2026-03-01T00:00:00Z'), 'en-US')).toBe('Mar');
+      expect(formatShortMonth('invalid-key', 'en-US')).toBe('invalid-key');
     });
   });
 });

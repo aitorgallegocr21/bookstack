@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { formatShortMonth } from '../../../core/utils/date-formatter';
 import { Book, BookStatus, ReadingLog } from '../../books/models/book.model';
 import { BooksService } from '../../books/services/books.service';
 import { ReadingLogService } from '../../books/services/reading-log.service';
@@ -257,19 +258,20 @@ export class AnalyticsService {
 
     let effectiveSpanDays = window.spanDays;
     if (window.mode === 'all-time') {
-      const candidateDates: string[] = [];
+      let earliestDate = '';
       for (const entry of allHybridEntries) {
-        candidateDates.push(entry.date);
+        if (!earliestDate || entry.date < earliestDate) {
+          earliestDate = entry.date;
+        }
       }
       for (const book of books) {
         const anchor = this.extractIsoDate(book.startDate || book.createdAt || book.updatedAt);
-        if (anchor) {
-          candidateDates.push(anchor);
+        if (anchor && (!earliestDate || anchor < earliestDate)) {
+          earliestDate = anchor;
         }
       }
-      if (candidateDates.length > 0) {
-        candidateDates.sort();
-        const earliest = new Date(`${candidateDates[0]}T00:00:00`);
+      if (earliestDate) {
+        const earliest = new Date(`${earliestDate}T00:00:00`);
         effectiveSpanDays = this.inclusiveDaysBetween(earliest, refDate);
       }
     }
@@ -394,7 +396,7 @@ export class AnalyticsService {
     for (const monthKey of monthKeys) {
       buckets.set(monthKey, {
         key: monthKey,
-        label: this.formatShortMonth(monthKey, locale),
+        label: formatShortMonth(monthKey, locale),
         pages: 0,
         books: 0,
         timeMinutes: 0,
@@ -490,49 +492,47 @@ export class AnalyticsService {
 
   readonly ratingDistribution = computed<RatingDistributionSummary>(() => {
     const { periodBooks } = this.hybridDataset();
-    const ratedScores: number[] = [];
+    let ratedBooksCount = 0;
+    let ratingSum = 0;
+    let count9To10 = 0;
+    let count7To85 = 0;
+    let count5To65 = 0;
+    let countBelow5 = 0;
 
     for (const book of periodBooks) {
       const normalized = normalizeBookRating(book.rating);
       if (normalized !== undefined && normalized > 0) {
-        ratedScores.push(normalized);
+        ratedBooksCount += 1;
+        ratingSum += normalized;
+        if (normalized >= 9) {
+          count9To10 += 1;
+        } else if (normalized >= 7) {
+          count7To85 += 1;
+        } else if (normalized >= 5) {
+          count5To65 += 1;
+        } else {
+          countBelow5 += 1;
+        }
       }
     }
 
-    const ratedBooksCount = ratedScores.length;
     const averageRating =
-      ratedBooksCount > 0
-        ? Math.round((ratedScores.reduce((sum, score) => sum + score, 0) / ratedBooksCount) * 10) /
-          10
-        : 0;
+      ratedBooksCount > 0 ? Math.round((ratingSum / ratedBooksCount) * 10) / 10 : 0;
 
-    const bucketDefs = [
-      { label: '9–10', min: 9, max: 10, matches: (score: number) => score >= 9 },
-      {
-        label: '7–8.5',
-        min: 7,
-        max: 8.5,
-        matches: (score: number) => score >= 7 && score < 9,
-      },
-      {
-        label: '5–6.5',
-        min: 5,
-        max: 6.5,
-        matches: (score: number) => score >= 5 && score < 7,
-      },
-      { label: '< 5', min: 0, max: 4.5, matches: (score: number) => score > 0 && score < 5 },
-    ];
-
-    const buckets = bucketDefs.map((def) => {
-      const count = ratedScores.filter(def.matches).length;
-      return {
-        label: def.label,
-        min: def.min,
-        max: def.max,
-        count,
-        percentage: ratedBooksCount > 0 ? Math.round((count / ratedBooksCount) * 100) : 0,
-      };
+    const toBucket = (label: string, min: number, max: number, count: number) => ({
+      label,
+      min,
+      max,
+      count,
+      percentage: ratedBooksCount > 0 ? Math.round((count / ratedBooksCount) * 100) : 0,
     });
+
+    const buckets = [
+      toBucket('9–10', 9, 10, count9To10),
+      toBucket('7–8.5', 7, 8.5, count7To85),
+      toBucket('5–6.5', 5, 6.5, count5To65),
+      toBucket('< 5', 0, 4.5, countBelow5),
+    ];
 
     return {
       averageRating,
@@ -757,16 +757,6 @@ export class AnalyticsService {
 
   private buildYearMonthKeys(year: number): string[] {
     return Array.from({ length: 12 }, (_, idx) => `${year}-${String(idx + 1).padStart(2, '0')}`);
-  }
-
-  private formatShortMonth(monthKey: string, locale: string): string {
-    const date = new Date(`${monthKey}-01T00:00:00Z`);
-    if (Number.isNaN(date.getTime())) {
-      return monthKey;
-    }
-    const raw = new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' }).format(date);
-    const cleaned = raw.replace(/\.$/, '');
-    return `${cleaned.charAt(0).toUpperCase()}${cleaned.slice(1)}`;
   }
 
   private formatMonthKey(date: Date): string {

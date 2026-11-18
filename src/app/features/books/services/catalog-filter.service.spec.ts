@@ -453,5 +453,11 @@ describe('CatalogFilter Engine & Utility Functions', () => {
       expect(service.filteredBooks().length).toBe(1);
       expect(service.filteredBooks()[0].id).toBe('book-4');
     });
+
+    it('should preserve statusCounts object reference when counts are structurally unchanged', () => {
+      const initialCounts = service.statusCounts();
+      service.setCriteria({ status: 'reading' });
+      expect(service.statusCounts()).toBe(initialCounts);
+    });
   });
 });

@@ -15,7 +15,12 @@
     (refreshRequested)="refreshStorageBreakdown()"
   />
 
-  <app-data-portability-section (dataChanged)="refreshStorageBreakdown()" />
+  <app-data-portability-section
+    (dataChanged)="refreshStorageBreakdown()"
+    (requestCoverEnrichment)="scrollToCoverEnrichment()"
+  />
+
+  <app-cover-enrichment-section #coverEnrichmentSection />
 
   <app-danger-zone-section (dataReset)="refreshStorageBreakdown()" />
 </div>

@@ -87,10 +87,12 @@ src/
         │   ├── components/{series-toolbar,saga-bento-card,saga-detail-modal}/
         │   └── pages/series-page/             # Variable-scale Bento gallery (/series) & modal coordinator
         ├── settings/                          # Settings, Data Portability & Backup Engine (/settings)
+        │   ├── models/cover-enrichment.model.ts       # CoverEnrichmentState, MissingCoverSummary & skipped report contracts
         │   ├── models/data-portability.model.ts       # BackupEnvelope, ImportPreviewSummary, StorageBreakdownSummary
         │   ├── schemas/backup.schema.ts               # Zod BackupEnvelopeSchema & versioned restore validation
+        │   ├── services/cover-enrichment.service.ts   # Pausable/cancellable ISBN & Title+Author cover queues + visual assistant
         │   ├── services/data-portability.service.ts   # JSON/CSV export, Zod import preview, Merge/Overwrite & quota inspector
-        │   ├── components/{settings-preferences-section,storage-quota-inspector,data-portability-section,danger-zone-section}/
+        │   ├── components/{settings-preferences-section,storage-quota-inspector,data-portability-section,cover-enrichment-section,danger-zone-section}/
         │   └── pages/settings-page/                   # /settings coordinator & reactive storage breakdown
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)
 

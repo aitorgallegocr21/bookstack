@@ -50,6 +50,8 @@ export interface ImportExecutionResult {
   skippedRecords: number;
   goalsRestored: boolean;
   preferencesRestored: boolean;
+  missingCoversCount: number;
+  missingCoversWithIsbnCount: number;
 }
 
 export interface StorageBreakdownSummary {

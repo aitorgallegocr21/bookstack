@@ -83,6 +83,44 @@ export interface SettingsI18n {
       importErrorNoValidRecords: string;
       importErrorExecution: string;
     };
+    coverEnrichment: {
+      sectionTitle: string;
+      sectionDescription: string;
+      withIsbn: string;
+      withoutIsbn: string;
+      allCoversComplete: string;
+      postImportBannerTitle: string;
+      postImportBannerDescription: string;
+      postImportBannerAction: string;
+      startIsbnEnrichmentAction: string;
+      progressRunning: string;
+      progressPaused: string;
+      progressCompleted: string;
+      progressCancelled: string;
+      pauseAction: string;
+      resumeAction: string;
+      cancelAction: string;
+      visualAssistantTitle: string;
+      visualAssistantDescription: string;
+      visualAssistantStartAction: string;
+      visualAssistantStepCounter: string;
+      visualAssistantSelectAction: string;
+      visualAssistantSkipAction: string;
+      visualAssistantCloseAction: string;
+      visualAssistantNoSuggestions: string;
+      strictSearchTitle: string;
+      strictSearchWarning: string;
+      strictSearchConfirmAction: string;
+      reportTitle: string;
+      reportDownloadedCount: string;
+      reportSkippedCount: string;
+      reasonMissingIsbn: string;
+      reasonNoMetadata: string;
+      reasonNoCover: string;
+      reasonMismatch: string;
+      reasonInvalidImage: string;
+      reasonNetworkError: string;
+    };
     dangerZone: {
       sectionTitle: string;
       sectionDescription: string;
@@ -201,6 +239,49 @@ export const ES_SETTINGS: SettingsI18n = {
       importErrorInvalidFile: 'El archivo seleccionado no tiene un formato JSON o CSV válido.',
       importErrorNoValidRecords: 'No se encontraron registros válidos para importar.',
       importErrorExecution: 'No se pudo completar la importación. Se restauró el estado previo.',
+    },
+    coverEnrichment: {
+      sectionTitle: 'Enriquecimiento de portadas',
+      sectionDescription:
+        'Busca y descarga portadas faltantes de forma privada por ISBN exacto o mediante el asistente visual.',
+      withIsbn: 'Con ISBN válido',
+      withoutIsbn: 'Sin ISBN',
+      allCoversComplete: 'Todos los libros de tu biblioteca ya tienen portada.',
+      postImportBannerTitle: 'Libros importados sin portada',
+      postImportBannerDescription:
+        'Detectamos libros sin imagen de portada tras la importación. Puedes enriquecerlos automáticamente ahora.',
+      postImportBannerAction: 'Buscar portadas ahora',
+      startIsbnEnrichmentAction: 'Buscar por ISBN',
+      progressRunning: 'Buscando portadas...',
+      progressPaused: 'Búsqueda en pausa',
+      progressCompleted: 'Enriquecimiento completado',
+      progressCancelled: 'Búsqueda cancelada',
+      pauseAction: 'Pausar',
+      resumeAction: 'Reanudar',
+      cancelAction: 'Cancelar',
+      visualAssistantTitle: 'Asistente visual paso a paso',
+      visualAssistantDescription:
+        'Revisa uno a uno los libros restantes sin portada y elige la edición correcta con un clic.',
+      visualAssistantStartAction: 'Revisar uno a uno',
+      visualAssistantStepCounter: 'Libro',
+      visualAssistantSelectAction: 'Usar portada',
+      visualAssistantSkipAction: 'Saltar',
+      visualAssistantCloseAction: 'Cerrar asistente',
+      visualAssistantNoSuggestions:
+        'No se encontraron portadas candidatas para este libro. Puedes saltarlo para conservar su portada tipográfica.',
+      strictSearchTitle: 'Búsqueda automática estricta por título y autor',
+      strictSearchWarning:
+        'Atención: las búsquedas sin ISBN pueden coincidir ocasionalmente con otra edición del mismo libro.',
+      strictSearchConfirmAction: 'Confirmar y buscar por título y autor',
+      reportTitle: 'Informe de verificación y libros omitidos',
+      reportDownloadedCount: 'Portadas descargadas',
+      reportSkippedCount: 'Libros omitidos',
+      reasonMissingIsbn: 'Sin ISBN válido',
+      reasonNoMetadata: 'Sin resultados en proveedores',
+      reasonNoCover: 'Sin portada disponible',
+      reasonMismatch: 'Sin coincidencia estricta de título/autor',
+      reasonInvalidImage: 'Imagen descartada (marcador o tamaño insuficiente)',
+      reasonNetworkError: 'Error de red o tiempo agotado',
     },
     dangerZone: {
       sectionTitle: 'Zona de peligro',
@@ -323,6 +404,49 @@ export const EN_SETTINGS: SettingsI18n = {
       importErrorInvalidFile: 'The selected file is not a valid JSON or CSV backup.',
       importErrorNoValidRecords: 'No valid records were found to import.',
       importErrorExecution: 'Could not complete the import. Previous state was restored.',
+    },
+    coverEnrichment: {
+      sectionTitle: 'Cover enrichment',
+      sectionDescription:
+        'Privately fetch missing book covers by strict ISBN lookup or using the step-by-step visual assistant.',
+      withIsbn: 'With valid ISBN',
+      withoutIsbn: 'Without ISBN',
+      allCoversComplete: 'All books in your library already have a cover image.',
+      postImportBannerTitle: 'Imported books missing covers',
+      postImportBannerDescription:
+        'We detected imported books without cover images. You can enrich them automatically now.',
+      postImportBannerAction: 'Fetch covers now',
+      startIsbnEnrichmentAction: 'Enrich by ISBN',
+      progressRunning: 'Fetching covers...',
+      progressPaused: 'Enrichment paused',
+      progressCompleted: 'Enrichment completed',
+      progressCancelled: 'Enrichment cancelled',
+      pauseAction: 'Pause',
+      resumeAction: 'Resume',
+      cancelAction: 'Cancel',
+      visualAssistantTitle: 'Step-by-step visual assistant',
+      visualAssistantDescription:
+        'Review remaining books without covers one by one and pick the right edition in one click.',
+      visualAssistantStartAction: 'Review one by one',
+      visualAssistantStepCounter: 'Book',
+      visualAssistantSelectAction: 'Use cover',
+      visualAssistantSkipAction: 'Skip',
+      visualAssistantCloseAction: 'Close assistant',
+      visualAssistantNoSuggestions:
+        'No cover candidates were found for this book. You can skip it to keep its typographic cover.',
+      strictSearchTitle: 'Strict automated title & author search',
+      strictSearchWarning:
+        'Warning: lookups without an ISBN can occasionally match a different edition of the same book.',
+      strictSearchConfirmAction: 'Confirm and search by title & author',
+      reportTitle: 'Verification & skipped books report',
+      reportDownloadedCount: 'Downloaded covers',
+      reportSkippedCount: 'Skipped books',
+      reasonMissingIsbn: 'Missing valid ISBN',
+      reasonNoMetadata: 'No metadata found',
+      reasonNoCover: 'No cover available',
+      reasonMismatch: 'Strict title/author mismatch',
+      reasonInvalidImage: 'Discarded image (placeholder or too small)',
+      reasonNetworkError: 'Network error or timeout',
     },
     dangerZone: {
       sectionTitle: 'Danger zone',

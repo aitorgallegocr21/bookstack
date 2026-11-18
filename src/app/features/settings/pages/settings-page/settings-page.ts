@@ -1,7 +1,16 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { BooksService } from '../../../books/services/books.service';
 import { ReadingLogService } from '../../../books/services/reading-log.service';
+import { CoverEnrichmentSectionComponent } from '../../components/cover-enrichment-section/cover-enrichment-section';
 import { DangerZoneSectionComponent } from '../../components/danger-zone-section/danger-zone-section';
 import { DataPortabilitySectionComponent } from '../../components/data-portability-section/data-portability-section';
 import { SettingsPreferencesSectionComponent } from '../../components/settings-preferences-section/settings-preferences-section';
@@ -31,6 +40,7 @@ const INITIAL_STORAGE_BREAKDOWN: StorageBreakdownSummary = {
     SettingsPreferencesSectionComponent,
     StorageQuotaInspectorComponent,
     DataPortabilitySectionComponent,
+    CoverEnrichmentSectionComponent,
     DangerZoneSectionComponent,
   ],
   templateUrl: './settings-page.html',
@@ -43,6 +53,7 @@ export class SettingsPage {
   private readonly readingLogService = inject(ReadingLogService);
 
   readonly storageBreakdown = signal<StorageBreakdownSummary>(INITIAL_STORAGE_BREAKDOWN);
+  private readonly coverEnrichmentRef = viewChild('coverEnrichmentSection', { read: ElementRef });
   private refreshSequence = 0;
 
   constructor() {
@@ -59,5 +70,10 @@ export class SettingsPage {
     if (token === this.refreshSequence) {
       this.storageBreakdown.set(summary);
     }
+  }
+
+  scrollToCoverEnrichment(): void {
+    const element = this.coverEnrichmentRef()?.nativeElement as HTMLElement | undefined;
+    element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }

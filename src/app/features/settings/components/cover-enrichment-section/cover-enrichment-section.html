@@ -1,0 +1,401 @@
+<section
+  class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+  aria-labelledby="cover-enrichment-section-title"
+>
+  <div class="mb-5">
+    <h2
+      id="cover-enrichment-section-title"
+      class="text-lg font-bold text-slate-900 dark:text-slate-100"
+    >
+      {{ i18n.t().settings.coverEnrichment.sectionTitle }}
+    </h2>
+    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      {{ i18n.t().settings.coverEnrichment.sectionDescription }}
+    </p>
+  </div>
+
+  <!-- Audit Summary -->
+  @if (summary().totalMissing === 0) {
+    <div
+      data-testid="cover-enrichment-all-complete"
+      class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200"
+    >
+      {{ i18n.t().settings.coverEnrichment.allCoversComplete }}
+    </div>
+  } @else {
+    <div class="space-y-4">
+      <div
+        class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-800/40"
+      >
+        <div class="flex flex-wrap items-center gap-2">
+          <span
+            data-testid="missing-with-isbn-badge"
+            class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-100 px-2.5 py-1 text-xs font-semibold text-indigo-800 dark:bg-indigo-950/70 dark:text-indigo-200"
+          >
+            {{ i18n.t().settings.coverEnrichment.withIsbn }}: {{ summary().withValidIsbnCount }}
+          </span>
+          <span
+            data-testid="missing-without-isbn-badge"
+            class="inline-flex items-center gap-1.5 rounded-lg bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/70 dark:text-amber-200"
+          >
+            {{ i18n.t().settings.coverEnrichment.withoutIsbn }}:
+            {{ summary().withoutValidIsbnCount }}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          data-testid="start-isbn-enrichment-btn"
+          [disabled]="summary().withValidIsbnCount === 0 || isBusy()"
+          (click)="startIsbnEnrichment()"
+          class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-indigo-500 dark:hover:bg-indigo-400"
+        >
+          {{ i18n.t().settings.coverEnrichment.startIsbnEnrichmentAction }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Live Progress Panel -->
+  @if (isBusy()) {
+    <div
+      data-testid="enrichment-progress-panel"
+      aria-live="polite"
+      class="mt-4 space-y-3 rounded-xl border border-indigo-200 bg-indigo-50/60 p-4 dark:border-indigo-900/60 dark:bg-indigo-950/30"
+    >
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <p class="text-sm font-semibold text-indigo-950 dark:text-indigo-100">
+          {{
+            state().status === 'paused'
+              ? i18n.t().settings.coverEnrichment.progressPaused
+              : i18n.t().settings.coverEnrichment.progressRunning
+          }}
+        </p>
+        <span class="text-xs font-semibold text-indigo-800 tabular-nums dark:text-indigo-200">
+          {{ state().processedCount }} / {{ state().totalCount }}
+        </span>
+      </div>
+
+      <div
+        role="progressbar"
+        [attr.aria-valuenow]="state().processedCount"
+        aria-valuemin="0"
+        [attr.aria-valuemax]="state().totalCount"
+        class="h-2.5 w-full overflow-hidden rounded-full bg-indigo-200 dark:bg-indigo-900/60"
+      >
+        <div
+          class="h-full rounded-full bg-indigo-600 transition-[width] dark:bg-indigo-400"
+          [style.width.%]="progressPercent()"
+        ></div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <span
+            class="rounded-md bg-emerald-100 px-2 py-1 font-medium text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
+          >
+            {{ i18n.t().settings.coverEnrichment.reportDownloadedCount }}:
+            {{ state().downloadedCount }}
+          </span>
+          <span
+            class="rounded-md bg-slate-200 px-2 py-1 font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+          >
+            {{ i18n.t().settings.coverEnrichment.reportSkippedCount }}:
+            {{ state().skippedItems.length }}
+          </span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            data-testid="enrichment-pause-resume-btn"
+            (click)="togglePauseResume()"
+            class="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-indigo-300 bg-white px-3.5 py-2 text-xs font-semibold text-indigo-900 transition-colors hover:bg-indigo-50 dark:border-indigo-700 dark:bg-slate-900 dark:text-indigo-200 dark:hover:bg-indigo-950/60"
+          >
+            {{
+              state().status === 'paused'
+                ? i18n.t().settings.coverEnrichment.resumeAction
+                : i18n.t().settings.coverEnrichment.pauseAction
+            }}
+          </button>
+          <button
+            type="button"
+            data-testid="enrichment-cancel-btn"
+            (click)="cancelEnrichment()"
+            class="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-rose-300 bg-white px-3.5 py-2 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-50 dark:border-rose-800 dark:bg-slate-900 dark:text-rose-300 dark:hover:bg-rose-950/40"
+          >
+            {{ i18n.t().settings.coverEnrichment.cancelAction }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Dual Resolution Options for Remaining Books -->
+  @if (summary().totalMissing > 0) {
+    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+      <!-- Option 1: Visual Assistant -->
+      <div
+        class="flex flex-col justify-between gap-3 rounded-xl border border-slate-200 p-4 dark:border-slate-800"
+      >
+        <div>
+          <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            {{ i18n.t().settings.coverEnrichment.visualAssistantTitle }}
+          </h3>
+          <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            {{ i18n.t().settings.coverEnrichment.visualAssistantDescription }}
+          </p>
+        </div>
+        <button
+          type="button"
+          data-testid="start-visual-assistant-btn"
+          [disabled]="isBusy()"
+          (click)="startVisualAssistant()"
+          class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+        >
+          {{ i18n.t().settings.coverEnrichment.visualAssistantStartAction }}
+        </button>
+      </div>
+
+      <!-- Option 2: Strict Title + Author Search -->
+      <div
+        class="flex flex-col justify-between gap-3 rounded-xl border border-slate-200 p-4 dark:border-slate-800"
+      >
+        <div>
+          <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            {{ i18n.t().settings.coverEnrichment.strictSearchTitle }}
+          </h3>
+          <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            {{ i18n.t().settings.coverEnrichment.strictSearchWarning }}
+          </p>
+        </div>
+        <button
+          type="button"
+          data-testid="open-strict-title-search-btn"
+          [disabled]="isBusy()"
+          (click)="toggleStrictTitleWarning()"
+          class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/70"
+        >
+          {{ i18n.t().settings.coverEnrichment.strictSearchTitle }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Warning Gate for Strict Title + Author Search -->
+    @if (showStrictTitleWarning()) {
+      <div
+        data-testid="strict-title-search-warning"
+        class="mt-4 space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+      >
+        <div class="space-y-1">
+          <p class="text-sm font-semibold">
+            {{ i18n.t().settings.coverEnrichment.strictSearchTitle }}
+          </p>
+          <p class="text-xs text-amber-800 dark:text-amber-200">
+            {{ i18n.t().settings.coverEnrichment.strictSearchWarning }}
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            data-testid="confirm-strict-title-search-btn"
+            (click)="confirmStrictTitleSearch()"
+            class="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-amber-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-amber-700 dark:bg-amber-500 dark:text-slate-950 dark:hover:bg-amber-400"
+          >
+            {{ i18n.t().settings.coverEnrichment.strictSearchConfirmAction }}
+          </button>
+          <button
+            type="button"
+            (click)="closeStrictTitleWarning()"
+            class="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-amber-300 bg-white px-3.5 py-2 text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-100 dark:border-amber-700 dark:bg-slate-900 dark:text-amber-200 dark:hover:bg-amber-950/60"
+          >
+            {{ i18n.t().settings.coverEnrichment.cancelAction }}
+          </button>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Step-by-Step Visual Cover Assistant -->
+  @if (assistantActive() && assistantCurrentBook(); as book) {
+    <div
+      data-testid="visual-assistant-card"
+      class="mt-4 space-y-4 rounded-xl border border-indigo-200 bg-slate-50 p-4 dark:border-indigo-900/60 dark:bg-slate-800/50"
+    >
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0 space-y-1">
+          <p
+            class="text-xs font-semibold tracking-wide text-indigo-600 uppercase dark:text-indigo-400"
+          >
+            {{ i18n.t().settings.coverEnrichment.visualAssistantStepCounter }}
+            {{ assistantCurrentIndex() + 1 }} / {{ assistantQueue().length }}
+          </p>
+          <h3 class="truncate text-base font-bold text-slate-900 dark:text-slate-100">
+            {{ book.title }}
+          </h3>
+          <p class="text-xs text-slate-600 dark:text-slate-300">
+            {{ book.author }}
+            @if (book.publisher) {
+              · {{ book.publisher }}
+            }
+            @if (book.publicationYear) {
+              · {{ book.publicationYear }}
+            }
+          </p>
+        </div>
+
+        <button
+          type="button"
+          data-testid="visual-assistant-close-btn"
+          (click)="closeVisualAssistant()"
+          [attr.aria-label]="i18n.t().settings.coverEnrichment.visualAssistantCloseAction"
+          class="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+        >
+          <span aria-hidden="true">✕</span>
+        </button>
+      </div>
+
+      @if (assistantLoading()) {
+        <div
+          data-testid="visual-assistant-loading"
+          class="rounded-lg border border-slate-200 bg-white px-4 py-6 text-center text-xs font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
+        >
+          {{ i18n.t().settings.coverEnrichment.progressRunning }}
+        </div>
+      } @else if (assistantCandidates().length > 0) {
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          @for (candidate of assistantCandidates(); track candidate.id) {
+            <div
+              class="flex flex-col justify-between gap-2 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900"
+            >
+              <div
+                class="flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800"
+              >
+                @if (candidate.coverUrl) {
+                  <img
+                    [src]="candidate.coverUrl"
+                    [alt]="candidate.title"
+                    loading="lazy"
+                    decoding="async"
+                    class="h-full w-full object-cover"
+                  />
+                }
+              </div>
+              <div class="space-y-0.5 text-xs">
+                <p class="line-clamp-1 font-semibold text-slate-900 dark:text-slate-100">
+                  {{ candidate.title }}
+                </p>
+                <p class="line-clamp-1 text-slate-500 dark:text-slate-400">
+                  {{ candidate.author }}
+                </p>
+              </div>
+              <button
+                type="button"
+                data-testid="visual-assistant-select-btn"
+                (click)="selectAssistantCover(candidate)"
+                class="inline-flex min-h-[44px] w-full items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+              >
+                {{ i18n.t().settings.coverEnrichment.visualAssistantSelectAction }}
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <p
+          data-testid="visual-assistant-empty"
+          class="rounded-lg border border-slate-200 bg-white px-4 py-4 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+        >
+          {{ i18n.t().settings.coverEnrichment.visualAssistantNoSuggestions }}
+        </p>
+      }
+
+      <div class="flex justify-end">
+        <button
+          type="button"
+          data-testid="visual-assistant-skip-btn"
+          (click)="skipAssistantBook()"
+          class="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+        >
+          {{ i18n.t().settings.coverEnrichment.visualAssistantSkipAction }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Verification & Skipped Books Report -->
+  @if (showResultSummary()) {
+    <div
+      class="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/40"
+    >
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="space-y-1">
+          @if (state().status === 'completed' || state().status === 'cancelled') {
+            <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+              {{
+                state().status === 'cancelled'
+                  ? i18n.t().settings.coverEnrichment.progressCancelled
+                  : i18n.t().settings.coverEnrichment.progressCompleted
+              }}
+            </p>
+          }
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <span
+              class="rounded-md bg-emerald-100 px-2 py-1 font-medium text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
+            >
+              {{ i18n.t().settings.coverEnrichment.reportDownloadedCount }}:
+              {{ state().downloadedCount }}
+            </span>
+            <span
+              class="rounded-md bg-slate-200 px-2 py-1 font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+            >
+              {{ i18n.t().settings.coverEnrichment.reportSkippedCount }}:
+              {{ state().skippedItems.length }}
+            </span>
+          </div>
+        </div>
+
+        @if (state().skippedItems.length > 0) {
+          <button
+            type="button"
+            data-testid="toggle-enrichment-report-btn"
+            [attr.aria-expanded]="reportExpanded()"
+            (click)="toggleReportExpanded()"
+            class="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            {{ i18n.t().settings.coverEnrichment.reportTitle }}
+          </button>
+        }
+      </div>
+
+      @if (reportExpanded() && state().skippedItems.length > 0) {
+        <ul
+          data-testid="enrichment-skipped-report"
+          class="divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900"
+        >
+          @for (item of state().skippedItems; track item.bookId) {
+            <li
+              class="flex flex-col gap-1 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div class="min-w-0">
+                <p class="truncate text-xs font-semibold text-slate-900 dark:text-slate-100">
+                  {{ item.title }}
+                </p>
+                <p class="truncate text-xs text-slate-500 dark:text-slate-400">
+                  {{ item.author }}
+                  @if (item.isbn) {
+                    · ISBN {{ item.isbn }}
+                  }
+                </p>
+              </div>
+              <span
+                class="inline-flex w-fit shrink-0 rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+              >
+                {{ getReasonLabel(item.reason) }}
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</section>

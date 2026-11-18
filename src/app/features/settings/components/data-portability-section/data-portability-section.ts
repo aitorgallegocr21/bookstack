@@ -32,6 +32,7 @@ export class DataPortabilitySectionComponent {
   protected readonly i18n = inject(I18nService);
 
   readonly dataChanged = output<void>();
+  readonly requestCoverEnrichment = output<void>();
 
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
@@ -147,6 +148,10 @@ export class DataPortabilitySectionComponent {
   dismissStatus(): void {
     this.statusMessage.set(null);
     this.lastImportResult.set(null);
+  }
+
+  onRequestCoverEnrichment(): void {
+    this.requestCoverEnrichment.emit();
   }
 
   dismissError(): void {

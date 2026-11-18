@@ -317,9 +317,46 @@ describe('DataPortabilityService', () => {
       const result = await service.executeImport(preview, 'overwrite');
 
       expect(result.mode).toBe('overwrite');
+      expect(result.missingCoversCount).toBe(1);
+      expect(result.missingCoversWithIsbnCount).toBe(0);
       expect(booksSignal()).toHaveLength(1);
       expect(booksSignal()[0].id).toBe('book-99');
       expect(logsSignal()).toHaveLength(0);
+    });
+
+    it('reports missingCoversCount and missingCoversWithIsbnCount after import', async () => {
+      const payload = {
+        schemaVersion: 1,
+        app: 'BookStack',
+        exportedAt: '2026-02-01T00:00:00.000Z',
+        books: [
+          makeBook({
+            id: 'has-cover',
+            title: 'With Cover',
+            author: 'A',
+            isbn: '9780441172719',
+            coverUrl: 'data:image/webp;base64,xyz',
+          }),
+          makeBook({
+            id: 'missing-with-isbn',
+            title: 'Missing ISBN Cover',
+            author: 'B',
+            isbn: '0441172717',
+          }),
+          makeBook({
+            id: 'missing-no-isbn',
+            title: 'Missing Plain',
+            author: 'C',
+          }),
+        ],
+        readingLogs: [],
+      };
+
+      const preview = service.analyzeImportFile('backup.json', JSON.stringify(payload));
+      const result = await service.executeImport(preview, 'overwrite');
+
+      expect(result.missingCoversCount).toBe(2);
+      expect(result.missingCoversWithIsbnCount).toBe(1);
     });
 
     it('rolls back snapshot if persistence throws during executeImport', async () => {

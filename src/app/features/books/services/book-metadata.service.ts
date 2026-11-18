@@ -232,7 +232,9 @@ export class BookMetadataService {
     if (!trimmed) {
       return undefined;
     }
-    return this.imageOptimizer.optimizeRemoteUrl(trimmed);
+
+    const optimized = await this.imageOptimizer.optimizeRemoteUrl(trimmed);
+    return optimized || undefined;
   }
 
   findDuplicateInLibrary(

@@ -238,4 +238,21 @@ describe('BookMetadataLookupComponent', () => {
     expect(banner.textContent).toContain('Dune');
     expect(banner.textContent).toContain('Leyendo');
   });
+
+  it('preserves remote coverUrl fallback when resolveLocalCover returns empty or undefined', async () => {
+    const candidate = createCandidate({
+      coverUrl: 'https://books.google.com/books/content?id=fallback',
+    });
+    mockMetadataService.resolveLocalCover.mockResolvedValueOnce('');
+
+    const emitted: Array<{ candidate: BookMetadataCandidate; applyMode: string }> = [];
+    component.candidateApplied.subscribe((payload) => emitted.push(payload));
+
+    await component.applyCandidate(candidate, 'overwrite-public');
+
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0].candidate.coverUrl).toBe(
+      'https://books.google.com/books/content?id=fallback'
+    );
+  });
 });

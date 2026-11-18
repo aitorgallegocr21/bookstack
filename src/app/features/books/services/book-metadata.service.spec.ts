@@ -350,6 +350,16 @@ describe('BookMetadataService', () => {
       expect(optimizeRemoteUrlSpy).toHaveBeenCalledWith('https://example.com/cover.jpg');
       expect(optimized).toBe('data:image/webp;base64,optimized(https://example.com/cover.jpg)');
     });
+
+    it('returns undefined when optimizeRemoteUrl fails and returns an empty string', async () => {
+      optimizeRemoteUrlSpy.mockResolvedValueOnce('');
+
+      const result = await service.resolveLocalCover('https://books.google.com/books/content?id=1');
+      expect(optimizeRemoteUrlSpy).toHaveBeenCalledWith(
+        'https://books.google.com/books/content?id=1'
+      );
+      expect(result).toBeUndefined();
+    });
   });
 
   describe('findDuplicateInLibrary', () => {

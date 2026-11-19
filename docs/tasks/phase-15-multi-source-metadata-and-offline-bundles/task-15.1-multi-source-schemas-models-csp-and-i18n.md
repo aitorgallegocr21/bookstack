@@ -1,7 +1,7 @@
 # Task 15.1: Multi-Source Zod Schemas, Domain Contracts, CSP & Bilingual i18n
 
 **Phase:** Phase 15: Multi-Source Metadata Engine (5 Providers), Integral Auto-Enrichment & Offline `.ZIP` Bundles  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** Medium-High (Extends metadata contracts to 5 providers, adds Zod runtime parsers for Open Library Editions, Wikidata, Apple Books ES, Internet Archive, and Crossref, updates browser CSP `connect-src`, and extends `books` + `settings` bilingual i18n dictionaries).
 
 ---
@@ -82,5 +82,5 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/books/schemas/book-metadata.schema.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/books/schemas/book-metadata.schema.spec.ts`
+- [x] `npm run verify:quiet`

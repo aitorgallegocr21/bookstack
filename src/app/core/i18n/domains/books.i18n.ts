@@ -164,6 +164,10 @@ export interface BooksI18n {
       sources: {
         openlibrary: string;
         googlebooks: string;
+        wikidata: string;
+        applebooks: string;
+        archive: string;
+        crossref: string;
         merged: string;
       };
       duplicateWarningTitle: string;
@@ -386,6 +390,10 @@ export const ES_BOOKS: BooksI18n = {
       sources: {
         openlibrary: 'Open Library',
         googlebooks: 'Google Books',
+        wikidata: 'Wikidata',
+        applebooks: 'Apple Books',
+        archive: 'Internet Archive',
+        crossref: 'Crossref',
         merged: 'Combinado',
       },
       duplicateWarningTitle: 'Posible libro duplicado en tu biblioteca',
@@ -608,6 +616,10 @@ export const EN_BOOKS: BooksI18n = {
       sources: {
         openlibrary: 'Open Library',
         googlebooks: 'Google Books',
+        wikidata: 'Wikidata',
+        applebooks: 'Apple Books',
+        archive: 'Internet Archive',
+        crossref: 'Crossref',
         merged: 'Merged',
       },
       duplicateWarningTitle: 'Possible duplicate in your library',

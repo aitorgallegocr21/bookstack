@@ -244,4 +244,33 @@ describe('CurrentlyReadingHeroComponent', () => {
 
     expect(selectSpy).toHaveBeenCalledWith(parallelBook);
   });
+
+  it('should use valid dark hover contrast classes on the detailed reading log button', () => {
+    fixture.componentRef.setInput('totalBooksCount', 3);
+    fixture.componentRef.setInput('activeBook', sampleBook);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const detailBtn = root.querySelector('button') as HTMLButtonElement;
+    expect(detailBtn.className).toContain('dark:hover:bg-slate-700');
+    expect(detailBtn.className).toContain('dark:hover:text-white');
+    expect(detailBtn.className).not.toContain('dark:hover:bg-slate-750');
+  });
+
+  it('should render other active reads in a scrollbar-free responsive grid with top breathing room', () => {
+    fixture.componentRef.setInput('totalBooksCount', 4);
+    fixture.componentRef.setInput('activeBook', sampleBook);
+    fixture.componentRef.setInput('otherActiveBooks', [parallelBook, pendingBook]);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const gridContainer = root.querySelector('.grid.grid-cols-1.gap-3.pt-1.sm\\:grid-cols-2');
+    expect(gridContainer).not.toBeNull();
+    expect(gridContainer?.className).not.toContain('overflow-x-auto');
+
+    const cards = gridContainer?.querySelectorAll('button') ?? [];
+    expect(cards.length).toBe(2);
+    expect(cards[0].className).toContain('w-full');
+    expect(cards[0].className).toContain('min-w-0');
+  });
 });

@@ -12,6 +12,8 @@ export interface DashboardI18n {
     pagesPerHourUnit: string;
     statusDistribution: string;
     monthlyActivity: string;
+    monthlyActivitySubtitle: string;
+    viewFullAnalytics: string;
     noMonthlyLogs: string;
     currentlyReading: string;
     otherActiveReads: string;
@@ -77,6 +79,8 @@ export const ES_DASHBOARD: DashboardI18n = {
     pagesPerHourUnit: 'pp/h',
     statusDistribution: 'Distribución por estado',
     monthlyActivity: 'Actividad mensual',
+    monthlyActivitySubtitle: 'Últimos 6 meses',
+    viewFullAnalytics: 'Ver historial',
     noMonthlyLogs: 'Sin registros mensuales',
     currentlyReading: 'Leyendo ahora',
     otherActiveReads: 'Otras lecturas en curso',
@@ -144,6 +148,8 @@ export const EN_DASHBOARD: DashboardI18n = {
     pagesPerHourUnit: 'p/h',
     statusDistribution: 'Status distribution',
     monthlyActivity: 'Monthly activity',
+    monthlyActivitySubtitle: 'Last 6 months',
+    viewFullAnalytics: 'View full history',
     noMonthlyLogs: 'No monthly logs yet',
     currentlyReading: 'Currently Reading',
     otherActiveReads: 'Other Active Reads',

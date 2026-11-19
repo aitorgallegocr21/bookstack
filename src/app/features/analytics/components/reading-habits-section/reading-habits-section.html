@@ -151,9 +151,14 @@
               <p class="line-clamp-2 text-sm font-bold text-slate-900 dark:text-slate-100">
                 {{ longest.title }}
               </p>
-              <p class="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
-                {{ longest.author }} ·
-                <span class="font-semibold text-emerald-600 dark:text-emerald-400">
+              <p
+                class="mt-0.5 flex flex-wrap items-baseline gap-x-1 text-xs text-slate-500 dark:text-slate-400"
+              >
+                <span class="min-w-0 break-words">{{ longest.author }}</span>
+                <span aria-hidden="true">·</span>
+                <span
+                  class="font-semibold whitespace-nowrap text-emerald-600 dark:text-emerald-400"
+                >
                   {{ longest.pages }} {{ i18n.t().stats.composition.authorPagesUnit }}
                 </span>
               </p>

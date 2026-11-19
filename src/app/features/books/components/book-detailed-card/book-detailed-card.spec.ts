@@ -117,4 +117,21 @@ describe('BookDetailedCardComponent', () => {
     fixture.detectChanges();
     expect(host.lastDeleteBookId).toBe('book-detailed-1');
   });
+
+  it('should use @container and container-query label visibility on the Log button without clipping', () => {
+    const article = fixture.debugElement.query(By.css('article'));
+    expect(article.nativeElement.classList.contains('@container')).toBe(true);
+
+    const logBtn = fixture.debugElement.query(
+      By.css('button[aria-label="Registrar lectura de El Nombre del Viento"]')
+    );
+    expect(logBtn).toBeTruthy();
+    expect(logBtn.nativeElement.getAttribute('title')).toBeTruthy();
+    expect(logBtn.nativeElement.classList.contains('whitespace-nowrap')).toBe(true);
+
+    const labelSpan = logBtn.query(By.css('span'));
+    expect(labelSpan).toBeTruthy();
+    expect(labelSpan.nativeElement.classList.contains('hidden')).toBe(true);
+    expect(labelSpan.nativeElement.classList.contains('@[290px]:inline')).toBe(true);
+  });
 });

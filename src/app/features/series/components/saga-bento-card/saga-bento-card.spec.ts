@@ -81,17 +81,39 @@ describe('SagaBentoCardComponent', () => {
   it('should apply compact, medium, and showcase bento grid host classes', () => {
     fixture.componentRef.setInput('saga', makeSaga({ bentoScale: 'compact' }));
     fixture.detectChanges();
-    expect(fixture.nativeElement.className).toContain('lg:col-span-4');
+    expect(fixture.nativeElement.className).toContain('col-span-1');
+    expect(fixture.nativeElement.className).toContain('md:col-span-6');
 
     fixture.componentRef.setInput('saga', makeSaga({ bentoScale: 'medium' }));
     fixture.detectChanges();
-    expect(fixture.nativeElement.className).toContain('lg:col-span-8');
+    expect(fixture.nativeElement.className).toContain('col-span-full');
     expect(fixture.nativeElement.className).not.toContain('md:row-span-2');
 
     fixture.componentRef.setInput('saga', makeSaga({ bentoScale: 'showcase' }));
     fixture.detectChanges();
-    expect(fixture.nativeElement.className).toContain('md:col-span-12');
-    expect(fixture.nativeElement.className).toContain('md:row-span-2');
+    expect(fixture.nativeElement.className).toContain('col-span-full');
+    expect(fixture.nativeElement.className).not.toContain('md:row-span-2');
+  });
+
+  it('should wrap cover shelves without horizontal scroll and avoid truncating titles or authors', () => {
+    for (const scale of ['compact', 'medium', 'showcase'] as const) {
+      fixture.componentRef.setInput('saga', makeSaga({ bentoScale: scale }));
+      fixture.detectChanges();
+
+      const heading = fixture.nativeElement.querySelector('h2') as HTMLElement;
+      expect(heading.className).toContain('break-words');
+      expect(heading.className).not.toContain('truncate');
+      expect(heading.className).not.toContain('line-clamp-2');
+
+      const author = fixture.nativeElement.querySelector('p') as HTMLElement;
+      expect(author.className).toContain('break-words');
+      expect(author.className).not.toContain('truncate');
+
+      if (scale !== 'compact') {
+        expect(fixture.nativeElement.querySelector('.overflow-x-auto')).toBeNull();
+        expect(fixture.nativeElement.querySelector('.flex-wrap')).toBeTruthy();
+      }
+    }
   });
 
   it('should emit openBook without bubbling to openSaga when clicking a book thumbnail', () => {

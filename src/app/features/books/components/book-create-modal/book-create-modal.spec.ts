@@ -247,4 +247,15 @@ describe('BookCreateModalComponent', () => {
       volumeNumber: 3,
     });
   });
+
+  it('should apply modal-scroll-area and no-scrollbar to the scrollable form body', () => {
+    const fixture = TestBed.createComponent(BookCreateModalComponent);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const scrollBody = root.querySelector('form > div.overflow-y-auto');
+    expect(scrollBody).not.toBeNull();
+    expect(scrollBody?.classList.contains('modal-scroll-area')).toBe(true);
+    expect(scrollBody?.classList.contains('no-scrollbar')).toBe(true);
+  });
 });

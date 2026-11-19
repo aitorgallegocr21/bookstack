@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import {
   formatLocalizedMonth,
+  formatShortMonth,
   getCurrentLocalDateTime,
 } from '../../../../core/utils/date-formatter';
 import { BOOK_STATUS_CONFIG, Book, ReadingGoals } from '../../../books/models/book.model';
@@ -21,6 +23,7 @@ import { BookDetailModalComponent } from '../../../books/components/book-detail-
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     CurrentlyReadingHeroComponent,
     ReadingStreakWidgetComponent,
     AnnualGoalCardComponent,
@@ -82,13 +85,21 @@ export class DashboardPage {
     return this.allBooks().filter((book) => book.status === 'pending');
   });
 
-  protected readonly maxMonthlyPages = computed(() => {
-    const monthly = this.stats().monthlyPages;
+  protected readonly recentMonthlyPages = computed(() => {
+    return this.stats().monthlyPages.slice(-6);
+  });
+
+  protected readonly maxRecentMonthlyPages = computed(() => {
+    const monthly = this.recentMonthlyPages();
     return monthly.length > 0 ? Math.max(...monthly.map((month) => month.pages), 1) : 1;
   });
 
   protected formatMonth(month: string): string {
     return formatLocalizedMonth(month, this.i18n.intlLocale());
+  }
+
+  protected formatShortMonth(month: string): string {
+    return formatShortMonth(month, this.i18n.intlLocale());
   }
 
   protected async handlePageUpdate(event: { bookId: string; newPage: number }): Promise<void> {

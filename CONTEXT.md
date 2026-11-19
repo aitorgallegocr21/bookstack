@@ -16,6 +16,7 @@
 2. **Asymmetric Responsive Shell (`Tailwind CSS v4`):**
    - Tablet & Desktop ($\ge 768\text{px}$): Collapsible `SidebarComponent` (`hidden md:flex`, `68px` $\leftrightarrow$ `240px`) persisted via `UiStateService`.
    - Mobile ($< 768\text{px}$): Compact `HeaderComponent` + fixed `BottomNavComponent` (`env(safe-area-inset-bottom)`).
+   - **Container-Aware Grids & Toolbars (`@container`):** Dashboard split, catalog grids/card actions, and unified filter toolbars adapt to actual container width (accounting for sidebar expand/collapse at ~1000px), paired with `.no-scrollbar` + `.modal-scroll-area` scroll cues on modal bodies.
 3. **Rendering & Bundle Efficiency:** Discrete CSS transitions (`transition-colors`, `transition-[width]`, `transition-[grid-template-rows]`); `transition-all` is banned. Global `BookCreateModalComponent` loads via `@defer`. Cover images use `decoding="async" loading="lazy"`. Shared modal/form primitives reside in `src/styles.css`.
 4. **Client-Side Canvas Cover Optimization:** `ImageOptimizerService` scales and compresses uploaded covers ($\le 400\text{px}$, quality `0.75`, WebP/JPEG fallback) before persistence.
 5. **Bidirectional Reading Delta Sync:** Logging, updating, or deleting a `ReadingLog` automatically adjusts `Book.currentPage` and status transitions (`pending` / `reading` / `completed`).

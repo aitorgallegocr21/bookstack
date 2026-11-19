@@ -25,9 +25,14 @@ export interface AboutI18n {
     platformValue: string;
     authorshipTitle: string;
     authorshipTextPrefix: string;
+    authorMotto: string;
     githubProfileLabel: string;
     githubProfileAria: string;
-    githubRepoLabel: string;
+    personalWebsiteLabel: string;
+    personalWebsiteAria: string;
+    instagramLabel: string;
+    instagramAria: string;
+    sourceCodeLabel: string;
     githubRepoAria: string;
     featuresTitle: string;
     features: {
@@ -64,22 +69,22 @@ export const ES_ABOUT: AboutI18n = {
     title: 'Acerca de BookStack',
     subtitle: 'Gestor de lectura basado en la filosofía Local-First',
     manifestoTitle: 'Manifiesto Local-First',
-    manifestoIntroPrefix: 'BookStack está construido bajo los principios de la arquitectura ',
+    manifestoIntroPrefix: 'Diseñado bajo arquitectura ',
     manifestoIntroStrong: 'Local-First:',
     manifestoPoints: {
-      localDataTitle: 'Datos Locales:',
+      localDataTitle: 'Datos locales:',
       localDataText:
-        'Tu biblioteca, registros de lectura, sagas y ajustes residen exclusivamente en tu dispositivo (IndexedDB / LocalStorage), bajo tu control.',
-      privacyTitle: 'Privacidad:',
+        'Tu biblioteca, sesiones y sagas viven exclusivamente en tu dispositivo (IndexedDB / LocalStorage).',
+      privacyTitle: 'Privacidad total:',
       privacyText:
-        'Cero telemetría, cero cuentas en la nube y cero rastreadores. Las búsquedas opcionales por ISBN o título consultan Open Library y Google Books directamente desde tu navegador (sin credenciales ni referrer).',
-      performanceTitle: 'Rendimiento:',
-      performanceText: 'Acceso instantáneo a tu colección sin latencias de red.',
-      independenceTitle: 'Independencia:',
+        'Cero telemetría, cuentas o rastreadores. Las búsquedas por ISBN/título son opcionales y sin credenciales.',
+      performanceTitle: 'Instantáneo:',
+      performanceText: 'Acceso inmediato a tu colección sin latencias de red.',
+      independenceTitle: '100 % offline:',
       independenceText:
-        'El seguimiento de lectura funciona 100 % sin conexión; las consultas a catálogos externos son siempre opcionales bajo demanda.',
+        'Seguimiento completo sin conexión; las consultas externas son bajo demanda.',
       portabilityTitle: 'Portabilidad:',
-      portabilityText: 'Exporta y migra tus datos en cualquier momento sin restricciones.',
+      portabilityText: 'Exporta e importa tu biblioteca en JSON cuando quieras.',
     },
     appInfoTitle: 'Información de la Aplicación',
     versionLabel: 'Versión',
@@ -88,10 +93,15 @@ export const ES_ABOUT: AboutI18n = {
     platformLabel: 'Plataforma',
     platformValue: 'Web + Responsive (Móvil)',
     authorshipTitle: 'Autoría',
-    authorshipTextPrefix: 'BookStack está diseñado y desarrollado por ',
-    githubProfileLabel: 'Perfil de GitHub',
+    authorshipTextPrefix: 'Diseñado y desarrollado por ',
+    authorMotto: 'Aprende y deja aprender.',
+    githubProfileLabel: 'GitHub',
     githubProfileAria: 'Perfil de Aitor Gallego-Casilda Romero en GitHub',
-    githubRepoLabel: 'Código fuente en GitHub',
+    personalWebsiteLabel: 'Web personal',
+    personalWebsiteAria: 'Página web personal de Aitor Gallego-Casilda Romero',
+    instagramLabel: 'Instagram',
+    instagramAria: 'Perfil de Instagram de Aitor Gallego-Casilda Romero',
+    sourceCodeLabel: 'Código fuente',
     githubRepoAria: 'Código fuente de BookStack en GitHub',
     featuresTitle: 'Características',
     features: {
@@ -135,22 +145,22 @@ export const EN_ABOUT: AboutI18n = {
     title: 'About BookStack',
     subtitle: 'Reading tracker built around the Local-First philosophy',
     manifestoTitle: 'Local-First Manifesto',
-    manifestoIntroPrefix: 'BookStack is engineered under ',
-    manifestoIntroStrong: 'Local-First architecture principles:',
+    manifestoIntroPrefix: 'Engineered under ',
+    manifestoIntroStrong: 'Local-First principles:',
     manifestoPoints: {
-      localDataTitle: 'Local Data:',
+      localDataTitle: 'Local data:',
       localDataText:
-        'Your library, reading logs, series, and settings live exclusively on your device (IndexedDB / LocalStorage), under your control.',
-      privacyTitle: 'Privacy:',
+        'Your library, reading logs, and series live exclusively on your device (IndexedDB / LocalStorage).',
+      privacyTitle: 'Zero tracking:',
       privacyText:
-        'Zero telemetry, zero cloud accounts, and zero trackers. Opt-in ISBN or title lookups query Open Library and Google Books directly from your browser without credentials or referrer.',
-      performanceTitle: 'Performance:',
-      performanceText: 'Instant access to your collection with zero network latency.',
-      independenceTitle: 'Independence:',
+        'No telemetry, cloud accounts, or trackers. Opt-in ISBN/title lookups run without credentials.',
+      performanceTitle: 'Instant:',
+      performanceText: 'Immediate access to your collection with zero network latency.',
+      independenceTitle: '100% offline:',
       independenceText:
-        'Reading tracking works 100% offline; external catalog lookups are always optional and user-initiated.',
-      portabilityTitle: 'Portability:',
-      portabilityText: 'Export and migrate your data anytime without lock-in.',
+        'Full reading tracking offline; external catalog lookups are always opt-in.',
+      portabilityTitle: 'Portable:',
+      portabilityText: 'Export and migrate your library as JSON anytime without lock-in.',
     },
     appInfoTitle: 'Application Information',
     versionLabel: 'Version',
@@ -159,10 +169,15 @@ export const EN_ABOUT: AboutI18n = {
     platformLabel: 'Platform',
     platformValue: 'Web + Responsive (Mobile)',
     authorshipTitle: 'Authorship',
-    authorshipTextPrefix: 'BookStack is designed and developed by ',
-    githubProfileLabel: 'GitHub Profile',
+    authorshipTextPrefix: 'Designed and built by ',
+    authorMotto: 'Learn and let learn.',
+    githubProfileLabel: 'GitHub',
     githubProfileAria: 'Aitor Gallego-Casilda Romero GitHub profile',
-    githubRepoLabel: 'Source Code on GitHub',
+    personalWebsiteLabel: 'Personal Website',
+    personalWebsiteAria: 'Aitor Gallego-Casilda Romero personal website',
+    instagramLabel: 'Instagram',
+    instagramAria: 'Aitor Gallego-Casilda Romero Instagram profile',
+    sourceCodeLabel: 'Source Code',
     githubRepoAria: 'BookStack source code on GitHub',
     featuresTitle: 'Features',
     features: {

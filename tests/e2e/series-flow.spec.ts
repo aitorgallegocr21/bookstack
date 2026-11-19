@@ -165,11 +165,8 @@ test.describe('Sagas, Series & Collections (/series)', () => {
     await expect(cards).toHaveCount(3);
 
     const cardClasses = await cards.evaluateAll((els) => els.map((el) => el.className));
-    expect(cardClasses.some((c) => c.includes('lg:col-span-4'))).toBe(true);
-    expect(
-      cardClasses.some((c) => c.includes('lg:col-span-8') && !c.includes('md:row-span-2'))
-    ).toBe(true);
-    expect(cardClasses.some((c) => c.includes('md:row-span-2'))).toBe(true);
+    expect(cardClasses.filter((c) => c.includes('md:col-span-6')).length).toBe(1);
+    expect(cardClasses.filter((c) => c.includes('col-span-full')).length).toBe(2);
 
     // Switch to 375px mobile viewport and test segmented switcher + overflow safety
     await page.setViewportSize({ width: 375, height: 812 });
@@ -364,7 +361,7 @@ test.describe('Sagas, Series & Collections (/series)', () => {
     // Verify metadata restored in /series
     await page.goto('/series');
     await expect(page.getByText('La Rueda del Tiempo')).toBeVisible();
-    await page.getByRole('button', { name: /Abrir detalles de la saga/ }).click();
+    await page.getByRole('heading', { name: 'La Rueda del Tiempo' }).click();
     const modal = page.locator('app-saga-detail-modal .modal-panel');
     await expect(modal).toBeVisible();
     await expect(modal.getByText('Finalizada')).toBeVisible();

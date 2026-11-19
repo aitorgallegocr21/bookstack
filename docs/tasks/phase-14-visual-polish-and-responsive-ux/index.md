@@ -1,6 +1,6 @@
 # Phase 14: Visual Polish, Responsive Layout & UX Refinements
 
-**Status:** Pending  
+**Status:** Completed  
 **Target Branch:** `feature/14-visual-polish-responsive-ux` $\to$ `develop`  
 **Core Mission:** Resolve targeted visual, contrast, symmetry, scrollbar, and responsive layout defects across the Dashboard (`/`), Modals, Catalog (`/books`), Sagas (`/series`), Analytics (`/stats`), and About (`/about`) pages using CSS Container Queries (`@container`), zero-scrollbar layouts, unified symmetric filter toolbars, and a modern concise `/about` redesign prior to the next major visual modernization milestone.
 
@@ -41,4 +41,4 @@
 - [x] **[Task 14.4: Container-Aware Catalog Grids & Overflow-Free Book Card Actions](task-14.4-catalog-container-grids-and-card-actions.md)** — Make `books-page` grids container-aware (adapting automatically to sidebar expanded/collapsed width) and use `@container` in `book-grid-card` and `book-detailed-card` so the "Log" button never overflows and action spacing stays balanced.
 - [x] **[Task 14.5: Unified Symmetric Filter & Control Toolbars (`/books`, `/series`, `/stats`)](task-14.5-unified-filter-and-control-toolbars.md)** — Refactor `catalog-toolbar` and `series-toolbar` with `@container`-aware status controls and a non-shifting Reset button slot, and upgrade `analytics-header` into a unified modern segmented control bar.
 - [x] **[Task 14.6: Full-Width Saga Cards, Wrapping Cover Shelves & Zero-Truncation Mobile Headers](task-14.6-saga-full-width-wrapping-covers-and-mobile-headers.md)** — Update `saga-bento-card` and `series-page` so multi-volume sagas stretch full-width with wrapping multi-row cover grids (zero horizontal scroll) and unwrapped mobile saga titles/authors with clean pill stacking.
-- [ ] **[Task 14.7: Modern `/about` Page Redesign, Playwright E2E Suite & Tier 2 Sync](task-14.7-about-redesign-e2e-and-docs-sync.md)** — Redesign `/about` with concise Bento cards and Aitor's personal profile card, expand Playwright E2E responsive regression tests across ~1000px tablet and 375px mobile viewports, pass `npm run verify:quiet` + `npm run test:e2e`, and perform Tier 2 Per-Phase documentation sync.
+- [x] **[Task 14.7: Modern `/about` Page Redesign, Playwright E2E Suite & Tier 2 Sync](task-14.7-about-redesign-e2e-and-docs-sync.md)** — Redesign `/about` with concise Bento cards and Aitor's personal profile card, expand Playwright E2E responsive regression tests across ~1000px tablet and 375px mobile viewports, pass `npm run verify:quiet` + `npm run test:e2e`, and perform Tier 2 Per-Phase documentation sync.

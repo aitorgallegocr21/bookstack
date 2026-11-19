@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- [ ] **[Phase 14: Visual Polish, Responsive Layout & UX Refinements](tasks/phase-14-visual-polish-and-responsive-ux/index.md)** — _In Planning / Ready for Execution_ (Dashboard dark-mode contrast fix, scrollbar-free 2-column parallel reads grid, symmetric 6-month vertical activity widget + `/stats` link, `@container`-driven ~1000px tablet layout, scrollbar-free modal bodies with subtle scroll cues, container-aware `/books` grids & overflow-free card action bars, unified symmetric `@container` filter/control toolbars across `/books`, `/series`, and `/stats`, full-width stretching sagas with wrapping multi-row cover shelves & zero-truncation mobile headers, and concise modern `/about` redesign with personal profile card).
+- _No active phase currently in progress._
 
 ---
 
@@ -19,6 +19,8 @@
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 14: Visual Polish, Responsive Layout & UX Refinements](tasks/phase-14-visual-polish-and-responsive-ux/index.md)** — _Completed 2026-11_ (Dashboard dark-mode contrast fix, scrollbar-free 2-column parallel reads grid, symmetric 6-month vertical activity widget + `/stats` link, `@container`-driven ~1000px tablet layout, `.no-scrollbar` + `.modal-scroll-area` scroll cues across all modals, container-aware `/books` grids & overflow-free card action bars, unified symmetric `@container` filter/control toolbars across `/books`, `/series`, and `/stats`, full-width stretching sagas with wrapping multi-row cover shelves & zero-truncation mobile headers, and concise modern `/about` Bento redesign with personal author profile card).
 
 - [x] **[Phase 13: Post-Import Bulk Cover Enrichment & Library Cover Assistant](tasks/phase-13-bulk-cover-enrichment/index.md)** — _Completed 2026-11_ (Post-import & on-demand missing-cover detector in `/settings`, multi-ISBN batch lookup with strict $\ge 80\times120\text{px}$ anti-placeholder cover verification, rate-limited pausable/cancellable queue with incremental IndexedDB `updateMany` persistence, step-by-step Visual Cover Picker Assistant, warning-gated strict Title+Author automated fallback, and expandable verification report).
 

@@ -18,7 +18,7 @@
         <div class="flex flex-wrap items-center gap-2">
           <h2
             id="saga-detail-modal-title"
-            class="truncate text-lg font-bold text-slate-900 sm:text-xl dark:text-slate-100"
+            class="text-lg leading-snug font-bold break-words text-slate-900 sm:text-xl dark:text-slate-100"
           >
             {{ saga().name }}
           </h2>
@@ -32,7 +32,9 @@
           }
         </div>
         @if (saga().authors.length > 0) {
-          <p class="mt-0.5 truncate text-xs text-slate-600 sm:text-sm dark:text-slate-400">
+          <p
+            class="mt-0.5 text-xs leading-snug break-words text-slate-600 sm:text-sm dark:text-slate-400"
+          >
             {{ saga().authors.join(', ') }}
           </p>
         }

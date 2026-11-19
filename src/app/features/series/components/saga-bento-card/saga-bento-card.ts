@@ -47,11 +47,10 @@ export class SagaBentoCardComponent {
     const scale = this.saga().bentoScale;
     switch (scale) {
       case 'compact':
-        return 'block min-w-0 md:col-span-6 lg:col-span-4';
+        return 'block min-w-0 col-span-1 md:col-span-6';
       case 'medium':
-        return 'block min-w-0 md:col-span-6 lg:col-span-8';
       case 'showcase':
-        return 'block min-w-0 md:col-span-12 lg:col-span-8 md:row-span-2';
+        return 'block min-w-0 col-span-full';
     }
   });
 

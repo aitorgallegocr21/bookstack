@@ -246,6 +246,9 @@ test.describe('Advanced Analytics (/stats) Flow', () => {
 
       for (const vp of viewports) {
         await page.setViewportSize(vp);
+        if (vp.width < 768) {
+          await expect(page.locator('main')).toHaveCSS('margin-left', '0px');
+        }
         await expect(page.getByTestId('kpi-card-completed-books')).toBeVisible();
         await expect(page.getByTestId('reading-habits-section')).toBeVisible();
 

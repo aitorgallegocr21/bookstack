@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- [ ] **[Phase 15: Multi-Source Metadata Engine (5 Providers), Integral Auto-Enrichment & Offline `.ZIP` Bundles](tasks/phase-15-multi-source-metadata-and-offline-bundles/index.md)** — _In Progress_ (5-source browser-native metadata waterfall [`Open Library` + `Google Books` + `Wikidata` + `Apple Books ES` + `Internet Archive / Crossref`], cross-edition metadata fusion & balanced 8-result quota, automatic ISBN $\to$ Title+Author integral enrichment backfilling covers, `totalPages`, `publicationYear`, `publisher`, `isbn`, and `series`, flexible external/AI JSON & CSV import normalizer, and 4-mode offline export/import suite including self-contained `.ZIP` bundles with `/covers` image files).
+- _No active phase._
 
 ---
 
@@ -19,6 +19,8 @@
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 15: Multi-Source Metadata Engine (5 Providers), Integral Auto-Enrichment & Offline `.ZIP` Bundles](tasks/phase-15-multi-source-metadata-and-offline-bundles/index.md)** — _Completed 2026-11_ (5-source browser-native metadata waterfall [`Open Library` + `Google Books` + `Wikidata` + `Apple Books ES` + `Internet Archive / Crossref`], cross-edition metadata fusion & balanced 8-result quota, automatic ISBN $\to$ Title+Author integral enrichment backfilling covers, `totalPages`, `publicationYear`, `publisher`, `isbn`, and `series`, flexible external/AI JSON & CSV import normalizer, and 4-mode offline export/import suite including self-contained `.ZIP` bundles with `/covers` image files).
 
 - [x] **[Phase 14: Visual Polish, Responsive Layout & UX Refinements](tasks/phase-14-visual-polish-and-responsive-ux/index.md)** — _Completed 2026-11_ (Dashboard dark-mode contrast fix, scrollbar-free 2-column parallel reads grid, symmetric 6-month vertical activity widget + `/stats` link, `@container`-driven ~1000px tablet layout, `.no-scrollbar` + `.modal-scroll-area` scroll cues across all modals, container-aware `/books` grids & overflow-free card action bars, unified symmetric `@container` filter/control toolbars across `/books`, `/series`, and `/stats`, full-width stretching sagas with wrapping multi-row cover shelves & zero-truncation mobile headers, and concise modern `/about` Bento redesign with personal author profile card).
 

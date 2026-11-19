@@ -76,18 +76,20 @@ describe('BookMetadataService', () => {
     });
 
     it('uses Open Library primary with privacy flags and caches complete hits', async () => {
-      fetchSpy.mockResolvedValueOnce(
-        jsonResponse({
-          'ISBN:9780141036144': {
-            title: '1984',
-            authors: [{ name: 'George Orwell' }],
-            publishers: [{ name: 'Penguin Books' }],
-            publish_date: '2008',
-            number_of_pages: 336,
-            cover: { large: 'https://covers.openlibrary.org/b/id/7222246-L.jpg' },
-          },
-        })
-      );
+      fetchSpy
+        .mockResolvedValueOnce(
+          jsonResponse({
+            'ISBN:9780141036144': {
+              title: '1984',
+              authors: [{ name: 'George Orwell' }],
+              publishers: [{ name: 'Penguin Books' }],
+              publish_date: '2008',
+              number_of_pages: 336,
+              cover: { large: 'https://covers.openlibrary.org/b/id/7222246-L.jpg' },
+            },
+          })
+        )
+        .mockResolvedValueOnce(jsonResponse({ items: [] }));
 
       const first = await service.lookupByIsbn('0-141-03614-1');
       expect(first).toEqual({
@@ -102,7 +104,7 @@ describe('BookMetadataService', () => {
         source: 'openlibrary',
       });
 
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
       const [calledUrl, init] = fetchSpy.mock.calls[0];
       expect(String(calledUrl)).toContain('openlibrary.org/api/books');
       expect(String(calledUrl)).toContain('ISBN:9780141036144');
@@ -114,7 +116,7 @@ describe('BookMetadataService', () => {
 
       const cached = await service.lookupByIsbn('9780141036144');
       expect(cached).toEqual(first);
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
 
     it('enriches incomplete Open Library records from Google Books and marks source as merged', async () => {
@@ -162,6 +164,7 @@ describe('BookMetadataService', () => {
         totalPages: 336,
         coverUrl: 'https://books.google.com/books/content?id=1984&zoom=1',
         source: 'merged',
+        sources: ['openlibrary', 'googlebooks'],
       });
     });
 
@@ -213,23 +216,25 @@ describe('BookMetadataService', () => {
     });
 
     it('delegates valid ISBN search directly to lookupByIsbn', async () => {
-      fetchSpy.mockResolvedValueOnce(
-        jsonResponse({
-          'ISBN:9780141036144': {
-            title: '1984',
-            authors: [{ name: 'George Orwell' }],
-            publishers: [{ name: 'Penguin' }],
-            publish_date: '2008',
-            number_of_pages: 336,
-            cover: { medium: 'https://covers.openlibrary.org/b/id/7222246-M.jpg' },
-          },
-        })
-      );
+      fetchSpy
+        .mockResolvedValueOnce(
+          jsonResponse({
+            'ISBN:9780141036144': {
+              title: '1984',
+              authors: [{ name: 'George Orwell' }],
+              publishers: [{ name: 'Penguin' }],
+              publish_date: '2008',
+              number_of_pages: 336,
+              cover: { medium: 'https://covers.openlibrary.org/b/id/7222246-M.jpg' },
+            },
+          })
+        )
+        .mockResolvedValueOnce(jsonResponse({ items: [] }));
 
       const results = await service.searchByQuery('978-0-141-03614-4');
       expect(results).toHaveLength(1);
       expect(results[0].title).toBe('1984');
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
       expect(String(fetchSpy.mock.calls[0][0])).toContain('openlibrary.org/api/books');
     });
 
@@ -294,6 +299,7 @@ describe('BookMetadataService', () => {
       const hobbit = results.find((item) => item.title === 'El Hobbit');
       expect(hobbit).toMatchObject({
         source: 'merged',
+        sources: ['openlibrary', 'googlebooks'],
         publisher: 'Minotauro',
         totalPages: 320,
         coverUrl: 'https://books.google.com/books/content?id=hobbit&zoom=1',
@@ -302,10 +308,11 @@ describe('BookMetadataService', () => {
       // Least complete candidate ('El Silmarillion') is ranked last
       expect(results[results.length - 1].title).toBe('El Silmarillion');
 
-      // Second call uses session cache
+      // Second call uses session cache without additional fetches
+      const callsBeforeCache = fetchSpy.mock.calls.length;
       const cached = await service.searchByQuery('tolkien');
       expect(cached).toEqual(results);
-      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      expect(fetchSpy).toHaveBeenCalledTimes(callsBeforeCache);
     });
 
     it('evicts the least-recently-used queryCache entry when exceeding MAX_CACHE_ENTRIES (50)', async () => {
@@ -322,21 +329,23 @@ describe('BookMetadataService', () => {
       for (let i = 0; i < 50; i++) {
         await service.searchByQuery(`query-${i}`);
       }
-      expect(fetchSpy).toHaveBeenCalledTimes(100);
+      const callsAfter50 = fetchSpy.mock.calls.length;
+      expect(callsAfter50).toBeGreaterThan(0);
 
       // Refresh query-0 so query-1 becomes the least recently used entry
       await service.searchByQuery('query-0');
-      expect(fetchSpy).toHaveBeenCalledTimes(100);
+      expect(fetchSpy).toHaveBeenCalledTimes(callsAfter50);
 
       // Inserting a 51st entry should evict query-1, keeping query-0 cached
       await service.searchByQuery('query-50');
-      expect(fetchSpy).toHaveBeenCalledTimes(102);
+      const callsAfter51 = fetchSpy.mock.calls.length;
+      expect(callsAfter51).toBeGreaterThan(callsAfter50);
 
       await service.searchByQuery('query-0');
-      expect(fetchSpy).toHaveBeenCalledTimes(102);
+      expect(fetchSpy).toHaveBeenCalledTimes(callsAfter51);
 
       await service.searchByQuery('query-1');
-      expect(fetchSpy).toHaveBeenCalledTimes(104);
+      expect(fetchSpy.mock.calls.length).toBeGreaterThan(callsAfter51);
     });
   });
 
@@ -428,11 +437,13 @@ describe('BookMetadataService', () => {
           'ISBN:9780141036144': {
             title: '1984',
             authors: [{ name: 'George Orwell' }],
+            number_of_pages: 336,
             cover: { large: 'https://covers.openlibrary.org/b/id/1-L.jpg' },
           },
           'ISBN:9780140328721': {
             title: 'Fantastic Mr. Fox',
             authors: [{ name: 'Roald Dahl' }],
+            number_of_pages: 96,
             cover: { large: 'https://covers.openlibrary.org/b/id/2-L.jpg' },
           },
         })
@@ -466,9 +477,26 @@ describe('BookMetadataService', () => {
         isbns.push(`${prefix12}${check}`);
       }
 
-      fetchSpy.mockResolvedValueOnce(jsonResponse({})).mockResolvedValueOnce(jsonResponse({}));
+      fetchSpy.mockImplementation(async (input: string | URL | Request) => {
+        const url = String(input);
+        if (url.includes('openlibrary.org/api/books?bibkeys=')) {
+          const bibkeysParam = new URL(url).searchParams.get('bibkeys') ?? '';
+          const payload: Record<string, unknown> = {};
+          for (const key of bibkeysParam.split(',')) {
+            payload[key] = {
+              title: `Book ${key}`,
+              authors: [{ name: 'Author' }],
+              number_of_pages: 200,
+              cover: { large: `https://covers.openlibrary.org/b/id/1-L.jpg` },
+            };
+          }
+          return jsonResponse(payload);
+        }
+        return jsonResponse({});
+      });
 
-      await service.lookupBatchByIsbns(isbns);
+      const batch = await service.lookupBatchByIsbns(isbns);
+      expect(batch.size).toBe(21);
       expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
   });
@@ -564,6 +592,282 @@ describe('BookMetadataService', () => {
       );
 
       expect(result?.id).toBe('en-single');
+    });
+  });
+
+  describe('Phase 15.2 multi-source fusion, edition fallback, and balanced quota', () => {
+    it('uses structured title/author hints and enriches top Open Library hit from Work Editions', async () => {
+      fetchSpy.mockImplementation(async (input: string | URL | Request) => {
+        const url = String(input);
+        if (url.includes('openlibrary.org/search.json')) {
+          return jsonResponse({
+            docs: [
+              {
+                key: '/works/OL82563W',
+                title: 'Dune',
+                author_name: ['Frank Herbert'],
+                first_publish_year: 1965,
+              },
+            ],
+          });
+        }
+        if (url.includes('openlibrary.org/works/OL82563W/editions.json')) {
+          return jsonResponse({
+            entries: [
+              {
+                key: '/books/OL1M',
+                title: 'Dune',
+                number_of_pages: 412,
+                publishers: ['Chilton Books'],
+                publish_date: '1965',
+                isbn_13: ['9780441172719'],
+                covers: [12345],
+              },
+            ],
+          });
+        }
+        if (url.includes('googleapis.com/books/v1/volumes')) {
+          return jsonResponse({ items: [] });
+        }
+        return jsonResponse({});
+      });
+
+      const results = await service.searchByQuery('Dune', {
+        title: 'Dune',
+        author: 'Frank Herbert',
+      });
+
+      const olCall = fetchSpy.mock.calls.find((call: unknown[]) =>
+        String(call[0]).includes('openlibrary.org/search.json')
+      );
+      expect(String(olCall?.[0])).toContain('title=Dune');
+      expect(String(olCall?.[0])).toContain('author=Frank%20Herbert');
+
+      const gbCall = fetchSpy.mock.calls.find((call: unknown[]) =>
+        String(call[0]).includes('googleapis.com/books/v1/volumes')
+      );
+      expect(decodeURIComponent(String(gbCall?.[0]))).toContain(
+        'intitle:"Dune" inauthor:"Frank Herbert"'
+      );
+
+      expect(results[0]).toMatchObject({
+        title: 'Dune',
+        author: 'Frank Herbert',
+        totalPages: 412,
+        publisher: 'Chilton Books',
+        coverUrl: 'https://covers.openlibrary.org/b/id/12345-L.jpg',
+      });
+    });
+
+    it('fuses cross-edition candidates across 5 sources and balances up to 8 results with Google Books preserved', async () => {
+      fetchSpy.mockImplementation(async (input: string | URL | Request) => {
+        const url = String(input);
+        if (url.includes('openlibrary.org/search.json')) {
+          return jsonResponse({
+            docs: Array.from({ length: 6 }, (_, i) => ({
+              key: `/works/OL${i}W`,
+              title: i === 0 ? 'El camino de los reyes' : `OL Book ${i}`,
+              author_name: [i === 0 ? 'Brandon Sanderson' : `Author ${i}`],
+              isbn: [i === 0 ? '9788466657662' : `978000000000${i}`],
+              publisher: ['Nova'],
+              first_publish_year: 2015,
+              number_of_pages_median: 1200,
+              cover_i: 100 + i,
+            })),
+          });
+        }
+        if (url.includes('googleapis.com/books/v1/volumes')) {
+          return jsonResponse({
+            items: [
+              {
+                id: 'gb-way-of-kings',
+                volumeInfo: {
+                  title: 'El camino de los reyes: El Archivo de las Tormentas 1',
+                  authors: ['Brandon Sanderson'],
+                  publisher: 'B de Bolsillo',
+                  publishedDate: '2018',
+                  pageCount: 1200,
+                  categories: ['Fantasy'],
+                  industryIdentifiers: [{ type: 'ISBN_13', identifier: '9788490665008' }],
+                  imageLinks: { thumbnail: 'https://books.google.com/books/content?id=gb1&zoom=1' },
+                },
+              },
+            ],
+          });
+        }
+        if (url.includes('itunes.apple.com/search')) {
+          return jsonResponse({
+            results: [
+              {
+                trackId: 9001,
+                trackName: 'Palabras radiantes',
+                artistName: 'Brandon Sanderson',
+                artworkUrl100: 'https://is1-ssl.mzstatic.com/image/thumb/100x100bb.jpg',
+                releaseDate: '2015-01-01T00:00:00Z',
+                genres: ['Fantasía'],
+              },
+            ],
+          });
+        }
+        if (url.includes('query.wikidata.org/sparql')) {
+          return jsonResponse({
+            results: {
+              bindings: [
+                {
+                  item: { value: 'http://www.wikidata.org/entity/Q1' },
+                  itemLabel: { value: 'El camino de los reyes' },
+                  authorLabel: { value: 'Brandon Sanderson' },
+                  seriesLabel: { value: 'El archivo de las tormentas' },
+                  seriesOrdinal: { value: '1' },
+                },
+                {
+                  item: { value: 'http://www.wikidata.org/entity/Q2' },
+                  itemLabel: { value: 'Juramentada' },
+                  authorLabel: { value: 'Brandon Sanderson' },
+                  seriesLabel: { value: 'El archivo de las tormentas' },
+                  seriesOrdinal: { value: '3' },
+                },
+              ],
+            },
+          });
+        }
+        if (url.includes('archive.org/advancedsearch.php')) {
+          return jsonResponse({
+            response: {
+              docs: [
+                {
+                  identifier: 'archive-way-of-kings',
+                  title: 'Way of Kings Study Guide',
+                  creator: 'Reader Guild',
+                  year: '2020',
+                },
+              ],
+            },
+          });
+        }
+        if (url.includes('api.crossref.org/works')) {
+          return jsonResponse({
+            message: {
+              items: [
+                {
+                  DOI: '10.1000/test-1',
+                  title: ['Sanderson Cosmology Paper'],
+                  author: [{ given: 'Jane', family: 'Doe' }],
+                  publisher: 'Academic Press',
+                },
+              ],
+            },
+          });
+        }
+        return jsonResponse({});
+      });
+
+      const results = await service.searchByQuery('El camino de los reyes');
+      expect(results.length).toBeLessThanOrEqual(8);
+      expect(results[0].source).toBe('merged');
+      expect(results[0].seriesName).toBe('El archivo de las tormentas');
+      expect(results[0].genre).toContain('Fantasy');
+
+      const sources = results.map((r) => r.source);
+      expect(sources).toContain('googlebooks');
+      expect(sources).toContain('openlibrary');
+      expect(sources).toContain('applebooks');
+      expect(sources).toContain('wikidata');
+    });
+
+    it('probes direct Open Library ISBN cover and queries Wikidata/Crossref when key fields are missing', async () => {
+      fetchSpy.mockImplementation(async (input: string | URL | Request) => {
+        const url = String(input);
+        if (url.includes('openlibrary.org/api/books')) {
+          return jsonResponse({
+            'ISBN:9780141036144': {
+              title: '1984',
+              authors: [{ name: 'George Orwell' }],
+            },
+          });
+        }
+        if (url.includes('googleapis.com/books/v1/volumes')) {
+          return jsonResponse({ items: [] });
+        }
+        if (url.includes('query.wikidata.org/sparql')) {
+          return jsonResponse({
+            results: {
+              bindings: [
+                {
+                  item: { value: 'http://www.wikidata.org/entity/Q208460' },
+                  itemLabel: { value: 'Nineteen Eighty-Four' },
+                  authorLabel: { value: 'George Orwell' },
+                  pages: { value: '328' },
+                  pubDate: { value: '1949-06-08T00:00:00Z' },
+                  publisherLabel: { value: 'Secker & Warburg' },
+                },
+              ],
+            },
+          });
+        }
+        if (url.includes('api.crossref.org/works')) {
+          return jsonResponse({ message: { items: [] } });
+        }
+        if (url.includes('covers.openlibrary.org/b/isbn/9780141036144-L.jpg')) {
+          return new Response(null, { status: 200 });
+        }
+        return jsonResponse({});
+      });
+
+      const result = await service.lookupByIsbn('9780141036144');
+      expect(result).toMatchObject({
+        title: '1984',
+        totalPages: 328,
+        publisher: 'Secker & Warburg',
+        publicationYear: 1949,
+        coverUrl: 'https://covers.openlibrary.org/b/isbn/9780141036144-L.jpg?default=false',
+        source: 'merged',
+      });
+    });
+
+    it('falls back to lookupByIsbn for incomplete records inside lookupBatchByIsbns', async () => {
+      fetchSpy.mockImplementation(async (input: string | URL | Request) => {
+        const url = String(input);
+        if (url.includes('bibkeys=ISBN:9780141036144')) {
+          return jsonResponse({
+            'ISBN:9780141036144': {
+              title: '1984',
+              authors: [{ name: 'George Orwell' }],
+              // Missing cover and totalPages
+            },
+          });
+        }
+        if (url.includes('googleapis.com/books/v1/volumes?q=isbn:9780141036144')) {
+          return jsonResponse({
+            items: [
+              {
+                id: 'gb-1984',
+                volumeInfo: {
+                  title: '1984',
+                  authors: ['George Orwell'],
+                  publisher: 'Penguin',
+                  publishedDate: '2008',
+                  pageCount: 336,
+                  industryIdentifiers: [{ type: 'ISBN_13', identifier: '9780141036144' }],
+                  imageLinks: {
+                    thumbnail: 'https://books.google.com/books/content?id=1984&zoom=1',
+                  },
+                },
+              },
+            ],
+          });
+        }
+        return jsonResponse({});
+      });
+
+      const batch = await service.lookupBatchByIsbns(['9780141036144']);
+      const enriched = batch.get('9780141036144');
+      expect(enriched).toMatchObject({
+        title: '1984',
+        totalPages: 336,
+        coverUrl: 'https://books.google.com/books/content?id=1984&zoom=1',
+        source: 'merged',
+      });
     });
   });
 });

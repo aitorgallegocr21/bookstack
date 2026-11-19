@@ -1,7 +1,7 @@
 # Task 15.2: Cross-Source Fusion Engine, Edition Fallback & Balanced Quota in `BookMetadataService`
 
 **Phase:** Phase 15: Multi-Source Metadata Engine (5 Providers), Integral Auto-Enrichment & Offline `.ZIP` Bundles  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** High (Fixes Google Books visibility, implements 5-source parallel/cascade search, Open Library Work Editions & direct ISBN cover probing, cross-edition metadata fusion, and balanced 8-result ranking).
 
 ---
@@ -58,6 +58,6 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/books/services/book-metadata.service.spec.ts`
-- [ ] `npm run test:file -- src/app/features/books/utils/book-form.utils.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/books/services/book-metadata.service.spec.ts`
+- [x] `npm run test:file -- src/app/features/books/utils/book-form.utils.spec.ts`
+- [x] `npm run verify:quiet`

@@ -1,7 +1,7 @@
 # Task 14.3: Scrollbar-Free Modal Bodies with Subtle Scroll Cues
 
 **Phase:** [Phase 14: Visual Polish, Responsive Layout & UX Refinements](index.md)  
-**Status:** Pending  
+**Status:** Completed  
 **Recommended Model:** Gemini 4 Hydrogen (Medium)
 
 ---

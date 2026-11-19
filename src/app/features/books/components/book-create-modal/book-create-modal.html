@@ -46,7 +46,7 @@
       (ngSubmit)="save()"
       class="modal-form flex max-h-[calc(90dvh-76px)] flex-col"
     >
-      <div class="space-y-5 overflow-y-auto p-6">
+      <div class="modal-scroll-area no-scrollbar space-y-5 overflow-y-auto p-6">
         <app-book-metadata-lookup
           mode="create"
           [currentIsbn]="createForm.controls.isbn.value || ''"

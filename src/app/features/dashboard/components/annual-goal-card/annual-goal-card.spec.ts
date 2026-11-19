@@ -34,11 +34,30 @@ describe('AnnualGoalCardComponent', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('article')?.className).toContain('h-full');
     expect(root.textContent).toContain('Metas anuales (2026)');
     expect(root.textContent).toContain('5 / 20');
     expect(root.textContent).toContain('25%');
     expect(root.textContent).toContain('1500 / 5000');
     expect(root.textContent).toContain('30%');
+    expect(root.textContent).toContain('15');
+    expect(root.textContent).toContain('libros restantes');
+    expect(root.textContent).toContain('3500');
+    expect(root.textContent).toContain('págs. restantes');
+  });
+
+  it('should show completed badge when both books and pages goals are reached', () => {
+    fixture.componentRef.setInput('goals', sampleGoals);
+    fixture.componentRef.setInput('annualProgress', {
+      year: 2026,
+      completedBooks: 20,
+      pagesRead: 5200,
+    });
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('¡Metas anuales completadas!');
+    expect(root.textContent).not.toContain('libros restantes');
   });
 
   it('should open edit modal when clicking edit button and emit goalsUpdated on save', () => {

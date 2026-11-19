@@ -18,7 +18,7 @@ import { AnnualProgress, ReadingGoals } from '../../../books/models/book.model';
   templateUrl: './annual-goal-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'block w-full',
+    class: 'block h-full w-full',
     '(document:keydown.escape)': 'handleEscape()',
   },
 })
@@ -49,6 +49,18 @@ export class AnnualGoalCardComponent implements OnDestroy {
       return 0;
     }
     return Math.min(100, Math.round((this.annualProgress().pagesRead / target) * 100));
+  });
+
+  protected readonly remainingBooks = computed<number>(() => {
+    return Math.max(0, this.goals().targetBooks - this.annualProgress().completedBooks);
+  });
+
+  protected readonly remainingPages = computed<number>(() => {
+    return Math.max(0, this.goals().targetPages - this.annualProgress().pagesRead);
+  });
+
+  protected readonly areAllGoalsCompleted = computed<boolean>(() => {
+    return this.remainingBooks() === 0 && this.remainingPages() === 0;
   });
 
   ngOnDestroy(): void {

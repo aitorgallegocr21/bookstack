@@ -1,5 +1,5 @@
 <article
-  class="relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-5 shadow-sm transition-colors sm:p-6 dark:border-slate-800 dark:bg-slate-900"
+  class="relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-5 shadow-sm transition-colors sm:p-6 dark:border-slate-800 dark:bg-slate-900"
 >
   <!-- Card Header with Goals Title and Edit Button -->
   <div class="flex items-center justify-between">
@@ -52,7 +52,7 @@
   </div>
 
   <!-- Dual Meters (Books + Pages) -->
-  <div class="mt-4 space-y-4">
+  <div class="my-5 space-y-4">
     <!-- Books Meter -->
     <div class="space-y-1.5">
       <div
@@ -94,6 +94,46 @@
         ></div>
       </div>
     </div>
+  </div>
+
+  <!-- Summary Footer -->
+  <div
+    class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3.5 text-xs dark:border-slate-800"
+  >
+    @if (areAllGoalsCompleted()) {
+      <span
+        class="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400"
+      >
+        <svg
+          class="h-4 w-4 shrink-0"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2.5"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+        {{ i18n.t().dashboard.goalsCompletedBadge }}
+      </span>
+    } @else {
+      <div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+        <span class="font-bold text-slate-800 tabular-nums dark:text-slate-200">{{
+          remainingBooks()
+        }}</span>
+        <span>{{ i18n.t().dashboard.booksRemainingLabel }}</span>
+      </div>
+      <div class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+        <span class="font-bold text-slate-800 tabular-nums dark:text-slate-200">{{
+          remainingPages()
+        }}</span>
+        <span>{{ i18n.t().dashboard.pagesRemainingLabel }}</span>
+      </div>
+    }
   </div>
 </article>
 

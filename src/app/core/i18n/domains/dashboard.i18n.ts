@@ -55,6 +55,12 @@ export interface DashboardI18n {
     editGoalsAction: string;
     booksGoalLabel: string;
     pagesGoalLabel: string;
+    booksRemainingLabel: string;
+    pagesRemainingLabel: string;
+    goalsCompletedBadge: string;
+    monthlyTotalLabel: string;
+    monthlyAverageLabel: string;
+    pagesPerMonthUnit: string;
     recentActivityTitle: string;
     noRecentActivity: string;
     pagesReadBadge: string;
@@ -124,6 +130,12 @@ export const ES_DASHBOARD: DashboardI18n = {
     editGoalsAction: 'Editar metas',
     booksGoalLabel: 'Libros leídos',
     pagesGoalLabel: 'Páginas leídas',
+    booksRemainingLabel: 'libros restantes',
+    pagesRemainingLabel: 'págs. restantes',
+    goalsCompletedBadge: '¡Metas anuales completadas!',
+    monthlyTotalLabel: 'Total (6m)',
+    monthlyAverageLabel: 'Media mensual',
+    pagesPerMonthUnit: 'págs./mes',
     recentActivityTitle: 'Actividad reciente',
     noRecentActivity: 'Aún no has registrado sesiones de lectura.',
     pagesReadBadge: 'págs.',
@@ -193,6 +205,12 @@ export const EN_DASHBOARD: DashboardI18n = {
     editGoalsAction: 'Edit goals',
     booksGoalLabel: 'Books read',
     pagesGoalLabel: 'Pages read',
+    booksRemainingLabel: 'books left',
+    pagesRemainingLabel: 'pages left',
+    goalsCompletedBadge: 'Annual goals completed!',
+    monthlyTotalLabel: 'Total (6m)',
+    monthlyAverageLabel: 'Monthly avg',
+    pagesPerMonthUnit: 'pages/mo',
     recentActivityTitle: 'Recent Activity',
     noRecentActivity: 'No reading sessions logged yet.',
     pagesReadBadge: 'pages',

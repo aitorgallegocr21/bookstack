@@ -204,6 +204,12 @@ describe('DashboardPage', () => {
     expect(statsLink).not.toBeNull();
     expect(statsLink?.textContent).toContain('Ver historial');
 
+    const monthlyCard = statsLink?.closest('article');
+    expect(monthlyCard?.className).toContain('@[560px]:col-span-2');
+    expect(monthlyCard?.textContent).toContain('Total (6m):');
+    expect(monthlyCard?.textContent).toContain('2850 págs.');
+    expect(monthlyCard?.textContent).toContain('475 págs./mes');
+
     mockStats.set(originalStats);
   });
 

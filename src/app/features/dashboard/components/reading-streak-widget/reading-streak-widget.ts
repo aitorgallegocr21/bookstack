@@ -8,7 +8,7 @@ import { StreakInfo } from '../../../books/models/book.model';
   templateUrl: './reading-streak-widget.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'block w-full',
+    class: 'block h-full w-full',
   },
 })
 export class ReadingStreakWidgetComponent {

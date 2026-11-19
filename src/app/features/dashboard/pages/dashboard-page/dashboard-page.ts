@@ -94,6 +94,15 @@ export class DashboardPage {
     return monthly.length > 0 ? Math.max(...monthly.map((month) => month.pages), 1) : 1;
   });
 
+  protected readonly recentMonthlyTotalPages = computed<number>(() => {
+    return this.recentMonthlyPages().reduce((sum, month) => sum + month.pages, 0);
+  });
+
+  protected readonly recentMonthlyAveragePages = computed<number>(() => {
+    const monthly = this.recentMonthlyPages();
+    return monthly.length > 0 ? Math.round(this.recentMonthlyTotalPages() / monthly.length) : 0;
+  });
+
   protected formatMonth(month: string): string {
     return formatLocalizedMonth(month, this.i18n.intlLocale());
   }

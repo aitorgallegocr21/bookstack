@@ -30,7 +30,14 @@ import {
   StorageBreakdownSummary,
   StorageHealthStatus,
 } from '../models/data-portability.model';
-import { parseBackupJson } from '../schemas/backup.schema';
+import { normalizeImportedBookCandidate, parseBackupJson } from '../schemas/backup.schema';
+import {
+  binaryToDataUrl,
+  createZipArchive,
+  dataUrlToBinary,
+  readZipArchive,
+  ZipEntryInput,
+} from '../utils/zip-archive.utils';
 
 const UTF8_BOM = '\uFEFF';
 const UTF8_ENCODER = new TextEncoder();
@@ -51,6 +58,9 @@ const CSV_COLUMNS = [
   'seriesName',
   'seriesOrder',
   'isbn',
+  'publisher',
+  'publicationYear',
+  'genre',
   'notes',
   'createdAt',
   'updatedAt',
@@ -86,17 +96,29 @@ export class DataPortabilityService {
   private readonly i18n = inject(I18nService);
 
   // ==========================================
-  // JSON Backup Export
+  // JSON & Portable .ZIP Backup Export
   // ==========================================
 
-  async buildJsonBackupEnvelope(): Promise<BookstackBackupEnvelope> {
+  async buildJsonBackupEnvelope(
+    options: { includeCovers?: boolean } = {}
+  ): Promise<BookstackBackupEnvelope> {
+    const includeCovers = options.includeCovers ?? true;
     await this.seriesService.ensureInitialized();
     const seriesMetadata = [...this.seriesService.metadata()];
+    const books = this.booksService.books().map((book) => {
+      if (includeCovers || !book.coverUrl?.startsWith('data:image/')) {
+        return { ...book };
+      }
+      const stripped = { ...book };
+      delete stripped.coverUrl;
+      return stripped;
+    });
+
     return {
       schemaVersion: 1,
       app: 'BookStack',
       exportedAt: new Date().toISOString(),
-      books: [...this.booksService.books()],
+      books,
       readingLogs: [...this.readingLogService.readingLogs()],
       seriesMetadata,
       readingGoals: { ...this.readingStatsService.goals() },
@@ -104,18 +126,68 @@ export class DataPortabilityService {
     };
   }
 
-  async exportJsonBackup(): Promise<string> {
-    return JSON.stringify(await this.buildJsonBackupEnvelope(), null, 2);
+  async exportJsonBackup(options: { includeCovers?: boolean } = {}): Promise<string> {
+    return JSON.stringify(await this.buildJsonBackupEnvelope(options), null, 2);
   }
 
   async downloadJsonBackup(): Promise<void> {
-    const json = await this.exportJsonBackup();
+    const json = await this.exportJsonBackup({ includeCovers: true });
     const dateStamp = this.formatDateStamp(new Date());
     this.triggerFileDownload(
       json,
-      `bookstack-backup-${dateStamp}.json`,
+      `bookstack-backup-full-${dateStamp}.json`,
       'application/json;charset=utf-8'
     );
+  }
+
+  async downloadLightweightJsonBackup(): Promise<void> {
+    const json = await this.exportJsonBackup({ includeCovers: false });
+    const dateStamp = this.formatDateStamp(new Date());
+    this.triggerFileDownload(
+      json,
+      `bookstack-backup-light-${dateStamp}.json`,
+      'application/json;charset=utf-8'
+    );
+  }
+
+  async exportZipBundle(): Promise<Uint8Array> {
+    const envelope = await this.buildJsonBackupEnvelope({ includeCovers: true });
+    const coverEntries: ZipEntryInput[] = [];
+
+    const booksForZip = envelope.books.map((book) => {
+      if (!book.coverUrl?.startsWith('data:image/')) {
+        return book;
+      }
+      const binary = dataUrlToBinary(book.coverUrl);
+      if (!binary) {
+        return book;
+      }
+      const relativePath = `covers/${book.id}.${binary.extension}`;
+      coverEntries.push({ path: relativePath, data: binary.bytes });
+      return {
+        ...book,
+        coverUrl: relativePath,
+      };
+    });
+
+    const zipEnvelope: BookstackBackupEnvelope = {
+      ...envelope,
+      books: booksForZip,
+    };
+
+    const entries: ZipEntryInput[] = [
+      { path: 'backup.json', data: JSON.stringify(zipEnvelope, null, 2) },
+      { path: 'catalog.csv', data: this.exportCsvCatalog() },
+      ...coverEntries,
+    ];
+
+    return createZipArchive(entries);
+  }
+
+  async downloadZipBundle(): Promise<void> {
+    const zipBytes = await this.exportZipBundle();
+    const dateStamp = this.formatDateStamp(new Date());
+    this.triggerFileDownload(zipBytes, `bookstack-bundle-${dateStamp}.zip`, 'application/zip');
   }
 
   // ==========================================
@@ -155,7 +227,7 @@ export class DataPortabilityService {
       }
     });
 
-    if (!headerIndex.has('title') || !headerIndex.has('author') || !headerIndex.has('totalpages')) {
+    if (!headerIndex.has('title') || !headerIndex.has('author')) {
       return { validBooks: [], invalidBooksCount: 0 };
     }
 
@@ -169,7 +241,7 @@ export class DataPortabilityService {
       }
 
       const candidate = this.mapCsvRowToBookCandidate(row, headerIndex);
-      const parsed = BookSchema.safeParse(candidate);
+      const parsed = BookSchema.safeParse(normalizeImportedBookCandidate(candidate));
       if (parsed.success) {
         validBooks.push(parsed.data);
       } else {
@@ -239,6 +311,75 @@ export class DataPortabilityService {
     };
   }
 
+  async analyzeImportZipFile(
+    fileName: string,
+    zipBytes: Uint8Array
+  ): Promise<ImportPreviewSummary> {
+    const entries = await readZipArchive(zipBytes);
+    const jsonEntry = this.findZipEntry(entries, 'backup.json', '.json');
+
+    if (jsonEntry) {
+      let parsedJson: unknown;
+      try {
+        parsedJson = JSON.parse(new TextDecoder('utf-8').decode(jsonEntry));
+      } catch {
+        throw new Error('Invalid JSON syntax in backup.json inside ZIP archive.');
+      }
+
+      const hydratedJson = this.rehydrateZipCovers(parsedJson, entries);
+      const validation = parseBackupJson(hydratedJson);
+      if (!validation.success) {
+        throw new Error(validation.error);
+      }
+
+      const { duplicateBooksCount, newBooksCount } = this.countBookConflicts(
+        validation.data.validBooks
+      );
+
+      return {
+        format: 'zip',
+        fileName,
+        validBooks: validation.data.validBooks,
+        validReadingLogs: validation.data.validReadingLogs,
+        validSeriesMetadata: validation.data.validSeriesMetadata,
+        readingGoals: validation.data.readingGoals,
+        preferences: validation.data.preferences,
+        invalidBooksCount: validation.data.invalidBooksCount,
+        invalidLogsCount: validation.data.invalidLogsCount,
+        invalidSeriesMetadataCount: validation.data.invalidSeriesMetadataCount,
+        duplicateBooksCount,
+        newBooksCount,
+      };
+    }
+
+    const csvEntry = this.findZipEntry(entries, 'catalog.csv', '.csv');
+    if (csvEntry) {
+      const csvText = new TextDecoder('utf-8').decode(csvEntry);
+      const csvResult = this.parseCsvCatalog(csvText);
+      const validBooks = csvResult.validBooks.map((book) =>
+        this.attachZipCoverToBook(book, entries)
+      );
+      const { duplicateBooksCount, newBooksCount } = this.countBookConflicts(validBooks);
+
+      return {
+        format: 'zip',
+        fileName,
+        validBooks,
+        validReadingLogs: [],
+        validSeriesMetadata: [],
+        readingGoals: null,
+        preferences: null,
+        invalidBooksCount: csvResult.invalidBooksCount,
+        invalidLogsCount: 0,
+        invalidSeriesMetadataCount: 0,
+        duplicateBooksCount,
+        newBooksCount,
+      };
+    }
+
+    throw new Error('ZIP archive does not contain backup.json or catalog.csv.');
+  }
+
   async executeImport(
     preview: ImportPreviewSummary,
     mode: ImportConflictMode
@@ -277,10 +418,19 @@ export class DataPortabilityService {
         preferencesRestored = true;
       }
 
-      const booksWithoutCovers = this.booksService.books().filter((book) => !book.coverUrl?.trim());
+      const allBooks = this.booksService.books();
+      const booksWithoutCovers = allBooks.filter((book) => !book.coverUrl?.trim());
       const missingCoversWithIsbnCount = booksWithoutCovers.filter((book) =>
         Boolean(book.isbn && isValidIsbn(book.isbn))
       ).length;
+      const incompleteMetadataCount = allBooks.filter((book) => {
+        const missingCover = !book.coverUrl?.trim();
+        const missingPages = book.totalPages <= 1;
+        const missingYear = !book.publicationYear;
+        const missingPublisher = !book.publisher?.trim();
+        const missingIsbn = !book.isbn || !isValidIsbn(book.isbn);
+        return missingCover || missingPages || missingYear || missingPublisher || missingIsbn;
+      }).length;
 
       return {
         mode,
@@ -294,6 +444,7 @@ export class DataPortabilityService {
         preferencesRestored,
         missingCoversCount: booksWithoutCovers.length,
         missingCoversWithIsbnCount,
+        incompleteMetadataCount,
       };
     } catch (error) {
       await this.restoreSnapshot(snapshot);
@@ -609,6 +760,12 @@ export class DataPortabilityService {
       }
       case 'isbn':
         return book.isbn ?? '';
+      case 'publisher':
+        return book.publisher ?? '';
+      case 'publicationYear':
+        return book.publicationYear !== undefined ? String(book.publicationYear) : '';
+      case 'genre':
+        return book.genre && book.genre.length > 0 ? book.genre.join('; ') : '';
       case 'notes':
         return book.notes ?? '';
       case 'createdAt':
@@ -723,9 +880,16 @@ export class DataPortabilityService {
     const title = getCell('title');
     const author = getCell('author');
     const status = (getCell('status') || 'pending') as BookStatus;
-    const totalPages = Number.parseInt(getCell('totalPages'), 10);
     const currentPageRaw = getCell('currentPage');
-    const currentPage = currentPageRaw ? Number.parseInt(currentPageRaw, 10) : 0;
+    const parsedCurrentPage = currentPageRaw ? Number.parseInt(currentPageRaw, 10) : 0;
+    const currentPage =
+      Number.isFinite(parsedCurrentPage) && parsedCurrentPage >= 0 ? parsedCurrentPage : 0;
+    const totalPagesRaw = getCell('totalPages');
+    const parsedTotalPages = totalPagesRaw ? Number.parseInt(totalPagesRaw, 10) : Number.NaN;
+    const totalPages =
+      Number.isFinite(parsedTotalPages) && parsedTotalPages >= 1
+        ? parsedTotalPages
+        : Math.max(1, currentPage);
 
     const ratingRaw = getCell('rating');
     const rating = ratingRaw ? Number.parseFloat(ratingRaw) : undefined;
@@ -738,6 +902,18 @@ export class DataPortabilityService {
     const startDate = getCell('startDate') || undefined;
     const endDate = getCell('endDate') || undefined;
     const isbn = getCell('isbn') || undefined;
+    const publisher = getCell('publisher') || undefined;
+    const publicationYearRaw = getCell('publicationYear');
+    const publicationYear = publicationYearRaw
+      ? Number.parseInt(publicationYearRaw, 10)
+      : undefined;
+    const genreRaw = getCell('genre');
+    const genre = genreRaw
+      ? genreRaw
+          .split(';')
+          .map((item) => item.trim())
+          .filter((item) => item.length > 0)
+      : undefined;
     const notes = getCell('notes') || undefined;
     const createdAt = getCell('createdAt') || nowIso;
     const updatedAt = getCell('updatedAt') || nowIso;
@@ -767,6 +943,15 @@ export class DataPortabilityService {
     }
     if (isbn) {
       candidate['isbn'] = isbn;
+    }
+    if (publisher) {
+      candidate['publisher'] = publisher;
+    }
+    if (publicationYear !== undefined && !Number.isNaN(publicationYear)) {
+      candidate['publicationYear'] = publicationYear;
+    }
+    if (genre && genre.length > 0) {
+      candidate['genre'] = genre;
     }
     if (notes) {
       candidate['notes'] = notes;
@@ -831,8 +1016,124 @@ export class DataPortabilityService {
       .replace(/^-+|-+$/g, '');
   }
 
-  private triggerFileDownload(content: string, filename: string, mimeType: string): void {
-    const blob = new Blob([content], { type: mimeType });
+  private findZipEntry(
+    entries: ReadonlyMap<string, Uint8Array>,
+    preferredName: string,
+    fallbackExtension: string
+  ): Uint8Array | null {
+    const exact = entries.get(preferredName);
+    if (exact) {
+      return exact;
+    }
+
+    const lowerPreferred = preferredName.toLowerCase();
+    for (const [path, data] of entries.entries()) {
+      const lowerPath = path.toLowerCase();
+      if (lowerPath === lowerPreferred || lowerPath.endsWith(`/${lowerPreferred}`)) {
+        return data;
+      }
+    }
+
+    for (const [path, data] of entries.entries()) {
+      if (path.toLowerCase().endsWith(fallbackExtension)) {
+        return data;
+      }
+    }
+
+    return null;
+  }
+
+  private rehydrateZipCovers(raw: unknown, entries: ReadonlyMap<string, Uint8Array>): unknown {
+    if (Array.isArray(raw)) {
+      return raw.map((item) => this.rehydrateZipBookRecord(item, entries));
+    }
+
+    if (raw !== null && typeof raw === 'object') {
+      const obj = raw as Record<string, unknown>;
+      if (Array.isArray(obj['books'])) {
+        return {
+          ...obj,
+          books: obj['books'].map((item) => this.rehydrateZipBookRecord(item, entries)),
+        };
+      }
+    }
+
+    return raw;
+  }
+
+  private rehydrateZipBookRecord(raw: unknown, entries: ReadonlyMap<string, Uint8Array>): unknown {
+    if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+      return raw;
+    }
+
+    const record = raw as Record<string, unknown>;
+    const rawCover = typeof record['coverUrl'] === 'string' ? record['coverUrl'].trim() : '';
+    const bookId = typeof record['id'] === 'string' ? record['id'].trim() : '';
+
+    if (rawCover && !rawCover.startsWith('data:') && !rawCover.startsWith('https://')) {
+      const normalizedPath = rawCover.replace(/\\/g, '/').replace(/^\.?\//, '');
+      const coverBytes = entries.get(normalizedPath);
+      if (coverBytes) {
+        return {
+          ...record,
+          coverUrl: binaryToDataUrl(coverBytes, this.resolveCoverMimeType(normalizedPath)),
+        };
+      }
+    }
+
+    if (!rawCover && bookId) {
+      const matched = this.findCoverEntryByBookId(bookId, entries);
+      if (matched) {
+        return {
+          ...record,
+          coverUrl: matched,
+        };
+      }
+    }
+
+    return record;
+  }
+
+  private attachZipCoverToBook(book: Book, entries: ReadonlyMap<string, Uint8Array>): Book {
+    if (book.coverUrl?.trim()) {
+      return book;
+    }
+    const matched = this.findCoverEntryByBookId(book.id, entries);
+    return matched ? { ...book, coverUrl: matched } : book;
+  }
+
+  private findCoverEntryByBookId(
+    bookId: string,
+    entries: ReadonlyMap<string, Uint8Array>
+  ): string | null {
+    for (const ext of ['webp', 'jpg', 'jpeg', 'png'] as const) {
+      const path = `covers/${bookId}.${ext}`;
+      const bytes = entries.get(path);
+      if (bytes) {
+        return binaryToDataUrl(bytes, this.resolveCoverMimeType(path));
+      }
+    }
+    return null;
+  }
+
+  private resolveCoverMimeType(path: string): string {
+    const lower = path.toLowerCase();
+    if (lower.endsWith('.webp')) {
+      return 'image/webp';
+    }
+    if (lower.endsWith('.png')) {
+      return 'image/png';
+    }
+    return 'image/jpeg';
+  }
+
+  private triggerFileDownload(
+    content: string | Uint8Array,
+    filename: string,
+    mimeType: string
+  ): void {
+    const blobPart: BlobPart = content instanceof Uint8Array ? new Uint8Array(content) : content;
+    const blob = new Blob([blobPart], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const link = this.document.createElement('a');
     link.href = url;

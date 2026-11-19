@@ -430,7 +430,7 @@ describe('DataPortabilityService', () => {
         'title,author,status,totalPages,currentPage',
         'El Quijote,Miguel de Cervantes,reading,863,400',
         'Foundation,Isaac Asimov,completed,255,255',
-        'Invalid Book,Unknown,reading,0,10',
+        ',Unknown,reading,0,10',
       ].join('\n');
 
       const preview = service.analyzeImportFile('books.csv', externalCsv);
@@ -596,6 +596,78 @@ describe('DataPortabilityService', () => {
       await service.factoryResetAllData();
       expect(seriesServiceMock.clearAllMetadata).toHaveBeenCalledTimes(1);
       expect(seriesMetadataSignal()).toEqual([]);
+    });
+  });
+
+  describe('Phase 15: Expanded CSV, Lightweight JSON & Offline .ZIP Bundle', () => {
+    it('exports and imports publisher, publicationYear, and genre in CSV and tolerates missing totalPages', () => {
+      booksSignal.set([
+        makeBook({
+          id: 'book-meta',
+          publisher: 'Minotauro',
+          publicationYear: 1965,
+          genre: ['Ciencia Ficción', 'Clásico'],
+        }),
+      ]);
+
+      const csv = service.exportCsvCatalog();
+      const parsed = service.parseCsvCatalog(csv);
+      expect(parsed.validBooks).toHaveLength(1);
+      expect(parsed.validBooks[0].publisher).toBe('Minotauro');
+      expect(parsed.validBooks[0].publicationYear).toBe(1965);
+      expect(parsed.validBooks[0].genre).toEqual(['Ciencia Ficción', 'Clásico']);
+
+      const noPagesCsv = [
+        'title,author,status,publisher,publicationYear,genre',
+        'Neuromancer,William Gibson,pendiente,Ace Books,1984,Cyberpunk; Sci-Fi',
+      ].join('\n');
+      const noPagesPreview = service.analyzeImportFile('ai-books.csv', noPagesCsv);
+      expect(noPagesPreview.validBooks).toHaveLength(1);
+      expect(noPagesPreview.validBooks[0].totalPages).toBe(1);
+      expect(noPagesPreview.validBooks[0].status).toBe('pending');
+      expect(noPagesPreview.validBooks[0].publisher).toBe('Ace Books');
+      expect(noPagesPreview.validBooks[0].publicationYear).toBe(1984);
+      expect(noPagesPreview.validBooks[0].genre).toEqual(['Cyberpunk', 'Sci-Fi']);
+    });
+
+    it('strips Base64 data:image covers in lightweight JSON export while preserving https URLs', async () => {
+      booksSignal.set([
+        makeBook({ id: 'b-data', coverUrl: 'data:image/webp;base64,AAAA' }),
+        makeBook({ id: 'b-https', coverUrl: 'https://covers.openlibrary.org/b/id/1-L.jpg' }),
+      ]);
+
+      const lightJson = await service.exportJsonBackup({ includeCovers: false });
+      const parsed = JSON.parse(lightJson) as { books: Book[] };
+      expect(parsed.books[0].coverUrl).toBeUndefined();
+      expect(parsed.books[1].coverUrl).toBe('https://covers.openlibrary.org/b/id/1-L.jpg');
+    });
+
+    it('exports a portable .ZIP bundle and rehydrates binary covers on .ZIP import', async () => {
+      const dataUrl = 'data:image/png;base64,iVBORw0KGgo=';
+      booksSignal.set([
+        makeBook({
+          id: 'zip-book-1',
+          title: 'Dune',
+          author: 'Frank Herbert',
+          coverUrl: dataUrl,
+          publisher: 'Chilton Books',
+          publicationYear: 1965,
+        }),
+      ]);
+
+      const zipBytes = await service.exportZipBundle();
+      booksSignal.set([]);
+
+      const preview = await service.analyzeImportZipFile('bookstack-bundle.zip', zipBytes);
+      expect(preview.format).toBe('zip');
+      expect(preview.validBooks).toHaveLength(1);
+      expect(preview.validBooks[0].coverUrl).toBe(dataUrl);
+      expect(preview.validBooks[0].publisher).toBe('Chilton Books');
+
+      const result = await service.executeImport(preview, 'overwrite');
+      expect(result.format).toBe('zip');
+      expect(result.booksImported).toBe(1);
+      expect(result.incompleteMetadataCount).toBe(1); // missing valid ISBN
     });
   });
 });

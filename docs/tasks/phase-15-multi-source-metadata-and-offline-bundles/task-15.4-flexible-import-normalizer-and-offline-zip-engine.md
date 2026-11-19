@@ -1,7 +1,7 @@
 # Task 15.4: Flexible External/AI Import Normalizer, Expanded CSV & Browser-Native `.ZIP` Archive Engine
 
 **Phase:** Phase 15: Multi-Source Metadata Engine (5 Providers), Integral Auto-Enrichment & Offline `.ZIP` Bundles  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** High (Prevents external/AI JSON & CSV books with missing `totalPages`, `id`, or timestamps from being discarded on import, expands CSV with `publisher`/`publicationYear`/`genre`, and adds a 100% browser-native `.ZIP` packager/unpacker for offline backups with `/covers` images).
 
 ---
@@ -65,7 +65,7 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/settings/utils/zip-archive.utils.spec.ts`
-- [ ] `npm run test:file -- src/app/features/settings/schemas/backup.schema.spec.ts`
-- [ ] `npm run test:file -- src/app/features/settings/services/data-portability.service.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/settings/utils/zip-archive.utils.spec.ts`
+- [x] `npm run test:file -- src/app/features/settings/schemas/backup.schema.spec.ts`
+- [x] `npm run test:file -- src/app/features/settings/services/data-portability.service.spec.ts`
+- [x] `npm run verify:quiet`

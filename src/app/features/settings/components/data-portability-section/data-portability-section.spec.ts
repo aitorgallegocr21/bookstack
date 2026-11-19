@@ -218,6 +218,7 @@ describe('DataPortabilitySectionComponent', () => {
       preferencesRestored: false,
       missingCoversCount: 0,
       missingCoversWithIsbnCount: 0,
+      incompleteMetadataCount: 0,
     });
     const emitSpy = vi.spyOn(component.dataChanged, 'emit');
     fixture.detectChanges();
@@ -265,6 +266,7 @@ describe('DataPortabilitySectionComponent', () => {
       preferencesRestored: false,
       missingCoversCount: 4,
       missingCoversWithIsbnCount: 3,
+      incompleteMetadataCount: 4,
     });
     const emitSpy = vi.spyOn(component.requestCoverEnrichment, 'emit');
     fixture.detectChanges();
@@ -302,6 +304,7 @@ describe('DataPortabilitySectionComponent', () => {
       preferencesRestored: false,
       missingCoversCount: 0,
       missingCoversWithIsbnCount: 0,
+      incompleteMetadataCount: 0,
     });
     fixture.detectChanges();
 

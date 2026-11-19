@@ -115,4 +115,21 @@ describe('BookGridCardComponent', () => {
     fixture.detectChanges();
     expect(host.lastDeleteBookId).toBe('book-1');
   });
+
+  it('should use @container and container-query label visibility on the Log button without clipping', () => {
+    const article = fixture.debugElement.query(By.css('article'));
+    expect(article.nativeElement.classList.contains('@container')).toBe(true);
+
+    const logButton = fixture.debugElement.query(
+      By.css('button[aria-label="Registrar lectura de Elantris"]')
+    );
+    expect(logButton).toBeTruthy();
+    expect(logButton.nativeElement.getAttribute('title')).toBeTruthy();
+    expect(logButton.nativeElement.classList.contains('whitespace-nowrap')).toBe(true);
+
+    const labelSpan = logButton.query(By.css('span'));
+    expect(labelSpan).toBeTruthy();
+    expect(labelSpan.nativeElement.classList.contains('hidden')).toBe(true);
+    expect(labelSpan.nativeElement.classList.contains('@[205px]:inline')).toBe(true);
+  });
 });

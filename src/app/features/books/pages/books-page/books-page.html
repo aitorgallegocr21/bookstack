@@ -80,62 +80,64 @@
       </button>
     </div>
   } @else {
-    <!-- Switch between 3 View Modes -->
-    @switch (catalogFilterService.viewMode()) {
-      @case ('grid') {
-        <!-- Visual Bookshelf Grid: 2 cols mobile, 3 tablet, 4-5 desktop, 6 ultra-wide -->
-        <section
-          class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-          [attr.aria-label]="i18n.t().books.listAria"
-        >
-          @for (book of books(); track book.id) {
-            <app-book-grid-card
-              [book]="book"
-              (viewDetails)="openDetailModal($event)"
-              (logReading)="openReadingLogEditorForId($event)"
-              (editBook)="openEditModal($event)"
-              (deleteBook)="deleteBook($event)"
-            />
-          }
-        </section>
-      }
+    <!-- Switch between 3 View Modes inside container-aware wrapper -->
+    <div class="@container">
+      @switch (catalogFilterService.viewMode()) {
+        @case ('grid') {
+          <!-- Visual Bookshelf Grid: container-aware 2 to 6 cols -->
+          <section
+            class="grid grid-cols-2 gap-3 sm:gap-4 @[520px]:grid-cols-3 @[760px]:grid-cols-4 @[1020px]:grid-cols-5 @[1300px]:grid-cols-6"
+            [attr.aria-label]="i18n.t().books.listAria"
+          >
+            @for (book of books(); track book.id) {
+              <app-book-grid-card
+                [book]="book"
+                (viewDetails)="openDetailModal($event)"
+                (logReading)="openReadingLogEditorForId($event)"
+                (editBook)="openEditModal($event)"
+                (deleteBook)="deleteBook($event)"
+              />
+            }
+          </section>
+        }
 
-      @case ('detailed') {
-        <!-- Detailed Cards: 1 col mobile, 2 tablet, 3-4 desktop -->
-        <section
-          class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
-          [attr.aria-label]="i18n.t().books.listAria"
-        >
-          @for (book of books(); track book.id) {
-            <app-book-detailed-card
-              [book]="book"
-              (viewDetails)="openDetailModal($event)"
-              (logReading)="openReadingLogEditorForId($event)"
-              (editBook)="openEditModal($event)"
-              (deleteBook)="deleteBook($event)"
-            />
-          }
-        </section>
-      }
+        @case ('detailed') {
+          <!-- Detailed Cards: container-aware 1 to 4 cols -->
+          <section
+            class="grid grid-cols-1 gap-4 @[680px]:grid-cols-2 @[1080px]:grid-cols-3 @[1440px]:grid-cols-4"
+            [attr.aria-label]="i18n.t().books.listAria"
+          >
+            @for (book of books(); track book.id) {
+              <app-book-detailed-card
+                [book]="book"
+                (viewDetails)="openDetailModal($event)"
+                (logReading)="openReadingLogEditorForId($event)"
+                (editBook)="openEditModal($event)"
+                (deleteBook)="deleteBook($event)"
+              />
+            }
+          </section>
+        }
 
-      @case ('compact') {
-        <!-- Compact High-Density Row List -->
-        <section
-          class="flex flex-col divide-y divide-slate-200/80 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900"
-          [attr.aria-label]="i18n.t().books.listAria"
-        >
-          @for (book of books(); track book.id) {
-            <app-book-compact-row
-              [book]="book"
-              (viewDetails)="openDetailModal($event)"
-              (logReading)="openReadingLogEditorForId($event)"
-              (editBook)="openEditModal($event)"
-              (deleteBook)="deleteBook($event)"
-            />
-          }
-        </section>
+        @case ('compact') {
+          <!-- Compact High-Density Row List -->
+          <section
+            class="flex flex-col divide-y divide-slate-200/80 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900"
+            [attr.aria-label]="i18n.t().books.listAria"
+          >
+            @for (book of books(); track book.id) {
+              <app-book-compact-row
+                [book]="book"
+                (viewDetails)="openDetailModal($event)"
+                (logReading)="openReadingLogEditorForId($event)"
+                (editBook)="openEditModal($event)"
+                (deleteBook)="deleteBook($event)"
+              />
+            }
+          </section>
+        }
       }
-    }
+    </div>
   }
 
   <!-- Modals -->

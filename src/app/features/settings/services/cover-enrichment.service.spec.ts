@@ -6,7 +6,7 @@ import { BookMetadataCandidate } from '../../books/models/book-metadata.model';
 import { BookMetadataService } from '../../books/services/book-metadata.service';
 import { BooksService } from '../../books/services/books.service';
 import { ImageOptimizerService } from '../../books/services/image-optimizer.service';
-import { CoverEnrichmentService } from './cover-enrichment.service';
+import { CoverEnrichmentService, mergeCandidateIntoBook } from './cover-enrichment.service';
 
 function makeBook(overrides: Partial<Book> & { id: string; title: string; author: string }): Book {
   return {
@@ -332,6 +332,7 @@ describe('CoverEnrichmentService', () => {
     service.resetReport();
     expect(service.state().status).toBe('idle');
     expect(service.state().downloadedCount).toBe(0);
+    expect(service.state().metadataUpdatedCount).toBe(0);
   });
 
   it('pauses the visual assistant only on multiple-cover books and summarizes zero-cover books without manual skipping', async () => {
@@ -440,5 +441,245 @@ describe('CoverEnrichmentService', () => {
     expect(service.assistantLoading()).toBe(false);
     expect(service.assistantCurrentBook()).toBeNull();
     expect(service.assistantNotFoundBooks().map((b) => b.id)).toEqual(['z1', 'z2']);
+  });
+
+  it('computes integral incomplete counts across cover, pages, year, publisher, and isbn', () => {
+    booksSignal.set([
+      makeBook({
+        id: 'complete',
+        title: 'Complete',
+        author: 'Author',
+        isbn: '9780441172719',
+        coverUrl: 'data:image/webp;base64,abc',
+        totalPages: 412,
+        publicationYear: 1965,
+        publisher: 'Chilton',
+      }),
+      makeBook({
+        id: 'missing-pages-year',
+        title: 'Incomplete Metadata',
+        author: 'Author',
+        isbn: '9780441172719',
+        coverUrl: 'data:image/webp;base64,def',
+        totalPages: 1,
+        publisher: 'Minotauro',
+      }),
+      makeBook({
+        id: 'missing-cover-pub-isbn',
+        title: 'Missing Cover & Pub',
+        author: 'Author',
+        totalPages: 250,
+        publicationYear: 2020,
+      }),
+    ]);
+
+    const summary = service.missingCoverSummary();
+    expect(summary.totalIncomplete).toBe(2);
+    expect(summary.missingCoverCount).toBe(1);
+    expect(summary.missingPagesCount).toBe(1);
+    expect(summary.missingYearCount).toBe(1);
+    expect(summary.missingPublisherCount).toBe(1);
+    expect(summary.missingIsbnCount).toBe(1);
+    expect(summary.incompleteBooks.map((b) => b.id)).toEqual([
+      'missing-pages-year',
+      'missing-cover-pub-isbn',
+    ]);
+  });
+
+  it('merges candidate metadata non-destructively while respecting existing book values', () => {
+    const existingBook = makeBook({
+      id: 'b-merge',
+      title: 'The Way of Kings',
+      author: 'Brandon Sanderson',
+      totalPages: 1,
+      currentPage: 50,
+      publisher: 'Nova',
+    });
+
+    const candidate = makeCandidate({
+      isbn: '0765326353',
+      publisher: 'Tor Books',
+      publicationYear: 2010,
+      totalPages: 40,
+      seriesName: 'The Stormlight Archive',
+      seriesOrder: 1,
+      coverUrl: 'https://img/way-of-kings.jpg',
+    });
+
+    const result = mergeCandidateIntoBook(
+      existingBook,
+      candidate,
+      'data:image/webp;base64,optimized'
+    );
+
+    expect(result.coverChanged).toBe(true);
+    expect(result.metadataChanged).toBe(true);
+    expect(result.updatedBook.coverUrl).toBe('data:image/webp;base64,optimized');
+    expect(result.updatedBook.publisher).toBe('Nova');
+    expect(result.updatedBook.publicationYear).toBe(2010);
+    expect(result.updatedBook.totalPages).toBe(50);
+    expect(result.updatedBook.isbn).toBe('9780765326355');
+    expect(result.updatedBook.series).toEqual(
+      expect.objectContaining({
+        name: 'The Stormlight Archive',
+        volumeNumber: 1,
+      })
+    );
+  });
+
+  it('cascades from ISBN to strict Title+Author in runIntegralEnrichment and merges both hits', async () => {
+    const partialIsbnBook = makeBook({
+      id: 'int-1',
+      title: 'Dune',
+      author: 'Frank Herbert',
+      isbn: '9780441172719',
+      totalPages: 0,
+    });
+    const hasCoverNeedsMeta = makeBook({
+      id: 'int-2',
+      title: 'Elantris',
+      author: 'Brandon Sanderson',
+      coverUrl: 'data:image/webp;base64,existing',
+      totalPages: 1,
+    });
+
+    booksSignal.set([partialIsbnBook, hasCoverNeedsMeta]);
+
+    mockMetadataService.lookupBatchByIsbns.mockResolvedValue(
+      new Map([
+        [
+          '9780441172719',
+          makeCandidate({
+            isbn: '9780441172719',
+            publisher: 'Ace Books',
+            publicationYear: 1965,
+            coverUrl: undefined,
+            totalPages: undefined,
+          }),
+        ],
+      ])
+    );
+
+    const duneSearchCandidate = makeCandidate({
+      id: 'cand-dune-search',
+      title: 'Dune',
+      author: 'Frank Herbert',
+      totalPages: 688,
+      coverUrl: 'https://img/dune-full.jpg',
+      seriesName: 'Dune Chronicles',
+      seriesOrder: 1,
+      source: 'googlebooks',
+    });
+    const elantrisSearchCandidate = makeCandidate({
+      id: 'cand-elantris',
+      title: 'Elantris',
+      author: 'Brandon Sanderson',
+      isbn: '0765311771',
+      publisher: 'Tor Books',
+      publicationYear: 2005,
+      totalPages: 615,
+      coverUrl: 'https://img/should-not-download.jpg',
+    });
+
+    mockMetadataService.searchByQuery.mockImplementation(async (query: string) => {
+      if (query.includes('Dune')) {
+        return [duneSearchCandidate];
+      }
+      if (query.includes('Elantris')) {
+        return [elantrisSearchCandidate];
+      }
+      return [];
+    });
+    mockMetadataService.verifyStrictTitleAuthorCandidate.mockImplementation(
+      (_book: Book, candidates: BookMetadataCandidate[]) => candidates[0] ?? null
+    );
+
+    await service.runIntegralEnrichment();
+
+    expect(mockMetadataService.searchByQuery).toHaveBeenCalledWith('Dune Frank Herbert', {
+      title: 'Dune',
+      author: 'Frank Herbert',
+    });
+    expect(mockMetadataService.searchByQuery).toHaveBeenCalledWith('Elantris Brandon Sanderson', {
+      title: 'Elantris',
+      author: 'Brandon Sanderson',
+    });
+    // Cover optimization is only called for int-1, not int-2 which already has a cover
+    expect(mockImageOptimizer.optimizeRemoteUrl).toHaveBeenCalledTimes(1);
+
+    const state = service.state();
+    expect(state.status).toBe('completed');
+    expect(state.mode).toBe('integral-auto');
+    expect(state.processedCount).toBe(2);
+    expect(state.downloadedCount).toBe(1);
+    expect(state.metadataUpdatedCount).toBe(2);
+    expect(state.skippedItems).toEqual([]);
+
+    const updatedBooks = booksSignal();
+    const updatedDune = updatedBooks.find((b) => b.id === 'int-1');
+    const updatedElantris = updatedBooks.find((b) => b.id === 'int-2');
+
+    expect(updatedDune?.publisher).toBe('Ace Books');
+    expect(updatedDune?.publicationYear).toBe(1965);
+    expect(updatedDune?.totalPages).toBe(688);
+    expect(updatedDune?.coverUrl).toBe('data:image/webp;base64,optimized');
+    expect(updatedDune?.series?.name).toBe('Dune Chronicles');
+
+    expect(updatedElantris?.coverUrl).toBe('data:image/webp;base64,existing');
+    expect(updatedElantris?.totalPages).toBe(615);
+    expect(updatedElantris?.publisher).toBe('Tor Books');
+    expect(updatedElantris?.publicationYear).toBe(2005);
+    expect(updatedElantris?.isbn).toBe('9780765311771');
+  });
+
+  it('backfills totalPages, year, publisher, isbn, and series when selecting a candidate in the Visual Assistant', async () => {
+    const book = makeBook({
+      id: 'va-meta',
+      title: 'Mistborn',
+      author: 'Brandon Sanderson',
+      totalPages: 0,
+    });
+    booksSignal.set([book]);
+
+    const candA = makeCandidate({
+      id: 'va-a',
+      title: 'The Final Empire',
+      author: 'Brandon Sanderson',
+      isbn: '076531178X',
+      publisher: 'Tor Fantasy',
+      publicationYear: 2006,
+      totalPages: 541,
+      seriesName: 'Mistborn',
+      seriesOrder: 1,
+      coverUrl: 'https://img/mistborn-a.jpg',
+    });
+    const candB = makeCandidate({
+      id: 'va-b',
+      title: 'El Imperio Final',
+      author: 'Brandon Sanderson',
+      coverUrl: 'https://img/mistborn-b.jpg',
+    });
+
+    mockMetadataService.searchByQuery.mockResolvedValue([candA, candB]);
+
+    await service.startVisualAssistant();
+    const applied = await service.selectAssistantCover(candA);
+
+    expect(applied).toBe(true);
+    expect(mockBooksService.update).toHaveBeenCalledWith(
+      'va-meta',
+      expect.objectContaining({
+        id: 'va-meta',
+        coverUrl: 'data:image/webp;base64,optimized',
+        isbn: '9780765311788',
+        publisher: 'Tor Fantasy',
+        publicationYear: 2006,
+        totalPages: 541,
+        series: expect.objectContaining({
+          name: 'Mistborn',
+          volumeNumber: 1,
+        }),
+      })
+    );
   });
 });

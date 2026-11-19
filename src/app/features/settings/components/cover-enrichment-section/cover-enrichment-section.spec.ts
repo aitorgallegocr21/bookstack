@@ -80,6 +80,13 @@ describe('CoverEnrichmentSectionComponent', () => {
       withoutValidIsbnCount: 1,
       booksWithIsbn: [isbnBook],
       booksWithoutIsbn: [noIsbnBook],
+      totalIncomplete: 2,
+      missingCoverCount: 2,
+      missingPagesCount: 0,
+      missingYearCount: 2,
+      missingPublisherCount: 2,
+      missingIsbnCount: 1,
+      incompleteBooks: [isbnBook, noIsbnBook],
     });
 
     stateSignal = signal<CoverEnrichmentState>({
@@ -88,6 +95,7 @@ describe('CoverEnrichmentSectionComponent', () => {
       processedCount: 0,
       totalCount: 0,
       downloadedCount: 0,
+      metadataUpdatedCount: 0,
       skippedItems: [],
     });
 
@@ -139,6 +147,13 @@ describe('CoverEnrichmentSectionComponent', () => {
       withoutValidIsbnCount: 0,
       booksWithIsbn: [],
       booksWithoutIsbn: [],
+      totalIncomplete: 0,
+      missingCoverCount: 0,
+      missingPagesCount: 0,
+      missingYearCount: 0,
+      missingPublisherCount: 0,
+      missingIsbnCount: 0,
+      incompleteBooks: [],
     });
     fixture.detectChanges();
 
@@ -171,12 +186,20 @@ describe('CoverEnrichmentSectionComponent', () => {
   });
 
   it('disables ISBN enrichment button when withValidIsbnCount is 0', () => {
+    const noIsbnBook = makeBook('b-2', 'El Hobbit', 'J.R.R. Tolkien');
     summarySignal.set({
       totalMissing: 1,
       withValidIsbnCount: 0,
       withoutValidIsbnCount: 1,
       booksWithIsbn: [],
-      booksWithoutIsbn: [makeBook('b-2', 'El Hobbit', 'J.R.R. Tolkien')],
+      booksWithoutIsbn: [noIsbnBook],
+      totalIncomplete: 1,
+      missingCoverCount: 1,
+      missingPagesCount: 0,
+      missingYearCount: 1,
+      missingPublisherCount: 1,
+      missingIsbnCount: 1,
+      incompleteBooks: [noIsbnBook],
     });
     fixture.detectChanges();
 
@@ -193,6 +216,7 @@ describe('CoverEnrichmentSectionComponent', () => {
       processedCount: 2,
       totalCount: 5,
       downloadedCount: 1,
+      metadataUpdatedCount: 0,
       skippedItems: [],
     });
     fixture.detectChanges();
@@ -346,6 +370,7 @@ describe('CoverEnrichmentSectionComponent', () => {
       processedCount: 2,
       totalCount: 2,
       downloadedCount: 1,
+      metadataUpdatedCount: 0,
       skippedItems: [
         {
           bookId: 'b-9',

@@ -164,7 +164,7 @@ function selectRealisticPageCount(
   return primaryPages ?? secondaryPages;
 }
 
-function mergeCandidates(
+export function mergeCandidates(
   primary: BookMetadataCandidate,
   secondary: BookMetadataCandidate
 ): BookMetadataCandidate {

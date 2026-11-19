@@ -1,7 +1,7 @@
 # Task 15.3: Integral Metadata & Cover Auto-Enrichment Engine & Visual Assistant Upgrade
 
 **Phase:** Phase 15: Multi-Source Metadata Engine (5 Providers), Integral Auto-Enrichment & Offline `.ZIP` Bundles  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** High (Upgrades `CoverEnrichmentService` into a full metadata & cover enrichment engine that backfills `coverUrl`, `totalPages`, `publicationYear`, `publisher`, `isbn`, and `series`, cascades automatically from ISBN to strict Title+Author lookup, and enriches the Step-by-Step Visual Assistant).
 
 ---
@@ -57,5 +57,5 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/settings/services/cover-enrichment.service.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/settings/services/cover-enrichment.service.spec.ts`
+- [x] `npm run verify:quiet`

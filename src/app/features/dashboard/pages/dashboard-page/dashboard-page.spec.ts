@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 import { Book, ReadingStats } from '../../../books/models/book.model';
 import { BooksService } from '../../../books/services/books.service';
@@ -88,6 +89,7 @@ describe('DashboardPage', () => {
     await TestBed.configureTestingModule({
       imports: [DashboardPage],
       providers: [
+        provideRouter([]),
         {
           provide: ReadingStatsService,
           useValue: {
@@ -117,8 +119,8 @@ describe('DashboardPage', () => {
     expect(root.querySelector('h1')?.textContent).toContain('Resumen de lectura');
     expect(root.textContent).toContain('720');
     expect(root.textContent).toContain('48');
-    expect(root.textContent).toContain('Enero 2026');
-    expect(root.textContent).toContain('Febrero 2026');
+    expect(root.textContent).toContain('Ene');
+    expect(root.textContent).toContain('Feb');
   });
 
   it('should render currently reading hero with active book', () => {
@@ -171,5 +173,54 @@ describe('DashboardPage', () => {
     expect(root.textContent).toContain('Sin lecturas en curso');
     expect(root.textContent).toContain('Pending Read');
     expect(root.textContent).toContain('Empezar a leer');
+  });
+
+  it('should cap monthly activity chart to the last 6 months and render /stats link', () => {
+    const twelveMonths = Array.from({ length: 12 }, (_, idx) => {
+      const monthNumber = String(idx + 1).padStart(2, '0');
+      return { month: `2026-${monthNumber}`, pages: (idx + 1) * 50 };
+    });
+
+    const originalStats = mockStats();
+    mockStats.set({
+      ...originalStats,
+      monthlyPages: twelveMonths,
+    });
+
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const bars = root.querySelectorAll('[role="list"] [role="listitem"]');
+    expect(bars.length).toBe(6);
+
+    // Should show July-December (350..600) and exclude January-June (50..300)
+    const chartText = root.querySelector('[role="list"]')?.textContent ?? '';
+    expect(chartText).toContain('350');
+    expect(chartText).toContain('600');
+    expect(chartText).not.toContain('300');
+
+    const statsLink = root.querySelector('a[href="/stats"]');
+    expect(statsLink).not.toBeNull();
+    expect(statsLink?.textContent).toContain('Ver historial');
+
+    mockStats.set(originalStats);
+  });
+
+  it('should render empty fallback when monthlyPages is empty', () => {
+    const originalStats = mockStats();
+    mockStats.set({
+      ...originalStats,
+      monthlyPages: [],
+    });
+
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Sin registros mensuales');
+    expect(root.querySelectorAll('[role="list"] [role="listitem"]').length).toBe(0);
+
+    mockStats.set(originalStats);
   });
 });

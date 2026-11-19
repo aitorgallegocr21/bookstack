@@ -1,120 +1,341 @@
-<div class="mx-auto min-h-screen max-w-3xl p-6">
-  <header class="mb-8">
-    <h1 class="mb-2 text-3xl font-bold">{{ i18n.t().about.title }}</h1>
-    <p class="text-lg text-slate-600 dark:text-slate-400">
-      {{ i18n.t().about.subtitle }}
-    </p>
+<div class="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+  <!-- Compact Hero Header -->
+  <header
+    class="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50 to-blue-50/60 p-6 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/30"
+  >
+    <div class="flex flex-wrap items-center gap-3">
+      <span
+        class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"
+        aria-hidden="true"
+      >
+        <svg [lucideIcon]="BookOpen" size="20" stroke-width="2"></svg>
+      </span>
+      <div class="min-w-0 flex-1">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+            {{ i18n.t().about.title }}
+          </h1>
+          <span
+            class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:border-blue-800/80 dark:bg-blue-950/60 dark:text-blue-300"
+          >
+            v2.0.0
+          </span>
+        </div>
+        <p class="mt-1 text-sm text-slate-600 sm:text-base dark:text-slate-400">
+          {{ i18n.t().about.subtitle }}
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-4 flex flex-wrap gap-2">
+      @for (pill of techPills; track pill) {
+        <span
+          class="inline-flex items-center rounded-lg border border-slate-200 bg-white/80 px-2.5 py-1 text-xs font-medium text-slate-700 dark:border-slate-700/80 dark:bg-slate-800/70 dark:text-slate-300"
+        >
+          {{ pill }}
+        </span>
+      }
+    </div>
   </header>
 
-  <section class="space-y-6">
+  <!-- 2-Column Bento Grid: Local-First Manifesto & Privacy -->
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-2">
     <!-- Local-First Manifesto -->
-    <article class="border-l-4 border-blue-500 py-4 pl-6">
-      <h2 class="mb-3 text-xl font-semibold">{{ i18n.t().about.manifestoTitle }}</h2>
-      <p class="mb-4 text-slate-700 dark:text-slate-300">
-        {{ i18n.t().about.manifestoIntroPrefix }}
-        <strong>{{ i18n.t().about.manifestoIntroStrong }}</strong>
-      </p>
-      <ul class="list-inside list-disc space-y-2 text-slate-600 dark:text-slate-400">
-        <li>
-          <strong>{{ i18n.t().about.manifestoPoints.localDataTitle }}</strong>
-          {{ i18n.t().about.manifestoPoints.localDataText }}
-        </li>
-        <li>
-          <strong>{{ i18n.t().about.manifestoPoints.privacyTitle }}</strong>
-          {{ i18n.t().about.manifestoPoints.privacyText }}
-        </li>
-        <li>
-          <strong>{{ i18n.t().about.manifestoPoints.performanceTitle }}</strong>
-          {{ i18n.t().about.manifestoPoints.performanceText }}
-        </li>
-        <li>
-          <strong>{{ i18n.t().about.manifestoPoints.independenceTitle }}</strong>
-          {{ i18n.t().about.manifestoPoints.independenceText }}
-        </li>
-        <li>
-          <strong>{{ i18n.t().about.manifestoPoints.portabilityTitle }}</strong>
-          {{ i18n.t().about.manifestoPoints.portabilityText }}
-        </li>
-      </ul>
-    </article>
-
-    <!-- Application Info -->
-    <article class="rounded-lg bg-slate-50 p-6 dark:bg-slate-800">
-      <h2 class="mb-4 text-xl font-semibold">{{ i18n.t().about.appInfoTitle }}</h2>
-      <div class="space-y-3">
-        <div>
-          <p class="text-sm text-slate-500 dark:text-slate-400">
-            {{ i18n.t().about.versionLabel }}
-          </p>
-          <p class="text-lg font-medium text-slate-900 dark:text-white">1.0.0</p>
-        </div>
-        <div>
-          <p class="text-sm text-slate-500 dark:text-slate-400">
-            {{ i18n.t().about.technologyLabel }}
-          </p>
-          <p class="text-lg font-medium text-slate-900 dark:text-white">
-            {{ i18n.t().about.technologyValue }}
-          </p>
-        </div>
-        <div>
-          <p class="text-sm text-slate-500 dark:text-slate-400">
-            {{ i18n.t().about.platformLabel }}
-          </p>
-          <p class="text-lg font-medium text-slate-900 dark:text-white">
-            {{ i18n.t().about.platformValue }}
-          </p>
-        </div>
-      </div>
-    </article>
-
     <article
-      class="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/60 dark:bg-blue-950/30"
+      class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/70"
     >
-      <h2 class="mb-2 text-xl font-semibold">{{ i18n.t().about.authorshipTitle }}</h2>
-      <p class="text-slate-700 dark:text-slate-300">
-        {{ i18n.t().about.authorshipTextPrefix }}<strong>Aitor Gallego-Casilda Romero</strong>.
-      </p>
-      <div class="mt-4 flex flex-wrap gap-3">
-        <a
-          href="https://github.com/aitorgallegocr21"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex min-h-[44px] items-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-          [attr.aria-label]="i18n.t().about.githubProfileAria"
+      <div class="mb-3 flex items-center gap-2.5">
+        <span
+          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400"
+          aria-hidden="true"
         >
-          {{ i18n.t().about.githubProfileLabel }}
-        </a>
-        <a
-          href="https://github.com/aitorgallegocr21/bookstack.git"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex min-h-[44px] items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
-          [attr.aria-label]="i18n.t().about.githubRepoAria"
-        >
-          {{ i18n.t().about.githubRepoLabel }}
-        </a>
+          <svg [lucideIcon]="Database" size="18" stroke-width="2"></svg>
+        </span>
+        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+          {{ i18n.t().about.manifestoTitle }}
+        </h2>
       </div>
-    </article>
-
-    <!-- Features -->
-    <article>
-      <h2 class="mb-3 text-xl font-semibold">{{ i18n.t().about.featuresTitle }}</h2>
-      <ul class="list-inside list-disc space-y-2 text-slate-600 dark:text-slate-400">
-        <li>{{ i18n.t().about.features.catalog }}</li>
-        <li>{{ i18n.t().about.features.sessions }}</li>
-        <li>{{ i18n.t().about.features.analytics }}</li>
-        <li>{{ i18n.t().about.features.organization }}</li>
-        <li>{{ i18n.t().about.features.theme }}</li>
-        <li>{{ i18n.t().about.features.responsive }}</li>
-        <li>{{ i18n.t().about.features.persistence }}</li>
+      <p class="mb-3 text-sm text-slate-600 dark:text-slate-400">
+        {{ i18n.t().about.manifestoIntroPrefix }}
+        <strong class="text-slate-800 dark:text-slate-200">{{
+          i18n.t().about.manifestoIntroStrong
+        }}</strong>
+      </p>
+      <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+        <li class="flex gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></span>
+          <span>
+            <strong class="text-slate-800 dark:text-slate-200">{{
+              i18n.t().about.manifestoPoints.localDataTitle
+            }}</strong>
+            {{ i18n.t().about.manifestoPoints.localDataText }}
+          </span>
+        </li>
+        <li class="flex gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></span>
+          <span>
+            <strong class="text-slate-800 dark:text-slate-200">{{
+              i18n.t().about.manifestoPoints.privacyTitle
+            }}</strong>
+            {{ i18n.t().about.manifestoPoints.privacyText }}
+          </span>
+        </li>
+        <li class="flex gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></span>
+          <span>
+            <strong class="text-slate-800 dark:text-slate-200">{{
+              i18n.t().about.manifestoPoints.performanceTitle
+            }}</strong>
+            {{ i18n.t().about.manifestoPoints.performanceText }}
+          </span>
+        </li>
+        <li class="flex gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></span>
+          <span>
+            <strong class="text-slate-800 dark:text-slate-200">{{
+              i18n.t().about.manifestoPoints.independenceTitle
+            }}</strong>
+            {{ i18n.t().about.manifestoPoints.independenceText }}
+          </span>
+        </li>
+        <li class="flex gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></span>
+          <span>
+            <strong class="text-slate-800 dark:text-slate-200">{{
+              i18n.t().about.manifestoPoints.portabilityTitle
+            }}</strong>
+            {{ i18n.t().about.manifestoPoints.portabilityText }}
+          </span>
+        </li>
       </ul>
     </article>
 
-    <!-- Footer -->
-    <footer class="mt-8 border-t border-slate-200 pt-6 dark:border-slate-700">
-      <p class="text-center text-sm text-slate-500 dark:text-slate-400">
-        {{ i18n.t().about.footerTagline }}
+    <!-- Privacy & Device Permissions -->
+    <article
+      class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/70"
+    >
+      <div class="mb-3 flex items-center gap-2.5">
+        <span
+          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400"
+          aria-hidden="true"
+        >
+          <svg [lucideIcon]="ShieldCheck" size="18" stroke-width="2"></svg>
+        </span>
+        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+          {{ i18n.t().about.privacyTitle }}
+        </h2>
+      </div>
+      <p class="mb-3 text-sm text-slate-600 dark:text-slate-400">
+        {{ i18n.t().about.privacyIntro }}
       </p>
-    </footer>
+      <ul class="space-y-2.5 text-sm text-slate-600 dark:text-slate-400">
+        <li class="flex gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
+          <span>
+            <strong class="text-slate-800 dark:text-slate-200">{{
+              i18n.t().about.privacyItems.localStorageTitle
+            }}</strong>
+            {{ i18n.t().about.privacyItems.localStorageText }}
+          </span>
+        </li>
+        <li class="flex gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
+          <span>
+            <strong class="text-slate-800 dark:text-slate-200">{{
+              i18n.t().about.privacyItems.externalLookupTitle
+            }}</strong>
+            {{ i18n.t().about.privacyItems.externalLookupText }}
+          </span>
+        </li>
+        <li class="flex gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
+          <span>
+            <strong class="text-slate-800 dark:text-slate-200">{{
+              i18n.t().about.privacyItems.cameraAccessTitle
+            }}</strong>
+            {{ i18n.t().about.privacyItems.cameraAccessText }}
+          </span>
+        </li>
+      </ul>
+    </article>
   </section>
+
+  <!-- Compact Features & Legal / Attributions -->
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-5">
+    <!-- Core Features -->
+    <article
+      class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm md:col-span-2 dark:border-slate-800 dark:bg-slate-900/70"
+    >
+      <div class="mb-3 flex items-center gap-2.5">
+        <span
+          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400"
+          aria-hidden="true"
+        >
+          <svg [lucideIcon]="Sparkles" size="18" stroke-width="2"></svg>
+        </span>
+        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+          {{ i18n.t().about.featuresTitle }}
+        </h2>
+      </div>
+      <ul class="space-y-1.5 text-sm text-slate-600 dark:text-slate-400">
+        <li class="flex items-start gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500"></span>
+          <span>{{ i18n.t().about.features.catalog }}</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500"></span>
+          <span>{{ i18n.t().about.features.sessions }}</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500"></span>
+          <span>{{ i18n.t().about.features.analytics }}</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500"></span>
+          <span>{{ i18n.t().about.features.organization }}</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500"></span>
+          <span>{{ i18n.t().about.features.theme }}</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500"></span>
+          <span>{{ i18n.t().about.features.persistence }}</span>
+        </li>
+      </ul>
+    </article>
+
+    <!-- Legal Notice, License & Attributions -->
+    <details
+      open
+      class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm md:col-span-3 dark:border-slate-800 dark:bg-slate-900/70"
+    >
+      <summary class="flex cursor-pointer list-none items-center gap-2.5 select-none">
+        <span
+          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+          aria-hidden="true"
+        >
+          <svg [lucideIcon]="Scale" size="18" stroke-width="2"></svg>
+        </span>
+        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+          {{ i18n.t().about.legalTitle }}
+        </h2>
+      </summary>
+      <div class="mt-3 space-y-3 text-sm text-slate-600 dark:text-slate-400">
+        <div>
+          <h3 class="font-semibold text-slate-900 dark:text-white">
+            {{ i18n.t().about.licenseHeading }}
+          </h3>
+          <p class="mt-1">{{ i18n.t().about.licenseSummary }}</p>
+          <p class="mt-1">{{ i18n.t().about.warrantyNotice }}</p>
+        </div>
+        <div class="border-t border-slate-200 pt-3 dark:border-slate-800">
+          <h3 class="font-semibold text-slate-900 dark:text-white">
+            {{ i18n.t().about.attributionsHeading }}
+          </h3>
+          <p class="mt-1">{{ i18n.t().about.attributionsText }}</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- Personal Author Profile Card -->
+  <article
+    class="relative overflow-hidden rounded-2xl border border-blue-200/80 bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/70 p-6 shadow-sm dark:border-blue-900/60 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/40"
+  >
+    <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-4">
+        <div
+          class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-lg font-bold tracking-tight text-white shadow-md"
+          aria-hidden="true"
+        >
+          AG
+        </div>
+        <div class="min-w-0">
+          <p
+            class="text-xs font-semibold tracking-wider text-blue-600 uppercase dark:text-blue-400"
+          >
+            {{ i18n.t().about.authorshipTitle }}
+          </p>
+          <h2 class="mt-0.5 text-lg font-bold text-slate-900 sm:text-xl dark:text-white">
+            Aitor Gallego-Casilda Romero
+          </h2>
+          <p class="mt-1 text-sm text-slate-600 italic dark:text-slate-300">
+            "{{ i18n.t().about.authorMotto }}"
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-5 flex flex-wrap gap-2.5">
+      <a
+        href="https://github.com/aitorgallegocr21"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:bg-slate-700"
+        [attr.aria-label]="i18n.t().about.githubProfileAria"
+      >
+        <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path
+            d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z"
+          />
+        </svg>
+        <span>{{ i18n.t().about.githubProfileLabel }}</span>
+      </a>
+
+      <a
+        href="https://aitorgallegocr21.github.io/personal-website/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:bg-slate-700"
+        [attr.aria-label]="i18n.t().about.personalWebsiteAria"
+      >
+        <svg [lucideIcon]="Globe" size="16" stroke-width="2" aria-hidden="true"></svg>
+        <span>{{ i18n.t().about.personalWebsiteLabel }}</span>
+      </a>
+
+      <a
+        href="https://www.instagram.com/aitorgallegoo_cr/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:bg-slate-700"
+        [attr.aria-label]="i18n.t().about.instagramAria"
+      >
+        <svg
+          class="h-4 w-4 shrink-0"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+          <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+        </svg>
+        <span>{{ i18n.t().about.instagramLabel }}</span>
+      </a>
+
+      <a
+        href="https://github.com/aitorgallegocr21/bookstack"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+        [attr.aria-label]="i18n.t().about.githubRepoAria"
+      >
+        <svg [lucideIcon]="Code2" size="16" stroke-width="2" aria-hidden="true"></svg>
+        <span>{{ i18n.t().about.sourceCodeLabel }}</span>
+        <svg [lucideIcon]="ExternalLink" size="14" stroke-width="2" aria-hidden="true"></svg>
+      </a>
+    </div>
+  </article>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-200 pt-5 dark:border-slate-800">
+    <p class="text-center text-sm text-slate-500 dark:text-slate-400">
+      {{ i18n.t().about.footerTagline }}
+    </p>
+  </footer>
 </div>

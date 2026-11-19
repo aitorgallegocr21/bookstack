@@ -35,11 +35,11 @@ Defined centrally in `src/app/features/books/models/book.model.ts`:
 
 ## 2. Responsive Breakpoints & Asymmetric Shell
 
-| Viewport               | Breakpoint         | Navigation Pattern                                                                               | Layout Rules                                                                                                 |
-| :--------------------- | :----------------- | :----------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
-| **Ultra-Small Mobile** | `< 360px`          | Compact `HeaderComponent` + `BottomNavComponent` (4 primary tabs, `/about` hidden below `350px`) | Book cards stack vertically (`max-[359px]:flex-col`), cover switches to `aspect-[5/2]`                       |
-| **Mobile**             | `< 768px` (`< md`) | `HeaderComponent` (top) + `BottomNavComponent` (fixed bottom, `>= 48px` hit targets)             | Main container uses `pb-20` bottom clearance for fixed nav                                                   |
-| **Tablet & Desktop**   | `>= 768px` (`md:`) | Fixed collapsible `SidebarComponent` (`68px` collapsed / `240px` expanded)                       | Both `app-sidebar` host and `app.html` align strictly on `hidden md:flex` and `md:ml-[var(--sidebar-width)]` |
+| Viewport               | Breakpoint         | Navigation Pattern                                                                                                                      | Layout Rules                                                                                                                                                                               |
+| :--------------------- | :----------------- | :-------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ultra-Small Mobile** | `< 360px`          | Compact `HeaderComponent` + `BottomNavComponent` (4 primary tabs, `/about` hidden below `350px`)                                        | Book cards stack vertically (`max-[359px]:flex-col`), cover switches to `aspect-[5/2]`                                                                                                     |
+| **Mobile**             | `< 768px` (`< md`) | `HeaderComponent` (top) + `BottomNavComponent` (fixed bottom, `>= 48px` hit targets) + `md:hidden` `Libros \| Sagas` segmented switcher | Main container uses `pb-20` bottom clearance for fixed nav                                                                                                                                 |
+| **Tablet & Desktop**   | `>= 768px` (`md:`) | Fixed collapsible `SidebarComponent` (`68px` collapsed / `240px` expanded)                                                              | Both `app-sidebar` host and `app.html` align strictly on `hidden md:flex` and `md:ml-[var(--sidebar-width)]`. `/series` uses a 12-column variable-scale Bento grid (`1×1` / `2×1` / `2×2`) |
 
 ---
 
@@ -56,6 +56,8 @@ Defined centrally in `src/app/features/books/models/book.model.ts`:
 
 ## 4. Rendering Performance Rules
 
-- **No `transition-all`:** Use discrete property transitions (`transition-colors`, `transition-opacity`, `transition-[width]`, `transition-[margin]`, `transition-transform`).
+- **No `transition-all`:** Use discrete property transitions (`transition-colors`, `transition-opacity`, `transition-[width]`, `transition-[margin]`, `transition-transform`, `transition-[height]`, `transition-[height,background-color]`).
+- **Native SVG & CSS Visualizations:** Analytics charts (velocity bars, format donut, status stacked bar, rating histogram, weekday pace) use pure reactive SVG/CSS with zero external chart libraries and wrapping pill controls for `320px` overflow safety.
 - **List Containment:** Catalog cards apply `contain: layout paint; content-visibility: auto;`.
-- **Image Optimization:** Cover uploads compress to WebP/JPEG (`<= 400px`, `0.75` quality) via `ImageOptimizerService`; cover `<img>` tags include `loading="lazy"` and `decoding="async"`.
+- **Deferred Heavy Modals:** Secondary modals (`BookDetailModal`, `BookEditModal`, `ReadingLogEditor`, `SagaDetailModal`, `BookCreateModal`) load lazily via `@defer (when ...)` to keep initial route bundles lean.
+- **Image Optimization:** Cover uploads compress to WebP/JPEG (`<= 400px`, `0.75` quality) via `ImageOptimizerService`, while bulk cover enrichment enforces an anti-placeholder dimension guard (`>= 80x120px`); cover `<img>` tags include `loading="lazy"` and `decoding="async"`.

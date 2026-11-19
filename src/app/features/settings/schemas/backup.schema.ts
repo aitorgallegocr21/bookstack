@@ -1,0 +1,160 @@
+import { z } from 'zod';
+import { Book, ReadingGoals, ReadingLog } from '../../books/models/book.model';
+import { BookSchema, ReadingLogSchema } from '../../books/schemas/book.schema';
+import { ReadingGoalsSchema } from '../../books/schemas/reading-goals.schema';
+import { SeriesMetadata } from '../../series/models/series.model';
+import { SeriesMetadataSchema } from '../../series/schemas/series.schema';
+import { BackupPreferences } from '../models/data-portability.model';
+
+export const BackupPreferencesSchema = z.object({
+  locale: z.enum(['es', 'en']).optional(),
+  theme: z.enum(['light', 'dark']).optional(),
+  catalogViewMode: z.enum(['grid', 'detailed', 'compact']).optional(),
+  catalogSort: z
+    .enum([
+      'recent',
+      'title-asc',
+      'title-desc',
+      'author-asc',
+      'rating-desc',
+      'progress-desc',
+      'pages-desc',
+    ])
+    .optional(),
+});
+
+const MAX_BACKUP_RECORDS = 25_000;
+
+export const BackupEnvelopeSchema = z.object({
+  schemaVersion: z.literal(1),
+  app: z.literal('BookStack'),
+  exportedAt: z.string().min(1).max(64),
+  books: z.array(z.unknown()).max(MAX_BACKUP_RECORDS),
+  readingLogs: z
+    .array(z.unknown())
+    .max(MAX_BACKUP_RECORDS * 5)
+    .default([]),
+  seriesMetadata: z.array(z.unknown()).max(MAX_BACKUP_RECORDS).default([]),
+  readingGoals: ReadingGoalsSchema.nullable().optional(),
+  preferences: BackupPreferencesSchema.optional(),
+});
+
+export interface ParsedBackupPayload {
+  validBooks: Book[];
+  validReadingLogs: ReadingLog[];
+  validSeriesMetadata: SeriesMetadata[];
+  readingGoals: ReadingGoals | null;
+  preferences: BackupPreferences | null;
+  invalidBooksCount: number;
+  invalidLogsCount: number;
+  invalidSeriesMetadataCount: number;
+}
+
+export type BackupParseResult =
+  { success: true; data: ParsedBackupPayload } | { success: false; error: string };
+
+function filterBooks(rawBooks: unknown[]): { validBooks: Book[]; invalidBooksCount: number } {
+  const validBooks: Book[] = [];
+  let invalidBooksCount = 0;
+
+  for (const item of rawBooks) {
+    const parsed = BookSchema.safeParse(item);
+    if (parsed.success) {
+      validBooks.push(parsed.data);
+    } else {
+      invalidBooksCount += 1;
+    }
+  }
+
+  return { validBooks, invalidBooksCount };
+}
+
+function filterReadingLogs(rawLogs: unknown[]): {
+  validReadingLogs: ReadingLog[];
+  invalidLogsCount: number;
+} {
+  const validReadingLogs: ReadingLog[] = [];
+  let invalidLogsCount = 0;
+
+  for (const item of rawLogs) {
+    const parsed = ReadingLogSchema.safeParse(item);
+    if (parsed.success) {
+      validReadingLogs.push(parsed.data);
+    } else {
+      invalidLogsCount += 1;
+    }
+  }
+
+  return { validReadingLogs, invalidLogsCount };
+}
+
+function filterSeriesMetadata(rawSeriesMetadata: unknown[]): {
+  validSeriesMetadata: SeriesMetadata[];
+  invalidSeriesMetadataCount: number;
+} {
+  const validSeriesMetadata: SeriesMetadata[] = [];
+  let invalidSeriesMetadataCount = 0;
+
+  for (const item of rawSeriesMetadata) {
+    const parsed = SeriesMetadataSchema.safeParse(item);
+    if (parsed.success) {
+      validSeriesMetadata.push(parsed.data);
+    } else {
+      invalidSeriesMetadataCount += 1;
+    }
+  }
+
+  return { validSeriesMetadata, invalidSeriesMetadataCount };
+}
+
+/**
+ * Parses either a full BookStack versioned backup envelope or a legacy raw Book[] array,
+ * validating individual book, reading log, and series metadata records without rejecting
+ * the entire payload when a subset of entries is malformed.
+ */
+export function parseBackupJson(raw: unknown): BackupParseResult {
+  if (Array.isArray(raw)) {
+    const { validBooks, invalidBooksCount } = filterBooks(raw);
+    return {
+      success: true,
+      data: {
+        validBooks,
+        validReadingLogs: [],
+        validSeriesMetadata: [],
+        readingGoals: null,
+        preferences: null,
+        invalidBooksCount,
+        invalidLogsCount: 0,
+        invalidSeriesMetadataCount: 0,
+      },
+    };
+  }
+
+  const envelope = BackupEnvelopeSchema.safeParse(raw);
+  if (!envelope.success) {
+    return {
+      success: false,
+      error: envelope.error.issues.map((issue) => issue.message).join('; '),
+    };
+  }
+
+  const { validBooks, invalidBooksCount } = filterBooks(envelope.data.books);
+  const { validReadingLogs, invalidLogsCount } = filterReadingLogs(envelope.data.readingLogs);
+  const { validSeriesMetadata, invalidSeriesMetadataCount } = filterSeriesMetadata(
+    envelope.data.seriesMetadata
+  );
+
+  return {
+    success: true,
+    data: {
+      validBooks,
+      validReadingLogs,
+      validSeriesMetadata,
+      readingGoals: envelope.data.readingGoals ?? null,
+      preferences: envelope.data.preferences ?? null,
+      invalidBooksCount,
+      invalidLogsCount,
+      invalidSeriesMetadataCount,
+    },
+  };
+}

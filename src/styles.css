@@ -243,6 +243,42 @@
     grid-template-rows: 1fr;
     opacity: 1;
   }
+
+  .modal-scroll-area {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    background-image:
+      linear-gradient(to bottom, rgb(255 255 255 / 1), rgb(255 255 255 / 0)),
+      linear-gradient(to top, rgb(255 255 255 / 1), rgb(255 255 255 / 0)),
+      radial-gradient(farthest-side at 50% 0, rgb(15 23 42 / 0.1), rgb(15 23 42 / 0)),
+      radial-gradient(farthest-side at 50% 100%, rgb(15 23 42 / 0.1), rgb(15 23 42 / 0));
+    background-position:
+      top center,
+      bottom center,
+      top center,
+      bottom center;
+    background-size:
+      100% 24px,
+      100% 24px,
+      100% 10px,
+      100% 10px;
+    background-repeat: no-repeat;
+    background-attachment: local, local, scroll, scroll;
+  }
+
+  .dark .modal-scroll-area {
+    background-image:
+      linear-gradient(to bottom, rgb(15 23 42 / 1), rgb(15 23 42 / 0)),
+      linear-gradient(to top, rgb(15 23 42 / 1), rgb(15 23 42 / 0)),
+      radial-gradient(farthest-side at 50% 0, rgb(0 0 0 / 0.45), rgb(0 0 0 / 0)),
+      radial-gradient(farthest-side at 50% 100%, rgb(0 0 0 / 0.45), rgb(0 0 0 / 0));
+  }
+
+  .modal-scroll-area::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes modalFadeIn {
@@ -283,4 +319,13 @@
     opacity: 0;
     transform: scale(0.96) translateY(10px);
   }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

@@ -44,9 +44,13 @@ describe('book.schema', () => {
     expect(ReadingLogSchema.safeParse(validLog).success).toBe(true);
   });
 
-  it('should reject invalid Book payloads (empty title, negative pages, invalid status, out-of-range rating, unsafe coverUrl)', () => {
+  it('should reject invalid Book payloads (empty title, 0 or negative pages, currentPage exceeding totalPages, invalid status, out-of-range rating, unsafe coverUrl)', () => {
     expect(BookSchema.safeParse({ ...validBook, title: '' }).success).toBe(false);
+    expect(BookSchema.safeParse({ ...validBook, totalPages: 0 }).success).toBe(false);
     expect(BookSchema.safeParse({ ...validBook, totalPages: -1 }).success).toBe(false);
+    expect(BookSchema.safeParse({ ...validBook, totalPages: 100, currentPage: 105 }).success).toBe(
+      false
+    );
     expect(BookSchema.safeParse({ ...validBook, status: 'archived' }).success).toBe(false);
     expect(BookSchema.safeParse({ ...validBook, rating: 11 }).success).toBe(false);
     expect(BookSchema.safeParse({ ...validBook, coverUrl: 'javascript:alert(1)' }).success).toBe(
@@ -55,6 +59,21 @@ describe('book.schema', () => {
     expect(
       BookSchema.safeParse({ ...validBook, coverUrl: 'data:text/html,<script>1</script>' }).success
     ).toBe(false);
+    expect(
+      BookSchema.safeParse({
+        ...validBook,
+        coverUrl: 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=',
+      }).success
+    ).toBe(false);
+    expect(
+      BookSchema.safeParse({ ...validBook, coverUrl: 'http://example.com/cover.jpg' }).success
+    ).toBe(false);
+    expect(
+      BookSchema.safeParse({
+        ...validBook,
+        coverUrl: 'https://covers.openlibrary.org/b/id/1-M.jpg',
+      }).success
+    ).toBe(true);
     expect(
       BookSchema.safeParse({ ...validBook, coverUrl: 'data:image/webp;base64,abc' }).success
     ).toBe(true);

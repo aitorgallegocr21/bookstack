@@ -3,7 +3,7 @@
   <app-header class="md:hidden"></app-header>
 
   <main
-    class="pt-4 pb-20 transition-[margin] duration-200 md:ml-[var(--sidebar-width)]"
+    class="pt-4 pb-20 duration-200 md:ml-[var(--sidebar-width)] md:transition-[margin]"
     [style.--sidebar-width]="uiState.isSidebarCollapsed() ? '68px' : '240px'"
   >
     <router-outlet></router-outlet>

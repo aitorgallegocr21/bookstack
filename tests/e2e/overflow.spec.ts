@@ -1,10 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-const ROUTES = ['/', '/books', '/stats', '/settings', '/about'] as const;
+const ROUTES = ['/', '/books', '/series', '/stats', '/settings', '/about'] as const;
 const VIEWPORTS = [
   { name: 'mobile-sm', width: 375, height: 667 },
   { name: 'mobile-md', width: 390, height: 844 },
   { name: 'tablet', width: 768, height: 1024 },
+  { name: 'tablet-sidebar', width: 1000, height: 800 },
   { name: 'desktop', width: 1280, height: 800 },
 ] as const;
 
@@ -29,4 +30,28 @@ test.describe('Responsive layout overflow & single-landmark guard', () => {
       });
     }
   }
+
+  test('should render /about author profile card with motto and all external links', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1000, height: 800 });
+    await page.goto('/about');
+    await page.waitForSelector('main');
+
+    await expect(page.getByText('Aitor Gallego-Casilda Romero').first()).toBeVisible();
+    await expect(page.getByText('Aprende y deja aprender.')).toBeVisible();
+
+    const expectedLinks = [
+      'https://github.com/aitorgallegocr21',
+      'https://aitorgallegocr21.github.io/personal-website/',
+      'https://www.instagram.com/aitorgallegoo_cr/',
+      'https://github.com/aitorgallegocr21/bookstack',
+    ];
+
+    for (const url of expectedLinks) {
+      const link = page.locator(`a[href="${url}"]`);
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    }
+  });
 });

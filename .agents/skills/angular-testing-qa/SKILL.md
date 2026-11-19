@@ -1,38 +1,27 @@
 ---
 name: angular-testing-qa
-description: Vitest unit/component testing and Playwright E2E testing conventions, regression test mandates, and deterministic mocking patterns for BookStack.
+description: On-demand Vitest + Angular TestBed recipes, fake-indexeddb isolation patterns, single-file test runner usage, and Playwright E2E viewport/flow checklists. Activate when writing or debugging complex unit, component, or E2E specs.
 ---
 
-# Angular Testing & QA Gate Skill
+# Angular Testing & QA Recipes (On-Demand Reference)
 
-This skill enforces BookStack's mandatory testing standards: every new capability requires unit/component tests, every bug fix requires a regression test, and all UI/navigation flows require Playwright E2E coverage.
+> Core testing mandates are already loaded in `AGENTS.md`. Use this skill for test recipes and isolation patterns.
 
----
+## 1. Fast Iterative Execution (Token-Saving Commands)
 
-## 1. Mandatory Testing Rules
+- **Single Spec Run:** `npm run test:file -- src/app/path/to/target.spec.ts` (runs in ~1s with `--no-progress`).
+- **Pre-Commit Gate:** `npm run verify:quiet` (auto-fixes Prettier/ESLint, runs `check` + `lint` + `format` + `test` + `build` with 6-line output).
+- **Single E2E Spec:** `npx playwright test tests/e2e/<spec>.spec.ts`.
 
-1. **Test-Per-Feature:** No feature or service method is complete without unit tests verifying happy paths, edge cases, and error states.
-2. **Regression-Per-Bug:** Every defect fix must be accompanied by a unit, component, or E2E test that reproduces the exact bug scenario and prevents regressions.
-3. **E2E UI Gate:** Changes to routes, shell navigation, responsive breakpoints, themes, or modal workflows must update and pass Playwright specs in `tests/e2e/`.
-4. **Zero Relaxed Assertions:** Never weaken assertions, skip failing tests (`it.skip` / `describe.skip`), or bypass `npm run verify`.
+## 2. Vitest + Angular TestBed Isolation Patterns
 
----
+- **Storage & IndexedDB Reset:** `src/test-setup.ts` loads `fake-indexeddb/auto` and mocks `window.matchMedia`. In specs touching persistence, clear `localStorage.clear()` and reset service signals in `beforeEach`.
+- **Router & Signals in Components:**
+  - Provide `provideRouter([])` in `TestBed.configureTestingModule` when testing components with `RouterLink`/`RouterOutlet`.
+  - Use `fixture.componentRef.setInput('propName', value)` for `input()` signals, followed by `fixture.detectChanges()` and `await fixture.whenStable()`.
+- **Modal & A11y Assertions:** Verify `aria-label` / `aria-expanded`, `Escape` key dispatch (`new KeyboardEvent('keydown', { key: 'Escape' })`), and `document.body.classList.contains('overflow-hidden')`.
 
-## 2. Vitest + Angular TestBed Conventions
+## 3. Playwright E2E Verification Matrix (`tests/e2e/`)
 
-- **Test Runner:** `@angular/build:unit-test` backed by **Vitest** and **jsdom** (`npm test`).
-- **Environment Safety (`src/test-setup.ts`):**
-  - Ensure `window.matchMedia` is deterministically mocked in jsdom so `ThemeService` and responsive queries never fail unexpectedly.
-  - Use `fake-indexeddb/auto` when testing `StorageAdapterService` or persistence flows, and reset `localStorage` and IndexedDB stores in `beforeEach` / `afterEach`.
-- **Component Testing (`TestBed`):**
-  - Provide `provideRouter([])` for components using `RouterLink` / `RouterOutlet`.
-  - Test signal updates using `fixture.detectChanges()` and `await fixture.whenStable()`.
-  - Verify ARIA attributes (`aria-label`, `aria-pressed`), keyboard events (`Escape`), and body class side effects (`overflow-hidden`).
-
----
-
-## 3. Playwright E2E Conventions (`tests/e2e/`)
-
-- **Resilient Browser Resolution:** `playwright.config.ts` resolves system Chrome/Chromium locally (`PLAYWRIGHT_CHROME_PATH`, `/usr/bin/google-chrome`, `/usr/bin/chromium`) and defaults to Playwright-managed Chromium in GitHub Actions CI.
-- **Zero-Overflow Matrix:** Every route (`/`, `/books`, `/stats`, `/settings`, `/about`) must be tested at `375px`, `390px`, `768px`, and `1280px` ensuring `document.documentElement.scrollWidth <= window.innerWidth`.
-- **Interactive Flows:** Verify create/edit/detail/delete book flows, reading log progress recalculation, dark/light theme persistence across reloads, and sidebar collapse persistence.
+- **Zero-Overflow Check:** Assert `document.documentElement.scrollWidth <= window.innerWidth` across `375px`, `390px`, `768px`, and `1280px`.
+- **Bilingual / Default Locale Awareness:** The app boots in Spanish (`es`) by default; prefer resilient `data-testid`, role, or structural selectors over brittle hardcoded text when possible.

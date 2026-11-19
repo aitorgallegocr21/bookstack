@@ -21,7 +21,10 @@ function makeBook(overrides: Partial<Book> = {}): Book {
 
 describe('BooksService', () => {
   let storedRecords: unknown[];
-  let storageMock: Pick<StorageAdapterService, 'getAll' | 'set' | 'remove'>;
+  let storageMock: Pick<
+    StorageAdapterService,
+    'getAll' | 'set' | 'putMany' | 'remove' | 'replaceStore' | 'clearStore'
+  >;
 
   beforeEach(() => {
     storedRecords = [makeBook(), { id: 'corrupted-book', title: '', totalPages: -5 }];
@@ -29,7 +32,10 @@ describe('BooksService', () => {
     storageMock = {
       getAll: async <T>(): Promise<T[]> => storedRecords as T[],
       set: vi.fn(async () => true),
+      putMany: vi.fn(async () => true),
       remove: vi.fn(async () => undefined),
+      replaceStore: vi.fn(async () => true),
+      clearStore: vi.fn(async () => undefined),
     };
 
     TestBed.configureTestingModule({
@@ -94,15 +100,68 @@ describe('BooksService', () => {
     expect((await service.getById('book-1'))?.currentPage).toBe(450);
   });
 
-  it('should toggle global create modal state', () => {
+  it('should toggle global create modal state and manage prefill payload', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const service = TestBed.inject(BooksService);
     expect(service.isCreateModalOpen()).toBe(false);
+    expect(service.createModalPrefill()).toBeNull();
 
-    service.openCreateModal();
+    service.openCreateModal({ seriesName: 'Mistborn', seriesVolumeNumber: 2 });
     expect(service.isCreateModalOpen()).toBe(true);
+    expect(service.createModalPrefill()).toEqual({
+      seriesName: 'Mistborn',
+      seriesVolumeNumber: 2,
+    });
 
     service.closeCreateModal();
     expect(service.isCreateModalOpen()).toBe(false);
+    expect(service.createModalPrefill()).toBeNull();
+
+    service.openCreateModal();
+    expect(service.isCreateModalOpen()).toBe(true);
+    expect(service.createModalPrefill()).toBeNull();
+  });
+
+  it('should replaceAll and clearAll books atomically in storage and signal', async () => {
+    const service = TestBed.inject(BooksService);
+    await service.add(makeBook({ id: 'book-1', title: 'Original' }));
+
+    const replacement = [
+      makeBook({ id: 'book-2', title: 'Replaced 1' }),
+      makeBook({ id: 'book-3', title: 'Replaced 2' }),
+    ];
+    await service.replaceAll(replacement);
+
+    expect(service.books().map((b) => b.id)).toEqual(['book-2', 'book-3']);
+    expect((await service.getAll()).map((b) => b.id)).toEqual(['book-2', 'book-3']);
+
+    await service.clearAll();
+    expect(service.books()).toEqual([]);
+    expect(await service.getAll()).toEqual([]);
+  });
+
+  it('should batch-update multiple books with updateMany in a single signal update', async () => {
+    const service = TestBed.inject(BooksService);
+    await service.replaceAll([
+      makeBook({ id: 'b1', title: 'Book 1', currentPage: 10 }),
+      makeBook({ id: 'b2', title: 'Book 2', currentPage: 20 }),
+      makeBook({ id: 'b3', title: 'Book 3', currentPage: 30 }),
+    ]);
+
+    expect(await service.updateMany([])).toBe(true);
+
+    const updated = await service.updateMany([
+      makeBook({ id: 'b1', title: 'Book 1 Updated', currentPage: 50 }),
+      makeBook({ id: 'b3', title: 'Book 3 Updated', currentPage: 90 }),
+    ]);
+    expect(updated).toBe(true);
+
+    expect(service.books().map((b) => [b.id, b.title, b.currentPage])).toEqual([
+      ['b1', 'Book 1 Updated', 50],
+      ['b2', 'Book 2', 20],
+      ['b3', 'Book 3 Updated', 90],
+    ]);
+    expect((await service.getById('b1'))?.currentPage).toBe(50);
+    expect((await service.getById('b3'))?.currentPage).toBe(90);
   });
 });

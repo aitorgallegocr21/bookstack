@@ -47,7 +47,16 @@
         (ngSubmit)="save()"
         class="modal-form flex max-h-[calc(90dvh-76px)] flex-col"
       >
-        <div class="space-y-5 overflow-y-auto p-6">
+        <div class="modal-scroll-area no-scrollbar space-y-5 overflow-y-auto p-6">
+          <app-book-metadata-lookup
+            mode="edit"
+            [currentBookId]="currentBook.id"
+            [currentIsbn]="editForm.controls.isbn.value || ''"
+            [currentTitle]="editForm.controls.title.value || ''"
+            [currentAuthor]="editForm.controls.author.value || ''"
+            (candidateApplied)="onMetadataCandidateApplied($event)"
+          />
+
           <section
             class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/50"
           >
@@ -92,13 +101,23 @@
                 <label for="edit-book-isbn" class="field-label">{{
                   i18n.t().bookForm.isbnLabel
                 }}</label>
-                <input
-                  id="edit-book-isbn"
-                  type="text"
-                  formControlName="isbn"
-                  [placeholder]="i18n.t().bookForm.isbnPlaceholder"
-                  class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
-                />
+                <div class="flex items-stretch gap-2">
+                  <input
+                    id="edit-book-isbn"
+                    type="text"
+                    formControlName="isbn"
+                    [placeholder]="i18n.t().bookForm.isbnPlaceholder"
+                    class="field-input min-w-0 flex-1 border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                  />
+                  <button
+                    type="button"
+                    (click)="triggerInlineIsbnLookup()"
+                    [attr.aria-label]="i18n.t().bookForm.lookup.isbnLookupAria"
+                    class="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                  >
+                    {{ i18n.t().bookForm.lookup.isbnLookupButton }}
+                  </button>
+                </div>
               </div>
               <div>
                 <label for="edit-book-publication-year" class="field-label">{{
@@ -224,10 +243,15 @@
                 <input
                   id="edit-book-total-pages"
                   type="number"
-                  min="0"
+                  min="1"
                   formControlName="totalPages"
                   class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
                 />
+                @if (editForm.controls.totalPages.touched && editForm.controls.totalPages.invalid) {
+                  <p class="mt-1 text-xs font-medium text-rose-500">
+                    {{ i18n.t().bookForm.totalPagesError }}
+                  </p>
+                }
               </div>
               <div>
                 <label for="edit-book-current-pages" class="field-label">{{
@@ -240,6 +264,14 @@
                   formControlName="currentPage"
                   class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
                 />
+                @if (
+                  editForm.hasError('currentPageExceedsTotal') &&
+                  (editForm.controls.currentPage.touched || editForm.controls.totalPages.touched)
+                ) {
+                  <p class="mt-1 text-xs font-medium text-rose-500">
+                    {{ i18n.t().bookForm.currentPageExceedsTotalError }}
+                  </p>
+                }
               </div>
             </div>
 
@@ -330,10 +362,17 @@
                     <input
                       id="edit-book-series-name"
                       type="text"
+                      list="edit-series-suggestions"
                       formControlName="seriesName"
+                      (input)="onSeriesNameInput($any($event.target).value)"
                       [placeholder]="i18n.t().bookForm.seriesNamePlaceholder"
                       class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
                     />
+                    <datalist id="edit-series-suggestions">
+                      @for (option of existingSeriesOptions(); track option.id) {
+                        <option [value]="option.name"></option>
+                      }
+                    </datalist>
                   </div>
                   <div>
                     <label for="edit-book-series-volume" class="field-label">{{
@@ -349,6 +388,24 @@
                     />
                   </div>
                 </div>
+                @if (
+                  !editForm.get('seriesName')?.value?.trim() && quickPickSeriesOptions().length > 0
+                ) {
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    @for (option of quickPickSeriesOptions(); track option.id) {
+                      <button
+                        type="button"
+                        (click)="selectSeriesOption(option)"
+                        class="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-indigo-950/50 dark:hover:text-indigo-300"
+                      >
+                        <span>{{ option.name }}</span>
+                        <span class="text-slate-400 dark:text-slate-500">
+                          · {{ i18n.t().series.card.volumeShort }} {{ option.nextVolumeNumber }}
+                        </span>
+                      </button>
+                    }
+                  </div>
+                }
               </div>
             </div>
           </section>

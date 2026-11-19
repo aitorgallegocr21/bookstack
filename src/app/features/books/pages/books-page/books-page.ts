@@ -1,18 +1,28 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import {
   LucideDynamicIcon,
   LucideEdit2,
   LucideEye,
   LucidePlus,
+  LucideRotateCcw,
+  LucideSearch,
   LucideTrash2,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import {
+  formatRatingBadge,
+  getStatusBadgeClass,
+} from '../../../../shared/utils/book-display.utils';
+import { BookCompactRowComponent } from '../../components/book-compact-row/book-compact-row';
 import { BookDetailModalComponent } from '../../components/book-detail-modal/book-detail-modal';
+import { BookDetailedCardComponent } from '../../components/book-detailed-card/book-detailed-card';
 import { BookEditModalComponent } from '../../components/book-edit-modal/book-edit-modal';
+import { BookGridCardComponent } from '../../components/book-grid-card/book-grid-card';
+import { CatalogToolbarComponent } from '../../components/catalog-toolbar/catalog-toolbar';
 import { ReadingLogEditorComponent } from '../../components/reading-log-editor/reading-log-editor';
 import {
-  BOOK_RATING_MAX,
   BOOK_STATUS_CONFIG,
   Book,
   BookFormat,
@@ -20,18 +30,24 @@ import {
   ReadingLog,
 } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
+import { CatalogFilterService } from '../../services/catalog-filter.service';
 import { ReadingLogService } from '../../services/reading-log.service';
-import { translateBookFormat } from '../../utils/book-form.utils';
+import { normalizeBookFormat, translateBookFormat } from '../../utils/book-form.utils';
 
 @Component({
   selector: 'app-books-page',
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     LucideDynamicIcon,
     BookEditModalComponent,
     BookDetailModalComponent,
     ReadingLogEditorComponent,
+    CatalogToolbarComponent,
+    BookGridCardComponent,
+    BookDetailedCardComponent,
+    BookCompactRowComponent,
   ],
   templateUrl: './books-page.html',
   styleUrl: './books-page.css',
@@ -40,6 +56,7 @@ import { translateBookFormat } from '../../utils/book-form.utils';
 export class BooksPage {
   private readonly booksService = inject(BooksService);
   private readonly readingLogService = inject(ReadingLogService);
+  protected readonly catalogFilterService = inject(CatalogFilterService);
   protected readonly i18n = inject(I18nService);
 
   protected readonly BOOK_STATUS_CONFIG = BOOK_STATUS_CONFIG;
@@ -47,9 +64,22 @@ export class BooksPage {
   protected readonly Eye = LucideEye;
   protected readonly Edit2 = LucideEdit2;
   protected readonly Trash2 = LucideTrash2;
+  protected readonly Search = LucideSearch;
+  protected readonly RotateCcw = LucideRotateCcw;
 
-  protected readonly books = this.booksService.books;
+  protected readonly books = this.catalogFilterService.filteredBooks;
+  protected readonly allBooks = this.booksService.books;
   protected readonly readingLogs = this.readingLogService.readingLogs;
+
+  protected readonly availableFormats = computed(() => {
+    const formatsSet = new Set<string>(['Físico', 'Ebook', 'Audiolibro']);
+    for (const book of this.booksService.books()) {
+      if (book.format) {
+        formatsSet.add(normalizeBookFormat(book.format));
+      }
+    }
+    return Array.from(formatsSet);
+  });
 
   protected readonly selectedBookForDetailId = signal<string | null>(null);
   protected readonly selectedBookForEditId = signal<string | null>(null);
@@ -149,6 +179,13 @@ export class BooksPage {
     this.showReadingLogEditor.set(true);
   }
 
+  protected openReadingLogEditorForId(bookId: string): void {
+    const found = this.allBooks().find((b) => b.id === bookId);
+    if (found) {
+      this.openReadingLogEditor(found);
+    }
+  }
+
   protected closeReadingLogEditor(): void {
     this.showReadingLogEditor.set(false);
     this.readingLogBookId.set(undefined);
@@ -168,9 +205,7 @@ export class BooksPage {
     }
   }
 
-  protected getStatusBadgeClass(status: BookStatus): string {
-    return BOOK_STATUS_CONFIG[status].badgeClass;
-  }
+  protected readonly getStatusBadgeClass = getStatusBadgeClass;
 
   protected getFormatLabel(format?: BookFormat | string): string {
     return (
@@ -179,12 +214,7 @@ export class BooksPage {
   }
 
   protected getRatingBadge(rating?: number): string {
-    if (rating === undefined || rating === null || Number.isNaN(rating)) {
-      return this.i18n.t().books.noRating;
-    }
-
-    const normalized = Math.min(BOOK_RATING_MAX, Math.max(0, rating));
-    return `★ ${normalized.toFixed(1).replace(/\.0$/, '')}/10`;
+    return formatRatingBadge(rating, this.i18n.t().books.noRating);
   }
 
   protected getStatusBarColor(status: BookStatus): string {

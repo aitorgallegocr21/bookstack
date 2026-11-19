@@ -80,4 +80,19 @@ export class ReadingLogService {
       await this.booksService.applyReadingDelta(log.bookId, -log.pagesRead);
     }
   }
+
+  async replaceAll(logs: ReadingLog[]): Promise<void> {
+    await this.ensureInitialized();
+    const persisted = await this.storage.replaceStore(this.storeName, logs);
+    if (!persisted) {
+      throw new Error('Failed to persist replaced reading logs collection.');
+    }
+    this.readingLogs.set([...logs]);
+  }
+
+  async clearAll(): Promise<void> {
+    await this.ensureInitialized();
+    await this.storage.clearStore(this.storeName);
+    this.readingLogs.set([]);
+  }
 }

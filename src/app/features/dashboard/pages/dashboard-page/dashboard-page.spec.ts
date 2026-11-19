@@ -1,10 +1,38 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ReadingStats } from '../../../books/models/book.model';
+import { provideRouter } from '@angular/router';
+import { vi } from 'vitest';
+import { Book, ReadingStats } from '../../../books/models/book.model';
+import { BooksService } from '../../../books/services/books.service';
+import { ReadingLogService } from '../../../books/services/reading-log.service';
 import { ReadingStatsService } from '../../../books/services/reading-stats.service';
 import { DashboardPage } from './dashboard-page';
 
 describe('DashboardPage', () => {
+  const mockBooks = signal<Book[]>([
+    {
+      id: 'b-1',
+      title: 'Current Read',
+      author: 'Author A',
+      totalPages: 300,
+      currentPage: 150,
+      status: 'reading',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+    },
+  ]);
+
+  const mockBooksService = {
+    books: mockBooks,
+    openCreateModal: vi.fn(),
+    update: vi.fn(async () => undefined),
+  };
+
+  const mockReadingLogService = {
+    readingLogs: signal([]),
+    add: vi.fn(async () => undefined),
+  };
+
   const mockStats = signal<ReadingStats>({
     totalBooks: 4,
     completedBooks: 2,
@@ -24,15 +52,59 @@ describe('DashboardPage', () => {
       { status: 'completed', count: 2 },
       { status: 'abandoned', count: 0 },
     ],
+    streakInfo: {
+      currentStreak: 3,
+      longestStreak: 5,
+      hasReadToday: true,
+      weeklyActivity: [
+        { dayIndex: 0, dayKey: 'mon', date: '2026-03-09', active: true, isToday: false },
+        { dayIndex: 1, dayKey: 'tue', date: '2026-03-10', active: true, isToday: false },
+        { dayIndex: 2, dayKey: 'wed', date: '2026-03-11', active: true, isToday: true },
+        { dayIndex: 3, dayKey: 'thu', date: '2026-03-12', active: false, isToday: false },
+        { dayIndex: 4, dayKey: 'fri', date: '2026-03-13', active: false, isToday: false },
+        { dayIndex: 5, dayKey: 'sat', date: '2026-03-14', active: false, isToday: false },
+        { dayIndex: 6, dayKey: 'sun', date: '2026-03-15', active: false, isToday: false },
+      ],
+    },
+    annualProgress: {
+      year: 2026,
+      completedBooks: 2,
+      pagesRead: 720,
+    },
   });
 
   beforeEach(async () => {
+    mockBooks.set([
+      {
+        id: 'b-1',
+        title: 'Current Read',
+        author: 'Author A',
+        totalPages: 300,
+        currentPage: 150,
+        status: 'reading',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-02T00:00:00.000Z',
+      },
+    ]);
     await TestBed.configureTestingModule({
       imports: [DashboardPage],
       providers: [
+        provideRouter([]),
         {
           provide: ReadingStatsService,
-          useValue: { stats: mockStats },
+          useValue: {
+            stats: mockStats,
+            goals: signal({ year: 2026, targetBooks: 20, targetPages: 5000 }),
+            saveGoals: vi.fn(),
+          },
+        },
+        {
+          provide: BooksService,
+          useValue: mockBooksService,
+        },
+        {
+          provide: ReadingLogService,
+          useValue: mockReadingLogService,
         },
       ],
     }).compileComponents();
@@ -47,7 +119,114 @@ describe('DashboardPage', () => {
     expect(root.querySelector('h1')?.textContent).toContain('Resumen de lectura');
     expect(root.textContent).toContain('720');
     expect(root.textContent).toContain('48');
-    expect(root.textContent).toContain('Enero 2026');
-    expect(root.textContent).toContain('Febrero 2026');
+    expect(root.textContent).toContain('Ene');
+    expect(root.textContent).toContain('Feb');
+  });
+
+  it('should render currently reading hero with active book', () => {
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('app-currently-reading-hero')).not.toBeNull();
+    expect(root.textContent).toContain('Current Read');
+    expect(root.textContent).toContain('Author A');
+  });
+
+  it('should render reading streak, annual goals, and recent activity feed components', () => {
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('app-reading-streak-widget')).not.toBeNull();
+    expect(root.querySelector('app-annual-goal-card')).not.toBeNull();
+    expect(root.querySelector('app-recent-activity-feed')).not.toBeNull();
+  });
+
+  it('should render welcome empty state when totalBooks is 0', () => {
+    mockBooks.set([]);
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('¡Te damos la bienvenida a BookStack!');
+    expect(root.textContent).toContain('Añadir mi primer libro');
+  });
+
+  it('should render pick next read empty state when books exist but none are in reading status', () => {
+    mockBooks.set([
+      {
+        id: 'b-pending-1',
+        title: 'Pending Read',
+        author: 'Author B',
+        totalPages: 250,
+        currentPage: 0,
+        status: 'pending',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Sin lecturas en curso');
+    expect(root.textContent).toContain('Pending Read');
+    expect(root.textContent).toContain('Empezar a leer');
+  });
+
+  it('should cap monthly activity chart to the last 6 months and render /stats link', () => {
+    const twelveMonths = Array.from({ length: 12 }, (_, idx) => {
+      const monthNumber = String(idx + 1).padStart(2, '0');
+      return { month: `2026-${monthNumber}`, pages: (idx + 1) * 50 };
+    });
+
+    const originalStats = mockStats();
+    mockStats.set({
+      ...originalStats,
+      monthlyPages: twelveMonths,
+    });
+
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const bars = root.querySelectorAll('[role="list"] [role="listitem"]');
+    expect(bars.length).toBe(6);
+
+    // Should show July-December (350..600) and exclude January-June (50..300)
+    const chartText = root.querySelector('[role="list"]')?.textContent ?? '';
+    expect(chartText).toContain('350');
+    expect(chartText).toContain('600');
+    expect(chartText).not.toContain('300');
+
+    const statsLink = root.querySelector('a[href="/stats"]');
+    expect(statsLink).not.toBeNull();
+    expect(statsLink?.textContent).toContain('Ver historial');
+
+    const monthlyCard = statsLink?.closest('article');
+    expect(monthlyCard?.className).toContain('@[560px]:col-span-2');
+    expect(monthlyCard?.textContent).toContain('Total (6m):');
+    expect(monthlyCard?.textContent).toContain('2850 págs.');
+    expect(monthlyCard?.textContent).toContain('475 págs./mes');
+
+    mockStats.set(originalStats);
+  });
+
+  it('should render empty fallback when monthlyPages is empty', () => {
+    const originalStats = mockStats();
+    mockStats.set({
+      ...originalStats,
+      monthlyPages: [],
+    });
+
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Sin registros mensuales');
+    expect(root.querySelectorAll('[role="list"] [role="listitem"]').length).toBe(0);
+
+    mockStats.set(originalStats);
   });
 });

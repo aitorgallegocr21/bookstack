@@ -1,8 +1,10 @@
 import { EN_TRANSLATIONS } from '../../../core/i18n/en';
 import { ES_TRANSLATIONS } from '../../../core/i18n/es';
+import { BookMetadataCandidate } from '../models/book-metadata.model';
 import {
   BOOK_STATUS_VALUES,
   buildBookSeriesPayload,
+  buildMetadataFormPatch,
   getCompletedAutofillValues,
   normalizeBookFormat,
   normalizeBookRating,
@@ -78,6 +80,94 @@ describe('book-form.utils', () => {
       id: 'series-123',
       name: 'El Archivo de las Tormentas',
       volumeNumber: 2,
+    });
+  });
+
+  describe('buildMetadataFormPatch', () => {
+    const candidate: BookMetadataCandidate = {
+      id: 'ol:9780141036144',
+      title: '1984',
+      author: 'George Orwell',
+      isbn: '9780141036144',
+      publisher: 'Penguin Books',
+      publicationYear: 2008,
+      totalPages: 336,
+      coverUrl: 'data:image/webp;base64,abc',
+      source: 'merged',
+    };
+
+    it('should overwrite all non-empty public fields in overwrite-public mode', () => {
+      const patch = buildMetadataFormPatch(
+        {
+          title: 'Old Title',
+          author: 'Old Author',
+          isbn: '111',
+          publisher: 'Old Pub',
+          publicationYear: 1990,
+          totalPages: 100,
+          coverUrl: 'https://example.com/old.jpg',
+        },
+        candidate,
+        'overwrite-public'
+      );
+
+      expect(patch).toEqual({
+        title: '1984',
+        author: 'George Orwell',
+        isbn: '9780141036144',
+        publisher: 'Penguin Books',
+        publicationYear: 2008,
+        totalPages: 336,
+        coverUrl: 'data:image/webp;base64,abc',
+      });
+    });
+
+    it('should preserve existing values and only populate empty or zero fields in fill-empty mode', () => {
+      const patch = buildMetadataFormPatch(
+        {
+          title: 'Mi edición anotada de 1984',
+          author: 'George Orwell',
+          isbn: '',
+          publisher: '   ',
+          publicationYear: null,
+          totalPages: 0,
+          coverUrl: '',
+        },
+        candidate,
+        'fill-empty'
+      );
+
+      expect(patch).toEqual({
+        isbn: '9780141036144',
+        publisher: 'Penguin Books',
+        publicationYear: 2008,
+        totalPages: 336,
+        coverUrl: 'data:image/webp;base64,abc',
+      });
+      expect(patch.title).toBeUndefined();
+      expect(patch.author).toBeUndefined();
+    });
+
+    it('should omit undefined or empty candidate fields even in overwrite-public mode', () => {
+      const patch = buildMetadataFormPatch(
+        {
+          title: 'Existing',
+          author: 'Existing Author',
+          publisher: 'Existing Pub',
+        },
+        {
+          id: 'gb:1',
+          title: 'New Title',
+          author: 'New Author',
+          source: 'googlebooks',
+        },
+        'overwrite-public'
+      );
+
+      expect(patch).toEqual({
+        title: 'New Title',
+        author: 'New Author',
+      });
     });
   });
 });

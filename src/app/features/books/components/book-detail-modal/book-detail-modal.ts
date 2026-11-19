@@ -12,7 +12,11 @@ import { CommonModule } from '@angular/common';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { formatLocalizedDate } from '../../../../core/utils/date-formatter';
-import { BOOK_RATING_MAX, Book, BookFormat, BookStatus, ReadingLog } from '../../models/book.model';
+import {
+  formatRatingBadge,
+  getStatusBadgeClass,
+} from '../../../../shared/utils/book-display.utils';
+import { Book, BookFormat, BookStatus, ReadingLog } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
 import { ReadingLogService } from '../../services/reading-log.service';
 import { translateBookFormat } from '../../utils/book-form.utils';
@@ -114,19 +118,7 @@ export class BookDetailModalComponent implements OnDestroy {
     this.cancel();
   }
 
-  protected getStatusBadgeClass(status: BookStatus): string {
-    switch (status) {
-      case 'reading':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'completed':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'abandoned':
-        return 'bg-red-50 text-red-700 border-red-200';
-      case 'pending':
-      default:
-        return 'bg-slate-100 text-slate-700 border-slate-200';
-    }
-  }
+  protected readonly getStatusBadgeClass = getStatusBadgeClass;
 
   protected cancel(): void {
     if (this.isClosing()) {
@@ -157,14 +149,10 @@ export class BookDetailModalComponent implements OnDestroy {
   }
 
   protected getRatingBadge(rating?: number): string {
-    if (rating === undefined || rating === null || Number.isNaN(rating)) {
-      return this.i18n.t().books.noRating;
-    }
-
-    return `★ ${Math.min(BOOK_RATING_MAX, Math.max(0, rating)).toFixed(1).replace(/\.0$/, '')}/10`;
+    return formatRatingBadge(rating, this.i18n.t().books.noRating);
   }
 
   protected formatDate(date?: string): string {
-    return formatLocalizedDate(date, false, this.i18n.intlLocale());
+    return formatLocalizedDate(date, true, this.i18n.intlLocale());
   }
 }

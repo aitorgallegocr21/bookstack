@@ -75,6 +75,7 @@ __screenshots__/
 .storybook-build/
 
 # Linters and formatters cache
+.cache/
 .eslintcache
 .stylelintcache
 

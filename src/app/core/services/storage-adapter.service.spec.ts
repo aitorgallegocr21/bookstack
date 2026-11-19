@@ -83,4 +83,194 @@ describe('StorageAdapterService', () => {
     expect(result).toBe(false);
     expect(errorSpy).toHaveBeenCalled();
   });
+
+  it('should save and retrieve reading goals payload using dedicated helpers', () => {
+    const goals = { year: 2026, targetBooks: 20, targetPages: 5000 };
+    expect(service.getReadingGoals()).toBeNull();
+
+    const saved = service.saveReadingGoals(goals);
+    expect(saved).toBe(true);
+
+    expect(service.getReadingGoals()).toEqual(goals);
+  });
+
+  describe('Catalog preferences persistence', () => {
+    it('should default viewMode to "detailed" when nothing or invalid value is stored', () => {
+      expect(service.getCatalogViewMode()).toBe('detailed');
+
+      localStorage.setItem(service.catalogViewModeKey, JSON.stringify('invalid-mode'));
+      expect(service.getCatalogViewMode()).toBe('detailed');
+    });
+
+    it('should persist and retrieve valid CatalogViewMode', () => {
+      expect(service.setCatalogViewMode('grid')).toBe(true);
+      expect(service.getCatalogViewMode()).toBe('grid');
+
+      expect(service.setCatalogViewMode('compact')).toBe(true);
+      expect(service.getCatalogViewMode()).toBe('compact');
+    });
+
+    it('should default sortOption to "recent" when nothing or invalid value is stored', () => {
+      expect(service.getCatalogSort()).toBe('recent');
+
+      localStorage.setItem(service.catalogSortKey, JSON.stringify('unsupported-sort'));
+      expect(service.getCatalogSort()).toBe('recent');
+    });
+
+    it('should persist and retrieve valid CatalogSortOption', () => {
+      expect(service.setCatalogSort('title-asc')).toBe(true);
+      expect(service.getCatalogSort()).toBe('title-asc');
+
+      expect(service.setCatalogSort('rating-desc')).toBe(true);
+      expect(service.getCatalogSort()).toBe('rating-desc');
+    });
+  });
+
+  describe('Batch store primitives & quota estimation', () => {
+    it('should replaceStore and clearStore in IndexedDB while preserving unrelated localStorage keys', async () => {
+      localStorage.setItem('books_stale', JSON.stringify({ id: 'stale' }));
+      localStorage.setItem('bookstack_catalog_view_mode', JSON.stringify('grid'));
+
+      await service.set('books', { id: 'old-1', label: 'Old Book' });
+
+      const replaced = await service.replaceStore<TestRecord>('books', [
+        { id: 'new-1', label: 'New Book 1' },
+        { id: 'new-2', label: 'New Book 2' },
+      ]);
+
+      expect(replaced).toBe(true);
+      const allAfterReplace = await service.getAll<TestRecord>('books');
+      expect(allAfterReplace).toHaveLength(2);
+      expect(allAfterReplace.map((r) => r.id).sort()).toEqual(['new-1', 'new-2']);
+      expect(localStorage.getItem('books_stale')).toBeNull();
+      expect(localStorage.getItem('bookstack_catalog_view_mode')).not.toBeNull();
+
+      await service.clearStore('books');
+      expect(await service.getAll<TestRecord>('books')).toEqual([]);
+      expect(localStorage.getItem('bookstack_catalog_view_mode')).not.toBeNull();
+    });
+
+    it('should fall back to localStorage for replaceStore and clearStore when IndexedDB is unavailable', async () => {
+      Object.defineProperty(globalThis, 'indexedDB', {
+        writable: true,
+        configurable: true,
+        value: undefined,
+      });
+
+      localStorage.setItem('books_legacy', JSON.stringify({ id: 'legacy', label: 'Legacy' }));
+
+      const replaced = await service.replaceStore<TestRecord>('books', [
+        { id: 'fb-1', label: 'Fallback 1' },
+      ]);
+      expect(replaced).toBe(true);
+      expect(localStorage.getItem('books_legacy')).toBeNull();
+      expect(await service.getAll<TestRecord>('books')).toEqual([
+        { id: 'fb-1', label: 'Fallback 1' },
+      ]);
+
+      await service.clearStore('books');
+      expect(await service.getAll<TestRecord>('books')).toEqual([]);
+    });
+
+    it('should report isUsingIndexedDb accurately based on IndexedDB availability', async () => {
+      expect(await service.isUsingIndexedDb()).toBe(true);
+
+      Object.defineProperty(globalThis, 'indexedDB', {
+        writable: true,
+        configurable: true,
+        value: undefined,
+      });
+      const fallbackService = TestBed.resetTestingModule().inject(StorageAdapterService);
+      expect(await fallbackService.isUsingIndexedDb()).toBe(false);
+    });
+
+    it('should safely estimate browser quota or return nulls when unsupported', async () => {
+      const estimateSpy = vi.fn().mockResolvedValue({ usage: 1024, quota: 5242880 });
+      Object.defineProperty(navigator, 'storage', {
+        configurable: true,
+        value: { estimate: estimateSpy },
+      });
+
+      expect(await service.estimateBrowserQuota()).toEqual({
+        usageBytes: 1024,
+        quotaBytes: 5242880,
+      });
+
+      estimateSpy.mockRejectedValueOnce(new Error('Storage estimate blocked'));
+      expect(await service.estimateBrowserQuota()).toEqual({
+        usageBytes: null,
+        quotaBytes: null,
+      });
+
+      Object.defineProperty(navigator, 'storage', {
+        configurable: true,
+        value: undefined,
+      });
+      expect(await service.estimateBrowserQuota()).toEqual({
+        usageBytes: null,
+        quotaBytes: null,
+      });
+    });
+
+    it('should provision the seriesMetadata object store on IndexedDB v2', async () => {
+      const metadataRecord: TestRecord = { id: 'series-1', label: 'Cosmere' };
+
+      const persisted = await service.set('seriesMetadata', metadataRecord);
+      expect(persisted).toBe(true);
+      expect(await service.get<TestRecord>('seriesMetadata', 'series-1')).toEqual(metadataRecord);
+      expect(await service.getAll<TestRecord>('seriesMetadata')).toEqual([metadataRecord]);
+
+      await service.replaceStore('seriesMetadata', [{ id: 'series-2', label: 'Dune' }]);
+      expect(await service.getAll<TestRecord>('seriesMetadata')).toEqual([
+        { id: 'series-2', label: 'Dune' },
+      ]);
+
+      await service.clearStore('seriesMetadata');
+      expect(await service.getAll<TestRecord>('seriesMetadata')).toEqual([]);
+    });
+
+    it('should persist multiple items with putMany in IndexedDB and handle empty arrays', async () => {
+      expect(await service.putMany<TestRecord>('books', [])).toBe(true);
+
+      const batch: TestRecord[] = [
+        { id: 'batch-1', label: 'First' },
+        { id: 'batch-2', label: 'Second' },
+      ];
+      expect(await service.putMany('books', batch)).toBe(true);
+
+      expect(await service.get<TestRecord>('books', 'batch-1')).toEqual(batch[0]);
+      expect(await service.get<TestRecord>('books', 'batch-2')).toEqual(batch[1]);
+    });
+
+    it('should fall back to localStorage for putMany when IndexedDB is unavailable', async () => {
+      Object.defineProperty(globalThis, 'indexedDB', {
+        writable: true,
+        configurable: true,
+        value: undefined,
+      });
+      const fallbackService = TestBed.resetTestingModule().inject(StorageAdapterService);
+
+      const batch: TestRecord[] = [
+        { id: 'ls-batch-1', label: 'LS First' },
+        { id: 'ls-batch-2', label: 'LS Second' },
+      ];
+      expect(await fallbackService.putMany('books', batch)).toBe(true);
+      expect(await fallbackService.getAll<TestRecord>('books')).toEqual(batch);
+    });
+
+    it('should reset dbPromise when an open IndexedDB connection closes unexpectedly', async () => {
+      expect(await service.set('books', { id: 'reopen-1', label: 'Before close' })).toBe(true);
+
+      const internalService = service as unknown as { dbPromise: Promise<IDBDatabase> | null };
+      const db = await internalService.dbPromise;
+      expect(db).not.toBeNull();
+      db?.onclose?.(new Event('close'));
+      expect(internalService.dbPromise).toBeNull();
+
+      expect(await service.get<TestRecord>('books', 'reopen-1')).toEqual({
+        id: 'reopen-1',
+        label: 'Before close',
+      });
+    });
+  });
 });

@@ -5,43 +5,30 @@
 - **Name:** BookStack
 - **Purpose:** Minimalist, visual, private, high-performance **Local-First** web application for personal reading tracking, session logging, habit analytics, and private library management.
 - **Current Stage (Local-First Priority):** 100% client-side browser execution with local persistence (`IndexedDB` primary store + safe `LocalStorage` fallback) and zero mandatory backend.
-- **Long-Term Future Roadmap:** Once the local-first web platform matures through its planned milestones, BookStack is intended to expand with a native **Android client (Kotlin + Jetpack Compose)** and an optional **cloud backend for user accounts and multi-device synchronization**.
-  - _Architectural implication:_ Keep domain contracts (`Book`, `ReadingLog`, `ReadingStats`) purely serializable, UUID-identified, and UTC ISO-8601 timestamped, and treat `StorageAdapterService` as the repository boundary that can later back a cross-device `SyncRepository`.
-- **Branching & CI/CD Model:**
-  - `develop`: Primary integration branch for daily feature, fix, and refactoring work.
-  - `main`: Production branch. Pre-merge quality checks (`ci.yml`: ESLint, Prettier, `tsc`, Vitest, build, Playwright E2E) run on `pull_request` to `main`; merging into `main` triggers `deploy.yml` (production build + `404.html` SPA fallback + GitHub Pages deploy) without duplicating test runs.
+- **Long-Term Future Roadmap:** Native **Android client (Kotlin + Jetpack Compose)** and optional **cloud backend for multi-device sync**. Keep domain contracts (`Book`, `ReadingLog`, `ReadingStats`, `ReadingGoals`) purely serializable, UUID-identified, and UTC ISO-8601 timestamped, treating `StorageAdapterService` as the repository boundary.
+- **Branching & CI/CD Model:** `develop` is the primary integration branch; `main` is the production release branch (CI runs on `pull_request` to `main`, deployment runs via `deploy.yml` on merge). For full branch hygiene and cleanup rules, see `AGENTS.md` Section 2.5.
 
 ---
 
-## 2. Technology Stack & Tooling
+## 2. Technology Stack & Architectural Decision Records (ADR)
 
-- **Framework:** Angular 22+ (`@angular/core`, Standalone Components, Signals, `@if` / `@for` Control Flow, `@defer`, `OnPush`, Lazy Routes via `loadComponent`).
-- **Styling:** Tailwind CSS v4 (`@tailwindcss/postcss`, `@custom-variant dark`), shared modal/form primitives in `src/styles.css`, class-based light/dark theme persistence.
-- **Icons:** `@lucide/angular` and inline semantic SVGs.
-- **Schema Validation & Privacy:** `zod` runtime validation (`BookSchema` with `isSafeCoverUrl`, `ReadingLogSchema`) + strict `<meta name="referrer" content="no-referrer" />`.
-- **Internationalization:** Signal-based `I18nService` (`es` active default, `en` full coverage across all routes, modals, and form components; live switcher in `/settings`) + `Intl.DateTimeFormat`.
-- **Quality & Testing Gates:** Strict TypeScript (`tsconfig.app.json` + `tsconfig.spec.json`), ESLint + `angular-eslint` (including template accessibility), Prettier + `prettier-plugin-tailwindcss` (`.prettierrc.mjs`), Vitest 5 (`jsdom` + `fake-indexeddb`), and Playwright E2E tests.
-
----
-
-## 3. Architectural Decision Records (ADR)
-
-1. **Signal-First State Management:** Reactive state relies exclusively on Angular Signals (`signal`, `computed`, `effect`). RxJS subscriptions are forbidden for local UI or service state.
-2. **Asymmetric Responsive Shell:**
+1. **Signal-First State (`Angular 22+`):** Standalone `OnPush` components, native `@if`/`@for`/`@defer`, lazy routes (`loadComponent`), and Signals (`signal`, `computed`, `effect`). RxJS subscriptions are forbidden for local state.
+2. **Asymmetric Responsive Shell (`Tailwind CSS v4`):**
    - Tablet & Desktop ($\ge 768\text{px}$): Collapsible `SidebarComponent` (`hidden md:flex`, `68px` $\leftrightarrow$ `240px`) persisted via `UiStateService`.
-   - Mobile ($< 768\text{px}$): Compact `HeaderComponent` + fixed `BottomNavComponent` with safe-area padding (`env(safe-area-inset-bottom)`).
-3. **Rendering & Bundle Efficiency:** Discrete CSS transitions (`transition-colors`, `transition-[width]`, `transition-transform`, `transition-shadow`); `transition-all` is banned. Global `BookCreateModalComponent` loads lazily via `@defer`. Cover images use `decoding="async"` and `loading="lazy"`. Shared modal/form styles live centrally in `src/styles.css`.
+   - Mobile ($< 768\text{px}$): Compact `HeaderComponent` + fixed `BottomNavComponent` (`env(safe-area-inset-bottom)`).
+   - **Container-Aware Grids & Toolbars (`@container`):** Dashboard split, catalog grids/card actions, and unified filter toolbars adapt to actual container width (accounting for sidebar expand/collapse at ~1000px), paired with `.no-scrollbar` + `.modal-scroll-area` scroll cues on modal bodies.
+3. **Rendering & Bundle Efficiency:** Discrete CSS transitions (`transition-colors`, `transition-[width]`, `transition-[grid-template-rows]`); `transition-all` is banned. Global `BookCreateModalComponent` loads via `@defer`. Cover images use `decoding="async" loading="lazy"`. Shared modal/form primitives reside in `src/styles.css`.
 4. **Client-Side Canvas Cover Optimization:** `ImageOptimizerService` scales and compresses uploaded covers ($\le 400\text{px}$, quality `0.75`, WebP/JPEG fallback) before persistence.
 5. **Bidirectional Reading Delta Sync:** Logging, updating, or deleting a `ReadingLog` automatically adjusts `Book.currentPage` and status transitions (`pending` / `reading` / `completed`).
-6. **Accessible Modal & Scroll-Lock Discipline:** Modals implement `host: { '(document:keydown.escape)': ... }`, programmatic initial focus via `viewChild()`, and reference-counted body scroll locks via `UiStateService.acquireScrollLock()` / `releaseScrollLock()`.
-7. **Storage Resilience, Security & Clean Layering:** `StorageAdapterService` lives in `src/app/core/services/`, avoids redundant `localStorage` mirroring on normal IndexedDB writes, traps `QuotaExceededError` / malformed JSON safely, and pairs with Zod parsers (`isSafeCoverUrl` blocks `javascript:` / `data:text/html`). Shared form helpers (`BOOK_STATUS_VALUES`, `translateBookFormat`, autofill) reside in `book-form.utils.ts`, and reusable cover selection/drag-drop/preview lives in `CoverPickerComponent`.
-8. **Token & Agent Context Efficiency:** Always consult this JIT map first, read targeted line ranges (`StartLine`/`EndLine`), never scan `node_modules`, `dist`, or `playwright-report`, and keep `AGENTS.md` + `docs/tasks/` synchronized on every change.
+6. **Accessible Modal & Scroll-Lock Discipline:** Modals implement `host: { '(document:keydown.escape)': ... }`, programmatic initial focus via `viewChild()`, and reference-counted scroll locks via `UiStateService.acquireScrollLock()` / `releaseScrollLock()`.
+7. **Storage Resilience & Zod Security:** `StorageAdapterService` avoids redundant `localStorage` mirroring on normal IndexedDB writes, traps `QuotaExceededError` safely, persists catalog view/sort preferences in `localStorage`, and pairs with Zod parsers (`isSafeCoverUrl` blocks `javascript:` / `data:text/html`).
+8. **Bilingual Signal i18n (`es` default, `en` full mirror):** Resolved via `I18nService` + `Intl.DateTimeFormat` (`date-formatter.ts`).
 
 ---
 
-## 4. Semantic Source Map (JIT Pointers)
+## 3. Semantic Source Map & JIT Line Pointers
 
-Inspect and edit only real workspace paths listed below:
+Read targeted line ranges (`StartLine`/`EndLine`) using this map; never scan `node_modules`, `dist`, or `playwright-report`:
 
 ```text
 src/
@@ -49,39 +36,91 @@ src/
 ├── test-setup.ts                              # Global Vitest setup (fake-indexeddb + matchMedia mock)
 ├── styles.css                                 # Tailwind CSS v4 entry, dark variant & shared modal/form styles
 └── app/
-    ├── app.config.ts                          # Root ApplicationConfig (routing, ChangeDetection)
-    ├── app.routes.ts                          # Lazy routes (/, /books, /stats, /settings, /about)
+    ├── app.config.ts / app.routes.ts          # Root config & lazy routes (/, /books, /series, /stats, /settings, /about)
     ├── app.ts / app.html / app.spec.ts        # Root shell (<app-sidebar>, <app-header>, <main>, <app-bottom-nav>, @defer modal)
-    │
-    ├── core/                                  # Cross-cutting infrastructure & navigation shell
-    │   ├── components/
-    │   │   ├── sidebar/                       # Collapsible desktop/tablet sidebar (68px / 240px)
-    │   │   ├── header/                        # Mobile compact header (<768px)
-    │   │   └── bottom-nav/                    # Mobile fixed bottom bar (<768px)
-    │   ├── i18n/                              # Signal-based dictionaries (es, en) & I18nService
+    ├── core/
+    │   ├── components/{sidebar,header,bottom-nav}/  # Asymmetric shell components
+    │   ├── i18n/                              # i18n.types.ts (L1-18), es.ts (L1-18), en.ts (L1-18), i18n.service.ts (L1-49)
+    │   │   └── domains/                       # shell (L1-101), dashboard (L1-198), books (L1-649), analytics (L1-276), series (L1-232), settings (L1-354), about (L1-135)
+    │   ├── models/catalog-preferences.model.ts # CatalogViewMode, CatalogSortOption & runtime guards
     │   ├── services/
-    │   │   ├── storage-adapter.service.ts     # IndexedDB + LocalStorage fallback adapter (future Sync boundary)
-    │   │   ├── theme.service.ts               # Light/dark theme signal & persistence
-    │   │   └── ui-state.service.ts            # Sidebar collapse & reference-counted scroll lock
-    │   └── utils/
-    │       └── date-formatter.ts              # Locale-aware Intl date & month formatters
-    │
-    └── features/                              # Decoupled domain modules
-        ├── dashboard/pages/dashboard-page/    # Home overview & KPIs (/)
+    │   │   ├── storage-adapter.service.ts     # L1-361: IndexedDB + LocalStorage fallback + catalog view/sort prefs
+    │   │   ├── theme.service.ts               # L1-83: Light/dark theme signal & persistence
+    │   │   └── ui-state.service.ts            # L1-66: Sidebar collapse, create modal state/prefill & scroll lock
+    │   └── utils/date-formatter.ts            # Locale-aware Intl date & month formatters
+    ├── shared/
+    │   └── utils/book-display.utils.ts        # Shared getStatusBadgeClass & formatRatingBadge helpers
+    └── features/
+        ├── dashboard/                         # Home launchpad (/)
+        │   ├── pages/dashboard-page/          # Dashboard layout coordinator
+        │   └── components/{currently-reading-hero,reading-streak-widget,annual-goal-card,recent-activity-feed}/
         ├── books/                             # Books catalog & reading logs domain (/books)
-        │   ├── models/book.model.ts           # Contracts: Book, BookSeries, ReadingLog, ReadingStats
-        │   ├── schemas/book.schema.ts         # Zod runtime parsers (BookSchema, isSafeCoverUrl, ReadingLogSchema)
-        │   ├── services/                      # BooksService, ReadingLogService, ReadingStatsService, ImageOptimizerService
-        │   ├── utils/book-form.utils.ts       # Shared status/autofill/format/rating/series helpers
-        │   ├── pages/books-page/              # Catalog grid & modal coordination
-        │   └── components/                    # cover-picker, book-create-modal, book-edit-modal, book-detail-modal, reading-log-editor
-        ├── analytics/pages/stats-page/        # Analytics view (/stats)
-        ├── settings/pages/settings-page/      # Language switcher, settings & future backup hub (/settings)
+        │   ├── models/
+        │   │   ├── book.model.ts              # L1-185: Book, BookSeries, ReadingLog, ReadingStats, ReadingGoals, StreakInfo
+        │   │   ├── book-metadata.model.ts     # L1-28: Metadata lookup result & duplicate check models
+        │   │   └── catalog-filter.model.ts    # L1-51: CatalogViewMode, CatalogSortOption, CatalogFilterState, StatusCounts
+        │   ├── schemas/
+        │   │   ├── book.schema.ts             # L1-119: BookSchema, ReadingLogSchema, isSafeCoverUrl
+        │   │   ├── book-metadata.schema.ts    # L1-381: Open Library + Google Books Zod response schemas
+        │   │   └── reading-goals.schema.ts    # L1-28: ReadingGoalsSchema
+        │   ├── services/
+        │   │   ├── books.service.ts           # L1-133: CRUD + persistence orchestration
+        │   │   ├── reading-log.service.ts     # L1-98: Session logs + bidirectional page delta sync
+        │   │   ├── reading-stats.service.ts   # L1-324: Computed stats, streaks & annual goals progress
+        │   │   ├── catalog-filter.service.ts  # L1-377: Omni-search, status/format/rating filters, 7 sorts & view mode state
+        │   │   ├── image-optimizer.service.ts # L1-132: Canvas WebP/JPEG compression & remote cover fetch
+        │   │   └── book-metadata.service.ts   # L1-304: Privacy-first Open Library + Google Books lookup, session cache & duplicate detector
+        │   ├── utils/
+        │   │   ├── book-form.utils.ts         # Shared status/autofill/format/rating/series & metadata form-patch helpers
+        │   │   └── isbn.utils.ts              # Pure ISBN-10/13 checksum & normalization helpers
+        │   ├── pages/books-page/              # Catalog coordinator, 3 view modes & zero-match empty state
+        │   └── components/{cover-picker,isbn-scanner,book-metadata-lookup,book-create-modal,book-edit-modal,book-detail-modal,reading-log-editor,catalog-toolbar,book-grid-card,book-detailed-card,book-compact-row}/
+        ├── analytics/                         # Reading analytics domain (/stats)
+        │   ├── models/analytics.model.ts      # Period, KPI, trend, distribution, weekday pace & highlights contracts
+        │   ├── services/analytics.service.ts  # Reactive period filtering & hybrid ReadingLog + Book aggregation
+        │   ├── components/{analytics-header,analytics-kpi-grid,reading-velocity-chart,library-composition-section,reading-habits-section}/
+        │   └── pages/stats-page/              # Analytics coordinator (/stats), empty library state & integration spec
+        ├── series/                            # Sagas, Series & Collections domain (/series)
+        │   ├── models/series.model.ts         # SeriesMetadata, SagaAggregation, SagaVolumeSlot, SagaBentoScale
+        │   ├── schemas/series.schema.ts       # Zod SeriesMetadataSchema runtime persistence validator
+        │   ├── services/series.service.ts     # Normalized grouping, gap radar, filters/sorts & bulk link/unlink
+        │   ├── utils/series.utils.ts          # Pure normalization, timeline slots, bento scale & aggregation helpers
+        │   ├── components/{series-toolbar,saga-bento-card,saga-detail-modal}/
+        │   └── pages/series-page/             # Variable-scale Bento gallery (/series) & modal coordinator
+        ├── settings/                          # Settings, Data Portability & Backup Engine (/settings)
+        │   ├── models/cover-enrichment.model.ts       # CoverEnrichmentState, MissingCoverSummary & skipped report contracts
+        │   ├── models/data-portability.model.ts       # BackupEnvelope, ImportPreviewSummary, StorageBreakdownSummary
+        │   ├── schemas/backup.schema.ts               # Zod BackupEnvelopeSchema & versioned restore validation
+        │   ├── services/cover-enrichment.service.ts   # Pausable/cancellable ISBN & Title+Author cover queues + visual assistant
+        │   ├── services/data-portability.service.ts   # JSON/CSV export, Zod import preview, Merge/Overwrite & quota inspector
+        │   ├── components/{settings-preferences-section,storage-quota-inspector,data-portability-section,cover-enrichment-section,danger-zone-section}/
+        │   └── pages/settings-page/                   # /settings coordinator & reactive storage breakdown
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)
 
-tests/
-└── e2e/                                       # Playwright End-to-End browser specs
-    ├── overflow.spec.ts                       # Horizontal overflow & single-<main> check (375..1280px)
-    ├── navigation-and-theme.spec.ts           # Sidebar, mobile bottom nav & dark theme persistence
-    └── books-flow.spec.ts                     # End-to-end Book & ReadingLog CRUD lifecycle
+tests/e2e/                                     # Playwright specs: overflow, navigation-and-theme, books-flow, dashboard-flow, catalog-flow, analytics-flow, settings-flow, isbn-lookup-flow, series-flow
+scripts/verify-quiet.mjs                       # Token-optimized auto-fix + quiet verification gate
 ```
+
+---
+
+## 4. Antigravity Token, Quota & Dynamic Model Routing Strategy
+
+See `AGENTS.md` Section 3 for the full Dynamic Model Routing, Subagent Delegation, and Quota Optimization rules.
+
+---
+
+## 5. Phase Documentation & Major Changes Protocol (Interactive Discovery)
+
+Whenever the user requests documenting a new phase or planning major features:
+
+1. **Pre-Phase Autonomous Branch Hygiene:** Follow `AGENTS.md` Section 2.5 before starting/defining a new phase.
+2. **Interactive Interview (`/grill-me` in Spanish):**
+   - Conduct a step-by-step interview walking through the decision tree one question at a time via `ask_question`.
+   - Maintain high-standard UX/UI and architecture focus aligned with BookStack's vision and provide opinionated recommendations prefixed with `(Recommended)`.
+3. **Zero-Ambiguity Phase Artifacts Synthesis:**
+   - Translate resolved decisions into `docs/tasks/phase-XX-<name>/index.md` and atomic `task-X.Y-*.md` files.
+   - **Mandatory JIT Requirement:** Every `task-X.Y-*.md` MUST include a `## Target Files & Line Pointers` section listing the exact files and line ranges to read/edit so the implementing agent requires zero exploratory searches.
+   - Synchronize `docs/TASKS.md`, `README.md`, `README.es.md`, and `CONTEXT.md` (Tier 2 Per-Phase Sync).
+4. **Periodic Project Hardening & Consolidation Protocol (Every Several Phases / On User Request):**
+   - Whenever the user asks to run a general project improvement, consolidation, security/schema hardening, or performance/architecture sweep after developing several feature phases (like `Phase 12` and its post-phase hardening commits), immediately load `.agents/skills/periodic-project-hardening/SKILL.md`.
+   - Follow its **Low-Token Static Diagnostic Sweep** first and audit all 8 mandatory pillars (Token Hygiene & Monolith Splitting first, Legal/Privacy/CSP & Zod `.max()` bounds, Offline PWA & Brand Assets, IndexedDB Batch ACID & `DataPortabilityService` cross-service sync, Memoized `Intl.*` & single-pass $O(N)$ engines, `@defer` modal splitting & budgets, Clean Architecture `core`/`shared`/`features` boundaries & suffixless naming, and Unit/E2E Regression coverage).

@@ -19,9 +19,14 @@ describe('ImageOptimizerService', () => {
     vi.restoreAllMocks();
   });
 
-  it('should reject unsupported image MIME types', async () => {
+  it('should reject unsupported image MIME types and SVG extensions', async () => {
     const gifFile = new File(['gif-bytes'], 'cover.gif', { type: 'image/gif' });
     await expect(service.optimize(gifFile)).rejects.toThrow(
+      'Unsupported image format. Use JPEG, PNG, WebP, or AVIF.'
+    );
+
+    const svgFile = new File(['<svg></svg>'], 'cover.svg', { type: 'image/png' });
+    await expect(service.optimize(svgFile)).rejects.toThrow(
       'Unsupported image format. Use JPEG, PNG, WebP, or AVIF.'
     );
   });
@@ -74,10 +79,187 @@ describe('ImageOptimizerService', () => {
     const result = await service.optimize(pngFile);
 
     expect(result).toBe('data:image/webp;base64,optimized');
-    expect(mockCanvas.width).toBe(200);
-    expect(mockCanvas.height).toBe(400);
+    expect(mockCanvas.width).toBe(180);
+    expect(mockCanvas.height).toBe(360);
     expect(drawImage).toHaveBeenCalledTimes(1);
-    expect(toDataURL).toHaveBeenCalledWith('image/webp', 0.75);
+    expect(toDataURL).toHaveBeenCalledWith('image/webp', 0.7);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-cover');
+  });
+
+  describe('optimizeRemoteUrl', () => {
+    const originalFetch = globalThis.fetch;
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch;
+    });
+
+    it('rejects non-HTTPS remote URLs', async () => {
+      await expect(service.optimizeRemoteUrl('http://example.com/cover.jpg')).rejects.toThrow(
+        'Remote cover URL must use HTTPS.'
+      );
+    });
+
+    it('fetches HTTPS cover with no-referrer/omit credentials and optimizes it locally', async () => {
+      const mockBlob = new Blob(['webp-bytes'], { type: 'image/webp' });
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        blob: async () => mockBlob,
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const optimizeSpy = vi
+        .spyOn(service, 'optimize')
+        .mockResolvedValue('data:image/webp;base64,localCover');
+
+      const result = await service.optimizeRemoteUrl('https://covers.openlibrary.org/b/id/1-L.jpg');
+
+      expect(result).toBe('data:image/webp;base64,localCover');
+      expect(fetchMock).toHaveBeenCalledWith('https://covers.openlibrary.org/b/id/1-L.jpg', {
+        mode: 'cors',
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+        signal: expect.any(AbortSignal),
+      });
+      expect(optimizeSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns empty string when fetch or optimization fails', async () => {
+      globalThis.fetch = vi
+        .fn()
+        .mockRejectedValue(new TypeError('CORS blocked')) as unknown as typeof fetch;
+
+      const remoteUrl = 'https://books.google.com/books/content?id=123';
+      const result = await service.optimizeRemoteUrl(remoteUrl);
+
+      expect(result).toBe('');
+    });
+
+    it('returns empty string when response is not ok', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+      }) as unknown as typeof fetch;
+
+      const remoteUrl = 'https://covers.openlibrary.org/b/id/missing-L.jpg';
+      const result = await service.optimizeRemoteUrl(remoteUrl);
+
+      expect(result).toBe('');
+    });
+
+    it('rejects SVG or non-image blobs by returning empty string', async () => {
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        blob: async () => new Blob(['<svg></svg>'], { type: 'image/svg+xml' }),
+      }) as unknown as typeof fetch;
+
+      const result = await service.optimizeRemoteUrl('https://covers.openlibrary.org/b/id/1-L.svg');
+      expect(result).toBe('');
+    });
+
+    it('aborts and returns empty string when request exceeds timeout', async () => {
+      vi.useFakeTimers();
+      try {
+        globalThis.fetch = vi.fn(
+          (_input: RequestInfo | URL, init?: RequestInit) =>
+            new Promise<Response>((_resolve, reject) => {
+              init?.signal?.addEventListener('abort', () => {
+                reject(new DOMException('Aborted', 'AbortError'));
+              });
+            })
+        ) as unknown as typeof fetch;
+
+        const promise = service.optimizeRemoteUrl(
+          'https://covers.openlibrary.org/b/id/slow.jpg',
+          50
+        );
+        await vi.advanceTimersByTimeAsync(60);
+
+        await expect(promise).resolves.toBe('');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('rejects undersized placeholder images when minWidth or minHeight is specified', async () => {
+      URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-pixel');
+      URL.revokeObjectURL = vi.fn();
+
+      class TinyMockImage {
+        naturalWidth = 1;
+        naturalHeight = 1;
+        width = 1;
+        height = 1;
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        set src(_value: string) {
+          queueMicrotask(() => this.onload?.());
+        }
+      }
+
+      globalThis.Image = TinyMockImage as unknown as typeof Image;
+
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        blob: async () => new Blob(['pixel-bytes'], { type: 'image/png' }),
+      }) as unknown as typeof fetch;
+
+      const result = await service.optimizeRemoteUrl(
+        'https://covers.openlibrary.org/b/id/1-S.jpg',
+        { minWidth: 80, minHeight: 120 }
+      );
+
+      expect(result).toBe('');
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-pixel');
+    });
+
+    it('accepts remote images meeting minWidth and minHeight thresholds', async () => {
+      URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-valid');
+      URL.revokeObjectURL = vi.fn();
+
+      class ValidMockImage {
+        naturalWidth = 180;
+        naturalHeight = 280;
+        width = 180;
+        height = 280;
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        set src(_value: string) {
+          queueMicrotask(() => this.onload?.());
+        }
+      }
+
+      globalThis.Image = ValidMockImage as unknown as typeof Image;
+
+      const drawImage = vi.fn();
+      const toDataURL = vi.fn().mockReturnValue('data:image/webp;base64,validCover');
+      const mockCanvas = {
+        width: 0,
+        height: 0,
+        getContext: vi.fn().mockReturnValue({ drawImage }),
+        toDataURL,
+      } as unknown as HTMLCanvasElement;
+
+      vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+        if (tagName === 'canvas') {
+          return mockCanvas;
+        }
+        return document.createElement(tagName);
+      });
+
+      globalThis.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        blob: async () => new Blob(['valid-bytes'], { type: 'image/webp' }),
+      }) as unknown as typeof fetch;
+
+      const result = await service.optimizeRemoteUrl(
+        'https://covers.openlibrary.org/b/id/123-L.jpg',
+        { minWidth: 80, minHeight: 120 }
+      );
+
+      expect(result).toBe('data:image/webp;base64,validCover');
+      expect(drawImage).toHaveBeenCalledTimes(1);
+    });
   });
 });

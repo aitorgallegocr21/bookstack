@@ -1,66 +1,22 @@
 ---
 name: responsive-mobile-design
-description: Mobile-first responsive UI standards, touch ergonomics, dynamic viewport handling, asymmetric Shell breakpoints, modal accessibility, and zero-overflow verification for BookStack.
+description: On-demand responsive breakpoint recipes (320px-1280px), asymmetric shell rules, modal scroll-lock/focus snippets, and WCAG 2.1 AA touch ergonomics. Activate when building or modifying UI components, cards, toolbars, or modals.
 ---
 
-# Responsive Mobile-First & Accessibility Design Skill
+# Responsive & Accessible UI Recipes (On-Demand Reference)
 
-This skill guides AI agents and engineers implementing UI components, Shell layouts, catalog cards, and modal dialogs in BookStack to guarantee mobile ergonomics, WCAG 2.1 AA compliance, and zero layout regressions.
+> Core mobile-first rules are already loaded in `AGENTS.md`. Use this skill for layout recipes and modal accessibility patterns.
 
----
+## 1. Breakpoint & Overflow Guardrails
 
-## 1. Asymmetric Shell Breakpoint Contract (`768px / md`)
+- **Asymmetric Shell (`768px / md`):** Desktop/tablet `<app-sidebar>` uses `hidden md:flex` (`68px` collapsed / `240px` expanded). Mobile `<app-header>` and `<app-bottom-nav>` use `md:hidden` with `<main>` bottom clearance (`pb-20` / `pb-24`).
+- **Ultra-Small Viewports (`320px–359px`):** Use `min-w-0` + `truncate` or `line-clamp-2` on flex/grid text children so long titles never push `scrollWidth > clientWidth`. Stack media cards vertically below `360px` (`max-[359px]:flex-col`).
+- **Touch Ergonomics & Viewport:** Interactive controls require $\ge 44\times44\text{px}$ hit targets (`min-h-11 min-w-11` or equivalent padding) and $\ge 8\text{px}$ (`gap-2`) separation. Use `100dvh` instead of `100vh` on overlays.
 
-- **Desktop & Tablet ($\ge 768\text{px}$, `md:`):**
-  - `SidebarComponent` is fixed on the left (`68px` collapsed / `240px` expanded, persisted via `UiStateService`).
-  - Both `app.html` and `SidebarComponent` host class MUST align strictly on `hidden md:flex` (never `lg:flex` vs `md:ml-...` mismatch).
-  - Mobile `<app-header>` and `<app-bottom-nav>` are hidden via `md:hidden`.
-- **Mobile ($< 768\text{px}$):**
-  - Compact `<app-header>` at top (`role="banner"`).
-  - Fixed `<app-bottom-nav>` at bottom (`role="navigation"`, `pb-[env(safe-area-inset-bottom)]`), reserving bottom clearance (`pb-20` / `pb-24`) on `<main>` so content is never obscured.
-  - Below `350px`, auxiliary tabs (e.g., `/about`) collapse gracefully from the bottom bar while remaining accessible from `/settings`.
+## 2. Accessible Modal & Drawer Pattern
 
----
-
-## 2. Core Ergonomic & Touch Standards
-
-### A. Touch Targets (WCAG 2.5.5 / Apple HIG)
-
-- Every interactive control (buttons, nav tabs, icon toggles, modal close buttons) must provide a minimum clickable/tappable area of **44x44 CSS pixels** (or `>= 48px` height in bottom navigation).
-- Maintain at least `gap-2` (`8px`) between adjacent icon action buttons.
-
-### B. Dynamic Viewport Units (`dvh` over `vh`)
-
-- Prefer `min-h-[100dvh]` / `h-[100dvh]` over raw `100vh` for full-screen overlays and modal containers so mobile browser URL bars never clip modal footers or actions.
-
-### C. Ultra-Small Viewport Ergonomics (`< 360px`)
-
-- Book catalog cards stack cleanly on `< 360px` (`max-[359px]:flex-col`) with a compact banner cover (`aspect-[5/2]`) and wrapping action bar (`flex-wrap`).
-- Apply `min-w-0` and `truncate` on flex text containers to prevent long book titles or author names from forcing horizontal overflow.
-
----
-
-## 3. Modals, Focus Management & Performance
-
-1. **Keyboard & Focus:**
-   - Modals close on `Escape` and safe backdrop clicks (`event.target === event.currentTarget`).
-   - Programmatically focus the primary `<input>` via `viewChild()` + `afterNextRender`/`queueMicrotask` instead of the HTML `autofocus` attribute.
-   - Lock background scroll via `document.body.classList.add('overflow-hidden')` on open and remove in `ngOnDestroy()`.
-2. **WCAG 2.1 AA:**
-   - Semantic landmarks (`<header>`, `<main>`, `<nav>`, `<section>`, `<article>`).
-   - Visible keyboard focus (`focus-visible:ring-2 focus-visible:ring-blue-500`).
-   - Explicit `<label for="...">` associations for every form input.
-3. **Rendering Performance:**
-   - Never use `transition-all` on catalog cards or structural wrappers; use discrete `transition-colors`, `transition-opacity`, `transition-[width]`, or `transition-[margin]`.
-   - Use `contain: layout paint; content-visibility: auto;` on long repetitive lists and `loading="lazy" decoding="async"` on cover images.
-
----
-
-## 4. Verification Checkpoints
-
-Every UI or layout PR must pass Playwright and manual viewport checks at:
-
-- **375px** (standard mobile — zero horizontal overflow: `scrollWidth <= clientWidth`)
-- **390px** (flagship mobile)
-- **768px** (tablet breakpoint transition — sidebar visible, mobile header/nav hidden)
-- **1280px+** (desktop expanded and collapsed sidebar)
+1. **Host Escape Binding:** `host: { '(document:keydown.escape)': 'onEscape()' }`.
+2. **Backdrop Click Guard:** Close only when `event.target === event.currentTarget`.
+3. **Reference-Counted Scroll Lock:** Call `this.uiState.acquireScrollLock()` on modal open and `this.uiState.releaseScrollLock()` in `ngOnDestroy()`.
+4. **Programmatic Focus:** Focus the primary interactive element via `viewChild()` inside `afterNextRender()` or `queueMicrotask()` (never raw HTML `autofocus`).
+5. **Collapsible Panels / Drawers:** Animate height smoothly using CSS Grid row transitions (`grid-rows-[0fr]` $\leftrightarrow$ `grid-rows-[1fr]` with `transition-[grid-template-rows] duration-200` and inner `overflow-hidden`) instead of `transition-all`.

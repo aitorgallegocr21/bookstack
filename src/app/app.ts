@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { HeaderComponent } from './core/components/header/header.component';
-import { BottomNavComponent } from './core/components/bottom-nav/bottom-nav.component';
-import { SidebarComponent } from './core/components/sidebar/sidebar.component';
+import { HeaderComponent } from './core/components/header/header';
+import { BottomNavComponent } from './core/components/bottom-nav/bottom-nav';
+import { SidebarComponent } from './core/components/sidebar/sidebar';
 import { BookCreateModalComponent } from './features/books/components/book-create-modal/book-create-modal';
 import { BooksService } from './features/books/services/books.service';
 import { UiStateService } from './core/services/ui-state.service';

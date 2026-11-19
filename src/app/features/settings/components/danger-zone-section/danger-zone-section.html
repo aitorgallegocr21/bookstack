@@ -1,0 +1,165 @@
+<section
+  class="rounded-2xl border border-rose-200 bg-white p-5 shadow-sm dark:border-rose-900/50 dark:bg-slate-900"
+  aria-labelledby="danger-zone-section-title"
+>
+  <div class="mb-5">
+    <h2 id="danger-zone-section-title" class="text-lg font-bold text-rose-700 dark:text-rose-400">
+      {{ i18n.t().settings.dangerZone.sectionTitle }}
+    </h2>
+    <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+      {{ i18n.t().settings.dangerZone.sectionDescription }}
+    </p>
+  </div>
+
+  @if (statusMessage(); as status) {
+    <div
+      role="status"
+      data-testid="danger-zone-status-banner"
+      class="mb-5 flex items-start justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200"
+    >
+      <p class="py-2 font-semibold">{{ status }}</p>
+      <button
+        type="button"
+        (click)="dismissStatus()"
+        [attr.aria-label]="i18n.t().common.close"
+        class="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg text-emerald-700 hover:bg-emerald-100 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+      >
+        <span aria-hidden="true">✕</span>
+      </button>
+    </div>
+  }
+
+  <div class="divide-y divide-rose-100 dark:divide-rose-900/40">
+    <!-- Clear Reading Sessions Row -->
+    <div class="flex flex-col gap-3 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">
+          {{ i18n.t().settings.dangerZone.clearLogsTitle }}
+        </h3>
+        <p class="mt-0.5 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+          {{ i18n.t().settings.dangerZone.clearLogsDescription }}
+        </p>
+      </div>
+      <button
+        type="button"
+        data-testid="reset-sessions-btn"
+        (click)="openModal('sessions')"
+        class="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center rounded-xl border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-100 sm:w-auto dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-300 dark:hover:bg-rose-900/60"
+      >
+        {{ i18n.t().settings.dangerZone.clearLogsAction }}
+      </button>
+    </div>
+
+    <!-- Factory Reset Row -->
+    <div class="flex flex-col gap-3 py-4 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">
+          {{ i18n.t().settings.dangerZone.factoryResetTitle }}
+        </h3>
+        <p class="mt-0.5 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+          {{ i18n.t().settings.dangerZone.factoryResetDescription }}
+        </p>
+      </div>
+      <button
+        type="button"
+        data-testid="factory-reset-btn"
+        (click)="openModal('factory')"
+        class="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-rose-700 sm:w-auto"
+      >
+        {{ i18n.t().settings.dangerZone.factoryResetAction }}
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Accessible Confirmation Modal -->
+@if (activeModal(); as modalKind) {
+  <div
+    data-testid="danger-reset-modal"
+    class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
+  >
+    <button
+      type="button"
+      tabindex="-1"
+      [attr.aria-label]="i18n.t().common.close"
+      (click)="closeModal()"
+      class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"
+    ></button>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="danger-modal-title"
+      aria-describedby="danger-modal-description"
+      class="modal-panel relative z-10 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+    >
+      <h3 id="danger-modal-title" class="text-lg font-bold text-slate-900 dark:text-slate-100">
+        {{
+          modalKind === 'sessions'
+            ? i18n.t().settings.dangerZone.modalClearLogsTitle
+            : i18n.t().settings.dangerZone.modalFactoryResetTitle
+        }}
+      </h3>
+
+      <p
+        id="danger-modal-description"
+        class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400"
+      >
+        {{
+          modalKind === 'sessions'
+            ? i18n.t().settings.dangerZone.modalClearLogsMessage
+            : i18n.t().settings.dangerZone.modalFactoryResetMessage
+        }}
+      </p>
+
+      <!-- 1-Click Pre-Reset Backup -->
+      <div
+        class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/50"
+      >
+        <button
+          type="button"
+          data-testid="modal-backup-first-btn"
+          (click)="downloadBackupBeforeReset()"
+          class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
+          {{ i18n.t().settings.dangerZone.modalBackupFirstAction }}
+        </button>
+
+        @if (backupDownloadedInModal()) {
+          <p
+            data-testid="modal-backup-downloaded-msg"
+            class="mt-2 text-center text-xs font-semibold text-emerald-700 dark:text-emerald-400"
+          >
+            {{ i18n.t().settings.dangerZone.modalBackupDownloaded }}
+          </p>
+        }
+      </div>
+
+      <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button
+          #modalCancelButton
+          type="button"
+          data-testid="cancel-danger-reset-btn"
+          [disabled]="isProcessing()"
+          (click)="closeModal()"
+          class="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+        >
+          {{ i18n.t().settings.dangerZone.modalCancelAction }}
+        </button>
+
+        <button
+          type="button"
+          data-testid="confirm-danger-reset-btn"
+          [disabled]="isProcessing()"
+          (click)="confirmReset()"
+          class="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
+        >
+          {{
+            modalKind === 'sessions'
+              ? i18n.t().settings.dangerZone.modalConfirmClearLogsAction
+              : i18n.t().settings.dangerZone.modalConfirmFactoryResetAction
+          }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

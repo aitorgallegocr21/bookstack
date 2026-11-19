@@ -14,7 +14,10 @@ import {
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
-import { formatLocalizedDate } from '../../../../core/utils/date-formatter';
+import {
+  formatLocalizedDate,
+  getCurrentLocalDateTime,
+} from '../../../../core/utils/date-formatter';
 import { ReadingLog } from '../../models/book.model';
 import { ReadingLogService } from '../../services/reading-log.service';
 
@@ -53,7 +56,9 @@ export class ReadingLogEditorComponent implements AfterViewInit, OnDestroy {
       const currentBookId = this.bookId();
 
       if (selected) {
-        this.draft = { ...selected };
+        const dateWithTime =
+          selected.date && !selected.date.includes('T') ? `${selected.date}T12:00` : selected.date;
+        this.draft = { ...selected, date: dateWithTime };
       } else {
         this.draft = this.emptyLog(currentBookId);
       }
@@ -92,7 +97,7 @@ export class ReadingLogEditorComponent implements AfterViewInit, OnDestroy {
       bookId: this.bookId() || this.draft.bookId,
       pagesRead: Number(this.draft.pagesRead) || 0,
       timeSpentMinutes: Number(this.draft.timeSpentMinutes) || 0,
-      date: this.draft.date || this.getTodayLocalDate(),
+      date: this.draft.date || getCurrentLocalDateTime(),
       createdAt: this.draft.createdAt || now,
     };
 
@@ -124,22 +129,18 @@ export class ReadingLogEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   protected formatDate(date?: string): string {
-    return formatLocalizedDate(date, false, this.i18n.intlLocale());
+    return formatLocalizedDate(date, true, this.i18n.intlLocale());
   }
 
   private emptyLog(bookId = ''): ReadingLog {
     return {
       id: '',
       bookId,
-      date: this.getTodayLocalDate(),
+      date: getCurrentLocalDateTime(),
       pagesRead: 0,
       timeSpentMinutes: 0,
       notes: '',
       createdAt: new Date().toISOString(),
     };
-  }
-
-  private getTodayLocalDate(): string {
-    return new Date().toLocaleDateString('sv');
   }
 }

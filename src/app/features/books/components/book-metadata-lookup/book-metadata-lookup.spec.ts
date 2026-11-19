@@ -63,8 +63,8 @@ describe('BookMetadataLookupComponent', () => {
     expect(el.textContent).toContain('Google Books');
   });
 
-  it('does not search on input typing and submits unified query on form submit', async () => {
-    const candidates = Array.from({ length: 6 }, (_, index) =>
+  it('does not search on input typing and submits unified query on form submit up to 8 results', async () => {
+    const candidates = Array.from({ length: 10 }, (_, index) =>
       createCandidate({
         id: `cand-${index}`,
         title: `Edition ${index + 1}`,
@@ -89,10 +89,30 @@ describe('BookMetadataLookupComponent', () => {
     fixture.detectChanges();
 
     expect(mockMetadataService.searchByQuery).toHaveBeenCalledWith('Dune');
-    expect(component.results()).toHaveLength(5);
+    expect(component.results()).toHaveLength(8);
     expect(fixture.nativeElement.textContent).toContain('Edition 1');
-    expect(fixture.nativeElement.textContent).toContain('Edition 5');
-    expect(fixture.nativeElement.textContent).not.toContain('Edition 6');
+    expect(fixture.nativeElement.textContent).toContain('Edition 8');
+    expect(fixture.nativeElement.textContent).not.toContain('Edition 9');
+  });
+
+  it('displays contributing source labels when candidate source is merged', async () => {
+    mockMetadataService.searchByQuery.mockResolvedValue([
+      createCandidate({
+        id: 'merged-1',
+        title: 'Dune Merged',
+        source: 'merged',
+        sources: ['openlibrary', 'googlebooks', 'wikidata'],
+      }),
+    ]);
+
+    component.openTab('search');
+    component.searchQuery.set('Dune');
+    await component.onSearchSubmit();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'Combinado (Open Library + Google Books + Wikidata)'
+    );
   });
 
   it('shows validation hint when submitted with fewer than 2 characters', async () => {

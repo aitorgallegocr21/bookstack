@@ -214,14 +214,25 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
         publicationYear: raw.publicationYear,
         totalPages: raw.totalPages,
         coverUrl: raw.coverUrl,
+        seriesName: raw.seriesName,
+        seriesOrder: raw.seriesVolumeNumber,
       },
       event.candidate,
       event.applyMode
     );
 
-    this.editForm.patchValue(patch);
+    const { seriesOrder, genre: _genre, ...formPatch } = patch;
+    const extendedPatch: Record<string, unknown> = { ...formPatch };
+    if (patch.seriesName || seriesOrder !== undefined) {
+      extendedPatch['seriesEnabled'] = true;
+    }
+    if (seriesOrder !== undefined) {
+      extendedPatch['seriesVolumeNumber'] = seriesOrder;
+    }
 
-    for (const key of Object.keys(patch) as Array<keyof typeof patch>) {
+    this.editForm.patchValue(extendedPatch);
+
+    for (const key of Object.keys(extendedPatch)) {
       const control = this.editForm.get(key);
       control?.markAsDirty();
       control?.markAsTouched();

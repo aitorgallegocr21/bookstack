@@ -135,7 +135,7 @@ export class BookMetadataLookupComponent {
 
     try {
       const candidates = await this.bookMetadataService.searchByQuery(query);
-      this.results.set(candidates.slice(0, 5));
+      this.results.set(candidates.slice(0, 8));
       this.hasSearched.set(true);
     } catch (error) {
       this.results.set([]);
@@ -172,6 +172,15 @@ export class BookMetadataLookupComponent {
 
   getSourceLabel(source: MetadataProviderSource): string {
     return this.t().bookForm.lookup.sources[source];
+  }
+
+  getCandidateSourceDisplay(candidate: BookMetadataCandidate): string {
+    const baseLabel = this.getSourceLabel(candidate.source);
+    if (candidate.source === 'merged' && candidate.sources?.length) {
+      const contributors = candidate.sources.map((src) => this.getSourceLabel(src)).join(' + ');
+      return `${baseLabel} (${contributors})`;
+    }
+    return baseLabel;
   }
 
   private async executeDirectIsbnLookup(

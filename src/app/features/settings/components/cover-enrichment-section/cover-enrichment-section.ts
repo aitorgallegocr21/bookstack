@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { I18nService } from '../../../../core/i18n/i18n.service';
-import { BookMetadataCandidate } from '../../../books/models/book-metadata.model';
+import {
+  BookMetadataCandidate,
+  MetadataProviderSource,
+} from '../../../books/models/book-metadata.model';
 import { CoverEnrichmentFailureReason } from '../../models/cover-enrichment.model';
 import { CoverEnrichmentService } from '../../services/cover-enrichment.service';
 
@@ -59,7 +62,7 @@ export class CoverEnrichmentSectionComponent {
   async startIsbnEnrichment(): Promise<void> {
     this.showStrictTitleWarning.set(false);
     this.coverEnrichmentService.closeVisualAssistant();
-    await this.coverEnrichmentService.runStrictIsbnEnrichment();
+    await this.coverEnrichmentService.runIntegralEnrichment();
   }
 
   togglePauseResume(): void {
@@ -107,6 +110,10 @@ export class CoverEnrichmentSectionComponent {
 
   toggleReportExpanded(): void {
     this.reportExpanded.update((expanded) => !expanded);
+  }
+
+  getSourceLabel(source: MetadataProviderSource): string {
+    return this.i18n.t().bookForm.lookup.sources[source];
   }
 
   getReasonLabel(reason: CoverEnrichmentFailureReason): string {

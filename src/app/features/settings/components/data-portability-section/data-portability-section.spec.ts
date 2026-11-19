@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { ImportPreviewSummary } from '../../models/data-portability.model';
+import { CoverEnrichmentService } from '../../services/cover-enrichment.service';
 import { DataPortabilityService } from '../../services/data-portability.service';
 import { DataPortabilitySectionComponent } from './data-portability-section';
 
@@ -53,10 +54,17 @@ describe('DataPortabilitySectionComponent', () => {
   let i18n: I18nService;
 
   const mockPortabilityService = {
-    downloadJsonBackup: vi.fn(),
+    downloadZipBundle: vi.fn().mockResolvedValue(undefined),
+    downloadJsonBackup: vi.fn().mockResolvedValue(undefined),
+    downloadLightweightJsonBackup: vi.fn().mockResolvedValue(undefined),
     downloadCsvCatalog: vi.fn(),
     analyzeImportFile: vi.fn(),
+    analyzeImportZipFile: vi.fn(),
     executeImport: vi.fn(),
+  };
+
+  const mockCoverEnrichmentService = {
+    runIntegralEnrichment: vi.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -64,7 +72,10 @@ describe('DataPortabilitySectionComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [DataPortabilitySectionComponent],
-      providers: [{ provide: DataPortabilityService, useValue: mockPortabilityService }],
+      providers: [
+        { provide: DataPortabilityService, useValue: mockPortabilityService },
+        { provide: CoverEnrichmentService, useValue: mockCoverEnrichmentService },
+      ],
     }).compileComponents();
 
     i18n = TestBed.inject(I18nService);
@@ -75,7 +86,18 @@ describe('DataPortabilitySectionComponent', () => {
     fixture.detectChanges();
   });
 
-  it('triggers JSON and CSV downloads and shows feedback status', () => {
+  it('triggers ZIP, full JSON, light JSON, and CSV downloads and shows feedback status', () => {
+    const zipBtn = fixture.nativeElement.querySelector(
+      '[data-testid="export-zip-btn"]'
+    ) as HTMLButtonElement;
+    zipBtn.click();
+    fixture.detectChanges();
+
+    expect(mockPortabilityService.downloadZipBundle).toHaveBeenCalledTimes(1);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="portability-status-banner"]')?.textContent
+    ).toContain(i18n.t().settings.portability.exportSuccessZip);
+
     const jsonBtn = fixture.nativeElement.querySelector(
       '[data-testid="export-json-btn"]'
     ) as HTMLButtonElement;
@@ -87,6 +109,17 @@ describe('DataPortabilitySectionComponent', () => {
       fixture.nativeElement.querySelector('[data-testid="portability-status-banner"]')?.textContent
     ).toContain(i18n.t().settings.portability.exportSuccessJson);
 
+    const lightJsonBtn = fixture.nativeElement.querySelector(
+      '[data-testid="export-json-light-btn"]'
+    ) as HTMLButtonElement;
+    lightJsonBtn.click();
+    fixture.detectChanges();
+
+    expect(mockPortabilityService.downloadLightweightJsonBackup).toHaveBeenCalledTimes(1);
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="portability-status-banner"]')?.textContent
+    ).toContain(i18n.t().settings.portability.exportSuccessLightJson);
+
     const csvBtn = fixture.nativeElement.querySelector(
       '[data-testid="export-csv-btn"]'
     ) as HTMLButtonElement;
@@ -97,6 +130,25 @@ describe('DataPortabilitySectionComponent', () => {
     expect(
       fixture.nativeElement.querySelector('[data-testid="portability-status-banner"]')?.textContent
     ).toContain(i18n.t().settings.portability.exportSuccessCsv);
+  });
+
+  it('analyzes selected .zip file using analyzeImportZipFile', async () => {
+    const zipPreview = buildPreview({ format: 'zip', fileName: 'library.zip' });
+    mockPortabilityService.analyzeImportZipFile.mockResolvedValue(zipPreview);
+
+    const zipBytes = new Uint8Array([0x50, 0x4b, 0x03, 0x04]);
+    const zipFile = new File([zipBytes], 'library.zip', { type: 'application/zip' });
+
+    await component.onFileSelected({ target: { files: [zipFile] } } as unknown as Event);
+    fixture.detectChanges();
+
+    expect(mockPortabilityService.analyzeImportZipFile).toHaveBeenCalledWith(
+      'library.zip',
+      expect.any(Uint8Array)
+    );
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="import-preview-format"]')?.textContent
+    ).toContain('zip');
   });
 
   it('analyzes selected file and renders the validation preview panel', async () => {
@@ -256,6 +308,7 @@ describe('DataPortabilitySectionComponent', () => {
 
   it('renders post-import cover enrichment prompt when missingCoversCount > 0 and emits requestCoverEnrichment', async () => {
     component.previewSummary.set(buildPreview());
+    component.autoEnrichOnImport.set(false);
     mockPortabilityService.executeImport.mockResolvedValue({
       mode: 'merge',
       format: 'csv',
@@ -294,6 +347,7 @@ describe('DataPortabilitySectionComponent', () => {
 
   it('does not render post-import cover enrichment prompt when missingCoversCount is 0', async () => {
     component.previewSummary.set(buildPreview());
+    component.autoEnrichOnImport.set(false);
     mockPortabilityService.executeImport.mockResolvedValue({
       mode: 'merge',
       format: 'json',
@@ -318,5 +372,58 @@ describe('DataPortabilitySectionComponent', () => {
     expect(
       fixture.nativeElement.querySelector('[data-testid="post-import-cover-enrichment-callout"]')
     ).toBeNull();
+  });
+
+  it('auto-enriches when import-auto-enrich-checkbox is checked and skips when unchecked', async () => {
+    const preview = buildPreview();
+    component.previewSummary.set(preview);
+    mockPortabilityService.executeImport.mockResolvedValue({
+      mode: 'merge',
+      format: 'json',
+      booksImported: 1,
+      logsImported: 0,
+      seriesMetadataImported: 0,
+      skippedRecords: 0,
+      goalsRestored: false,
+      preferencesRestored: false,
+      missingCoversCount: 1,
+      missingCoversWithIsbnCount: 0,
+      incompleteMetadataCount: 1,
+    });
+    const enrichEmitSpy = vi.spyOn(component.requestCoverEnrichment, 'emit');
+    fixture.detectChanges();
+
+    const checkbox = fixture.nativeElement.querySelector(
+      '[data-testid="import-auto-enrich-checkbox"]'
+    ) as HTMLInputElement;
+    expect(checkbox).not.toBeNull();
+    expect(checkbox.checked).toBe(true);
+
+    checkbox.checked = false;
+    checkbox.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    const confirmBtn = fixture.nativeElement.querySelector(
+      '[data-testid="confirm-import-btn"]'
+    ) as HTMLButtonElement;
+    confirmBtn.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(mockCoverEnrichmentService.runIntegralEnrichment).not.toHaveBeenCalled();
+
+    component.previewSummary.set(preview);
+    component.autoEnrichOnImport.set(true);
+    fixture.detectChanges();
+
+    const confirmBtnAgain = fixture.nativeElement.querySelector(
+      '[data-testid="confirm-import-btn"]'
+    ) as HTMLButtonElement;
+    confirmBtnAgain.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(enrichEmitSpy).toHaveBeenCalledTimes(1);
+    expect(mockCoverEnrichmentService.runIntegralEnrichment).toHaveBeenCalledTimes(1);
   });
 });

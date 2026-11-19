@@ -1,7 +1,7 @@
 # Task 15.5: Settings Portability Suite, Auto-Enrichment Trigger & Lookup UI Enhancements
 
 **Phase:** Phase 15: Multi-Source Metadata Engine (5 Providers), Integral Auto-Enrichment & Offline `.ZIP` Bundles  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** Medium-High (Updates Settings Portability UI with the 4 export modes, `.ZIP` file import, and default-checked auto-enrichment toggle; updates the Enrichment panel with integral metadata badges and rich assistant cards; updates `BookMetadataLookupComponent` for 5-source badges and series/genre patching).
 
 ---
@@ -55,7 +55,7 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run test:file -- src/app/features/settings/components/data-portability-section/data-portability-section.spec.ts`
-- [ ] `npm run test:file -- src/app/features/settings/components/cover-enrichment-section/cover-enrichment-section.spec.ts`
-- [ ] `npm run test:file -- src/app/features/books/components/book-metadata-lookup/book-metadata-lookup.spec.ts`
-- [ ] `npm run verify:quiet`
+- [x] `npm run test:file -- src/app/features/settings/components/data-portability-section/data-portability-section.spec.ts`
+- [x] `npm run test:file -- src/app/features/settings/components/cover-enrichment-section/cover-enrichment-section.spec.ts`
+- [x] `npm run test:file -- src/app/features/books/components/book-metadata-lookup/book-metadata-lookup.spec.ts`
+- [x] `npm run verify:quiet`

@@ -59,6 +59,7 @@ describe('CoverEnrichmentSectionComponent', () => {
     assistantCandidates: ReturnType<typeof signal<BookMetadataCandidate[]>>;
     assistantNotFoundBooks: ReturnType<typeof signal<Book[]>>;
     assistantLoading: ReturnType<typeof signal<boolean>>;
+    runIntegralEnrichment: ReturnType<typeof vi.fn>;
     runStrictIsbnEnrichment: ReturnType<typeof vi.fn>;
     runStrictTitleAuthorEnrichment: ReturnType<typeof vi.fn>;
     pause: ReturnType<typeof vi.fn>;
@@ -117,6 +118,7 @@ describe('CoverEnrichmentSectionComponent', () => {
       assistantCandidates: assistantCandidatesSignal,
       assistantNotFoundBooks: assistantNotFoundBooksSignal,
       assistantLoading: assistantLoadingSignal,
+      runIntegralEnrichment: vi.fn().mockResolvedValue(undefined),
       runStrictIsbnEnrichment: vi.fn().mockResolvedValue(undefined),
       runStrictTitleAuthorEnrichment: vi.fn().mockResolvedValue(undefined),
       pause: vi.fn(),
@@ -166,12 +168,18 @@ describe('CoverEnrichmentSectionComponent', () => {
     ).toBeNull();
   });
 
-  it('renders KPI badges and triggers strict ISBN enrichment on click', () => {
+  it('renders KPI + metadata badges and triggers integral enrichment on click', () => {
     const withIsbnBadge = fixture.nativeElement.querySelector(
       '[data-testid="missing-with-isbn-badge"]'
     ) as HTMLElement;
     const withoutIsbnBadge = fixture.nativeElement.querySelector(
       '[data-testid="missing-without-isbn-badge"]'
+    ) as HTMLElement;
+    const missingYearBadge = fixture.nativeElement.querySelector(
+      '[data-testid="missing-year-badge"]'
+    ) as HTMLElement;
+    const missingPublisherBadge = fixture.nativeElement.querySelector(
+      '[data-testid="missing-publisher-badge"]'
     ) as HTMLElement;
     const startBtn = fixture.nativeElement.querySelector(
       '[data-testid="start-isbn-enrichment-btn"]'
@@ -179,13 +187,15 @@ describe('CoverEnrichmentSectionComponent', () => {
 
     expect(withIsbnBadge.textContent).toContain('1');
     expect(withoutIsbnBadge.textContent).toContain('1');
+    expect(missingYearBadge.textContent).toContain('2');
+    expect(missingPublisherBadge.textContent).toContain('2');
     expect(startBtn.disabled).toBe(false);
 
     startBtn.click();
-    expect(mockService.runStrictIsbnEnrichment).toHaveBeenCalledTimes(1);
+    expect(mockService.runIntegralEnrichment).toHaveBeenCalledTimes(1);
   });
 
-  it('disables ISBN enrichment button when withValidIsbnCount is 0', () => {
+  it('keeps integral enrichment button enabled when withValidIsbnCount is 0 but totalIncomplete > 0, and disables when busy', () => {
     const noIsbnBook = makeBook('b-2', 'El Hobbit', 'J.R.R. Tolkien');
     summarySignal.set({
       totalMissing: 1,
@@ -195,7 +205,7 @@ describe('CoverEnrichmentSectionComponent', () => {
       booksWithoutIsbn: [noIsbnBook],
       totalIncomplete: 1,
       missingCoverCount: 1,
-      missingPagesCount: 0,
+      missingPagesCount: 1,
       missingYearCount: 1,
       missingPublisherCount: 1,
       missingIsbnCount: 1,
@@ -203,10 +213,48 @@ describe('CoverEnrichmentSectionComponent', () => {
     });
     fixture.detectChanges();
 
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="missing-pages-badge"]')?.textContent
+    ).toContain('1');
     const startBtn = fixture.nativeElement.querySelector(
       '[data-testid="start-isbn-enrichment-btn"]'
     ) as HTMLButtonElement;
+    expect(startBtn.disabled).toBe(false);
+
+    stateSignal.set({
+      ...stateSignal(),
+      status: 'running',
+    });
+    fixture.detectChanges();
     expect(startBtn.disabled).toBe(true);
+  });
+
+  it('renders candidate metadata badges in the visual assistant cards', () => {
+    assistantActiveSignal.set(true);
+    assistantCurrentBookSignal.set(makeBook('b-2', 'El Hobbit', 'J.R.R. Tolkien'));
+    assistantCandidatesSignal.set([
+      {
+        id: 'cand-rich',
+        source: 'googlebooks',
+        title: 'El Hobbit',
+        author: 'J.R.R. Tolkien',
+        totalPages: 310,
+        publicationYear: 1937,
+        publisher: 'Minotauro',
+        isbn: '9788445071403',
+        coverUrl: 'https://example.com/hobbit.jpg',
+      },
+    ]);
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector(
+      '[data-testid="visual-assistant-card"]'
+    ) as HTMLElement;
+    expect(card.textContent).toContain('Google Books');
+    expect(card.textContent).toContain('310');
+    expect(card.textContent).toContain('1937');
+    expect(card.textContent).toContain('Minotauro');
+    expect(card.textContent).toContain('9788445071403');
   });
 
   it('renders live progress bar and handles pause, resume, and cancel controls', () => {

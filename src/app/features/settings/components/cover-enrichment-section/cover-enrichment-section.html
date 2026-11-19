@@ -15,7 +15,7 @@
   </div>
 
   <!-- Audit Summary -->
-  @if (summary().totalMissing === 0) {
+  @if (summary().totalIncomplete === 0) {
     <div
       data-testid="cover-enrichment-all-complete"
       class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200"
@@ -41,16 +41,43 @@
             {{ i18n.t().settings.coverEnrichment.withoutIsbn }}:
             {{ summary().withoutValidIsbnCount }}
           </span>
+          @if (summary().missingPagesCount > 0) {
+            <span
+              data-testid="missing-pages-badge"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-slate-200/80 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-700/70 dark:text-slate-200"
+            >
+              {{ i18n.t().settings.coverEnrichment.missingPagesLabel }}:
+              {{ summary().missingPagesCount }}
+            </span>
+          }
+          @if (summary().missingYearCount > 0) {
+            <span
+              data-testid="missing-year-badge"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-slate-200/80 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-700/70 dark:text-slate-200"
+            >
+              {{ i18n.t().settings.coverEnrichment.missingYearLabel }}:
+              {{ summary().missingYearCount }}
+            </span>
+          }
+          @if (summary().missingPublisherCount > 0) {
+            <span
+              data-testid="missing-publisher-badge"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-slate-200/80 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-700/70 dark:text-slate-200"
+            >
+              {{ i18n.t().settings.coverEnrichment.missingPublisherLabel }}:
+              {{ summary().missingPublisherCount }}
+            </span>
+          }
         </div>
 
         <button
           type="button"
           data-testid="start-isbn-enrichment-btn"
-          [disabled]="summary().withValidIsbnCount === 0 || isBusy()"
+          [disabled]="summary().totalIncomplete === 0 || isBusy()"
           (click)="startIsbnEnrichment()"
-          class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-indigo-500 dark:hover:bg-indigo-400"
+          class="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-indigo-500 dark:hover:bg-indigo-400"
         >
-          {{ i18n.t().settings.coverEnrichment.startIsbnEnrichmentAction }}
+          {{ i18n.t().settings.coverEnrichment.startIntegralEnrichmentAction }}
         </button>
       </div>
     </div>
@@ -281,13 +308,48 @@
                   />
                 }
               </div>
-              <div class="space-y-0.5 text-xs">
+              <div class="space-y-1 text-xs">
                 <p class="line-clamp-1 font-semibold text-slate-900 dark:text-slate-100">
                   {{ candidate.title }}
                 </p>
                 <p class="line-clamp-1 text-slate-500 dark:text-slate-400">
                   {{ candidate.author }}
                 </p>
+                <div class="flex flex-wrap items-center gap-1 pt-1 text-[11px]">
+                  <span
+                    class="rounded-full bg-indigo-50 px-2 py-0.5 font-medium text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-200"
+                  >
+                    {{ getSourceLabel(candidate.source) }}
+                  </span>
+                  @if (candidate.totalPages) {
+                    <span
+                      class="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                    >
+                      {{ candidate.totalPages }} {{ i18n.t().bookForm.lookup.pagesUnit }}
+                    </span>
+                  }
+                  @if (candidate.publicationYear) {
+                    <span
+                      class="rounded bg-slate-100 px-1.5 py-0.5 text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                    >
+                      {{ candidate.publicationYear }}
+                    </span>
+                  }
+                  @if (candidate.publisher) {
+                    <span
+                      class="line-clamp-1 rounded bg-slate-100 px-1.5 py-0.5 text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                    >
+                      {{ candidate.publisher }}
+                    </span>
+                  }
+                  @if (candidate.isbn) {
+                    <span
+                      class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                    >
+                      {{ candidate.isbn }}
+                    </span>
+                  }
+                </div>
               </div>
               <button
                 type="button"
@@ -396,6 +458,15 @@
               {{ i18n.t().settings.coverEnrichment.reportDownloadedCount }}:
               {{ state().downloadedCount }}
             </span>
+            @if (state().metadataUpdatedCount > 0) {
+              <span
+                data-testid="enrichment-metadata-updated-badge"
+                class="rounded-md bg-indigo-100 px-2 py-1 font-medium text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-200"
+              >
+                {{ i18n.t().settings.coverEnrichment.fieldsUpdatedCountLabel }}:
+                {{ state().metadataUpdatedCount }}
+              </span>
+            }
             <span
               class="rounded-md bg-slate-200 px-2 py-1 font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-200"
             >

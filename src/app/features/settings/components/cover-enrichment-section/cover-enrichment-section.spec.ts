@@ -46,6 +46,7 @@ describe('CoverEnrichmentSectionComponent', () => {
   let assistantCurrentIndexSignal: ReturnType<typeof signal<number>>;
   let assistantCurrentBookSignal: ReturnType<typeof signal<Book | null>>;
   let assistantCandidatesSignal: ReturnType<typeof signal<BookMetadataCandidate[]>>;
+  let assistantNotFoundBooksSignal: ReturnType<typeof signal<Book[]>>;
   let assistantLoadingSignal: ReturnType<typeof signal<boolean>>;
 
   let mockService: {
@@ -56,6 +57,7 @@ describe('CoverEnrichmentSectionComponent', () => {
     assistantCurrentIndex: ReturnType<typeof signal<number>>;
     assistantCurrentBook: ReturnType<typeof signal<Book | null>>;
     assistantCandidates: ReturnType<typeof signal<BookMetadataCandidate[]>>;
+    assistantNotFoundBooks: ReturnType<typeof signal<Book[]>>;
     assistantLoading: ReturnType<typeof signal<boolean>>;
     runStrictIsbnEnrichment: ReturnType<typeof vi.fn>;
     runStrictTitleAuthorEnrichment: ReturnType<typeof vi.fn>;
@@ -94,6 +96,7 @@ describe('CoverEnrichmentSectionComponent', () => {
     assistantCurrentIndexSignal = signal<number>(0);
     assistantCurrentBookSignal = signal<Book | null>(null);
     assistantCandidatesSignal = signal<BookMetadataCandidate[]>([]);
+    assistantNotFoundBooksSignal = signal<Book[]>([]);
     assistantLoadingSignal = signal<boolean>(false);
 
     mockService = {
@@ -104,6 +107,7 @@ describe('CoverEnrichmentSectionComponent', () => {
       assistantCurrentIndex: assistantCurrentIndexSignal,
       assistantCurrentBook: assistantCurrentBookSignal,
       assistantCandidates: assistantCandidatesSignal,
+      assistantNotFoundBooks: assistantNotFoundBooksSignal,
       assistantLoading: assistantLoadingSignal,
       runStrictIsbnEnrichment: vi.fn().mockResolvedValue(undefined),
       runStrictTitleAuthorEnrichment: vi.fn().mockResolvedValue(undefined),
@@ -304,6 +308,35 @@ describe('CoverEnrichmentSectionComponent', () => {
     expect(
       fixture.nativeElement.querySelector('[data-testid="visual-assistant-empty"]')?.textContent
     ).toContain(i18n.t().settings.coverEnrichment.visualAssistantNoSuggestions);
+  });
+
+  it('renders compact not-found summary list when visual assistant finishes with zero-cover books', () => {
+    const missingBook = makeBook('b-3', 'Libro Raro', 'Autor Desconocido');
+    assistantActiveSignal.set(true);
+    assistantCurrentBookSignal.set(null);
+    assistantNotFoundBooksSignal.set([missingBook]);
+    assistantLoadingSignal.set(false);
+    fixture.detectChanges();
+
+    const notFoundCard = fixture.nativeElement.querySelector(
+      '[data-testid="visual-assistant-not-found-card"]'
+    ) as HTMLElement;
+    expect(notFoundCard).not.toBeNull();
+    expect(notFoundCard.textContent).toContain(
+      i18n.t().settings.coverEnrichment.visualAssistantNotFoundTitle
+    );
+
+    const notFoundList = fixture.nativeElement.querySelector(
+      '[data-testid="visual-assistant-not-found-list"]'
+    ) as HTMLElement;
+    expect(notFoundList.textContent).toContain('Libro Raro');
+    expect(notFoundList.textContent).toContain('Autor Desconocido');
+
+    const closeBtn = notFoundCard.querySelector(
+      '[data-testid="visual-assistant-close-btn"]'
+    ) as HTMLButtonElement;
+    closeBtn.click();
+    expect(mockService.closeVisualAssistant).toHaveBeenCalledTimes(1);
   });
 
   it('expands verification report showing skipped books and localized reason badges', () => {

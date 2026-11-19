@@ -27,6 +27,7 @@ export class CoverEnrichmentSectionComponent {
   readonly assistantQueue = this.coverEnrichmentService.assistantQueue;
   readonly assistantCurrentIndex = this.coverEnrichmentService.assistantCurrentIndex;
   readonly assistantCurrentBook = this.coverEnrichmentService.assistantCurrentBook;
+  readonly assistantNotFoundBooks = this.coverEnrichmentService.assistantNotFoundBooks;
   readonly assistantLoading = this.coverEnrichmentService.assistantLoading;
 
   readonly isBusy = computed(() => {
@@ -57,6 +58,7 @@ export class CoverEnrichmentSectionComponent {
 
   async startIsbnEnrichment(): Promise<void> {
     this.showStrictTitleWarning.set(false);
+    this.coverEnrichmentService.closeVisualAssistant();
     await this.coverEnrichmentService.runStrictIsbnEnrichment();
   }
 
@@ -99,6 +101,7 @@ export class CoverEnrichmentSectionComponent {
 
   async confirmStrictTitleSearch(): Promise<void> {
     this.showStrictTitleWarning.set(false);
+    this.coverEnrichmentService.closeVisualAssistant();
     await this.coverEnrichmentService.runStrictTitleAuthorEnrichment();
   }
 

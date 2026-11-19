@@ -75,6 +75,7 @@ export class CoverEnrichmentService {
   readonly assistantQueue = signal<Book[]>([]);
   readonly assistantCurrentIndex = signal<number>(0);
   readonly assistantCandidates = signal<BookMetadataCandidate[]>([]);
+  readonly assistantNotFoundBooks = signal<Book[]>([]);
   readonly assistantLoading = signal<boolean>(false);
   readonly assistantCurrentBook = computed<Book | null>(
     () => this.assistantQueue()[this.assistantCurrentIndex()] ?? null
@@ -209,12 +210,15 @@ export class CoverEnrichmentService {
 
   /**
    * Initializes the interactive step-by-step visual cover assistant for books missing covers.
+   * Only pauses for manual selection on books with multiple candidate covers; books with no
+   * covers are collected into `assistantNotFoundBooks` without requiring manual skipping.
    */
   async startVisualAssistant(books?: readonly Book[]): Promise<void> {
     const queue = (books ?? this.booksService.books()).filter((book) => !book.coverUrl?.trim());
     this.assistantQueue.set(queue);
     this.assistantCurrentIndex.set(0);
     this.assistantCandidates.set([]);
+    this.assistantNotFoundBooks.set([]);
     this.assistantActive.set(true);
 
     if (queue.length === 0) {
@@ -265,6 +269,7 @@ export class CoverEnrichmentService {
     this.assistantQueue.set([]);
     this.assistantCurrentIndex.set(0);
     this.assistantCandidates.set([]);
+    this.assistantNotFoundBooks.set([]);
     this.assistantLoading.set(false);
   }
 
@@ -517,6 +522,9 @@ export class CoverEnrichmentService {
         const currentBook = this.assistantCurrentBook();
         if (!currentBook) {
           this.assistantCandidates.set([]);
+          if (this.assistantNotFoundBooks().length === 0) {
+            this.closeVisualAssistant();
+          }
           return;
         }
 
@@ -534,6 +542,12 @@ export class CoverEnrichmentService {
           return;
         }
 
+        if (candidatesWithCover.length === 0) {
+          this.assistantNotFoundBooks.update((list) => [...list, currentBook]);
+          this.assistantCurrentIndex.set(this.assistantCurrentIndex() + 1);
+          continue;
+        }
+
         if (candidatesWithCover.length === 1) {
           const applied = await this.applyAssistantCandidateToBook(
             currentBook,
@@ -542,18 +556,11 @@ export class CoverEnrichmentService {
           if (!this.assistantActive()) {
             return;
           }
-          if (applied) {
-            const nextIndex = this.assistantCurrentIndex() + 1;
-            if (nextIndex >= this.assistantQueue().length) {
-              this.closeVisualAssistant();
-              return;
-            }
-            this.assistantCurrentIndex.set(nextIndex);
-            continue;
+          if (!applied) {
+            this.assistantNotFoundBooks.update((list) => [...list, currentBook]);
           }
-
-          this.assistantCandidates.set([]);
-          return;
+          this.assistantCurrentIndex.set(this.assistantCurrentIndex() + 1);
+          continue;
         }
 
         this.assistantCandidates.set(candidatesWithCover);
@@ -568,12 +575,15 @@ export class CoverEnrichmentService {
 
   private async advanceAssistantQueue(): Promise<void> {
     const nextIndex = this.assistantCurrentIndex() + 1;
+    this.assistantCurrentIndex.set(nextIndex);
     if (nextIndex >= this.assistantQueue().length) {
-      this.closeVisualAssistant();
+      this.assistantCandidates.set([]);
+      if (this.assistantNotFoundBooks().length === 0) {
+        this.closeVisualAssistant();
+      }
       return;
     }
 
-    this.assistantCurrentIndex.set(nextIndex);
     await this.loadAssistantCandidatesForCurrentBook();
   }
 

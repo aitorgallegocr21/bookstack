@@ -237,9 +237,10 @@ export class BookMetadataService {
   }
 
   /**
-   * Evaluates search candidates against a local book requiring a cover URL, strict normalized
-   * title agreement, and strict author token agreement, ranking matches by completeness
-   * plus publisher/publicationYear bonuses.
+   * Evaluates search candidates against a local book requiring a cover URL.
+   * Prefers strict normalized title and author token agreement ranked by completeness
+   * plus publisher/publicationYear bonuses, and falls back to the unique candidate when
+   * exactly one candidate includes a cover image.
    */
   verifyStrictTitleAuthorCandidate(
     book: { title: string; author: string; publisher?: string; publicationYear?: number },
@@ -288,10 +289,7 @@ export class BookMetadataService {
     const candidatesWithCover = candidates.filter((candidate) =>
       Boolean(candidate.coverUrl?.trim())
     );
-    if (
-      candidatesWithCover.length === 1 &&
-      isStrictAuthorMatch(book.author, candidatesWithCover[0].author)
-    ) {
+    if (candidatesWithCover.length === 1) {
       return candidatesWithCover[0];
     }
 

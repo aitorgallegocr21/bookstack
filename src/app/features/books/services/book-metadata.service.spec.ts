@@ -540,24 +540,24 @@ describe('BookMetadataService', () => {
       expect(result?.id).toBe('exact-edition');
     });
 
-    it('accepts a single cover candidate when author matches even if returned title is in English', () => {
+    it('accepts a single cover candidate even when title is translated or author spelling differs', () => {
       const result = service.verifyStrictTitleAuthorCandidate(
         {
-          title: 'El imperio final',
-          author: 'Brandon Sanderson',
+          title: 'Crimen y castigo',
+          author: 'Fiódor Dostoyevski',
         },
         [
           {
             id: 'en-single',
-            title: 'The Final Empire',
-            author: 'Brandon Sanderson',
+            title: 'Crime and Punishment',
+            author: 'Fyodor Dostoevsky',
             coverUrl: 'https://covers.openlibrary.org/b/id/55-L.jpg',
             source: 'openlibrary',
           },
           {
             id: 'no-cover',
             title: 'Other Result Without Cover',
-            author: 'Brandon Sanderson',
+            author: 'Fyodor Dostoevsky',
             source: 'openlibrary',
           },
         ]

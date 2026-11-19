@@ -455,7 +455,7 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
 
     await page.route('https://openlibrary.org/search.json**', async (route) => {
       const url = decodeURIComponent(route.request().url());
-      if (url.includes('El imperio final')) {
+      if (url.includes('Crimen y castigo')) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -463,14 +463,23 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
             docs: [
               {
                 key: '/works/OL100W',
-                title: 'The Final Empire',
-                author_name: ['Brandon Sanderson'],
+                title: 'Crime and Punishment',
+                author_name: ['Fyodor Dostoevsky'],
                 cover_i: 2002,
-                first_publish_year: 2006,
-                publisher: ['Tor Books'],
+                first_publish_year: 1866,
+                publisher: ['Penguin Classics'],
               },
             ],
           }),
+        });
+        return;
+      }
+
+      if (url.includes('Libro Sin Portada')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ docs: [] }),
         });
         return;
       }
@@ -546,8 +555,8 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
         },
         {
           id: 'enrich-single-cover-book',
-          title: 'El imperio final',
-          author: 'Brandon Sanderson',
+          title: 'Crimen y castigo',
+          author: 'Fiódor Dostoyevski',
           totalPages: 672,
           currentPage: 0,
           status: 'pending',
@@ -556,10 +565,20 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
         },
         {
           id: 'enrich-unmatched-isbn-book',
-          title: 'Foundation',
+          title: 'Fundación',
           author: 'Isaac Asimov',
           isbn: '9780553293357',
           totalPages: 255,
+          currentPage: 0,
+          status: 'pending',
+          createdAt: '2026-03-01T12:00:00.000Z',
+          updatedAt: '2026-03-01T12:00:00.000Z',
+        },
+        {
+          id: 'enrich-zero-cover-book',
+          title: 'Libro Sin Portada',
+          author: 'Autor Desconocido',
+          totalPages: 180,
           currentPage: 0,
           status: 'pending',
           createdAt: '2026-03-01T12:00:00.000Z',
@@ -580,31 +599,46 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
     await page.getByTestId('post-import-enrich-covers-btn').click();
 
     await expect(page.getByTestId('missing-with-isbn-badge')).toContainText('2');
+    await expect(page.getByTestId('missing-without-isbn-badge')).toContainText('2');
 
-    // Run automated strict ISBN enrichment (1984 succeeds, Foundation is skipped)
+    // 1. Run automated strict ISBN enrichment (1984 succeeds, Fundación is skipped)
     await page.getByTestId('start-isbn-enrichment-btn').click();
     await expect(page.getByTestId('missing-with-isbn-badge')).toContainText('1');
 
-    // Verify skipped/unmatched report lists Foundation
+    // Verify skipped/unmatched report lists Fundación
     await expect(page.getByTestId('toggle-enrichment-report-btn')).toBeVisible();
     await page.getByTestId('toggle-enrichment-report-btn').click();
-    await expect(page.getByTestId('enrichment-skipped-report')).toContainText('Foundation');
+    await expect(page.getByTestId('enrichment-skipped-report')).toContainText('Fundación');
 
-    // Resolve remaining book via Step-by-Step Visual Cover Assistant
+    // 2. Run automated Title + Author search: Crimen y castigo (single cover) is applied directly
+    await page.getByTestId('open-strict-title-search-btn').click();
+    await page.getByTestId('confirm-strict-title-search-btn').click();
+    await expect(page.getByTestId('missing-without-isbn-badge')).toContainText('1');
+    await expect(page.getByTestId('missing-with-isbn-badge')).toContainText('1');
+
+    // 3. Visual Assistant shows ONLY Fundación (2 covers), then summarizes Libro Sin Portada (0 covers)
     await page.getByTestId('start-visual-assistant-btn').click();
     await expect(page.getByTestId('visual-assistant-card')).toBeVisible();
-    await expect(page.getByTestId('visual-assistant-card')).toContainText('Foundation');
+    await expect(page.getByTestId('visual-assistant-card')).toContainText('Fundación');
     await page.getByTestId('visual-assistant-select-btn').first().click();
 
-    await expect(page.getByTestId('cover-enrichment-all-complete')).toBeVisible();
+    await expect(page.getByTestId('visual-assistant-card')).toHaveCount(0);
+    await expect(page.getByTestId('visual-assistant-not-found-card')).toBeVisible();
+    await expect(page.getByTestId('visual-assistant-not-found-list')).toContainText(
+      'Libro Sin Portada'
+    );
 
-    // Verify 320px mobile layout has zero horizontal overflow
+    // Verify 320px mobile layout with not-found summary open has zero horizontal overflow
     await page.setViewportSize({ width: 320, height: 640 });
-    await page.goto('/settings');
-    await expect(page.getByTestId('cover-enrichment-all-complete')).toBeVisible();
-    const hasOverflow = await page.evaluate(() => {
-      return document.documentElement.scrollWidth > document.documentElement.clientWidth;
-    });
-    expect(hasOverflow).toBe(false);
+    await expect
+      .poll(async () =>
+        page.evaluate(
+          () => document.documentElement.scrollWidth > document.documentElement.clientWidth
+        )
+      )
+      .toBe(false);
+
+    await page.getByTestId('visual-assistant-close-btn').click();
+    await expect(page.getByTestId('visual-assistant-not-found-card')).toHaveCount(0);
   });
 });

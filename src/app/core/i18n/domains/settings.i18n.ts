@@ -108,6 +108,8 @@ export interface SettingsI18n {
       visualAssistantSkipAction: string;
       visualAssistantCloseAction: string;
       visualAssistantNoSuggestions: string;
+      visualAssistantNotFoundTitle: string;
+      visualAssistantNotFoundDescription: string;
       strictSearchTitle: string;
       strictSearchWarning: string;
       strictSearchConfirmAction: string;
@@ -261,7 +263,7 @@ export const ES_SETTINGS: SettingsI18n = {
       cancelAction: 'Cancelar',
       visualAssistantTitle: 'Asistente visual paso a paso',
       visualAssistantDescription:
-        'Revisa uno a uno los libros restantes sin portada y elige la edición correcta con un clic.',
+        'Revisa solo los libros con varias portadas candidatas y elige la edición correcta con un clic. Los libros sin portada se resumen al final.',
       visualAssistantStartAction: 'Revisar uno a uno',
       visualAssistantStepCounter: 'Libro',
       visualAssistantSelectAction: 'Usar portada',
@@ -269,6 +271,9 @@ export const ES_SETTINGS: SettingsI18n = {
       visualAssistantCloseAction: 'Cerrar asistente',
       visualAssistantNoSuggestions:
         'No se encontraron portadas candidatas para este libro. Puedes saltarlo para conservar su portada tipográfica.',
+      visualAssistantNotFoundTitle: 'Libros sin portada encontrada',
+      visualAssistantNotFoundDescription:
+        'No se encontraron portadas disponibles para estos libros. Conservarán su portada tipográfica hasta que añadas una manualmente.',
       strictSearchTitle: 'Búsqueda automática estricta por título y autor',
       strictSearchWarning:
         'Atención: las búsquedas sin ISBN pueden coincidir ocasionalmente con otra edición del mismo libro.',
@@ -426,7 +431,7 @@ export const EN_SETTINGS: SettingsI18n = {
       cancelAction: 'Cancel',
       visualAssistantTitle: 'Step-by-step visual assistant',
       visualAssistantDescription:
-        'Review remaining books without covers one by one and pick the right edition in one click.',
+        'Review only books with multiple candidate covers and pick the right edition in one click. Books without covers are summarized at the end.',
       visualAssistantStartAction: 'Review one by one',
       visualAssistantStepCounter: 'Book',
       visualAssistantSelectAction: 'Use cover',
@@ -434,6 +439,9 @@ export const EN_SETTINGS: SettingsI18n = {
       visualAssistantCloseAction: 'Close assistant',
       visualAssistantNoSuggestions:
         'No cover candidates were found for this book. You can skip it to keep its typographic cover.',
+      visualAssistantNotFoundTitle: 'Books without covers found',
+      visualAssistantNotFoundDescription:
+        'No available covers were found for these books. They will keep their typographic cover until you add one manually.',
       strictSearchTitle: 'Strict automated title & author search',
       strictSearchWarning:
         'Warning: lookups without an ISBN can occasionally match a different edition of the same book.',

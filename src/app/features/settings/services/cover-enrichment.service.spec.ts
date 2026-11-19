@@ -334,11 +334,12 @@ describe('CoverEnrichmentService', () => {
     expect(service.state().downloadedCount).toBe(0);
   });
 
-  it('auto-applies single-cover matches in the visual assistant and pauses only on multiple or zero candidates', async () => {
+  it('pauses the visual assistant only on multiple-cover books and summarizes zero-cover books without manual skipping', async () => {
     const b1Single = makeBook({ id: 'v1', title: 'El imperio final', author: 'Brandon Sanderson' });
     const b2Multiple = makeBook({ id: 'v2', title: 'Dune', author: 'Frank Herbert' });
     const b3Empty = makeBook({ id: 'v3', title: 'Rare Book', author: 'Unknown' });
-    booksSignal.set([b1Single, b2Multiple, b3Empty]);
+    const b4BrokenSingle = makeBook({ id: 'v4', title: 'Broken Cover Book', author: 'Author' });
+    booksSignal.set([b1Single, b2Multiple, b3Empty, b4BrokenSingle]);
 
     const singleCandidate = makeCandidate({
       id: 'c-single',
@@ -346,6 +347,12 @@ describe('CoverEnrichmentService', () => {
       author: 'Brandon Sanderson',
       isbn: '076531178X',
       coverUrl: 'https://img/mistborn.jpg',
+    });
+    const brokenSingleCandidate = makeCandidate({
+      id: 'c-broken',
+      title: 'Broken Cover Book',
+      author: 'Author',
+      coverUrl: 'https://img/broken.jpg',
     });
     const candidateWithoutCover = makeCandidate({ id: 'c-no-img', title: 'No Img', coverUrl: '' });
     const multiCandidateA = makeCandidate({
@@ -369,12 +376,22 @@ describe('CoverEnrichmentService', () => {
       if (q.includes('Dune')) {
         return [multiCandidateA, multiCandidateB, candidateWithoutCover];
       }
+      if (q.includes('Broken Cover Book')) {
+        return [brokenSingleCandidate];
+      }
       return [];
+    });
+
+    mockImageOptimizer.optimizeRemoteUrl.mockImplementation(async (url: string) => {
+      if (url === 'https://img/broken.jpg') {
+        return '';
+      }
+      return 'data:image/webp;base64,optimized';
     });
 
     await service.startVisualAssistant();
 
-    // b1Single had exactly 1 cover candidate -> auto-applied and advanced straight to b2Multiple (index 1)
+    // b1Single had 1 valid cover -> auto-applied and advanced straight to b2Multiple (index 1)
     expect(mockBooksService.update).toHaveBeenCalledWith(
       'v1',
       expect.objectContaining({
@@ -388,7 +405,8 @@ describe('CoverEnrichmentService', () => {
     expect(service.assistantCurrentBook()?.id).toBe('v2');
     expect(service.assistantCandidates()).toEqual([multiCandidateA, multiCandidateB]);
 
-    // Select one of the multiple options for b2Multiple -> advances to b3Empty (index 2, 0 candidates)
+    // Select one of the multiple options for b2Multiple -> automatically skips b3Empty (0 covers)
+    // and b4BrokenSingle (invalid cover), finishing with a compact not-found summary
     const selected = await service.selectAssistantCover(multiCandidateA);
     expect(selected).toBe(true);
     expect(mockBooksService.update).toHaveBeenCalledWith(
@@ -399,12 +417,28 @@ describe('CoverEnrichmentService', () => {
         isbn: '9780441172719',
       })
     );
-    expect(service.assistantCurrentIndex()).toBe(2);
-    expect(service.assistantCurrentBook()?.id).toBe('v3');
+    expect(service.assistantActive()).toBe(true);
+    expect(service.assistantCurrentBook()).toBeNull();
     expect(service.assistantCandidates()).toEqual([]);
+    expect(service.assistantNotFoundBooks().map((b) => b.id)).toEqual(['v3', 'v4']);
 
-    await service.skipAssistantBook();
+    service.closeVisualAssistant();
     expect(service.assistantActive()).toBe(false);
     expect(service.assistantQueue()).toEqual([]);
+    expect(service.assistantNotFoundBooks()).toEqual([]);
+  });
+
+  it('summarizes all zero-cover books immediately when no book has multiple cover candidates', async () => {
+    const b1 = makeBook({ id: 'z1', title: 'Obscure Book 1', author: 'Author 1' });
+    const b2 = makeBook({ id: 'z2', title: 'Obscure Book 2', author: 'Author 2' });
+    booksSignal.set([b1, b2]);
+    mockMetadataService.searchByQuery.mockResolvedValue([]);
+
+    await service.startVisualAssistant();
+
+    expect(service.assistantActive()).toBe(true);
+    expect(service.assistantLoading()).toBe(false);
+    expect(service.assistantCurrentBook()).toBeNull();
+    expect(service.assistantNotFoundBooks().map((b) => b.id)).toEqual(['z1', 'z2']);
   });
 });

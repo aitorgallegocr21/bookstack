@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- _No active phase currently in progress._
+- [ ] **[Phase 15: Multi-Source Metadata Engine (5 Providers), Integral Auto-Enrichment & Offline `.ZIP` Bundles](tasks/phase-15-multi-source-metadata-and-offline-bundles/index.md)** — _In Progress_ (5-source browser-native metadata waterfall [`Open Library` + `Google Books` + `Wikidata` + `Apple Books ES` + `Internet Archive / Crossref`], cross-edition metadata fusion & balanced 8-result quota, automatic ISBN $\to$ Title+Author integral enrichment backfilling covers, `totalPages`, `publicationYear`, `publisher`, `isbn`, and `series`, flexible external/AI JSON & CSV import normalizer, and 4-mode offline export/import suite including self-contained `.ZIP` bundles with `/covers` image files).
 
 ---
 

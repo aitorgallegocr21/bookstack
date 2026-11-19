@@ -113,4 +113,25 @@ describe('SeriesToolbarComponent', () => {
     resetBtn.click();
     expect(spy).toHaveBeenCalledOnce();
   });
+
+  it('should emit statusChange from mobile/tablet status select and use @container-aware breakpoints', () => {
+    const spy = vi.fn();
+    component.statusChange.subscribe(spy);
+
+    const section = fixture.nativeElement.querySelector('section') as HTMLElement;
+    const statusSelect = fixture.nativeElement.querySelector(
+      '#series-mobile-status-select'
+    ) as HTMLSelectElement;
+    const tablist = fixture.nativeElement.querySelector('[role="tablist"]') as HTMLElement;
+
+    expect(section.classList.contains('@container')).toBe(true);
+    expect(statusSelect).toBeTruthy();
+    expect(statusSelect.options.length).toBe(5);
+    expect(statusSelect.parentElement?.classList.contains('@[680px]:hidden')).toBe(true);
+    expect(tablist.classList.contains('@[680px]:flex')).toBe(true);
+
+    statusSelect.value = 'completed';
+    statusSelect.dispatchEvent(new Event('change'));
+    expect(spy).toHaveBeenCalledWith('completed');
+  });
 });

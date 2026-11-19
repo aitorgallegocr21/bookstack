@@ -63,6 +63,11 @@ export class SeriesToolbarComponent {
     this.statusChange.emit(status);
   }
 
+  protected onStatusSelectChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.statusChange.emit(selectElement.value as SagaFilterStatus);
+  }
+
   protected onSortChange(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
     this.sortChange.emit(selectElement.value as SagaSortOption);

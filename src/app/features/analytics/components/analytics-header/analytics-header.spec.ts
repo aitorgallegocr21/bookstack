@@ -57,6 +57,11 @@ describe('AnalyticsHeaderComponent', () => {
       '[data-testid="period-btn-last-12-months"]'
     ) as HTMLButtonElement;
     const allTimeBtn = el.querySelector('[data-testid="period-btn-all-time"]') as HTMLButtonElement;
+    const segmentedContainer = currentYearBtn.parentElement as HTMLElement;
+
+    expect(segmentedContainer.classList.contains('rounded-2xl')).toBe(true);
+    expect(segmentedContainer.contains(last12Btn)).toBe(true);
+    expect(segmentedContainer.contains(allTimeBtn)).toBe(true);
 
     expect(h1?.textContent).toContain('Estadísticas');
     expect(currentYearBtn.textContent).toContain('Este año (2026)');

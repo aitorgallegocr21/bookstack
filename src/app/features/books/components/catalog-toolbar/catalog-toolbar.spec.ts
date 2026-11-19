@@ -253,4 +253,17 @@ describe('CatalogToolbarComponent', () => {
     fixture.detectChanges();
     expect(host.resetFiltersCalled).toBe(true);
   });
+
+  it('should use @container-aware status controls without overflow-x-auto clipping', () => {
+    const section = fixture.debugElement.query(By.css('section')).nativeElement as HTMLElement;
+    const mobileWrapper = fixture.debugElement.query(By.css('#catalog-mobile-status-select'))
+      .nativeElement.parentElement as HTMLElement;
+    const tablist = fixture.debugElement.query(By.css('[role="tablist"]'))
+      .nativeElement as HTMLElement;
+
+    expect(section.classList.contains('@container')).toBe(true);
+    expect(mobileWrapper.classList.contains('@[760px]:hidden')).toBe(true);
+    expect(tablist.classList.contains('@[760px]:flex')).toBe(true);
+    expect(tablist.classList.contains('overflow-x-auto')).toBe(false);
+  });
 });

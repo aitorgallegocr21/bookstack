@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- _No active phase. Ready for next milestone definition._
+- [ ] **[Phase 14: Visual Polish, Responsive Layout & UX Refinements](tasks/phase-14-visual-polish-and-responsive-ux/index.md)** — _In Planning / Ready for Execution_ (Dashboard dark-mode contrast fix, scrollbar-free 2-column parallel reads grid, symmetric 6-month vertical activity widget + `/stats` link, `@container`-driven ~1000px tablet layout, scrollbar-free modal bodies with subtle scroll cues, container-aware `/books` grids & overflow-free card action bars, unified symmetric `@container` filter/control toolbars across `/books`, `/series`, and `/stats`, full-width stretching sagas with wrapping multi-row cover shelves & zero-truncation mobile headers, and concise modern `/about` redesign with personal profile card).
 
 ---
 

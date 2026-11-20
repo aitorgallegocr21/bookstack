@@ -1,9 +1,14 @@
 import {
   extractPublicationYear,
+  parseAppleBooksSearchResponse,
+  parseCrossrefWorksResponse,
   parseGoogleBooksVolumesResponse,
+  parseInternetArchiveSearchResponse,
   parseOpenLibraryBibkeyBatchResponse,
   parseOpenLibraryBibkeyResponse,
   parseOpenLibrarySearchResponse,
+  parseOpenLibraryWorkEditionsResponse,
+  parseWikidataSparqlResponse,
   sanitizeExternalCoverUrl,
 } from './book-metadata.schema';
 
@@ -116,6 +121,7 @@ describe('book-metadata.schema', () => {
         publicationYear: 1965,
         totalPages: 412,
         coverUrl: 'https://covers.openlibrary.org/b/id/999-L.jpg',
+        workKey: '/works/OL123W',
         source: 'openlibrary',
       });
     });
@@ -206,6 +212,249 @@ describe('book-metadata.schema', () => {
 
     it('returns an empty map for malformed payloads', () => {
       expect(parseOpenLibraryBibkeyBatchResponse('bad-payload', ['9780140328721']).size).toBe(0);
+    });
+  });
+
+  describe('parseOpenLibraryWorkEditionsResponse', () => {
+    it('maps edition entries with fallback work info and ignores invalid cover IDs', () => {
+      const payload = {
+        entries: [
+          {
+            key: '/books/OL101M',
+            number_of_pages: 544,
+            publishers: ['Minotauro'],
+            publish_date: '2003',
+            isbn_13: ['9788445071403'],
+            covers: [-1, 88888],
+          },
+          {
+            key: '/books/OL102M',
+            title: 'El señor de los anillos',
+            number_of_pages: 0,
+            publishers: [{ name: 'Tirant' }],
+          },
+        ],
+      };
+
+      const results = parseOpenLibraryWorkEditionsResponse(payload, {
+        title: 'La Comunidad del Anillo',
+        author: 'J. R. R. Tolkien',
+      });
+
+      expect(results).toHaveLength(2);
+      expect(results[0]).toEqual({
+        id: 'openlibrary:/books/OL101M',
+        title: 'La Comunidad del Anillo',
+        author: 'J. R. R. Tolkien',
+        isbn: '9788445071403',
+        publisher: 'Minotauro',
+        publicationYear: 2003,
+        totalPages: 544,
+        coverUrl: 'https://covers.openlibrary.org/b/id/88888-L.jpg',
+        source: 'openlibrary',
+      });
+      expect(results[1]).toMatchObject({
+        title: 'El señor de los anillos',
+        publisher: 'Tirant',
+        totalPages: undefined,
+        coverUrl: undefined,
+      });
+    });
+
+    it('returns empty array for malformed editions payload', () => {
+      expect(parseOpenLibraryWorkEditionsResponse({ entries: null })).toEqual([]);
+    });
+  });
+
+  describe('parseGoogleBooksVolumesResponse (subtitle & categories)', () => {
+    it('concatenates non-duplicate subtitle and maps categories to genre', () => {
+      const payload = {
+        items: [
+          {
+            id: 'vol-sub',
+            volumeInfo: {
+              title: 'Dune',
+              subtitle: 'Edición Aniversario',
+              authors: ['Frank Herbert'],
+              categories: ['Fiction', 'Science Fiction', 'Fiction'],
+            },
+          },
+          {
+            id: 'vol-dup-sub',
+            volumeInfo: {
+              title: 'Dune: Edición Aniversario',
+              subtitle: 'Edición Aniversario',
+              authors: ['Frank Herbert'],
+            },
+          },
+        ],
+      };
+
+      const results = parseGoogleBooksVolumesResponse(payload);
+      expect(results[0]).toMatchObject({
+        title: 'Dune: Edición Aniversario',
+        genre: ['Fiction', 'Science Fiction'],
+      });
+      expect(results[1].title).toBe('Dune: Edición Aniversario');
+      expect(results[1].genre).toBeUndefined();
+    });
+  });
+
+  describe('parseWikidataSparqlResponse', () => {
+    it('maps SPARQL bindings including series, ordinal, pages, and Wikimedia 400px cover', () => {
+      const payload = {
+        results: {
+          bindings: [
+            {
+              item: { value: 'http://www.wikidata.org/entity/Q186192' },
+              itemLabel: { value: 'El nombre del viento' },
+              authorLabel: { value: 'Patrick Rothfuss' },
+              isbn13: { value: '978-84-01-33720-8' },
+              pages: { value: '872' },
+              pubDate: { value: '2007-03-27T00:00:00Z' },
+              publisherLabel: { value: 'Plaza & Janés' },
+              seriesLabel: { value: 'Crónica del asesino de reyes' },
+              seriesOrdinal: { value: '1' },
+              image: {
+                value: 'http://commons.wikimedia.org/wiki/Special:FilePath/Name_of_the_wind.jpg',
+              },
+            },
+          ],
+        },
+      };
+
+      const results = parseWikidataSparqlResponse(payload);
+      expect(results).toEqual([
+        {
+          id: 'wikidata:Q186192',
+          title: 'El nombre del viento',
+          author: 'Patrick Rothfuss',
+          isbn: '9788401337208',
+          publisher: 'Plaza & Janés',
+          publicationYear: 2007,
+          totalPages: 872,
+          coverUrl:
+            'https://commons.wikimedia.org/wiki/Special:FilePath/Name_of_the_wind.jpg?width=400',
+          seriesName: 'Crónica del asesino de reyes',
+          seriesOrder: 1,
+          source: 'wikidata',
+        },
+      ]);
+    });
+
+    it('returns empty array for malformed SPARQL payloads', () => {
+      expect(parseWikidataSparqlResponse({ results: {} })).toEqual([]);
+    });
+  });
+
+  describe('parseAppleBooksSearchResponse', () => {
+    it('maps Apple Books results and upgrades artworkUrl100 to 600x600bb.jpg', () => {
+      const payload = {
+        results: [
+          {
+            trackId: 987654,
+            trackName: 'El imperio final',
+            artistName: 'Brandon Sanderson',
+            releaseDate: '2016-09-01T07:00:00Z',
+            genres: ['Fantasía', 'Ficción'],
+            artworkUrl100: 'http://is1-ssl.mzstatic.com/image/thumb/Publication/100x100bb.jpg',
+          },
+        ],
+      };
+
+      const results = parseAppleBooksSearchResponse(payload);
+      expect(results).toEqual([
+        {
+          id: 'applebooks:987654',
+          title: 'El imperio final',
+          author: 'Brandon Sanderson',
+          publicationYear: 2016,
+          genre: ['Fantasía', 'Ficción'],
+          coverUrl: 'https://is1-ssl.mzstatic.com/image/thumb/Publication/600x600bb.jpg',
+          source: 'applebooks',
+        },
+      ]);
+    });
+
+    it('returns empty array for invalid Apple Books payloads', () => {
+      expect(parseAppleBooksSearchResponse(null)).toEqual([]);
+    });
+  });
+
+  describe('parseInternetArchiveSearchResponse', () => {
+    it('maps Internet Archive docs with string or array fields and cover service URL', () => {
+      const payload = {
+        response: {
+          docs: [
+            {
+              identifier: 'donquijote00cerv',
+              title: 'Don Quijote de la Mancha',
+              creator: ['Miguel de Cervantes'],
+              publisher: ['Imprenta Real'],
+              year: '1605',
+              imagecount: 680,
+              isbn: ['9788420412146'],
+            },
+          ],
+        },
+      };
+
+      const results = parseInternetArchiveSearchResponse(payload);
+      expect(results).toEqual([
+        {
+          id: 'archive:donquijote00cerv',
+          title: 'Don Quijote de la Mancha',
+          author: 'Miguel de Cervantes',
+          isbn: '9788420412146',
+          publisher: 'Imprenta Real',
+          publicationYear: 1605,
+          totalPages: 680,
+          coverUrl: 'https://archive.org/services/img/donquijote00cerv',
+          source: 'archive',
+        },
+      ]);
+    });
+
+    it('returns empty array for malformed Internet Archive payloads', () => {
+      expect(parseInternetArchiveSearchResponse({ response: {} })).toEqual([]);
+    });
+  });
+
+  describe('parseCrossrefWorksResponse', () => {
+    it('maps Crossref works items including authors, ISBN, date-parts year, and page count', () => {
+      const payload = {
+        message: {
+          items: [
+            {
+              DOI: '10.1000/xyz123',
+              title: ['Clean Architecture'],
+              author: [{ given: 'Robert C.', family: 'Martin' }],
+              publisher: 'Prentice Hall',
+              'published-print': { 'date-parts': [[2017, 9, 10]] },
+              ISBN: ['978-0-13-449416-6'],
+              page: '432',
+            },
+          ],
+        },
+      };
+
+      const results = parseCrossrefWorksResponse(payload);
+      expect(results).toEqual([
+        {
+          id: 'crossref:10.1000/xyz123',
+          title: 'Clean Architecture',
+          author: 'Robert C. Martin',
+          isbn: '9780134494166',
+          publisher: 'Prentice Hall',
+          publicationYear: 2017,
+          totalPages: 432,
+          source: 'crossref',
+        },
+      ]);
+    });
+
+    it('returns empty array for malformed Crossref payloads', () => {
+      expect(parseCrossrefWorksResponse({ message: {} })).toEqual([]);
     });
   });
 });

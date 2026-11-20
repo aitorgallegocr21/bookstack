@@ -169,5 +169,54 @@ describe('book-form.utils', () => {
         author: 'New Author',
       });
     });
+
+    it('should patch seriesName, seriesOrder, and genre in fill-empty and overwrite-public modes', () => {
+      const richCandidate: BookMetadataCandidate = {
+        ...candidate,
+        seriesName: 'The Stormlight Archive',
+        seriesOrder: 1,
+        genre: ['Fantasy', 'Epic'],
+      };
+
+      const fillEmptyPatch = buildMetadataFormPatch(
+        {
+          title: 'Existing Title',
+          seriesName: '',
+          seriesOrder: null,
+          genre: [],
+        },
+        richCandidate,
+        'fill-empty'
+      );
+      expect(fillEmptyPatch.seriesName).toBe('The Stormlight Archive');
+      expect(fillEmptyPatch.seriesOrder).toBe(1);
+      expect(fillEmptyPatch.genre).toEqual(['Fantasy', 'Epic']);
+
+      const preservedPatch = buildMetadataFormPatch(
+        {
+          seriesName: 'My Custom Series',
+          seriesOrder: 3,
+          genre: ['Sci-Fi'],
+        },
+        richCandidate,
+        'fill-empty'
+      );
+      expect(preservedPatch.seriesName).toBeUndefined();
+      expect(preservedPatch.seriesOrder).toBeUndefined();
+      expect(preservedPatch.genre).toBeUndefined();
+
+      const overwritePatch = buildMetadataFormPatch(
+        {
+          seriesName: 'My Custom Series',
+          seriesOrder: 3,
+          genre: ['Sci-Fi'],
+        },
+        richCandidate,
+        'overwrite-public'
+      );
+      expect(overwritePatch.seriesName).toBe('The Stormlight Archive');
+      expect(overwritePatch.seriesOrder).toBe(1);
+      expect(overwritePatch.genre).toEqual(['Fantasy', 'Epic']);
+    });
   });
 });

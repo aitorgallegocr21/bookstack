@@ -1,9 +1,10 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Book } from '../../books/models/book.model';
 import { BookMetadataCandidate } from '../../books/models/book-metadata.model';
-import { BookMetadataService } from '../../books/services/book-metadata.service';
+import { BookMetadataService, mergeCandidates } from '../../books/services/book-metadata.service';
 import { BooksService } from '../../books/services/books.service';
 import { ImageOptimizerService } from '../../books/services/image-optimizer.service';
+import { buildBookSeriesPayload } from '../../books/utils/book-form.utils';
 import { isValidIsbn, normalizeIsbn } from '../../books/utils/isbn.utils';
 import {
   CoverEnrichmentFailureReason,
@@ -26,8 +27,92 @@ const INITIAL_ENRICHMENT_STATE: CoverEnrichmentState = {
   processedCount: 0,
   totalCount: 0,
   downloadedCount: 0,
+  metadataUpdatedCount: 0,
   skippedItems: [],
 };
+
+/**
+ * Non-destructively merges missing cover and bibliographic fields from a metadata
+ * candidate into an existing library book.
+ */
+export function mergeCandidateIntoBook(
+  book: Book,
+  candidate: BookMetadataCandidate,
+  optimizedCover?: string
+): { updatedBook: Book; coverChanged: boolean; metadataChanged: boolean } {
+  const nextCover =
+    !book.coverUrl?.trim() && optimizedCover?.trim() ? optimizedCover.trim() : undefined;
+  const coverChanged = Boolean(nextCover);
+
+  const nextPages =
+    book.totalPages <= 1 && candidate.totalPages && candidate.totalPages > 1
+      ? Math.max(candidate.totalPages, book.currentPage)
+      : undefined;
+
+  const nextYear =
+    !book.publicationYear && candidate.publicationYear ? candidate.publicationYear : undefined;
+
+  const trimmedPublisher = candidate.publisher?.trim();
+  const nextPublisher = !book.publisher?.trim() && trimmedPublisher ? trimmedPublisher : undefined;
+
+  const canBackfillIsbn =
+    (!book.isbn?.trim() || !isValidIsbn(book.isbn)) &&
+    Boolean(candidate.isbn && isValidIsbn(candidate.isbn));
+  const nextIsbn = canBackfillIsbn
+    ? (normalizeIsbn(candidate.isbn ?? '') ?? candidate.isbn)
+    : undefined;
+
+  const nextSeries =
+    !book.series?.name?.trim() && candidate.seriesName?.trim()
+      ? buildBookSeriesPayload({
+          enabled: true,
+          name: candidate.seriesName,
+          volumeNumber: candidate.seriesOrder,
+        })
+      : undefined;
+
+  const metadataChanged = Boolean(
+    nextPages !== undefined ||
+    nextYear !== undefined ||
+    nextPublisher !== undefined ||
+    nextIsbn !== undefined ||
+    nextSeries !== undefined
+  );
+
+  if (!coverChanged && !metadataChanged) {
+    return { updatedBook: book, coverChanged: false, metadataChanged: false };
+  }
+
+  return {
+    updatedBook: {
+      ...book,
+      ...(nextCover ? { coverUrl: nextCover } : {}),
+      ...(nextPages !== undefined ? { totalPages: nextPages } : {}),
+      ...(nextYear !== undefined ? { publicationYear: nextYear } : {}),
+      ...(nextPublisher !== undefined ? { publisher: nextPublisher } : {}),
+      ...(nextIsbn !== undefined ? { isbn: nextIsbn } : {}),
+      ...(nextSeries !== undefined ? { series: nextSeries } : {}),
+      updatedAt: new Date().toISOString(),
+    },
+    coverChanged,
+    metadataChanged,
+  };
+}
+
+/**
+ * Returns true when a book still lacks core enrichable fields that the current candidate does not supply.
+ */
+export function bookNeedsMoreFields(book: Book, candidate: BookMetadataCandidate | null): boolean {
+  const needsCover = !book.coverUrl?.trim() && !candidate?.coverUrl?.trim();
+  const needsPages = book.totalPages <= 1 && !(candidate?.totalPages && candidate.totalPages > 1);
+  const needsYear = !book.publicationYear && !candidate?.publicationYear;
+  const needsPublisher = !book.publisher?.trim() && !candidate?.publisher?.trim();
+  const needsIsbn =
+    (!book.isbn?.trim() || !isValidIsbn(book.isbn)) &&
+    !(candidate?.isbn && isValidIsbn(candidate.isbn));
+
+  return needsCover || needsPages || needsYear || needsPublisher || needsIsbn;
+}
 
 /**
  * Coordinates post-import bulk cover enrichment, rate-limited ISBN/title-author queues,
@@ -45,18 +130,52 @@ export class CoverEnrichmentService {
   private cancelRequested = false;
 
   /**
-   * Reactive summary of all library books missing a cover image, partitioned by valid ISBN.
+   * Reactive summary of all library books missing a cover image or core bibliographic metadata.
    */
   readonly missingCoverSummary = computed<MissingCoverSummary>(() => {
-    const booksWithoutCovers = this.booksService.books().filter((book) => !book.coverUrl?.trim());
+    const allBooks = this.booksService.books();
+    const booksWithoutCovers: Book[] = [];
     const booksWithIsbn: Book[] = [];
     const booksWithoutIsbn: Book[] = [];
+    const incompleteBooks: Book[] = [];
 
-    for (const book of booksWithoutCovers) {
-      if (book.isbn && isValidIsbn(book.isbn)) {
-        booksWithIsbn.push(book);
-      } else {
-        booksWithoutIsbn.push(book);
+    let missingPagesCount = 0;
+    let missingYearCount = 0;
+    let missingPublisherCount = 0;
+    let missingIsbnCount = 0;
+
+    for (const book of allBooks) {
+      const missingCover = !book.coverUrl?.trim();
+      const hasValidIsbn = Boolean(book.isbn && isValidIsbn(book.isbn));
+      const missingPages = book.totalPages <= 1;
+      const missingYear = !book.publicationYear;
+      const missingPublisher = !book.publisher?.trim();
+      const missingIsbn = !hasValidIsbn;
+
+      if (missingCover) {
+        booksWithoutCovers.push(book);
+        if (hasValidIsbn) {
+          booksWithIsbn.push(book);
+        } else {
+          booksWithoutIsbn.push(book);
+        }
+      }
+
+      if (missingPages) {
+        missingPagesCount++;
+      }
+      if (missingYear) {
+        missingYearCount++;
+      }
+      if (missingPublisher) {
+        missingPublisherCount++;
+      }
+      if (missingIsbn) {
+        missingIsbnCount++;
+      }
+
+      if (missingCover || missingPages || missingYear || missingPublisher || missingIsbn) {
+        incompleteBooks.push(book);
       }
     }
 
@@ -66,6 +185,13 @@ export class CoverEnrichmentService {
       withoutValidIsbnCount: booksWithoutIsbn.length,
       booksWithIsbn,
       booksWithoutIsbn,
+      totalIncomplete: incompleteBooks.length,
+      missingCoverCount: booksWithoutCovers.length,
+      missingPagesCount,
+      missingYearCount,
+      missingPublisherCount,
+      missingIsbnCount,
+      incompleteBooks,
     };
   });
 
@@ -157,6 +283,62 @@ export class CoverEnrichmentService {
 
         const book = targets[index];
         await this.enrichBookByStrictTitleAuthor(book, pendingUpdates);
+      }
+    } finally {
+      await this.flushPendingUpdates(pendingUpdates);
+      this.finishQueue();
+    }
+  }
+
+  /**
+   * Runs integral metadata and cover auto-enrichment across incomplete books using an
+   * automatic ISBN -> strict Title+Author cascade and non-destructive field backfilling.
+   */
+  async runIntegralEnrichment(targetBooks?: readonly Book[]): Promise<void> {
+    if (this.isQueueActive()) {
+      return;
+    }
+
+    const targets = targetBooks ? [...targetBooks] : this.missingCoverSummary().incompleteBooks;
+    this.beginQueue('integral-auto', targets.length);
+    if (targets.length === 0) {
+      this.state.update((current) => ({ ...current, status: 'completed' }));
+      return;
+    }
+
+    const pendingUpdates: Book[] = [];
+
+    try {
+      for (let offset = 0; offset < targets.length; offset += ISBN_BATCH_SIZE) {
+        if (!(await this.waitIfPausedOrCancelled(pendingUpdates))) {
+          break;
+        }
+
+        const chunk = targets.slice(offset, offset + ISBN_BATCH_SIZE);
+        const booksWithValidIsbn = chunk.filter((book) =>
+          Boolean(book.isbn && isValidIsbn(book.isbn))
+        );
+        const batchCandidates =
+          booksWithValidIsbn.length > 0
+            ? await this.lookupIsbnBatchSafe(booksWithValidIsbn)
+            : new Map<string, BookMetadataCandidate>();
+
+        await this.processChunkWithConcurrency(chunk, async (book) => {
+          if (!(await this.waitIfPausedOrCancelled(pendingUpdates))) {
+            return;
+          }
+
+          const canonicalIsbn =
+            book.isbn && isValidIsbn(book.isbn) ? (normalizeIsbn(book.isbn) ?? '') : '';
+          const batchCandidate = canonicalIsbn
+            ? (batchCandidates.get(canonicalIsbn) ?? null)
+            : null;
+          await this.enrichBookIntegrally(book, batchCandidate, pendingUpdates);
+        });
+
+        if (offset + ISBN_BATCH_SIZE < targets.length && !this.cancelRequested) {
+          await this.delay(REQUEST_PACING_MS);
+        }
       }
     } finally {
       await this.flushPendingUpdates(pendingUpdates);
@@ -287,6 +469,7 @@ export class CoverEnrichmentService {
       processedCount: 0,
       totalCount,
       downloadedCount: 0,
+      metadataUpdatedCount: 0,
       skippedItems: [],
     });
   }
@@ -348,6 +531,72 @@ export class CoverEnrichmentService {
     await Promise.all(workers);
   }
 
+  private async enrichBookIntegrally(
+    book: Book,
+    batchCandidate: BookMetadataCandidate | null,
+    pendingUpdates: Book[]
+  ): Promise<void> {
+    let candidate = batchCandidate;
+    let hadNetworkError = false;
+    const hasValidIsbn = Boolean(book.isbn && isValidIsbn(book.isbn));
+
+    if (hasValidIsbn && (!candidate?.coverUrl?.trim() || bookNeedsMoreFields(book, candidate))) {
+      try {
+        const isbnFallback = await this.bookMetadataService.lookupByIsbn(book.isbn ?? '');
+        if (isbnFallback) {
+          candidate = candidate ? mergeCandidates(candidate, isbnFallback) : isbnFallback;
+        }
+      } catch {
+        hadNetworkError = true;
+      }
+    }
+
+    if (!hasValidIsbn || !candidate?.coverUrl?.trim() || bookNeedsMoreFields(book, candidate)) {
+      try {
+        const searchResults = await this.bookMetadataService.searchByQuery(
+          `${book.title} ${book.author}`,
+          { title: book.title, author: book.author }
+        );
+        const verified = this.bookMetadataService.verifyStrictTitleAuthorCandidate(
+          book,
+          searchResults
+        );
+        if (verified) {
+          candidate = candidate ? mergeCandidates(candidate, verified) : verified;
+        }
+      } catch {
+        hadNetworkError = true;
+      }
+    }
+
+    if (!candidate) {
+      this.recordSkipped(book, hadNetworkError ? 'network_error' : 'no_metadata_found');
+      return;
+    }
+
+    const { optimizedCover, coverFailureReason } = await this.optimizeCoverIfNeeded(
+      book,
+      candidate
+    );
+    const { updatedBook, coverChanged, metadataChanged } = mergeCandidateIntoBook(
+      book,
+      candidate,
+      optimizedCover
+    );
+
+    if (coverChanged || metadataChanged) {
+      await this.stageUpdatedBook(updatedBook, coverChanged, metadataChanged, pendingUpdates);
+      return;
+    }
+
+    const fallbackReason: CoverEnrichmentFailureReason =
+      coverFailureReason ??
+      (!book.coverUrl?.trim() && !candidate.coverUrl?.trim()
+        ? 'no_cover_in_provider'
+        : 'no_metadata_found');
+    this.recordSkipped(book, fallbackReason);
+  }
+
   private async enrichBookFromIsbnCandidate(
     book: Book,
     batchCandidate: BookMetadataCandidate | null,
@@ -359,7 +608,7 @@ export class CoverEnrichmentService {
       try {
         const fallback = await this.bookMetadataService.lookupByIsbn(book.isbn ?? '');
         if (fallback) {
-          candidate = fallback;
+          candidate = candidate ? mergeCandidates(candidate, fallback) : fallback;
         }
       } catch {
         this.recordSkipped(book, 'network_error');
@@ -372,19 +621,41 @@ export class CoverEnrichmentService {
       return;
     }
 
-    const coverUrl = candidate.coverUrl?.trim();
-    if (!coverUrl) {
-      this.recordSkipped(book, 'no_cover_in_provider');
+    const { optimizedCover, coverFailureReason } = await this.optimizeCoverIfNeeded(
+      book,
+      candidate
+    );
+    const { updatedBook, coverChanged, metadataChanged } = mergeCandidateIntoBook(
+      book,
+      candidate,
+      optimizedCover
+    );
+
+    if (!coverChanged) {
+      if (metadataChanged) {
+        pendingUpdates.push(updatedBook);
+        this.state.update((current) => ({
+          ...current,
+          metadataUpdatedCount: current.metadataUpdatedCount + 1,
+        }));
+        if (pendingUpdates.length >= PERSISTENCE_BATCH_SIZE) {
+          await this.flushPendingUpdates(pendingUpdates);
+        }
+      }
+      this.recordSkipped(book, coverFailureReason ?? 'no_cover_in_provider');
       return;
     }
 
-    await this.downloadAndStageCover(book, coverUrl, pendingUpdates);
+    await this.stageUpdatedBook(updatedBook, coverChanged, metadataChanged, pendingUpdates);
   }
 
   private async enrichBookByStrictTitleAuthor(book: Book, pendingUpdates: Book[]): Promise<void> {
     let candidates: BookMetadataCandidate[];
     try {
-      candidates = await this.bookMetadataService.searchByQuery(`${book.title} ${book.author}`);
+      candidates = await this.bookMetadataService.searchByQuery(`${book.title} ${book.author}`, {
+        title: book.title,
+        author: book.author,
+      });
     } catch {
       this.recordSkipped(book, 'network_error');
       return;
@@ -406,46 +677,70 @@ export class CoverEnrichmentService {
       return;
     }
 
-    const coverUrl = verified.coverUrl?.trim();
-    if (!coverUrl) {
-      this.recordSkipped(book, 'no_cover_in_provider');
+    const { optimizedCover, coverFailureReason } = await this.optimizeCoverIfNeeded(book, verified);
+    const { updatedBook, coverChanged, metadataChanged } = mergeCandidateIntoBook(
+      book,
+      verified,
+      optimizedCover
+    );
+
+    if (!coverChanged) {
+      if (metadataChanged) {
+        pendingUpdates.push(updatedBook);
+        this.state.update((current) => ({
+          ...current,
+          metadataUpdatedCount: current.metadataUpdatedCount + 1,
+        }));
+        if (pendingUpdates.length >= PERSISTENCE_BATCH_SIZE) {
+          await this.flushPendingUpdates(pendingUpdates);
+        }
+      }
+      this.recordSkipped(book, coverFailureReason ?? 'no_cover_in_provider');
       return;
     }
 
-    await this.downloadAndStageCover(book, coverUrl, pendingUpdates);
+    await this.stageUpdatedBook(updatedBook, coverChanged, metadataChanged, pendingUpdates);
   }
 
-  private async downloadAndStageCover(
+  private async optimizeCoverIfNeeded(
     book: Book,
-    coverUrl: string,
-    pendingUpdates: Book[]
-  ): Promise<void> {
-    let optimizedCover = '';
+    candidate: BookMetadataCandidate
+  ): Promise<{ optimizedCover?: string; coverFailureReason?: CoverEnrichmentFailureReason }> {
+    const coverUrl = candidate.coverUrl?.trim();
+    if (book.coverUrl?.trim() || !coverUrl) {
+      return {
+        coverFailureReason:
+          !book.coverUrl?.trim() && !coverUrl ? 'no_cover_in_provider' : undefined,
+      };
+    }
+
     try {
-      optimizedCover = await this.imageOptimizer.optimizeRemoteUrl(coverUrl, {
+      const optimized = await this.imageOptimizer.optimizeRemoteUrl(coverUrl, {
         minWidth: MIN_COVER_WIDTH_PX,
         minHeight: MIN_COVER_HEIGHT_PX,
       });
+      if (!optimized) {
+        return { coverFailureReason: 'invalid_cover_dimensions' };
+      }
+      return { optimizedCover: optimized };
     } catch {
-      this.recordSkipped(book, 'network_error');
-      return;
+      return { coverFailureReason: 'network_error' };
     }
+  }
 
-    if (!optimizedCover) {
-      this.recordSkipped(book, 'invalid_cover_dimensions');
-      return;
-    }
-
-    pendingUpdates.push({
-      ...book,
-      coverUrl: optimizedCover,
-      updatedAt: new Date().toISOString(),
-    });
+  private async stageUpdatedBook(
+    updatedBook: Book,
+    coverChanged: boolean,
+    metadataChanged: boolean,
+    pendingUpdates: Book[]
+  ): Promise<void> {
+    pendingUpdates.push(updatedBook);
 
     this.state.update((current) => ({
       ...current,
       processedCount: current.processedCount + 1,
-      downloadedCount: current.downloadedCount + 1,
+      downloadedCount: current.downloadedCount + (coverChanged ? 1 : 0),
+      metadataUpdatedCount: current.metadataUpdatedCount + (metadataChanged ? 1 : 0),
     }));
 
     if (pendingUpdates.length >= PERSISTENCE_BATCH_SIZE) {
@@ -495,19 +790,17 @@ export class CoverEnrichmentService {
         return false;
       }
 
-      const shouldBackfillIsbn =
-        (!book.isbn?.trim() || !isValidIsbn(book.isbn)) &&
-        Boolean(candidate.isbn && isValidIsbn(candidate.isbn));
-      const resolvedIsbn = shouldBackfillIsbn
-        ? (normalizeIsbn(candidate.isbn ?? '') ?? candidate.isbn)
-        : book.isbn;
+      const { updatedBook, coverChanged, metadataChanged } = mergeCandidateIntoBook(
+        book,
+        candidate,
+        optimizedCover
+      );
 
-      await this.booksService.update(book.id, {
-        ...book,
-        coverUrl: optimizedCover,
-        ...(resolvedIsbn ? { isbn: resolvedIsbn } : {}),
-        updatedAt: new Date().toISOString(),
-      });
+      if (!coverChanged && !metadataChanged) {
+        return false;
+      }
+
+      await this.booksService.update(book.id, updatedBook);
 
       return true;
     } catch {
@@ -531,7 +824,8 @@ export class CoverEnrichmentService {
         let candidatesWithCover: BookMetadataCandidate[] = [];
         try {
           const results = await this.bookMetadataService.searchByQuery(
-            `${currentBook.title} ${currentBook.author}`
+            `${currentBook.title} ${currentBook.author}`,
+            { title: currentBook.title, author: currentBook.author }
           );
           candidatesWithCover = results.filter((candidate) => Boolean(candidate.coverUrl?.trim()));
         } catch {

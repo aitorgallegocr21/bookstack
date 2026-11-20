@@ -23,6 +23,7 @@
 6. **Accessible Modal & Scroll-Lock Discipline:** Modals implement `host: { '(document:keydown.escape)': ... }`, programmatic initial focus via `viewChild()`, and reference-counted scroll locks via `UiStateService.acquireScrollLock()` / `releaseScrollLock()`.
 7. **Storage Resilience & Zod Security:** `StorageAdapterService` avoids redundant `localStorage` mirroring on normal IndexedDB writes, traps `QuotaExceededError` safely, persists catalog view/sort preferences in `localStorage`, and pairs with Zod parsers (`isSafeCoverUrl` blocks `javascript:` / `data:text/html`).
 8. **Bilingual Signal i18n (`es` default, `en` full mirror):** Resolved via `I18nService` + `Intl.DateTimeFormat` (`date-formatter.ts`).
+9. **5-Source Metadata Waterfall & Browser-Native `.ZIP` Portability:** Public metadata lookup queries Open Library (Bibkey, Search, Work Editions, direct ISBN cover probe), Google Books, Wikidata SPARQL, Apple Books ES, and Internet Archive/Crossref with cross-source fusion (`merged` candidate) and balanced 8-result quota; `DataPortabilityService` supports Lightweight JSON, Full Base64 JSON, expanded RFC 4180 CSV, and zero-dependency `.ZIP` bundles (`zip-archive.utils.ts` via Web `CompressionStream`/`DecompressionStream`).
 
 ---
 
@@ -61,7 +62,7 @@ src/
         │   │   └── catalog-filter.model.ts    # L1-51: CatalogViewMode, CatalogSortOption, CatalogFilterState, StatusCounts
         │   ├── schemas/
         │   │   ├── book.schema.ts             # L1-119: BookSchema, ReadingLogSchema, isSafeCoverUrl
-        │   │   ├── book-metadata.schema.ts    # L1-381: Open Library + Google Books Zod response schemas
+        │   │   ├── book-metadata.schema.ts    # Open Library (Bibkey/Search/Editions), Google Books, Wikidata, Apple Books, Internet Archive & Crossref Zod parsers
         │   │   └── reading-goals.schema.ts    # L1-28: ReadingGoalsSchema
         │   ├── services/
         │   │   ├── books.service.ts           # L1-133: CRUD + persistence orchestration
@@ -69,7 +70,7 @@ src/
         │   │   ├── reading-stats.service.ts   # L1-324: Computed stats, streaks & annual goals progress
         │   │   ├── catalog-filter.service.ts  # L1-377: Omni-search, status/format/rating filters, 7 sorts & view mode state
         │   │   ├── image-optimizer.service.ts # L1-132: Canvas WebP/JPEG compression & remote cover fetch
-        │   │   └── book-metadata.service.ts   # L1-304: Privacy-first Open Library + Google Books lookup, session cache & duplicate detector
+        │   │   └── book-metadata.service.ts   # 5-source metadata waterfall, cross-edition fusion, balanced 8-result quota & duplicate detector
         │   ├── utils/
         │   │   ├── book-form.utils.ts         # Shared status/autofill/format/rating/series & metadata form-patch helpers
         │   │   └── isbn.utils.ts              # Pure ISBN-10/13 checksum & normalization helpers
@@ -91,8 +92,10 @@ src/
         │   ├── models/cover-enrichment.model.ts       # CoverEnrichmentState, MissingCoverSummary & skipped report contracts
         │   ├── models/data-portability.model.ts       # BackupEnvelope, ImportPreviewSummary, StorageBreakdownSummary
         │   ├── schemas/backup.schema.ts               # Zod BackupEnvelopeSchema & versioned restore validation
-        │   ├── services/cover-enrichment.service.ts   # Pausable/cancellable ISBN & Title+Author cover queues + visual assistant
-        │   ├── services/data-portability.service.ts   # JSON/CSV export, Zod import preview, Merge/Overwrite & quota inspector
+        │   ├── services/cover-enrichment.service.ts   # Integral metadata & cover auto-enrichment (ISBN -> Title+Author cascade) + visual assistant
+        │   ├── services/data-portability.service.ts   # Light/Full JSON, expanded CSV, .ZIP bundle export/import, flexible normalizer & quota inspector
+        │   ├── utils/
+        │   │   └── zip-archive.utils.ts          # Zero-dependency browser-native .ZIP reader/writer (CompressionStream/DecompressionStream)
         │   ├── components/{settings-preferences-section,storage-quota-inspector,data-portability-section,cover-enrichment-section,danger-zone-section}/
         │   └── pages/settings-page/                   # /settings coordinator & reactive storage breakdown
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)

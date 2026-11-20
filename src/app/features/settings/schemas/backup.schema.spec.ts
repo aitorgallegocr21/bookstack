@@ -1,5 +1,10 @@
 import { Book, ReadingLog } from '../../books/models/book.model';
-import { BackupEnvelopeSchema, BackupPreferencesSchema, parseBackupJson } from './backup.schema';
+import {
+  BackupEnvelopeSchema,
+  BackupPreferencesSchema,
+  normalizeImportedBookCandidate,
+  parseBackupJson,
+} from './backup.schema';
 
 const validBook: Book = {
   id: 'book-1',
@@ -64,7 +69,7 @@ describe('BackupSchema & parseBackupJson', () => {
       books: [
         validBook,
         { id: 'bad-book', title: '', totalPages: 0 },
-        { ...validBook, id: 'bad-pages', currentPage: 999, totalPages: 100 },
+        { ...validBook, id: 'bad-rating', rating: 99 },
       ],
       readingLogs: [validLog, { id: 'bad-log', bookId: 'book-1', pagesRead: -10 }],
     };
@@ -130,5 +135,56 @@ describe('BackupSchema & parseBackupJson', () => {
     expect(BackupPreferencesSchema.safeParse({ locale: 'fr' }).success).toBe(false);
     expect(BackupPreferencesSchema.safeParse({ theme: 'sepia' }).success).toBe(false);
     expect(BackupPreferencesSchema.safeParse({ catalogViewMode: 'kanban' }).success).toBe(false);
+  });
+
+  it('normalizes AI/external book records with missing id, timestamps, status aliases, and unknown totalPages', () => {
+    const result = parseBackupJson([
+      {
+        title: 'El Imperio Final',
+        author: 'Brandon Sanderson',
+        status: 'leído',
+        totalPages: 0,
+        currentPage: '0',
+        publicationYear: '2006',
+        rating: '9.5',
+        genre: 'Fantasy; Epic',
+        isbn: null,
+      },
+      {
+        title: 'Fundación',
+        author: 'Isaac Asimov',
+        status: 'leyendo',
+        totalPages: '255',
+        currentPage: '300',
+      },
+    ]);
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.invalidBooksCount).toBe(0);
+      expect(result.data.validBooks).toHaveLength(2);
+
+      const mistborn = result.data.validBooks[0];
+      expect(mistborn.id.length).toBeGreaterThan(0);
+      expect(mistborn.createdAt.length).toBeGreaterThan(0);
+      expect(mistborn.updatedAt.length).toBeGreaterThan(0);
+      expect(mistborn.status).toBe('completed');
+      expect(mistborn.totalPages).toBe(1);
+      expect(mistborn.currentPage).toBe(0);
+      expect(mistborn.publicationYear).toBe(2006);
+      expect(mistborn.rating).toBe(9.5);
+      expect(mistborn.genre).toEqual(['Fantasy', 'Epic']);
+      expect(mistborn.isbn).toBeUndefined();
+
+      const foundation = result.data.validBooks[1];
+      expect(foundation.status).toBe('reading');
+      expect(foundation.totalPages).toBe(255);
+      expect(foundation.currentPage).toBe(255);
+    }
+  });
+
+  it('keeps missing-author or missing-title objects untouched so BookSchema rejects them', () => {
+    const missingAuthor = { title: 'Only Title' };
+    expect(normalizeImportedBookCandidate(missingAuthor)).toBe(missingAuthor);
   });
 });

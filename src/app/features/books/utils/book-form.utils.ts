@@ -108,6 +108,9 @@ export interface MetadataFormValuesSnapshot {
   publicationYear?: number | null;
   totalPages?: number | null;
   coverUrl?: string | null;
+  seriesName?: string | null;
+  seriesOrder?: number | null;
+  genre?: string[] | null;
 }
 
 export interface MetadataFormPatch {
@@ -118,6 +121,9 @@ export interface MetadataFormPatch {
   publicationYear?: number | null;
   totalPages?: number | null;
   coverUrl?: string;
+  seriesName?: string;
+  seriesOrder?: number | null;
+  genre?: string[];
 }
 
 /**
@@ -178,6 +184,25 @@ export function buildMetadataFormPatch(
       currentFormValues.totalPages === 0)
   ) {
     patch.totalPages = candidate.totalPages;
+  }
+
+  const seriesName = shouldApplyText(currentFormValues.seriesName, candidate.seriesName);
+  if (seriesName !== undefined) patch.seriesName = seriesName;
+
+  if (
+    typeof candidate.seriesOrder === 'number' &&
+    candidate.seriesOrder > 0 &&
+    (overwrite || !currentFormValues.seriesOrder)
+  ) {
+    patch.seriesOrder = candidate.seriesOrder;
+  }
+
+  if (
+    Array.isArray(candidate.genre) &&
+    candidate.genre.length > 0 &&
+    (overwrite || !currentFormValues.genre?.length)
+  ) {
+    patch.genre = [...candidate.genre];
   }
 
   return patch;

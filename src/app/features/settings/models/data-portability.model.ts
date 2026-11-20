@@ -3,7 +3,7 @@ import { Book, ReadingGoals, ReadingLog } from '../../books/models/book.model';
 import { CatalogSortOption, CatalogViewMode } from '../../books/models/catalog-filter.model';
 import { SeriesMetadata } from '../../series/models/series.model';
 
-export type ImportFormat = 'json' | 'csv';
+export type ImportFormat = 'json' | 'csv' | 'zip';
 export type ImportConflictMode = 'merge' | 'overwrite';
 export type StorageHealthStatus = 'healthy' | 'moderate' | 'near-limit';
 export type StorageEngineKind = 'indexeddb' | 'localstorage';
@@ -52,6 +52,7 @@ export interface ImportExecutionResult {
   preferencesRestored: boolean;
   missingCoversCount: number;
   missingCoversWithIsbnCount: number;
+  incompleteMetadataCount: number;
 }
 
 export interface StorageBreakdownSummary {

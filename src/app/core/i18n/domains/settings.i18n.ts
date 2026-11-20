@@ -48,11 +48,19 @@ export interface SettingsI18n {
       exportJsonTitle: string;
       exportJsonDescription: string;
       exportJsonAction: string;
+      exportLightJsonTitle: string;
+      exportLightJsonDescription: string;
+      exportLightJsonAction: string;
       exportCsvTitle: string;
       exportCsvDescription: string;
       exportCsvAction: string;
+      exportZipTitle: string;
+      exportZipDescription: string;
+      exportZipAction: string;
       exportSuccessJson: string;
+      exportSuccessLightJson: string;
       exportSuccessCsv: string;
+      exportSuccessZip: string;
       importTitle: string;
       importDescription: string;
       importDropzoneLabel: string;
@@ -76,6 +84,8 @@ export interface SettingsI18n {
       modeOverwriteLabel: string;
       modeOverwriteDescription: string;
       modeOverwriteWarning: string;
+      autoEnrichAfterImportLabel: string;
+      autoEnrichAfterImportDescription: string;
       confirmImportAction: string;
       cancelImportAction: string;
       importSuccessMessage: string;
@@ -89,6 +99,12 @@ export interface SettingsI18n {
       withIsbn: string;
       withoutIsbn: string;
       allCoversComplete: string;
+      incompleteMetadataBadge: string;
+      missingPagesLabel: string;
+      missingYearLabel: string;
+      missingPublisherLabel: string;
+      startIntegralEnrichmentAction: string;
+      fieldsUpdatedCountLabel: string;
       postImportBannerTitle: string;
       postImportBannerDescription: string;
       postImportBannerAction: string;
@@ -201,13 +217,24 @@ export const ES_SETTINGS: SettingsI18n = {
       exportTitle: 'Exportar datos',
       exportJsonTitle: 'Copia completa (.json)',
       exportJsonDescription:
-        'Incluye libros, portadas, sesiones de lectura, metas anuales y preferencias.',
-      exportJsonAction: 'Descargar JSON',
-      exportCsvTitle: 'Catálogo en tabla (.csv)',
-      exportCsvDescription: 'Formato compatible con Excel y Google Sheets con codificación UTF-8.',
+        'Incluye libros, portadas en Base64, sesiones de lectura, metas anuales y preferencias.',
+      exportJsonAction: 'Descargar JSON completo',
+      exportLightJsonTitle: 'JSON ligero (solo texto)',
+      exportLightJsonDescription:
+        'Respaldo compacto sin imágenes Base64, ideal para IA, edición rápida o control de versiones.',
+      exportLightJsonAction: 'Descargar JSON ligero',
+      exportCsvTitle: 'Catálogo completo (.csv)',
+      exportCsvDescription:
+        'Formato compatible con Excel y Google Sheets con editorial, año y género en UTF-8.',
       exportCsvAction: 'Descargar CSV',
+      exportZipTitle: 'Paquete portátil (.zip)',
+      exportZipDescription:
+        'Archivo 100% offline con backup.json, catalog.csv y carpeta /covers con portadas separadas.',
+      exportZipAction: 'Descargar ZIP portátil',
       exportSuccessJson: 'Copia de seguridad JSON descargada correctamente.',
+      exportSuccessLightJson: 'Copia JSON ligera descargada correctamente.',
       exportSuccessCsv: 'Catálogo CSV exportado correctamente.',
+      exportSuccessZip: 'Paquete portátil .ZIP exportado correctamente.',
       importTitle: 'Importar datos',
       importDescription:
         'Selecciona un archivo .json o .csv para previsualizar y validar los registros antes de aplicar cambios.',
@@ -235,6 +262,9 @@ export const ES_SETTINGS: SettingsI18n = {
         'Sustituye por completo tu biblioteca y sesiones actuales por el contenido del archivo.',
       modeOverwriteWarning:
         'Atención: esta acción sobrescribirá todos tus libros y sesiones actuales.',
+      autoEnrichAfterImportLabel: 'Enriquecer metadatos y portadas automáticamente tras importar',
+      autoEnrichAfterImportDescription:
+        'Completa páginas, año, editorial, ISBN y portadas faltantes consultando los 5 catálogos públicos.',
       confirmImportAction: 'Confirmar importación',
       cancelImportAction: 'Cancelar',
       importSuccessMessage: 'Importación completada correctamente.',
@@ -249,6 +279,12 @@ export const ES_SETTINGS: SettingsI18n = {
       withIsbn: 'Con ISBN válido',
       withoutIsbn: 'Sin ISBN',
       allCoversComplete: 'Todos los libros de tu biblioteca ya tienen portada.',
+      incompleteMetadataBadge: 'Metadatos incompletos',
+      missingPagesLabel: 'Sin páginas',
+      missingYearLabel: 'Sin año',
+      missingPublisherLabel: 'Sin editorial',
+      startIntegralEnrichmentAction: 'Enriquecer metadatos y portadas',
+      fieldsUpdatedCountLabel: 'Campos completados',
       postImportBannerTitle: 'Libros importados sin portada',
       postImportBannerDescription:
         'Detectamos libros sin imagen de portada tras la importación. Puedes enriquecerlos automáticamente ahora.',
@@ -369,13 +405,24 @@ export const EN_SETTINGS: SettingsI18n = {
       exportTitle: 'Export data',
       exportJsonTitle: 'Full backup (.json)',
       exportJsonDescription:
-        'Includes books, covers, reading sessions, annual goals, and preferences.',
-      exportJsonAction: 'Download JSON',
-      exportCsvTitle: 'Catalog table (.csv)',
-      exportCsvDescription: 'Compatible with Excel and Google Sheets using UTF-8 encoding.',
+        'Includes books, Base64 covers, reading sessions, annual goals, and preferences.',
+      exportJsonAction: 'Download full JSON',
+      exportLightJsonTitle: 'Lightweight JSON (text-only)',
+      exportLightJsonDescription:
+        'Compact backup without Base64 images, ideal for AI tools, quick editing, or diffs.',
+      exportLightJsonAction: 'Download light JSON',
+      exportCsvTitle: 'Complete catalog (.csv)',
+      exportCsvDescription:
+        'Compatible with Excel and Google Sheets with publisher, year, and genre in UTF-8.',
       exportCsvAction: 'Download CSV',
+      exportZipTitle: 'Portable bundle (.zip)',
+      exportZipDescription:
+        '100% offline archive with backup.json, catalog.csv, and a /covers folder.',
+      exportZipAction: 'Download portable ZIP',
       exportSuccessJson: 'JSON backup downloaded successfully.',
+      exportSuccessLightJson: 'Lightweight JSON backup downloaded successfully.',
       exportSuccessCsv: 'CSV catalog exported successfully.',
+      exportSuccessZip: 'Portable .ZIP bundle exported successfully.',
       importTitle: 'Import data',
       importDescription:
         'Select a .json or .csv file to preview and validate records before applying changes.',
@@ -403,6 +450,9 @@ export const EN_SETTINGS: SettingsI18n = {
         'Replaces your entire current library and reading sessions with the file contents.',
       modeOverwriteWarning:
         'Warning: this action will overwrite all your current books and reading sessions.',
+      autoEnrichAfterImportLabel: 'Automatically enrich missing metadata & covers after import',
+      autoEnrichAfterImportDescription:
+        'Backfills missing pages, year, publisher, ISBN, and covers from the 5 public catalogs.',
       confirmImportAction: 'Confirm import',
       cancelImportAction: 'Cancel',
       importSuccessMessage: 'Import completed successfully.',
@@ -417,6 +467,12 @@ export const EN_SETTINGS: SettingsI18n = {
       withIsbn: 'With valid ISBN',
       withoutIsbn: 'Without ISBN',
       allCoversComplete: 'All books in your library already have a cover image.',
+      incompleteMetadataBadge: 'Incomplete metadata',
+      missingPagesLabel: 'Missing pages',
+      missingYearLabel: 'Missing year',
+      missingPublisherLabel: 'Missing publisher',
+      startIntegralEnrichmentAction: 'Enrich metadata & covers',
+      fieldsUpdatedCountLabel: 'Fields updated',
       postImportBannerTitle: 'Imported books missing covers',
       postImportBannerDescription:
         'We detected imported books without cover images. You can enrich them automatically now.',

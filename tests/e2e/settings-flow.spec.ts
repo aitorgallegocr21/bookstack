@@ -248,6 +248,10 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
     await expect(page.getByTestId('import-preview-panel')).toBeVisible();
     await expect(page.getByTestId('import-preview-format')).toContainText(/json/i);
     await page.getByTestId('import-mode-merge').click();
+    const autoEnrichCheckbox = page.getByTestId('import-auto-enrich-checkbox');
+    if (await autoEnrichCheckbox.isChecked()) {
+      await autoEnrichCheckbox.uncheck();
+    }
     await page.getByTestId('confirm-import-btn').click();
     await expect(page.getByTestId('portability-status-banner')).toBeVisible();
 
@@ -272,6 +276,9 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
     await expect(page.getByTestId('import-preview-format')).toContainText(/csv/i);
     await page.getByTestId('import-mode-overwrite').click();
     await expect(page.getByTestId('import-overwrite-warning')).toBeVisible();
+    if (await autoEnrichCheckbox.isChecked()) {
+      await autoEnrichCheckbox.uncheck();
+    }
     await page.getByTestId('confirm-import-btn').click();
     await expect(page.getByTestId('portability-status-banner')).toBeVisible();
 
@@ -510,6 +517,46 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
       });
     });
 
+    await page.route('https://openlibrary.org/works/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ entries: [] }),
+      });
+    });
+
+    await page.route('https://query.wikidata.org/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ results: { bindings: [] } }),
+      });
+    });
+
+    await page.route('https://itunes.apple.com/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ results: [] }),
+      });
+    });
+
+    await page.route('https://archive.org/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ response: { docs: [] } }),
+      });
+    });
+
+    await page.route('https://api.crossref.org/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: { items: [] } }),
+      });
+    });
+
     await page.route('https://www.googleapis.com/books/v1/volumes**', async (route) => {
       await route.fulfill({
         status: 200,
@@ -594,6 +641,10 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
       buffer: Buffer.from(JSON.stringify(backupPayload), 'utf-8'),
     });
 
+    const autoEnrichCheckbox = page.getByTestId('import-auto-enrich-checkbox');
+    if (await autoEnrichCheckbox.isChecked()) {
+      await autoEnrichCheckbox.uncheck();
+    }
     await page.getByTestId('confirm-import-btn').click();
     await expect(page.getByTestId('post-import-cover-enrichment-callout')).toBeVisible();
     await page.getByTestId('post-import-enrich-covers-btn').click();
@@ -640,5 +691,218 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
 
     await page.getByTestId('visual-assistant-close-btn').click();
     await expect(page.getByTestId('visual-assistant-not-found-card')).toHaveCount(0);
+  });
+
+  test('imports flexible AI JSON missing id/totalPages/year/cover and auto-enriches metadata & cover on confirm', async ({
+    page,
+  }) => {
+    const validPng = createSolidPngBuffer(100, 140);
+
+    await page.route('https://openlibrary.org/api/books**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({}),
+      });
+    });
+
+    await page.route('https://openlibrary.org/works/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ entries: [] }),
+      });
+    });
+
+    await page.route('https://openlibrary.org/search.json**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          docs: [
+            {
+              key: '/works/OL1168083W',
+              title: '1984',
+              author_name: ['George Orwell'],
+              cover_i: 1001,
+              first_publish_year: 1949,
+              number_of_pages_median: 328,
+              publisher: ['Secker & Warburg'],
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.route('https://www.googleapis.com/books/v1/volumes**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ items: [] }),
+      });
+    });
+
+    await page.route('https://query.wikidata.org/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ results: { bindings: [] } }),
+      });
+    });
+
+    await page.route('https://itunes.apple.com/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ results: [] }),
+      });
+    });
+
+    await page.route('https://archive.org/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ response: { docs: [] } }),
+      });
+    });
+
+    await page.route('https://api.crossref.org/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: { items: [] } }),
+      });
+    });
+
+    await page.route('https://covers.openlibrary.org/**', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'image/png',
+        body: validPng,
+      });
+    });
+
+    await seedLibrary(page, [], []);
+
+    // Flexible AI-generated JSON array missing id, totalPages (0), publicationYear, publisher, coverUrl
+    const flexibleAiJson = [
+      {
+        title: '1984',
+        author: 'George Orwell',
+        isbn: '9780141036144',
+        totalPages: 0,
+        status: 'pending',
+      },
+    ];
+
+    await page.getByTestId('import-file-input').setInputFiles({
+      name: 'ai-reading-list.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(flexibleAiJson), 'utf-8'),
+    });
+
+    await expect(page.getByTestId('import-preview-panel')).toBeVisible();
+    await expect(page.getByTestId('import-preview-panel')).toContainText('1');
+    await expect(page.getByTestId('import-auto-enrich-checkbox')).toBeChecked();
+
+    await page.getByTestId('confirm-import-btn').click();
+    await expect(page.getByTestId('portability-status-banner')).toBeVisible();
+
+    // Wait for auto-enrichment to finish backfilling metadata & cover
+    await expect(page.getByTestId('enrichment-metadata-updated-badge')).toBeVisible({
+      timeout: 10000,
+    });
+
+    await page.goto('/books');
+    await expect(
+      page.getByRole('button', { name: 'Ver detalles: 1984', exact: true }).first()
+    ).toBeVisible();
+    await page.getByRole('button', { name: 'Ver detalles: 1984', exact: true }).first().click();
+
+    const detailPanel = page.locator('app-book-detail-modal .modal-panel');
+    await expect(detailPanel).toContainText('328');
+    await expect(detailPanel).toContainText('1949');
+    await expect(detailPanel).toContainText('Secker & Warburg');
+    await expect(detailPanel.locator('img')).toBeVisible();
+  });
+
+  test('exports lightweight JSON and offline .ZIP bundle, then restores 100% offline from .ZIP', async ({
+    page,
+  }) => {
+    const books: Book[] = [
+      {
+        id: 'zip-book-1',
+        title: 'Elantris Offline',
+        author: 'Brandon Sanderson',
+        totalPages: 638,
+        currentPage: 120,
+        status: 'reading',
+        format: 'Físico',
+        publisher: 'Nova',
+        publicationYear: 2005,
+        genre: ['Fantasía'],
+        coverUrl: SAMPLE_BASE64_COVER,
+        createdAt: '2026-03-01T10:00:00.000Z',
+        updatedAt: '2026-03-01T10:00:00.000Z',
+      },
+    ];
+    const logs: ReadingLog[] = [
+      {
+        id: 'zip-log-1',
+        bookId: 'zip-book-1',
+        date: '2026-03-02T18:00:00.000Z',
+        pagesRead: 40,
+        timeSpentMinutes: 35,
+        createdAt: '2026-03-02T18:00:00.000Z',
+      },
+    ];
+
+    await seedLibrary(page, books, logs);
+
+    // 1. Export Lightweight JSON
+    const lightDownloadPromise = page.waitForEvent('download');
+    await page.getByTestId('export-json-light-btn').click();
+    const lightDownload = await lightDownloadPromise;
+    expect(lightDownload.suggestedFilename()).toMatch(/\.json$/i);
+
+    // 2. Export Offline .ZIP Bundle
+    const zipDownloadPromise = page.waitForEvent('download');
+    await page.getByTestId('export-zip-btn').click();
+    const zipDownload = await zipDownloadPromise;
+    expect(zipDownload.suggestedFilename()).toMatch(/\.zip$/i);
+
+    const zipPath = await zipDownload.path();
+    expect(zipPath).toBeTruthy();
+    const { readFileSync } = await import('node:fs');
+    const zipBuffer = readFileSync(zipPath!);
+
+    // 3. Clear library completely and restore 100% offline from the exported .ZIP
+    await seedLibrary(page, [], []);
+    await page.getByTestId('import-file-input').setInputFiles({
+      name: zipDownload.suggestedFilename(),
+      mimeType: 'application/zip',
+      buffer: zipBuffer,
+    });
+
+    await expect(page.getByTestId('import-preview-panel')).toBeVisible();
+    await expect(page.getByTestId('import-preview-format')).toContainText(/zip/i);
+    await page.getByTestId('import-mode-overwrite').click();
+    const autoEnrichCheckbox = page.getByTestId('import-auto-enrich-checkbox');
+    if (await autoEnrichCheckbox.isChecked()) {
+      await autoEnrichCheckbox.uncheck();
+    }
+    await page.getByTestId('confirm-import-btn').click();
+    await expect(page.getByTestId('portability-status-banner')).toBeVisible();
+
+    await page.goto('/books');
+    await expect(page.getByText('Elantris Offline')).toBeVisible();
+    await page
+      .getByRole('button', { name: 'Ver detalles: Elantris Offline', exact: true })
+      .first()
+      .click();
+    const detailPanel = page.locator('app-book-detail-modal .modal-panel');
+    await expect(detailPanel).toContainText('Nova');
+    await expect(detailPanel).toContainText('2005');
+    await expect(detailPanel.locator('img')).toBeVisible();
   });
 });

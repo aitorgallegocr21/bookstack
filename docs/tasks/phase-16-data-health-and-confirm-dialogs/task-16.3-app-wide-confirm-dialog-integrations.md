@@ -1,7 +1,7 @@
 # Task 16.3: Application-Wide Confirmation Dialog Integrations (`/books`, `/series`, `/settings` & Manual Antique Year Prompt)
 
 **Phase:** Phase 16: Data Health, Temporal Bounds Fix (`2925`) & Native Confirmation Dialog Engine  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** High (Eliminates every `window.confirm()` call in the codebase, integrates contextual entity previews for deleting books/logs, unlinking sagas, and overwriting backups, and adds the source-aware confirmation prompt when a user manually enters an antique year $< 1900$).
 
 ---

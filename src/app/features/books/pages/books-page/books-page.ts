@@ -11,6 +11,8 @@ import {
   LucideTrash2,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { formatLocalizedDate } from '../../../../core/utils/date-formatter';
 import {
   formatRatingBadge,
   getStatusBadgeClass,
@@ -56,6 +58,7 @@ import { normalizeBookFormat, translateBookFormat } from '../../utils/book-form.
 export class BooksPage {
   private readonly booksService = inject(BooksService);
   private readonly readingLogService = inject(ReadingLogService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
   protected readonly catalogFilterService = inject(CatalogFilterService);
   protected readonly i18n = inject(I18nService);
 
@@ -161,7 +164,23 @@ export class BooksPage {
   }
 
   protected async deleteBook(bookId: string): Promise<void> {
-    const confirmed = window.confirm(this.i18n.t().books.confirmDeleteBook);
+    const book = this.allBooks().find((b) => b.id === bookId);
+    const t = this.i18n.t();
+    const confirmed = await this.confirmDialogService.confirm({
+      title: t.books.confirmDeleteBookTitle,
+      message: t.books.confirmDeleteBook,
+      confirmLabel: t.confirmDialog.delete,
+      cancelLabel: t.confirmDialog.cancel,
+      severity: 'danger',
+      entityPreview: book
+        ? {
+            title: book.title,
+            subtitle: book.author,
+            badge: `${book.totalPages} pp.`,
+            coverUrl: book.coverUrl,
+          }
+        : undefined,
+    });
     if (!confirmed) {
       return;
     }
@@ -193,7 +212,26 @@ export class BooksPage {
   }
 
   protected async deleteReadingLog(logId: string): Promise<void> {
-    const confirmed = window.confirm(this.i18n.t().books.confirmDeleteLog);
+    const log = this.readingLogService.readingLogs().find((l) => l.id === logId);
+    const parentBook = log ? this.allBooks().find((b) => b.id === log.bookId) : undefined;
+    const t = this.i18n.t();
+    const confirmed = await this.confirmDialogService.confirm({
+      title: t.books.confirmDeleteLogTitle,
+      message: t.books.confirmDeleteLog,
+      confirmLabel: t.confirmDialog.delete,
+      cancelLabel: t.confirmDialog.cancel,
+      severity: 'danger',
+      suppressibleKey: 'deleteReadingLog',
+      suppressCheckboxLabel: t.confirmDialog.dontAskAgainMinor,
+      entityPreview: log
+        ? {
+            title: parentBook?.title ?? t.books.confirmDeleteLogUnknownBook,
+            subtitle: formatLocalizedDate(log.date, true, this.i18n.intlLocale()),
+            badge: `+${log.pagesRead} pp.`,
+            coverUrl: parentBook?.coverUrl,
+          }
+        : undefined,
+    });
     if (!confirmed) {
       return;
     }

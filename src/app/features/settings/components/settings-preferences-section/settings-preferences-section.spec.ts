@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { StorageAdapterService } from '../../../../core/services/storage-adapter.service';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { ThemeService } from '../../../../core/services/theme.service';
 import { CatalogFilterService } from '../../../books/services/catalog-filter.service';
@@ -128,5 +129,25 @@ describe('SettingsPreferencesSectionComponent', () => {
       expect(control).toBeTruthy();
       expect(control.classList.contains('h-11')).toBe(true);
     }
+  });
+
+  it('should show and execute reset suppressed confirmations button when at least one prompt is suppressed', () => {
+    const storage = TestBed.inject(StorageAdapterService);
+    storage.setConfirmSuppressed('deleteReadingLog', true);
+
+    const fixture = TestBed.createComponent(SettingsPreferencesSectionComponent);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const resetBtn = host.querySelector(
+      '[data-testid="reset-suppressed-confirms-btn"]'
+    ) as HTMLButtonElement;
+    expect(resetBtn).not.toBeNull();
+
+    resetBtn.click();
+    fixture.detectChanges();
+
+    expect(storage.getSuppressedConfirms()).toEqual([]);
+    expect(host.querySelector('[data-testid="reset-suppressed-confirms-btn"]')).toBeNull();
   });
 });

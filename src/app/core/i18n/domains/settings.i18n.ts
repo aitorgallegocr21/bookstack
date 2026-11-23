@@ -18,6 +18,9 @@ export interface SettingsI18n {
       viewGrid: string;
       viewDetailed: string;
       viewCompact: string;
+      suppressedConfirmsLabel: string;
+      suppressedConfirmsReset: string;
+      suppressedConfirmsResetDone: string;
     };
     storage: {
       sectionTitle: string;
@@ -89,6 +92,11 @@ export interface SettingsI18n {
       confirmImportAction: string;
       cancelImportAction: string;
       importSuccessMessage: string;
+      confirmOverwriteTitle: string;
+      confirmOverwriteMessage: string;
+      confirmOverwriteAction: string;
+      confirmOverwritePreviewTitle: string;
+      confirmOverwritePreviewSubtitle: string;
       importErrorInvalidFile: string;
       importErrorNoValidRecords: string;
       importErrorExecution: string;
@@ -186,6 +194,9 @@ export const ES_SETTINGS: SettingsI18n = {
       viewGrid: 'Cuadrícula',
       viewDetailed: 'Detallada',
       viewCompact: 'Compacta',
+      suppressedConfirmsLabel: 'Confirmaciones omitidas',
+      suppressedConfirmsReset: 'Restablecer avisos',
+      suppressedConfirmsResetDone: 'Avisos restablecidos',
     },
     storage: {
       sectionTitle: 'Inspector de almacenamiento local',
@@ -268,6 +279,12 @@ export const ES_SETTINGS: SettingsI18n = {
       confirmImportAction: 'Confirmar importación',
       cancelImportAction: 'Cancelar',
       importSuccessMessage: 'Importación completada correctamente.',
+      confirmOverwriteTitle: 'Sobrescribir biblioteca actual',
+      confirmOverwriteMessage:
+        'El modo sobrescribir reemplazará toda tu biblioteca local actual con la copia de seguridad. Esta acción no se puede deshacer.',
+      confirmOverwriteAction: 'Sobrescribir biblioteca',
+      confirmOverwritePreviewTitle: 'Biblioteca local actual',
+      confirmOverwritePreviewSubtitle: '{books} libros · {logs} sesiones',
       importErrorInvalidFile: 'El archivo seleccionado no tiene un formato JSON o CSV válido.',
       importErrorNoValidRecords: 'No se encontraron registros válidos para importar.',
       importErrorExecution: 'No se pudo completar la importación. Se restauró el estado previo.',
@@ -374,6 +391,9 @@ export const EN_SETTINGS: SettingsI18n = {
       viewGrid: 'Grid',
       viewDetailed: 'Detailed',
       viewCompact: 'Compact',
+      suppressedConfirmsLabel: 'Suppressed confirmations',
+      suppressedConfirmsReset: 'Reset prompts',
+      suppressedConfirmsResetDone: 'Prompts reset',
     },
     storage: {
       sectionTitle: 'Local storage inspector',
@@ -456,6 +476,12 @@ export const EN_SETTINGS: SettingsI18n = {
       confirmImportAction: 'Confirm import',
       cancelImportAction: 'Cancel',
       importSuccessMessage: 'Import completed successfully.',
+      confirmOverwriteTitle: 'Overwrite current library',
+      confirmOverwriteMessage:
+        'Overwrite mode will replace your entire current local library with the backup contents. This action cannot be undone.',
+      confirmOverwriteAction: 'Overwrite library',
+      confirmOverwritePreviewTitle: 'Current local library',
+      confirmOverwritePreviewSubtitle: '{books} books · {logs} sessions',
       importErrorInvalidFile: 'The selected file is not a valid JSON or CSV backup.',
       importErrorNoValidRecords: 'No valid records were found to import.',
       importErrorExecution: 'Could not complete the import. Previous state was restored.',

@@ -12,8 +12,11 @@ export interface BooksI18n {
     edit: string;
     delete: string;
     emptyState: string;
+    confirmDeleteBookTitle: string;
     confirmDeleteBook: string;
+    confirmDeleteLogTitle: string;
     confirmDeleteLog: string;
+    confirmDeleteLogUnknownBook: string;
     viewCatalog: string;
     viewSeries: string;
   };
@@ -106,6 +109,12 @@ export interface BooksI18n {
     seriesSuggestionsAria: string;
     startDateLabel: string;
     endDateLabel: string;
+    yearMaxError: string;
+    dateMaxError: string;
+    antiqueYearConfirmTitle: string;
+    antiqueYearConfirmMessage: string;
+    antiqueYearConfirmAction: string;
+    antiqueYearCancelAction: string;
     notesPlaceholder: string;
     formats: {
       physical: string;
@@ -214,6 +223,7 @@ export interface BooksI18n {
     createTitle: string;
     closeAria: string;
     date: string;
+    dateInvalidBoundsError: string;
     pagesRead: string;
     timeMinutes: string;
     notes: string;
@@ -234,9 +244,12 @@ export const ES_BOOKS: BooksI18n = {
     edit: 'Editar',
     delete: 'Eliminar',
     emptyState: 'No hay libros todavía.',
+    confirmDeleteBookTitle: 'Eliminar libro',
     confirmDeleteBook:
       '¿Estás seguro de que deseas eliminar este libro? Se conservarán sus lecturas asociadas.',
+    confirmDeleteLogTitle: 'Eliminar sesión de lectura',
     confirmDeleteLog: '¿Deseas borrar este registro de lectura?',
+    confirmDeleteLogUnknownBook: 'Sesión de lectura',
     viewCatalog: 'Catálogo',
     viewSeries: 'Sagas',
   },
@@ -330,6 +343,13 @@ export const ES_BOOKS: BooksI18n = {
     seriesSuggestionsAria: 'Sugerencias de sagas existentes',
     startDateLabel: 'Fecha inicio',
     endDateLabel: 'Fecha fin',
+    yearMaxError: 'El año no puede superar {max}.',
+    dateMaxError: 'La fecha no puede superar {max}.',
+    antiqueYearConfirmTitle: 'Confirmar año histórico',
+    antiqueYearConfirmMessage:
+      'Has introducido manualmente un año anterior a 1900 ({years}). ¿Es intencional para una obra clásica o se trata de un error tipográfico?',
+    antiqueYearConfirmAction: 'Sí, guardar así',
+    antiqueYearCancelAction: 'Corregir año',
     notesPlaceholder: 'Sinopsis, expectativas o notas personales...',
     formats: {
       physical: 'Físico',
@@ -441,6 +461,7 @@ export const ES_BOOKS: BooksI18n = {
     createTitle: 'Registrar lectura',
     closeAria: 'Cerrar editor',
     date: 'Fecha',
+    dateInvalidBoundsError: 'La fecha debe estar entre 1900 y {max}.',
     pagesRead: 'Páginas leídas',
     timeMinutes: 'Tiempo (min)',
     notes: 'Notas',
@@ -461,9 +482,12 @@ export const EN_BOOKS: BooksI18n = {
     edit: 'Edit',
     delete: 'Delete',
     emptyState: 'No books yet.',
+    confirmDeleteBookTitle: 'Delete book',
     confirmDeleteBook:
       'Are you sure you want to delete this book? Associated reading logs will be preserved.',
+    confirmDeleteLogTitle: 'Delete reading session',
     confirmDeleteLog: 'Do you want to delete this reading log?',
+    confirmDeleteLogUnknownBook: 'Reading session',
     viewCatalog: 'Catalog',
     viewSeries: 'Series',
   },
@@ -556,6 +580,13 @@ export const EN_BOOKS: BooksI18n = {
     seriesSuggestionsAria: 'Existing series suggestions',
     startDateLabel: 'Start date',
     endDateLabel: 'End date',
+    yearMaxError: 'Year cannot exceed {max}.',
+    dateMaxError: 'Date cannot exceed {max}.',
+    antiqueYearConfirmTitle: 'Confirm historical year',
+    antiqueYearConfirmMessage:
+      'You manually entered a year prior to 1900 ({years}). Is this intentional for a classic or historical work, or a typo?',
+    antiqueYearConfirmAction: 'Yes, keep year',
+    antiqueYearCancelAction: 'Fix year',
     notesPlaceholder: 'Synopsis, expectations, or personal notes...',
     formats: {
       physical: 'Physical',
@@ -667,6 +698,7 @@ export const EN_BOOKS: BooksI18n = {
     createTitle: 'Log reading',
     closeAria: 'Close editor',
     date: 'Date',
+    dateInvalidBoundsError: 'Date must be between 1900 and {max}.',
     pagesRead: 'Pages read',
     timeMinutes: 'Time (min)',
     notes: 'Notes',

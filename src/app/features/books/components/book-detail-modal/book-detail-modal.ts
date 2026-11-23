@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { formatLocalizedDate } from '../../../../core/utils/date-formatter';
 import {
@@ -38,6 +39,7 @@ export class BookDetailModalComponent implements OnDestroy {
   protected readonly i18n = inject(I18nService);
   private readonly booksService = inject(BooksService);
   private readonly readingLogService = inject(ReadingLogService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
 
   readonly bookId = input.required<string>();
   readonly closed = output<void>();
@@ -98,7 +100,26 @@ export class BookDetailModalComponent implements OnDestroy {
   }
 
   protected async deleteLog(logId: string): Promise<void> {
-    const confirmed = window.confirm(this.i18n.t().books.confirmDeleteLog);
+    const log = this.bookLogs().find((l) => l.id === logId);
+    const parentBook = this.book();
+    const t = this.i18n.t();
+    const confirmed = await this.confirmDialogService.confirm({
+      title: t.books.confirmDeleteLogTitle,
+      message: t.books.confirmDeleteLog,
+      confirmLabel: t.confirmDialog.delete,
+      cancelLabel: t.confirmDialog.cancel,
+      severity: 'danger',
+      suppressibleKey: 'deleteReadingLog',
+      suppressCheckboxLabel: t.confirmDialog.dontAskAgainMinor,
+      entityPreview: log
+        ? {
+            title: parentBook?.title ?? t.books.confirmDeleteLogUnknownBook,
+            subtitle: formatLocalizedDate(log.date, true, this.i18n.intlLocale()),
+            badge: `+${log.pagesRead} pp.`,
+            coverUrl: parentBook?.coverUrl,
+          }
+        : undefined,
+    });
     if (!confirmed) return;
 
     try {
@@ -115,6 +136,9 @@ export class BookDetailModalComponent implements OnDestroy {
   }
 
   protected handleEscape(): void {
+    if (this.confirmDialogService.activeDialog() !== null) {
+      return;
+    }
     this.cancel();
   }
 

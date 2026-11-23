@@ -65,6 +65,9 @@ export interface SeriesI18n {
       unnumberedVolume: string;
       unlinkBook: string;
       unlinkBookAria: string;
+      confirmUnlinkTitle: string;
+      confirmUnlinkMessage: string;
+      confirmUnlinkAction: string;
       openBookDetails: string;
       bulkLinkerTitle: string;
       bulkLinkerPlaceholder: string;
@@ -143,6 +146,10 @@ export const ES_SERIES: SeriesI18n = {
       unnumberedVolume: 'Sin número',
       unlinkBook: 'Desvincular',
       unlinkBookAria: 'Desvincular libro de la saga',
+      confirmUnlinkTitle: 'Desvincular libro de la saga',
+      confirmUnlinkMessage:
+        '¿Deseas desvincular este libro de la saga? El libro permanecerá en tu biblioteca.',
+      confirmUnlinkAction: 'Desvincular',
       openBookDetails: 'Ver ficha del libro',
       bulkLinkerTitle: 'Vincular libros existentes',
       bulkLinkerPlaceholder: 'Buscar libros sin saga por título o autor...',
@@ -221,6 +228,10 @@ export const EN_SERIES: SeriesI18n = {
       unnumberedVolume: 'Unnumbered',
       unlinkBook: 'Unlink',
       unlinkBookAria: 'Unlink book from series',
+      confirmUnlinkTitle: 'Unlink book from series',
+      confirmUnlinkMessage:
+        'Do you want to unlink this book from the series? The book will remain in your library.',
+      confirmUnlinkAction: 'Unlink',
       openBookDetails: 'View book details',
       bulkLinkerTitle: 'Link existing books',
       bulkLinkerPlaceholder: 'Search standalone books by title or author...',

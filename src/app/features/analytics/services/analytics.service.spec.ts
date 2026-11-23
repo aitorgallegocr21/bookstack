@@ -466,4 +466,58 @@ describe('AnalyticsService', () => {
     const esLabels = service.trendPoints().map((point) => point.label);
     expect(esLabels[0]).toBe('Ene');
   });
+
+  it('ignores out-of-range typo years (e.g. 2925, 0025) in availableYears and all-time trendPoints', () => {
+    booksSignal.set([
+      createBook({
+        id: 'b-valid',
+        title: 'Valid 2025 Book',
+        status: 'completed',
+        totalPages: 200,
+        currentPage: 200,
+        startDate: '2025-05-01',
+        endDate: '2025-05-10',
+        createdAt: '2025-05-01T10:00:00.000Z',
+        updatedAt: '2025-05-10T10:00:00.000Z',
+      }),
+      createBook({
+        id: 'b-typo-future',
+        title: 'Typo Future Book',
+        status: 'completed',
+        totalPages: 300,
+        currentPage: 300,
+        startDate: '2925-05-01',
+        endDate: '2925-05-15',
+        createdAt: '2026-05-01T10:00:00.000Z',
+        updatedAt: '2026-05-02T10:00:00.000Z',
+      }),
+      createBook({
+        id: 'b-typo-past',
+        title: 'Typo Past Book',
+        status: 'reading',
+        totalPages: 150,
+        currentPage: 50,
+        startDate: '0025-01-01',
+        createdAt: '2026-05-01T10:00:00.000Z',
+        updatedAt: '2026-05-02T10:00:00.000Z',
+      }),
+    ]);
+
+    logsSignal.set([
+      createLog({ id: 'l-typo', bookId: 'b-typo-future', date: '2925-05-02', pagesRead: 40 }),
+      createLog({ id: 'l-valid', bookId: 'b-valid', date: '2025-05-03', pagesRead: 50 }),
+    ]);
+
+    const years = service.availableYears();
+    expect(years).toEqual([2026, 2025]);
+    expect(years).not.toContain(2925);
+    expect(years).not.toContain(25);
+
+    service.setPeriodMode('all-time');
+    const allTimePoints = service.trendPoints();
+    expect(allTimePoints.map((p) => p.key)).toEqual(['2025', '2026']);
+    expect(allTimePoints.length).toBeLessThanOrEqual(2);
+    // effectiveSpanDays should be anchored to 2025-05-01, not 0025-01-01
+    expect(service.kpiSummary().averagePagesPerDay).toBeGreaterThan(0.1);
+  });
 });

@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { Book, ReadingGoals, ReadingLog } from '../../books/models/book.model';
 import { BookSchema, ReadingLogSchema } from '../../books/schemas/book.schema';
+import {
+  MIN_HISTORICAL_PUBLICATION_YEAR,
+  getMaxAllowedYear,
+  sanitizeFutureIsoDate,
+  suggestCorrectedYear,
+} from '../../books/utils/temporal-bounds.utils';
 import { ReadingGoalsSchema } from '../../books/schemas/reading-goals.schema';
 import { SeriesMetadata } from '../../series/models/series.model';
 import { SeriesMetadataSchema } from '../../series/schemas/series.schema';
@@ -176,6 +182,13 @@ export function normalizeImportedBookCandidate(raw: unknown): unknown {
 
   cleanOptionalFields(normalized);
 
+  if (typeof normalized['startDate'] === 'string' && normalized['startDate'].trim().length > 0) {
+    normalized['startDate'] = sanitizeFutureIsoDate(normalized['startDate']);
+  }
+  if (typeof normalized['endDate'] === 'string' && normalized['endDate'].trim().length > 0) {
+    normalized['endDate'] = sanitizeFutureIsoDate(normalized['endDate']);
+  }
+
   const parsedCurrentPage = parseFiniteNumber(record['currentPage']);
   let currentPage =
     parsedCurrentPage !== undefined && parsedCurrentPage >= 0 ? Math.floor(parsedCurrentPage) : 0;
@@ -195,7 +208,14 @@ export function normalizeImportedBookCandidate(raw: unknown): unknown {
 
   const parsedYear = parseFiniteNumber(record['publicationYear']);
   if (parsedYear !== undefined) {
-    normalized['publicationYear'] = Math.trunc(parsedYear);
+    const truncatedYear = Math.trunc(parsedYear);
+    if (truncatedYear > getMaxAllowedYear()) {
+      normalized['publicationYear'] = suggestCorrectedYear(truncatedYear);
+    } else if (truncatedYear >= MIN_HISTORICAL_PUBLICATION_YEAR) {
+      normalized['publicationYear'] = truncatedYear;
+    } else {
+      delete normalized['publicationYear'];
+    }
   } else if (record['publicationYear'] === null || record['publicationYear'] === '') {
     delete normalized['publicationYear'];
   }
@@ -248,7 +268,17 @@ function filterReadingLogs(rawLogs: unknown[]): {
   let invalidLogsCount = 0;
 
   for (const item of rawLogs) {
-    const parsed = ReadingLogSchema.safeParse(item);
+    const candidate =
+      item !== null &&
+      typeof item === 'object' &&
+      !Array.isArray(item) &&
+      typeof (item as Record<string, unknown>)['date'] === 'string'
+        ? {
+            ...(item as Record<string, unknown>),
+            date: sanitizeFutureIsoDate((item as Record<string, unknown>)['date'] as string),
+          }
+        : item;
+    const parsed = ReadingLogSchema.safeParse(candidate);
     if (parsed.success) {
       validReadingLogs.push(parsed.data);
     } else {

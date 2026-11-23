@@ -97,4 +97,11 @@ describe('book.schema', () => {
 
     expect(warnSpy).toHaveBeenCalledTimes(3);
   });
+
+  it('should accept historical publicationYear values while rejecting impossible future years', () => {
+    expect(BookSchema.safeParse({ ...validBook, publicationYear: 1605 }).success).toBe(true);
+    expect(BookSchema.safeParse({ ...validBook, publicationYear: 1 }).success).toBe(true);
+    expect(BookSchema.safeParse({ ...validBook, publicationYear: 0 }).success).toBe(false);
+    expect(BookSchema.safeParse({ ...validBook, publicationYear: 2925 }).success).toBe(false);
+  });
 });

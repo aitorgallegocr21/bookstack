@@ -12,6 +12,7 @@ import { BooksService } from '../../../books/services/books.service';
 import { ReadingLogService } from '../../../books/services/reading-log.service';
 import { CoverEnrichmentSectionComponent } from '../../components/cover-enrichment-section/cover-enrichment-section';
 import { DangerZoneSectionComponent } from '../../components/danger-zone-section/danger-zone-section';
+import { DataHealthSectionComponent } from '../../components/data-health-section/data-health-section';
 import { DataPortabilitySectionComponent } from '../../components/data-portability-section/data-portability-section';
 import { SettingsPreferencesSectionComponent } from '../../components/settings-preferences-section/settings-preferences-section';
 import { StorageQuotaInspectorComponent } from '../../components/storage-quota-inspector/storage-quota-inspector';
@@ -39,6 +40,7 @@ const INITIAL_STORAGE_BREAKDOWN: StorageBreakdownSummary = {
   imports: [
     SettingsPreferencesSectionComponent,
     StorageQuotaInspectorComponent,
+    DataHealthSectionComponent,
     DataPortabilitySectionComponent,
     CoverEnrichmentSectionComponent,
     DangerZoneSectionComponent,

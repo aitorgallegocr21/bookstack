@@ -168,6 +168,64 @@ export interface SettingsI18n {
       clearLogsSuccess: string;
       factoryResetSuccess: string;
     };
+    dataHealth: {
+      sectionTitle: string;
+      sectionDescription: string;
+      scoreLabel: string;
+      healthyBadge: string;
+      healthyTitle: string;
+      healthyDescription: string;
+      issuesDetectedLabel: string;
+      autoFixableLabel: string;
+      fixAllAction: string;
+      fixSingleAction: string;
+      resolveDuplicateAction: string;
+      fixedSingleMessage: string;
+      fixedAllMessage: string;
+      confirmFixAllTitle: string;
+      confirmFixAllMessage: string;
+      confirmFixAllAction: string;
+      confirmDuplicateTitle: string;
+      confirmDuplicateMessage: string;
+      confirmDuplicateAction: string;
+      cancelAction: string;
+      categories: {
+        'temporal-anomaly': string;
+        'progress-mismatch': string;
+        'duplicate-book': string;
+        'fragmented-saga': string;
+      };
+      severities: {
+        high: string;
+        medium: string;
+        low: string;
+      };
+      issues: {
+        pubYearAnomalyTitle: string;
+        pubYearAnomalyDescription: string;
+        startDateAnomalyTitle: string;
+        startDateAnomalyDescription: string;
+        endDateAnomalyTitle: string;
+        endDateAnomalyDescription: string;
+        invertedDatesTitle: string;
+        invertedDatesDescription: string;
+        logDateAnomalyTitle: string;
+        logDateAnomalyDescription: string;
+        completedPagesMismatchTitle: string;
+        completedPagesMismatchDescription: string;
+        completedPlaceholderPagesTitle: string;
+        completedPlaceholderPagesDescription: string;
+        pendingWithProgressTitle: string;
+        pendingWithProgressDescription: string;
+        duplicateBookTitle: string;
+        duplicateBookDescription: string;
+        fragmentedSagaNameTitle: string;
+        fragmentedSagaNameDescription: string;
+        missingSagaVolumeTitle: string;
+        missingSagaVolumeDescription: string;
+        manualFixHint: string;
+      };
+    };
   };
 }
 
@@ -367,6 +425,77 @@ export const ES_SETTINGS: SettingsI18n = {
       clearLogsSuccess: 'Historial de sesiones de lectura eliminado.',
       factoryResetSuccess: 'Aplicación restablecida a su estado inicial.',
     },
+    dataHealth: {
+      sectionTitle: 'Auditor de salud de datos',
+      sectionDescription:
+        'Detecta automáticamente años anómalos (como 2925), fechas invertidas, páginas inconsistentes, duplicados y sagas fragmentadas.',
+      scoreLabel: 'Salud de la biblioteca',
+      healthyBadge: '100% Saludable',
+      healthyTitle: 'Tu biblioteca está limpia y consistente',
+      healthyDescription:
+        'No se detectaron anomalías temporales, errores de progreso, libros duplicados ni sagas fragmentadas.',
+      issuesDetectedLabel: 'Incidencias detectadas',
+      autoFixableLabel: 'Autocorrección disponible',
+      fixAllAction: 'Corregir todas automáticamente ({count})',
+      fixSingleAction: 'Corregir',
+      resolveDuplicateAction: 'Conservar mejor registro',
+      fixedSingleMessage: 'Incidencia corregida correctamente.',
+      fixedAllMessage: 'Se corrigieron {count} incidencias automáticamente.',
+      confirmFixAllTitle: '¿Aplicar {count} correcciones automáticas?',
+      confirmFixAllMessage:
+        'Se corregirán las anomalías temporales, inconsistencias de progreso y nombres de sagas detectados sin eliminar ningún libro.',
+      confirmFixAllAction: 'Aplicar correcciones',
+      confirmDuplicateTitle: '¿Eliminar libro duplicado?',
+      confirmDuplicateMessage:
+        'Se conservará el registro más completo («{keeper}») y se eliminarán {count} duplicados redundantes.',
+      confirmDuplicateAction: 'Conservar y limpiar duplicados',
+      cancelAction: 'Cancelar',
+      categories: {
+        'temporal-anomaly': 'Anomalías temporales',
+        'progress-mismatch': 'Progreso y páginas',
+        'duplicate-book': 'Libros duplicados',
+        'fragmented-saga': 'Sagas fragmentadas',
+      },
+      severities: {
+        high: 'Alta',
+        medium: 'Media',
+        low: 'Baja',
+      },
+      issues: {
+        pubYearAnomalyTitle: 'Año de publicación anómalo: {title}',
+        pubYearAnomalyDescription: 'El año de publicación ({year}) está fuera del rango válido.',
+        startDateAnomalyTitle: 'Fecha de inicio anómala: {title}',
+        startDateAnomalyDescription: 'La fecha de inicio ({date}) contiene un año fuera de rango.',
+        endDateAnomalyTitle: 'Fecha de fin anómala: {title}',
+        endDateAnomalyDescription:
+          'La fecha de finalización ({date}) contiene un año fuera de rango.',
+        invertedDatesTitle: 'Fechas de lectura invertidas: {title}',
+        invertedDatesDescription:
+          'La fecha de finalización ({endDate}) es anterior a la de inicio ({startDate}).',
+        logDateAnomalyTitle: 'Sesión de lectura con año anómalo: {title}',
+        logDateAnomalyDescription:
+          'Una sesión registrada el {date} tiene un año fuera del rango permitido.',
+        completedPagesMismatchTitle: 'Libro completado con páginas pendientes: {title}',
+        completedPagesMismatchDescription:
+          'Marcado como completado con {currentPage} de {totalPages} páginas.',
+        completedPlaceholderPagesTitle: 'Libro completado sin total de páginas real: {title}',
+        completedPlaceholderPagesDescription:
+          'Tiene {totalPages} página(s) registradas. Edita el libro para indicar su extensión real.',
+        pendingWithProgressTitle: 'Libro pendiente con progreso iniciado: {title}',
+        pendingWithProgressDescription:
+          'Está en estado pendiente pero registra {currentPage} páginas leídas.',
+        duplicateBookTitle: 'Posible libro duplicado: {title}',
+        duplicateBookDescription:
+          'Se encontraron {count} registros coincidentes ({reason}). Se conservará el más completo.',
+        fragmentedSagaNameTitle: 'Nombre de saga inconsistente: {saga}',
+        fragmentedSagaNameDescription:
+          '{count} libros usan variantes distintas de escritura para esta saga.',
+        missingSagaVolumeTitle: 'Volúmenes sin número en saga: {saga}',
+        missingSagaVolumeDescription:
+          '{count} libro(s) de esta saga no tienen número de volumen asignado.',
+        manualFixHint: 'Requiere revisión manual',
+      },
+    },
   },
 };
 
@@ -563,6 +692,74 @@ export const EN_SETTINGS: SettingsI18n = {
       modalCancelAction: 'Cancel',
       clearLogsSuccess: 'Reading session history cleared.',
       factoryResetSuccess: 'Application reset to initial state.',
+    },
+    dataHealth: {
+      sectionTitle: 'Library data health auditor',
+      sectionDescription:
+        'Automatically detects anomalous years (such as 2925), inverted dates, progress mismatches, duplicates, and fragmented sagas.',
+      scoreLabel: 'Library health',
+      healthyBadge: '100% Healthy',
+      healthyTitle: 'Your library is clean and consistent',
+      healthyDescription:
+        'No temporal anomalies, progress mismatches, duplicate books, or fragmented sagas were detected.',
+      issuesDetectedLabel: 'Detected issues',
+      autoFixableLabel: 'Auto-fixable',
+      fixAllAction: 'Fix all auto-fixable issues ({count})',
+      fixSingleAction: 'Fix',
+      resolveDuplicateAction: 'Keep best record',
+      fixedSingleMessage: 'Issue fixed successfully.',
+      fixedAllMessage: 'Automatically fixed {count} issues.',
+      confirmFixAllTitle: 'Apply {count} automatic fixes?',
+      confirmFixAllMessage:
+        'Detected temporal anomalies, progress mismatches, and fragmented saga names will be repaired without deleting any books.',
+      confirmFixAllAction: 'Apply fixes',
+      confirmDuplicateTitle: 'Remove duplicate book?',
+      confirmDuplicateMessage:
+        'The most complete record ("{keeper}") will be kept and {count} redundant duplicate(s) will be removed.',
+      confirmDuplicateAction: 'Keep best & remove duplicates',
+      cancelAction: 'Cancel',
+      categories: {
+        'temporal-anomaly': 'Temporal anomalies',
+        'progress-mismatch': 'Progress & pages',
+        'duplicate-book': 'Duplicate books',
+        'fragmented-saga': 'Fragmented sagas',
+      },
+      severities: {
+        high: 'High',
+        medium: 'Medium',
+        low: 'Low',
+      },
+      issues: {
+        pubYearAnomalyTitle: 'Anomalous publication year: {title}',
+        pubYearAnomalyDescription: 'Publication year ({year}) is outside the valid range.',
+        startDateAnomalyTitle: 'Anomalous start date: {title}',
+        startDateAnomalyDescription: 'Start date ({date}) contains an out-of-range year.',
+        endDateAnomalyTitle: 'Anomalous end date: {title}',
+        endDateAnomalyDescription: 'End date ({date}) contains an out-of-range year.',
+        invertedDatesTitle: 'Inverted reading dates: {title}',
+        invertedDatesDescription: 'End date ({endDate}) is earlier than start date ({startDate}).',
+        logDateAnomalyTitle: 'Reading session with anomalous year: {title}',
+        logDateAnomalyDescription: 'A reading session logged on {date} has an out-of-range year.',
+        completedPagesMismatchTitle: 'Completed book with remaining pages: {title}',
+        completedPagesMismatchDescription:
+          'Marked as completed with {currentPage} of {totalPages} pages.',
+        completedPlaceholderPagesTitle: 'Completed book with placeholder page count: {title}',
+        completedPlaceholderPagesDescription:
+          'Has {totalPages} page(s) recorded. Edit the book to enter its actual page count.',
+        pendingWithProgressTitle: 'Pending book with reading progress: {title}',
+        pendingWithProgressDescription:
+          'Status is pending but {currentPage} pages are already logged.',
+        duplicateBookTitle: 'Probable duplicate book: {title}',
+        duplicateBookDescription:
+          'Found {count} matching records ({reason}). The most complete record will be kept.',
+        fragmentedSagaNameTitle: 'Inconsistent saga name: {saga}',
+        fragmentedSagaNameDescription:
+          '{count} books use different display spellings for this saga.',
+        missingSagaVolumeTitle: 'Saga volumes missing volume number: {saga}',
+        missingSagaVolumeDescription:
+          '{count} book(s) in this saga do not have a volume number assigned.',
+        manualFixHint: 'Manual review required',
+      },
     },
   },
 };

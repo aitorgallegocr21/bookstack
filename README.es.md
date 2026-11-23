@@ -80,7 +80,7 @@ npm run dev
 
 - **`main`:** Rama de producción desplegada automáticamente en GitHub Pages. Se actualiza exclusivamente mediante Pull Requests verificados en GitHub desde `develop`.
 - **`develop`:** Rama principal de integración para el desarrollo diario de funcionalidades, correcciones y refactorizaciones.
-- **Documentación Técnica (en inglés):** Consulta [`AGENTS.md`](AGENTS.md), [`CONTEXT.md`](CONTEXT.md), [`docs/TASKS.md`](docs/TASKS.md) y [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
+- **Documentación Técnica (en inglés):** Consulta [`AGENTS.md`](AGENTS.md), [`CONTEXT.md`](CONTEXT.md), [`docs/TASKS.md`](docs/TASKS.md), [`docs/ROADMAP.md`](docs/ROADMAP.md) y [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 
 ---
 

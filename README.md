@@ -80,7 +80,7 @@ npm run dev
 
 - **`main`:** Production-ready branch deployed automatically to GitHub Pages. Updated strictly via verified GitHub Pull Requests from `develop`.
 - **`develop`:** Primary integration branch for daily feature, fix, and refactoring work.
-- **Engineering Docs:** See [`AGENTS.md`](AGENTS.md), [`CONTEXT.md`](CONTEXT.md), [`docs/TASKS.md`](docs/TASKS.md), and [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
+- **Engineering Docs:** See [`AGENTS.md`](AGENTS.md), [`CONTEXT.md`](CONTEXT.md), [`docs/TASKS.md`](docs/TASKS.md), [`docs/ROADMAP.md`](docs/ROADMAP.md), and [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 
 ---
 

@@ -123,7 +123,7 @@ Whenever the user requests documenting a new phase or planning major features:
 3. **Zero-Ambiguity Phase Artifacts Synthesis:**
    - Translate resolved decisions into `docs/tasks/phase-XX-<name>/index.md` and atomic `task-X.Y-*.md` files.
    - **Mandatory JIT Requirement:** Every `task-X.Y-*.md` MUST include a `## Target Files & Line Pointers` section listing the exact files and line ranges to read/edit so the implementing agent requires zero exploratory searches.
-   - Synchronize `docs/TASKS.md`, `README.md`, `README.es.md`, and `CONTEXT.md` (Tier 2 Per-Phase Sync).
+   - **Synchronize `docs/TASKS.md`, `docs/ROADMAP.md`, `README.md`, `README.es.md`, and `CONTEXT.md` (Tier 2 Per-Phase Sync).**
 4. **Periodic Project Hardening & Consolidation Protocol (Every Several Phases / On User Request):**
    - Whenever the user asks to run a general project improvement, consolidation, security/schema hardening, or performance/architecture sweep after developing several feature phases (like `Phase 12` and its post-phase hardening commits), immediately load `.agents/skills/periodic-project-hardening/SKILL.md`.
    - Follow its **Low-Token Static Diagnostic Sweep** first and audit all 8 mandatory pillars (Token Hygiene & Monolith Splitting first, Legal/Privacy/CSP & Zod `.max()` bounds, Offline PWA & Brand Assets, IndexedDB Batch ACID & `DataPortabilityService` cross-service sync, Memoized `Intl.*` & single-pass $O(N)$ engines, `@defer` modal splitting & budgets, Clean Architecture `core`/`shared`/`features` boundaries & suffixless naming, and Unit/E2E Regression coverage).

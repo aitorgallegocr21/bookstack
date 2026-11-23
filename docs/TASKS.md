@@ -8,13 +8,19 @@
 
 ## Active Phase
 
-- _No active phase._
+- _No active phase. Next queued milestone: **Phase 16** (see [`docs/ROADMAP.md`](ROADMAP.md) for the full Phases 16–20 specification)._
 
 ---
 
 ## Upcoming Phases (Backlog & Roadmapped)
 
-- _No additional phases queued yet._
+> Full architectural and product specifications for upcoming phases live in [`docs/ROADMAP.md`](ROADMAP.md).
+
+- [ ] **[Phase 16: Data Health, Temporal Bounds Fix (`2925`) & Native Confirmation Dialog Engine](ROADMAP.md#phase-16-data-health-temporal-bounds-fix-2925--native-confirmation-dialog-engine)** — _Planned_ (Fix anomalous year filter bug [`2925`] in `/stats` with strict date bounds [`1900`..`currentYear + 1`], replace all browser `window.confirm()` calls with a custom Signal-driven `<app-confirm-dialog>` for deleting books/logs, unlinking sagas, and overwriting backups with optional suppression for minor prompts, plus a 1-click Library Data Health Auditor).
+- [ ] **[Phase 17: Major Visual Overhaul & Tailwind CSS v4 `@theme` Design System Modernization](ROADMAP.md#phase-17-major-visual-overhaul--tailwind-css-v4-theme-design-system-modernization)** — _Roadmapped_ (Site-wide modern editorial redesign: semantic `@theme` tokens in `src/styles.css`, warmer high-contrast dark mode, selectable brand accent palettes, floating/dock navigation shell redesign, `tabular-nums` typography hierarchy, and premium book/saga cards with realistic depth and micro-interactions).
+- [ ] **[Phase 18: Extended Categorized Settings (`/settings`), Advanced Mode & Privacy/Crypto Hardening](ROADMAP.md#phase-18-extended-categorized-settings-settings-advanced-mode--privacycrypto-hardening)** — _Roadmapped_ (Categorized `/settings` navigation [General, Catalog & Reading Defaults, Data & Backups, Privacy & Security, Advanced], master 100% Offline Mode toggle, granular 5-provider metadata controls, `navigator.storage.persist()` safeguard, Web Crypto `AES-GCM` password-encrypted backups, and advanced compression/reset tuning).
+- [ ] **[Phase 19: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy](ROADMAP.md#phase-19-expanded-analytics-stats-adaptive-timevelocity-engine--tagsgenres-taxonomy)** — _Roadmapped_ (Adaptive time/velocity disclosure hiding `pp/h` and Time tabs when no timed sessions exist, `Book.tags` / genres taxonomy with thematic distribution charts, 365-day reading activity heatmap calendar, book longevity & length distribution metrics, period-over-period deltas, and personal all-time records).
+- [ ] **[Phase 20: Integrated eBook Reader (`/reader/:id`) & Binary Metadata Extractor](ROADMAP.md#phase-20-long-term-milestone-integrated-ebook-reader-readerid--binary-metadata-extractor)** — _Long-Term Milestone_ (Isolated IndexedDB `ebookFiles` binary store for `.EPUB`/`.PDF` uploads, 100% browser-native metadata/cover/TOC extraction, lazy-loaded `/reader/:id` view with customizable typography/themes/bookmarks, automatic `currentPage` & timed `ReadingLog` session tracking, and eBook quota manager in `/settings`).
 
 ---
 

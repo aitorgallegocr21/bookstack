@@ -51,6 +51,8 @@ Defined centrally in `src/app/features/books/models/book.model.ts`:
 - **Programmatic Focus:** Focus the primary input on open via `viewChild()` + `queueMicrotask` (never use the HTML `autofocus` attribute).
 - **Focus Ring:** Interactive buttons and links enforce `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500`.
 - **Touch Targets:** Minimum clickable area of `44x44px` across mobile controls.
+- **In-App Confirmation Dialog (`<app-confirm-dialog>`):** Mounted once in the root shell (`App`) at `z-[70]` with `role="alertdialog"`, `aria-modal="true"`, severity badges (`danger`, `warning`, `info`), optional contextual entity preview cards (`coverUrl`, `title`, `subtitle`, `badge`), optional minor-action suppression checkbox, and focus management (`Cancel`/`Confirm`). Zero native `window.confirm()` calls are permitted.
+- **Data Health Auditor (`<app-data-health-section>`):** Embedded in `/settings` with a reactive health score badge (`100% Saludable` emerald / amber / rose), 4-category summary cards, expandable issue accordions, and 1-click auto-fix controls.
 
 ---
 

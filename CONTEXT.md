@@ -40,15 +40,20 @@ src/
     ├── app.config.ts / app.routes.ts          # Root config & lazy routes (/, /books, /series, /stats, /settings, /about)
     ├── app.ts / app.html / app.spec.ts        # Root shell (<app-sidebar>, <app-header>, <main>, <app-bottom-nav>, @defer modal)
     ├── core/
-    │   ├── components/{sidebar,header,bottom-nav}/  # Asymmetric shell components
+    │   ├── components/{sidebar,header,bottom-nav,confirm-dialog}/  # Asymmetric shell & global <app-confirm-dialog>
     │   ├── i18n/                              # i18n.types.ts (L1-18), es.ts (L1-18), en.ts (L1-18), i18n.service.ts (L1-49)
-    │   │   └── domains/                       # shell (L1-101), dashboard (L1-198), books (L1-649), analytics (L1-276), series (L1-232), settings (L1-354), about (L1-135)
-    │   ├── models/catalog-preferences.model.ts # CatalogViewMode, CatalogSortOption & runtime guards
+    │   │   └── domains/                       # shell, dashboard, books, analytics, series, settings, about
+    │   ├── models/
+    │   │   ├── catalog-preferences.model.ts   # CatalogViewMode, CatalogSortOption & runtime guards
+    │   │   └── confirm-dialog.model.ts        # ConfirmDialogOptions, ConfirmEntityPreview & ConfirmSuppressionKey
     │   ├── services/
-    │   │   ├── storage-adapter.service.ts     # L1-361: IndexedDB + LocalStorage fallback + catalog view/sort prefs
+    │   │   ├── confirm-dialog.service.ts      # Promise-based Signal confirmation dialog & suppression preferences
+    │   │   ├── storage-adapter.service.ts     # L1-361: IndexedDB + LocalStorage fallback + catalog/confirm prefs
     │   │   ├── theme.service.ts               # L1-83: Light/dark theme signal & persistence
     │   │   └── ui-state.service.ts            # L1-66: Sidebar collapse, create modal state/prefill & scroll lock
-    │   └── utils/date-formatter.ts            # Locale-aware Intl date & month formatters
+    │   └── utils/
+    │       ├── date-formatter.ts              # Locale-aware Intl date & month formatters
+    │       └── temporal-bounds.utils.ts       # Temporal bounds (1900..currentYear+1), antique year check & typo repair
     ├── shared/
     │   └── utils/book-display.utils.ts        # Shared getStatusBadgeClass & formatRatingBadge helpers
     └── features/
@@ -90,13 +95,15 @@ src/
         │   └── pages/series-page/             # Variable-scale Bento gallery (/series) & modal coordinator
         ├── settings/                          # Settings, Data Portability & Backup Engine (/settings)
         │   ├── models/cover-enrichment.model.ts       # CoverEnrichmentState, MissingCoverSummary & skipped report contracts
+        │   ├── models/data-health.model.ts            # DataHealthReport, DataHealthIssue & remediation contracts
         │   ├── models/data-portability.model.ts       # BackupEnvelope, ImportPreviewSummary, StorageBreakdownSummary
         │   ├── schemas/backup.schema.ts               # Zod BackupEnvelopeSchema & versioned restore validation
         │   ├── services/cover-enrichment.service.ts   # Integral metadata & cover auto-enrichment (ISBN -> Title+Author cascade) + visual assistant
+        │   ├── services/data-health.service.ts        # Local 4-category data health auditor & 1-click remediation engine
         │   ├── services/data-portability.service.ts   # Light/Full JSON, expanded CSV, .ZIP bundle export/import, flexible normalizer & quota inspector
         │   ├── utils/
         │   │   └── zip-archive.utils.ts          # Zero-dependency browser-native .ZIP reader/writer (CompressionStream/DecompressionStream)
-        │   ├── components/{settings-preferences-section,storage-quota-inspector,data-portability-section,cover-enrichment-section,danger-zone-section}/
+        │   ├── components/{settings-preferences-section,storage-quota-inspector,data-portability-section,cover-enrichment-section,data-health-section,danger-zone-section}/
         │   └── pages/settings-page/                   # /settings coordinator & reactive storage breakdown
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)
 

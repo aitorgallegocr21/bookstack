@@ -28,7 +28,7 @@ flowchart LR
 
 ### Phase 16: Data Health, Temporal Bounds Fix (`2925`) & Native Confirmation Dialog Engine
 
-- **Status:** In Progress ([`docs/tasks/phase-16-data-health-and-confirm-dialogs/index.md`](tasks/phase-16-data-health-and-confirm-dialogs/index.md))
+- **Status:** Completed ([`docs/tasks/phase-16-data-health-and-confirm-dialogs/index.md`](tasks/phase-16-data-health-and-confirm-dialogs/index.md))
 - **Primary Goal:** Eliminate native browser confirmation dialogs in favor of a cohesive, accessible in-app confirmation system, resolve anomalous date/year filtering bugs (`2925`) across analytics and forms while honoring antique book publication years, and provide a 1-click Data Health Auditor.
 - **Core Deliverables:**
   1. **Temporal Sanity Bounds, Antique Book Tolerance & `/stats` Year Filter Fix (`2925` Defect):**

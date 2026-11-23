@@ -281,4 +281,52 @@ test.describe('Advanced Analytics (/stats) Flow', () => {
       }
     }
   });
+
+  test('should ignore anomalous 2925 dates in year selector and all-time velocity chart', async ({
+    page,
+  }) => {
+    const { books, logs, currentYear } = createSeedData();
+    const prevYear = currentYear - 1;
+    const anomalousBooks: Book[] = [
+      ...books,
+      {
+        id: 'analytics-anomalous-2925',
+        title: 'Libro del Futuro',
+        author: 'Autor Temporal',
+        totalPages: 250,
+        currentPage: 250,
+        status: 'completed',
+        format: 'Físico',
+        startDate: '2925-01-05',
+        endDate: '2925-01-12',
+        createdAt: '2925-01-05T10:00:00.000Z',
+        updatedAt: '2925-01-12T10:00:00.000Z',
+      },
+    ];
+    const anomalousLogs: ReadingLog[] = [
+      ...logs,
+      {
+        id: 'analytics-log-2925',
+        bookId: 'analytics-anomalous-2925',
+        date: '2925-01-08T19:00:00.000Z',
+        pagesRead: 250,
+        timeSpentMinutes: 90,
+        createdAt: '2925-01-08T19:00:00.000Z',
+      },
+    ];
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await seedAnalyticsStore(page, anomalousBooks, anomalousLogs);
+
+    const yearSelect = page.getByTestId('period-year-select');
+    await expect(yearSelect).toBeVisible();
+    const optionsText = await yearSelect.locator('option').allTextContents();
+    expect(optionsText).toContain(String(currentYear));
+    expect(optionsText).toContain(String(prevYear));
+    expect(optionsText).not.toContain('2925');
+
+    await page.getByTestId('period-btn-all-time').click();
+    await expect(page.getByTestId('kpi-card-completed-books')).toContainText('4');
+    await expect(page.locator('[data-testid^="velocity-bar-2925"]')).toHaveCount(0);
+  });
 });

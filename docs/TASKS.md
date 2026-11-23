@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- [ ] **[Phase 16: Data Health, Temporal Bounds Fix (`2925`) & Native Confirmation Dialog Engine](tasks/phase-16-data-health-and-confirm-dialogs/index.md)** — _In Progress_ (Fix anomalous year filter bug [`2925`] in `/stats` with strict reading date bounds [`1900`..`currentYear + 1`], support antique book publication years from external metadata databases silently while prompting a typo-confirmation warning on manual entry `< 1900`, replace all browser `window.confirm()` calls with a Signal-driven `<app-confirm-dialog>` featuring entity previews and optional minor-action suppression, and deliver a 1-click Library Data Health Auditor in `/settings`).
+_None — Ready for Phase 17 planning via `/grill-me`._
 
 ---
 
@@ -24,6 +24,8 @@
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 16: Data Health, Temporal Bounds Fix (`2925`) & Native Confirmation Dialog Engine](tasks/phase-16-data-health-and-confirm-dialogs/index.md)** — _Completed 2026-11_ (Centralized temporal bounds `temporal-bounds.utils.ts` [`1900`..`currentYear + 1`], `/stats` `2925` year filter & `all-time` bucket immunity, source-aware antique `publicationYear` handling [silent external metadata vs. manual confirmation prompt], Signal-driven `<app-confirm-dialog>` + `ConfirmDialogService` replacing all `window.confirm()` calls with entity previews & minor-action suppression, and 1-click Library Data Health Auditor [`DataHealthService` + `<app-data-health-section>`] in `/settings`).
 
 - [x] **[Phase 15: Multi-Source Metadata Engine (5 Providers), Integral Auto-Enrichment & Offline `.ZIP` Bundles](tasks/phase-15-multi-source-metadata-and-offline-bundles/index.md)** — _Completed 2026-11_ (5-source browser-native metadata waterfall [`Open Library` + `Google Books` + `Wikidata` + `Apple Books ES` + `Internet Archive / Crossref`], cross-edition metadata fusion & balanced 8-result quota, automatic ISBN $\to$ Title+Author integral enrichment backfilling covers, `totalPages`, `publicationYear`, `publisher`, `isbn`, and `series`, flexible external/AI JSON & CSV import normalizer, and 4-mode offline export/import suite including self-contained `.ZIP` bundles with `/covers` image files).
 

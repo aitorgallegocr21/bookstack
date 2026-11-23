@@ -1,7 +1,7 @@
 # Task 16.5: Phase 16 Verification, Regression Specs & Playwright E2E Suite
 
 **Phase:** Phase 16: Data Health, Temporal Bounds Fix (`2925`) & Native Confirmation Dialog Engine  
-**Status:** Pending  
+**Status:** Completed  
 **Estimated Impact:** Medium-High (Adds end-to-end Playwright coverage for custom confirmation dialogs, `/stats` anomalous year immunity, source-aware antique year warnings, and the `/settings` Data Health Auditor, followed by Tier 2 documentation and branch hygiene synchronization).
 
 ---
@@ -59,5 +59,5 @@ Read ONLY these specific file ranges before implementing:
 
 ## 3. Verification Gate
 
-- [ ] `npm run verify:quiet`
-- [ ] `npm run test:e2e`
+- [x] `npm run verify:quiet`
+- [x] `npm run test:e2e`

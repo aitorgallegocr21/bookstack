@@ -64,12 +64,19 @@
           >
           <input
             type="datetime-local"
+            [attr.min]="'1900-01-01T00:00'"
+            [attr.max]="maxAllowedDateTime"
             [(ngModel)]="draft.date"
+            (ngModelChange)="dateError.set(null)"
             name="date"
             required
             class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:ring-2 focus:ring-slate-900/10 focus:outline-none dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-500/20"
           />
-          @if (draft.date) {
+          @if (dateError()) {
+            <span class="mt-1.5 block text-xs font-medium text-rose-600 dark:text-rose-400">{{
+              dateError()
+            }}</span>
+          } @else if (draft.date) {
             <span class="mt-1.5 block text-xs text-slate-500 dark:text-slate-400">{{
               formatDate(draft.date)
             }}</span>

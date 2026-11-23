@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { BooksService } from '../../../books/services/books.service';
+import { ReadingLogService } from '../../../books/services/reading-log.service';
 import { ImportPreviewSummary } from '../../models/data-portability.model';
 import { CoverEnrichmentService } from '../../services/cover-enrichment.service';
 import { DataPortabilityService } from '../../services/data-portability.service';
@@ -425,5 +428,44 @@ describe('DataPortabilitySectionComponent', () => {
 
     expect(enrichEmitSpy).toHaveBeenCalledTimes(1);
     expect(mockCoverEnrichmentService.runIntegralEnrichment).toHaveBeenCalledTimes(1);
+  });
+
+  it('requires danger confirmation when overwriting a non-empty local library', async () => {
+    const booksService = TestBed.inject(BooksService);
+    const readingLogService = TestBed.inject(ReadingLogService);
+    const confirmDialogService = TestBed.inject(ConfirmDialogService);
+    const preview = buildPreview();
+    vi.spyOn(booksService, 'books').mockReturnValue(preview.validBooks);
+    vi.spyOn(readingLogService, 'readingLogs').mockReturnValue(preview.validReadingLogs);
+
+    component.previewSummary.set(preview);
+    component.setConflictMode('overwrite');
+    mockPortabilityService.executeImport.mockResolvedValue({
+      mode: 'overwrite',
+      format: 'json',
+      booksImported: 1,
+      logsImported: 1,
+      skippedRecords: 0,
+      goalsRestored: false,
+      preferencesRestored: false,
+      missingCoversCount: 0,
+      missingCoversWithIsbnCount: 0,
+      incompleteMetadataCount: 0,
+    });
+
+    const importPromise = component.confirmImport();
+    const dialog = confirmDialogService.activeDialog();
+    expect(dialog).not.toBeNull();
+    expect(dialog?.severity).toBe('danger');
+    expect(dialog?.suppressibleKey).toBeUndefined();
+
+    confirmDialogService.cancel();
+    await importPromise;
+    expect(mockPortabilityService.executeImport).not.toHaveBeenCalled();
+
+    const confirmedPromise = component.confirmImport();
+    confirmDialogService.accept();
+    await confirmedPromise;
+    expect(mockPortabilityService.executeImport).toHaveBeenCalledWith(preview, 'overwrite');
   });
 });

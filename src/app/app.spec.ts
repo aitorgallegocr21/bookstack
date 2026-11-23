@@ -1,6 +1,7 @@
 import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { App } from './app';
+import { ConfirmDialogService } from './core/services/confirm-dialog.service';
 import { BooksService } from './features/books/services/books.service';
 
 describe('App', () => {
@@ -52,5 +53,29 @@ describe('App', () => {
     booksService.closeCreateModal();
     fixture.detectChanges();
     expect(root.querySelectorAll('app-book-create-modal').length).toBe(0);
+  });
+
+  it('should mount the global confirm dialog and open when ConfirmDialogService.confirm is called', async () => {
+    const fixture = TestBed.createComponent(App);
+    const confirmDialogService = TestBed.inject(ConfirmDialogService);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('app-confirm-dialog')).not.toBeNull();
+    expect(root.querySelector('[role="alertdialog"]')).toBeNull();
+
+    const confirmPromise = confirmDialogService.confirm({
+      title: 'Confirmar acción',
+      message: '¿Deseas continuar?',
+    });
+    fixture.detectChanges();
+
+    expect(root.querySelector('[role="alertdialog"]')).not.toBeNull();
+    confirmDialogService.cancel();
+    fixture.detectChanges();
+
+    await expect(confirmPromise).resolves.toBe(false);
+    expect(root.querySelector('[role="alertdialog"]')).toBeNull();
   });
 });

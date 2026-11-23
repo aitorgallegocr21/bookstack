@@ -6,6 +6,7 @@ import { BooksService } from '../../books/services/books.service';
 import { ReadingLogService } from '../../books/services/reading-log.service';
 import { ReadingStatsService } from '../../books/services/reading-stats.service';
 import { normalizeBookFormat, normalizeBookRating } from '../../books/utils/book-form.utils';
+import { isValidReadingActivityYear } from '../../books/utils/temporal-bounds.utils';
 import {
   AnalyticsFormatKey,
   AnalyticsHighlights,
@@ -63,13 +64,17 @@ export class AnalyticsService {
   readonly trendMetric = signal<AnalyticsTrendMetric>('pages');
 
   readonly availableYears = computed<number[]>(() => {
-    const years = new Set<number>([this.referenceDate().getFullYear()]);
+    const refDate = this.referenceDate();
+    const years = new Set<number>([refDate.getFullYear()]);
 
     for (const book of this.booksService.books()) {
       for (const rawDate of [book.startDate, book.endDate, book.createdAt, book.updatedAt]) {
         const isoDate = this.extractIsoDate(rawDate);
         if (isoDate) {
-          years.add(this.extractYearFromIso(isoDate));
+          const year = this.extractYearFromIso(isoDate);
+          if (isValidReadingActivityYear(year, refDate)) {
+            years.add(year);
+          }
         }
       }
     }
@@ -77,7 +82,10 @@ export class AnalyticsService {
     for (const log of this.readingLogService.readingLogs()) {
       const isoDate = this.extractIsoDate(log.date);
       if (isoDate) {
-        years.add(this.extractYearFromIso(isoDate));
+        const year = this.extractYearFromIso(isoDate);
+        if (isValidReadingActivityYear(year, refDate)) {
+          years.add(year);
+        }
       }
     }
 
@@ -260,14 +268,23 @@ export class AnalyticsService {
     if (window.mode === 'all-time') {
       let earliestDate = '';
       for (const entry of allHybridEntries) {
-        if (!earliestDate || entry.date < earliestDate) {
+        if (
+          isValidReadingActivityYear(entry.year, refDate) &&
+          (!earliestDate || entry.date < earliestDate)
+        ) {
           earliestDate = entry.date;
         }
       }
       for (const book of books) {
         const anchor = this.extractIsoDate(book.startDate || book.createdAt || book.updatedAt);
-        if (anchor && (!earliestDate || anchor < earliestDate)) {
-          earliestDate = anchor;
+        if (anchor) {
+          const anchorYear = this.extractYearFromIso(anchor);
+          if (
+            isValidReadingActivityYear(anchorYear, refDate) &&
+            (!earliestDate || anchor < earliestDate)
+          ) {
+            earliestDate = anchor;
+          }
         }
       }
       if (earliestDate) {

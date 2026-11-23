@@ -1,0 +1,170 @@
+<section
+  class="space-y-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+  aria-labelledby="settings-data-health-heading"
+>
+  @let currentReport = report();
+
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div class="min-w-0 flex-1">
+      <h2
+        id="settings-data-health-heading"
+        class="text-base font-bold text-slate-900 dark:text-slate-100"
+      >
+        {{ i18n.t().settings.dataHealth.sectionTitle }}
+      </h2>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+        {{ i18n.t().settings.dataHealth.sectionDescription }}
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <span
+        data-testid="data-health-score-badge"
+        class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold"
+        [class]="
+          currentReport.totalIssuesCount === 0
+            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+            : currentReport.healthScorePercent >= 70
+              ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+              : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
+        "
+      >
+        @if (currentReport.totalIssuesCount === 0) {
+          {{ i18n.t().settings.dataHealth.healthyBadge }}
+        } @else {
+          {{ i18n.t().settings.dataHealth.scoreLabel }}: {{ currentReport.healthScorePercent }}%
+        }
+      </span>
+
+      @if (currentReport.autoFixableCount > 0) {
+        <button
+          type="button"
+          data-testid="data-health-fix-all-btn"
+          [disabled]="isApplyingFix()"
+          class="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+          (click)="fixAllAutoFixable()"
+        >
+          {{ formatFixAllLabel(currentReport.autoFixableCount) }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (feedbackMessage(); as message) {
+    <p
+      data-testid="data-health-feedback"
+      class="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-sm font-medium text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
+      role="status"
+    >
+      {{ message }}
+    </p>
+  }
+
+  @if (currentReport.totalIssuesCount === 0) {
+    <div
+      data-testid="data-health-healthy-state"
+      class="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/30"
+    >
+      <p class="text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+        {{ i18n.t().settings.dataHealth.healthyTitle }}
+      </p>
+      <p class="mt-1 text-sm text-emerald-700 dark:text-emerald-300">
+        {{ i18n.t().settings.dataHealth.healthyDescription }}
+      </p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      @for (category of categories; track category) {
+        <div
+          class="rounded-xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-800/40"
+        >
+          <p class="text-xs font-medium text-slate-600 dark:text-slate-400">
+            {{ i18n.t().settings.dataHealth.categories[category] }}
+          </p>
+          <p class="mt-1 text-lg font-bold text-slate-900 dark:text-slate-100">
+            {{ currentReport.issuesByCategory[category].length }}
+          </p>
+        </div>
+      }
+    </div>
+
+    <div class="space-y-3">
+      @for (category of categories; track category) {
+        @let categoryIssues = currentReport.issuesByCategory[category];
+        @if (categoryIssues.length > 0) {
+          <div class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+            <button
+              type="button"
+              [attr.data-testid]="'data-health-category-toggle-' + category"
+              [attr.aria-expanded]="expandedCategories()[category]"
+              class="flex min-h-[44px] w-full items-center justify-between gap-3 bg-slate-50 px-4 py-2.5 text-left text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none dark:bg-slate-800/60 dark:text-slate-100 dark:hover:bg-slate-800"
+              (click)="toggleCategory(category)"
+            >
+              <span>
+                {{ i18n.t().settings.dataHealth.categories[category] }} ({{
+                  categoryIssues.length
+                }})
+              </span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">
+                {{ expandedCategories()[category] ? '▲' : '▼' }}
+              </span>
+            </button>
+
+            @if (expandedCategories()[category]) {
+              <ul class="divide-y divide-slate-200 dark:divide-slate-800">
+                @for (issue of categoryIssues; track issue.id) {
+                  <li
+                    [attr.data-testid]="'data-health-issue-' + issue.id"
+                    class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div class="min-w-0 flex-1 space-y-1">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span
+                          class="inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                          [class]="getSeverityBadgeClass(issue.severity)"
+                        >
+                          {{ i18n.t().settings.dataHealth.severities[issue.severity] }}
+                        </span>
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                          {{ issue.title }}
+                        </h3>
+                      </div>
+
+                      <p class="text-sm text-slate-600 dark:text-slate-400">
+                        {{ issue.description }}
+                      </p>
+
+                      @if (issue.suggestedValueLabel) {
+                        <span
+                          class="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                        >
+                          {{ issue.suggestedValueLabel }}
+                        </span>
+                      }
+                    </div>
+
+                    @if (issue.canAutoFix || issue.category === 'duplicate-book') {
+                      <button
+                        type="button"
+                        [attr.data-testid]="'data-health-fix-btn-' + issue.id"
+                        [disabled]="isApplyingFix()"
+                        class="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-xl border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 dark:border-indigo-900/60 dark:bg-indigo-950/50 dark:text-indigo-300 dark:hover:bg-indigo-950/80"
+                        (click)="fixSingleIssue(issue.id)"
+                      >
+                        {{
+                          issue.category === 'duplicate-book'
+                            ? i18n.t().settings.dataHealth.resolveDuplicateAction
+                            : i18n.t().settings.dataHealth.fixSingleAction
+                        }}
+                      </button>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+</section>

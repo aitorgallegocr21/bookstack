@@ -11,6 +11,7 @@ import {
   LucideSparkles,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import packageJson from '../../../../../../package.json';
 
 @Component({
   selector: 'app-about-page',
@@ -32,4 +33,5 @@ export class AboutPage {
   protected readonly Sparkles = LucideSparkles;
 
   protected readonly techPills = ['Angular 22+', 'Tailwind CSS v4', 'IndexedDB', 'PWA'] as const;
+  protected readonly appVersion = `v${packageJson.version}`;
 }

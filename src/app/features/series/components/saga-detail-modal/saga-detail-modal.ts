@@ -28,6 +28,7 @@ import {
   LucideDynamicIcon,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { getStatusBadgeClass } from '../../../../shared/utils/book-display.utils';
 import { Book, BookStatus } from '../../../books/models/book.model';
@@ -49,6 +50,7 @@ export class SagaDetailModalComponent implements OnDestroy {
   private readonly uiState = inject(UiStateService);
   private readonly seriesService = inject(SeriesService);
   private readonly booksService = inject(BooksService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
   protected readonly i18n = inject(I18nService);
 
   readonly saga = input.required<SagaAggregation>();
@@ -133,6 +135,9 @@ export class SagaDetailModalComponent implements OnDestroy {
   });
 
   protected handleEscape(): void {
+    if (this.confirmDialogService.activeDialog() !== null) {
+      return;
+    }
     this.closed.emit();
   }
 
@@ -197,6 +202,29 @@ export class SagaDetailModalComponent implements OnDestroy {
   }
 
   protected async unlinkBook(bookId: string): Promise<void> {
+    const book = this.booksService.books().find((b) => b.id === bookId);
+    const t = this.i18n.t();
+    const confirmed = await this.confirmDialogService.confirm({
+      title: t.series.detail.confirmUnlinkTitle,
+      message: t.series.detail.confirmUnlinkMessage,
+      confirmLabel: t.series.detail.confirmUnlinkAction,
+      cancelLabel: t.confirmDialog.cancel,
+      severity: 'warning',
+      suppressibleKey: 'unlinkSagaBook',
+      suppressCheckboxLabel: t.confirmDialog.dontAskAgainMinor,
+      entityPreview: book
+        ? {
+            title: book.title,
+            subtitle: book.author,
+            badge: book.series?.volumeNumber != null ? `#${book.series.volumeNumber}` : undefined,
+            coverUrl: book.coverUrl,
+          }
+        : undefined,
+    });
+    if (!confirmed) {
+      return;
+    }
+
     await this.seriesService.unlinkBookFromSeries(bookId);
   }
 

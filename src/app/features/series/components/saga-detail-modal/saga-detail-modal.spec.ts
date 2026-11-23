@@ -1,6 +1,7 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { Book } from '../../../books/models/book.model';
 import { BooksService } from '../../../books/services/books.service';
@@ -241,10 +242,14 @@ describe('SagaDetailModalComponent', () => {
     detailBtn.click();
     expect(openBookSpy).toHaveBeenCalledWith('b1');
 
+    const confirmDialogService = TestBed.inject(ConfirmDialogService);
     const unlinkBtn = buttons.find((b) =>
       b.textContent?.includes('Desvincular')
     ) as HTMLButtonElement;
     unlinkBtn.click();
+    expect(confirmDialogService.activeDialog()?.suppressibleKey).toBe('unlinkSagaBook');
+    expect(confirmDialogService.activeDialog()?.severity).toBe('warning');
+    confirmDialogService.accept();
     await fixture.whenStable();
     expect(mockSeriesService.unlinkBookFromSeries).toHaveBeenCalledWith('b1');
 

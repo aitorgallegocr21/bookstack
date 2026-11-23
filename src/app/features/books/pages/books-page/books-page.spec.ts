@@ -2,6 +2,7 @@ import { signal } from '@angular/core';
 import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { Book, ReadingLog } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
 import { ReadingLogService } from '../../services/reading-log.service';
@@ -163,5 +164,47 @@ describe('BooksPage', () => {
     fixture.detectChanges();
 
     expect(root.textContent).toContain('Elantris');
+  });
+
+  it('should confirm via ConfirmDialogService with entityPreview before deleting a book (unsuppressible)', async () => {
+    booksSignal.set([
+      {
+        id: 'book-1',
+        title: 'Elantris',
+        author: 'Brandon Sanderson',
+        totalPages: 600,
+        currentPage: 150,
+        status: 'reading',
+        format: 'Físico',
+        createdAt: '2026-01-01T10:00:00.000Z',
+        updatedAt: '2026-01-02T10:00:00.000Z',
+      },
+    ]);
+
+    const fixture = TestBed.createComponent(BooksPage);
+    const confirmDialogService = TestBed.inject(ConfirmDialogService);
+    const booksService = TestBed.inject(BooksService);
+    fixture.detectChanges();
+
+    const deletePromise = fixture.componentInstance['deleteBook']('book-1');
+    const dialog = confirmDialogService.activeDialog();
+    expect(dialog).not.toBeNull();
+    expect(dialog?.severity).toBe('danger');
+    expect(dialog?.suppressibleKey).toBeUndefined();
+    expect(dialog?.entityPreview).toEqual({
+      title: 'Elantris',
+      subtitle: 'Brandon Sanderson',
+      badge: '600 pp.',
+      coverUrl: undefined,
+    });
+
+    confirmDialogService.cancel();
+    await deletePromise;
+    expect(booksService.remove).not.toHaveBeenCalled();
+
+    const confirmPromise = fixture.componentInstance['deleteBook']('book-1');
+    confirmDialogService.accept();
+    await confirmPromise;
+    expect(booksService.remove).toHaveBeenCalledWith('book-1');
   });
 });

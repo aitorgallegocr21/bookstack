@@ -1,6 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { Book, ReadingLog } from '../../models/book.model';
 import { BooksService } from '../../services/books.service';
 import { ReadingLogService } from '../../services/reading-log.service';
@@ -104,5 +105,32 @@ describe('BookDetailModalComponent', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     vi.advanceTimersByTime(180);
     expect(closedSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should confirm via ConfirmDialogService before deleting a log and ignore Escape while confirm dialog is open', async () => {
+    vi.useFakeTimers();
+    const fixture = TestBed.createComponent(BookDetailModalComponent);
+    fixture.componentRef.setInput('bookId', sampleBook.id);
+    const confirmDialogService = TestBed.inject(ConfirmDialogService);
+    const readingLogService = TestBed.inject(ReadingLogService);
+
+    const closedSpy = vi.fn();
+    fixture.componentInstance.closed.subscribe(closedSpy);
+    fixture.detectChanges();
+
+    const deletePromise = fixture.componentInstance['deleteLog']('log-a');
+    const dialog = confirmDialogService.activeDialog();
+    expect(dialog).not.toBeNull();
+    expect(dialog?.suppressibleKey).toBe('deleteReadingLog');
+    expect(dialog?.entityPreview?.title).toBe('Solaris');
+    expect(dialog?.entityPreview?.badge).toBe('+40 pp.');
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    vi.advanceTimersByTime(180);
+    expect(closedSpy).not.toHaveBeenCalled();
+
+    confirmDialogService.accept();
+    await deletePromise;
+    expect(readingLogService.remove).toHaveBeenCalledWith('log-a');
   });
 });

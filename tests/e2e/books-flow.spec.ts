@@ -63,9 +63,62 @@ test.describe('End-to-end Book & Reading Log lifecycle', () => {
         .first()
     ).toBeVisible();
 
-    // Delete book and confirm return to empty state
-    page.once('dialog', (dialog) => dialog.accept());
+    // Delete book via in-app <app-confirm-dialog>: test Cancel first, then Confirm
     await page.getByRole('button', { name: 'Eliminar Dune: Edición Revisada' }).click();
+    const confirmDialog = page.locator('app-confirm-dialog [role="alertdialog"]');
+    await expect(confirmDialog).toBeVisible();
+    await expect(confirmDialog).toContainText('Dune: Edición Revisada');
+    await expect(confirmDialog).toContainText('Frank Herbert');
+
+    await confirmDialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    await expect(confirmDialog).toBeHidden();
+    await expect(
+      page
+        .getByRole('button', { name: 'Ver detalles: Dune: Edición Revisada', exact: true })
+        .first()
+    ).toBeVisible();
+
+    await page.getByRole('button', { name: 'Eliminar Dune: Edición Revisada' }).click();
+    await expect(confirmDialog).toBeVisible();
+    await confirmDialog.getByRole('button', { name: 'Eliminar', exact: true }).click();
+    await expect(confirmDialog).toBeHidden();
     await expect(page.getByText('No hay libros todavía.')).toBeVisible();
+  });
+
+  test('should block impossible future publicationYear (2925) and confirm manual antique year (1605)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/books');
+
+    await page.getByRole('button', { name: 'Crear nuevo libro' }).click();
+    await expect(page.locator('#create-modal-title')).toBeVisible();
+
+    await page.locator('#create-book-title').fill('Don Quijote de la Mancha');
+    await page.locator('#create-book-author').fill('Miguel de Cervantes');
+    await page.locator('#create-book-total-pages').fill('1000');
+
+    // Impossible future year (2925) must be blocked by form validation
+    await page.locator('#create-book-publication-year').fill('2925');
+    await expect(page.getByText(/El año no puede superar/)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Añadir libro', exact: true })).toBeDisabled();
+    await expect(page.locator('#create-modal-title')).toBeVisible();
+
+    // Manual antique year (1605) triggers confirmation dialog and saves on confirm
+    await page.locator('#create-book-publication-year').fill('1605');
+    await page.getByRole('button', { name: 'Añadir libro', exact: true }).click();
+
+    const confirmDialog = page.locator('app-confirm-dialog [role="alertdialog"]');
+    await expect(confirmDialog).toBeVisible();
+    await expect(confirmDialog).toContainText('Confirmar año histórico');
+    await confirmDialog.getByRole('button', { name: 'Sí, guardar así', exact: true }).click();
+
+    await expect(confirmDialog).toBeHidden();
+    await expect(page.locator('#create-modal-title')).toBeHidden();
+    await expect(
+      page
+        .getByRole('button', { name: 'Ver detalles: Don Quijote de la Mancha', exact: true })
+        .first()
+    ).toBeVisible();
   });
 });

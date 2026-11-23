@@ -1,6 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { Book } from '../../models/book.model';
 import { BookMetadataCandidate } from '../../models/book-metadata.model';
 import { BookMetadataService } from '../../services/book-metadata.service';
@@ -257,5 +258,54 @@ describe('BookCreateModalComponent', () => {
     expect(scrollBody).not.toBeNull();
     expect(scrollBody?.classList.contains('modal-scroll-area')).toBe(true);
     expect(scrollBody?.classList.contains('no-scrollbar')).toBe(true);
+  });
+
+  it('should hard-block future typo year 2925 and prompt confirmation for manual antique year 1605', async () => {
+    const fixture = TestBed.createComponent(BookCreateModalComponent);
+    const confirmDialogService = TestBed.inject(ConfirmDialogService);
+    const savedSpy = vi.fn<(book: Book) => void>();
+    fixture.componentInstance.saved.subscribe(savedSpy);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const titleInput = root.querySelector('#create-book-title') as HTMLInputElement;
+    const authorInput = root.querySelector('#create-book-author') as HTMLInputElement;
+    const pagesInput = root.querySelector('#create-book-total-pages') as HTMLInputElement;
+    const yearInput = root.querySelector('#create-book-publication-year') as HTMLInputElement;
+
+    titleInput.value = 'Don Quijote';
+    titleInput.dispatchEvent(new Event('input'));
+    authorInput.value = 'Miguel de Cervantes';
+    authorInput.dispatchEvent(new Event('input'));
+    pagesInput.value = '900';
+    pagesInput.dispatchEvent(new Event('input'));
+
+    // Hard block future typo 2925
+    yearInput.value = '2925';
+    yearInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(fixture.componentInstance['createForm'].invalid).toBe(true);
+
+    // Manual antique year 1605 triggers warning confirmation
+    yearInput.value = '1605';
+    yearInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(fixture.componentInstance['createForm'].valid).toBe(true);
+
+    const savePromise = fixture.componentInstance['save']();
+    const dialog = confirmDialogService.activeDialog();
+    expect(dialog).not.toBeNull();
+    expect(dialog?.severity).toBe('warning');
+    expect(dialog?.suppressibleKey).toBe('manualAntiqueYear');
+
+    confirmDialogService.cancel();
+    await savePromise;
+    expect(addMock).not.toHaveBeenCalled();
+
+    const confirmSavePromise = fixture.componentInstance['save']();
+    confirmDialogService.accept();
+    await confirmSavePromise;
+    expect(addMock).toHaveBeenCalledTimes(1);
+    expect(savedSpy).toHaveBeenCalledTimes(1);
   });
 });

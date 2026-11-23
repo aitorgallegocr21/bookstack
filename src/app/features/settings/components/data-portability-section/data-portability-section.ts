@@ -9,6 +9,9 @@ import {
   viewChild,
 } from '@angular/core';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { BooksService } from '../../../books/services/books.service';
+import { ReadingLogService } from '../../../books/services/reading-log.service';
 import {
   ImportConflictMode,
   ImportExecutionResult,
@@ -31,6 +34,9 @@ const MAX_BACKUP_FILE_BYTES = 100 * 1024 * 1024;
 export class DataPortabilitySectionComponent {
   private readonly dataPortabilityService = inject(DataPortabilityService);
   private readonly coverEnrichmentService = inject(CoverEnrichmentService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
+  private readonly booksService = inject(BooksService);
+  private readonly readingLogService = inject(ReadingLogService);
   protected readonly i18n = inject(I18nService);
 
   readonly dataChanged = output<void>();
@@ -161,6 +167,28 @@ export class DataPortabilitySectionComponent {
     const preview = this.previewSummary();
     if (!preview || this.isImporting()) {
       return;
+    }
+
+    const existingBooksCount = this.booksService.books().length;
+    if (this.conflictMode() === 'overwrite' && existingBooksCount > 0) {
+      const t = this.i18n.t();
+      const existingLogsCount = this.readingLogService.readingLogs().length;
+      const confirmed = await this.confirmDialogService.confirm({
+        title: t.settings.portability.confirmOverwriteTitle,
+        message: t.settings.portability.confirmOverwriteMessage,
+        confirmLabel: t.settings.portability.confirmOverwriteAction,
+        cancelLabel: t.confirmDialog.cancel,
+        severity: 'danger',
+        entityPreview: {
+          title: t.settings.portability.confirmOverwritePreviewTitle,
+          subtitle: t.settings.portability.confirmOverwritePreviewSubtitle
+            .replace('{books}', String(existingBooksCount))
+            .replace('{logs}', String(existingLogsCount)),
+        },
+      });
+      if (!confirmed) {
+        return;
+      }
     }
 
     this.isImporting.set(true);

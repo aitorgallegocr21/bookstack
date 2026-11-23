@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Book, ReadingLog } from '../models/book.model';
+import { MIN_HISTORICAL_PUBLICATION_YEAR, getMaxAllowedYear } from '../utils/temporal-bounds.utils';
 
 export const BookStatusSchema = z.enum(['pending', 'reading', 'completed', 'abandoned']);
 
@@ -45,7 +46,14 @@ export const BookSchema = z
     title: z.string().min(1).max(500),
     author: z.string().min(1).max(500),
     publisher: z.string().max(300).optional(),
-    publicationYear: z.number().int().min(0).max(2100).optional(),
+    publicationYear: z
+      .number()
+      .int()
+      .min(MIN_HISTORICAL_PUBLICATION_YEAR)
+      .refine((year) => year <= getMaxAllowedYear(), {
+        message: 'publicationYear cannot exceed currentYear + 1',
+      })
+      .optional(),
     totalPages: z.number().int().min(1, 'totalPages must be at least 1').max(100_000),
     currentPage: z.number().int().min(0).max(100_000),
     totalWords: z.number().min(0).max(100_000_000).optional(),

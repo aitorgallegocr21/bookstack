@@ -280,6 +280,10 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
       await autoEnrichCheckbox.uncheck();
     }
     await page.getByTestId('confirm-import-btn').click();
+    const overwriteConfirmDialog = page.locator('app-confirm-dialog [role="alertdialog"]');
+    await expect(overwriteConfirmDialog).toBeVisible();
+    await overwriteConfirmDialog.locator('button').last().click();
+    await expect(overwriteConfirmDialog).toBeHidden();
     await expect(page.getByTestId('portability-status-banner')).toBeVisible();
 
     await page.goto('/books');
@@ -374,11 +378,11 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
       });
       expect(hasOverflow, `Horizontal overflow detected at ${vp.width}px`).toBe(false);
 
-      // Verify vertical spacing (>= 20px) between all 5 settings cards
+      // Verify vertical spacing (>= 20px) between all 6 settings cards
       const cards = page.locator('app-settings-page section');
-      await expect(cards).toHaveCount(5);
+      await expect(cards).toHaveCount(6);
       const cardBoxes = await Promise.all(
-        [0, 1, 2, 3, 4].map(async (index) => {
+        [0, 1, 2, 3, 4, 5].map(async (index) => {
           const box = await cards.nth(index).boundingBox();
           expect(box, `Card ${index} boundingBox missing at ${vp.width}px`).not.toBeNull();
           return box!;
@@ -904,5 +908,45 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
     await expect(detailPanel).toContainText('Nova');
     await expect(detailPanel).toContainText('2005');
     await expect(detailPanel.locator('img')).toBeVisible();
+  });
+
+  test('should detect anomalous 2925 year and completed-book page mismatch in Data Health Auditor and auto-fix to 100%', async ({
+    page,
+  }) => {
+    const anomalousBooks: Book[] = [
+      {
+        id: 'health-anomalous-1',
+        title: 'Crónica de 2925',
+        author: 'Autor Ejemplo',
+        totalPages: 320,
+        currentPage: 0,
+        status: 'completed',
+        format: 'Físico',
+        startDate: '2925-01-05',
+        endDate: '2925-01-12',
+        createdAt: '2026-01-10T10:00:00.000Z',
+        updatedAt: '2026-01-10T10:00:00.000Z',
+      },
+    ];
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await seedLibrary(page, anomalousBooks, []);
+
+    const scoreBadge = page.getByTestId('data-health-score-badge');
+    await expect(scoreBadge).toBeVisible();
+    await expect(scoreBadge).not.toContainText('100% Saludable');
+
+    const fixAllBtn = page.getByTestId('data-health-fix-all-btn');
+    await expect(fixAllBtn).toBeVisible();
+    await fixAllBtn.click();
+
+    const confirmDialog = page.locator('app-confirm-dialog [role="alertdialog"]');
+    await expect(confirmDialog).toBeVisible();
+    await confirmDialog.locator('button').last().click();
+    await expect(confirmDialog).toBeHidden();
+
+    await expect(page.getByTestId('data-health-feedback')).toBeVisible();
+    await expect(scoreBadge).toContainText('100% Saludable');
+    await expect(page.getByTestId('data-health-healthy-state')).toBeVisible();
   });
 });

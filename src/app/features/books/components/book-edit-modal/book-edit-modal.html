@@ -124,13 +124,20 @@
                   i18n.t().bookForm.yearLabel
                 }}</label>
                 <input
+                  #publicationYearInput
                   id="edit-book-publication-year"
                   type="number"
-                  min="0"
+                  min="1"
+                  [attr.max]="maxAllowedYear"
                   formControlName="publicationYear"
                   [placeholder]="i18n.t().bookForm.yearPlaceholder"
                   class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
                 />
+                @if (editForm.get('publicationYear')?.hasError('max')) {
+                  <p class="mt-1 text-xs font-medium text-rose-600 dark:text-rose-400">
+                    {{ i18n.t().bookForm.yearMaxError.replace('{max}', '' + maxAllowedYear) }}
+                  </p>
+                }
               </div>
             </div>
 
@@ -428,22 +435,38 @@
                   i18n.t().bookForm.startDateLabel
                 }}</label>
                 <input
+                  #startDateInput
                   id="edit-book-start-date"
                   type="date"
+                  [attr.min]="'1900-01-01'"
+                  [attr.max]="maxAllowedIsoDate"
                   formControlName="startDate"
                   class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
                 />
+                @if (editForm.hasError('startDateExceedsMaxYear')) {
+                  <p class="mt-1 text-xs font-medium text-rose-600 dark:text-rose-400">
+                    {{ i18n.t().bookForm.dateMaxError.replace('{max}', '' + maxAllowedYear) }}
+                  </p>
+                }
               </div>
               <div>
                 <label for="edit-book-end-date" class="field-label">{{
                   i18n.t().bookForm.endDateLabel
                 }}</label>
                 <input
+                  #endDateInput
                   id="edit-book-end-date"
                   type="date"
+                  [attr.min]="'1900-01-01'"
+                  [attr.max]="maxAllowedIsoDate"
                   formControlName="endDate"
                   class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
                 />
+                @if (editForm.hasError('endDateExceedsMaxYear')) {
+                  <p class="mt-1 text-xs font-medium text-rose-600 dark:text-rose-400">
+                    {{ i18n.t().bookForm.dateMaxError.replace('{max}', '' + maxAllowedYear) }}
+                  </p>
+                }
               </div>
             </div>
 

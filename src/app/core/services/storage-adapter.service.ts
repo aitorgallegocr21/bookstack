@@ -7,6 +7,7 @@ import {
   isCatalogSortOption,
   isCatalogViewMode,
 } from '../models/catalog-preferences.model';
+import { ConfirmSuppressionKey, isConfirmSuppressionKey } from '../models/confirm-dialog.model';
 
 @Injectable({
   providedIn: 'root',
@@ -18,6 +19,7 @@ export class StorageAdapterService {
   readonly goalsStorageKey = 'bookstack_reading_goals';
   readonly catalogViewModeKey = 'bookstack_catalog_view_mode';
   readonly catalogSortKey = 'bookstack_catalog_sort';
+  readonly suppressedConfirmsKey = 'bookstack_suppressed_confirms_v1';
 
   private isIndexedDbAvailable(): boolean {
     return typeof indexedDB !== 'undefined';
@@ -366,6 +368,42 @@ export class StorageAdapterService {
 
   setCatalogSort(sort: CatalogSortOption): boolean {
     return this.setItem(this.catalogSortKey, sort);
+  }
+
+  getSuppressedConfirms(): ConfirmSuppressionKey[] {
+    const raw = this.getItem<unknown>(this.suppressedConfirmsKey);
+    if (!Array.isArray(raw)) {
+      return [];
+    }
+
+    const validKeys = raw.filter(isConfirmSuppressionKey);
+    return Array.from(new Set(validKeys));
+  }
+
+  isConfirmSuppressed(key: ConfirmSuppressionKey): boolean {
+    return this.getSuppressedConfirms().includes(key);
+  }
+
+  setConfirmSuppressed(key: ConfirmSuppressionKey, suppressed: boolean): void {
+    const current = this.getSuppressedConfirms();
+    const next = suppressed
+      ? Array.from(new Set([...current, key]))
+      : current.filter((item) => item !== key);
+
+    if (next.length === 0) {
+      this.resetSuppressedConfirms();
+      return;
+    }
+
+    this.setItem(this.suppressedConfirmsKey, next);
+  }
+
+  resetSuppressedConfirms(): void {
+    try {
+      localStorage.removeItem(this.suppressedConfirmsKey);
+    } catch (error) {
+      console.warn('[StorageAdapter] Failed to reset suppressed confirms:', error);
+    }
   }
 
   private getFromLocalStorage<T>(storeName: string, key: string): T | null {

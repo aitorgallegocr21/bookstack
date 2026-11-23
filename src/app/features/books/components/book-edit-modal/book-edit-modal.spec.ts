@@ -1,6 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { Book } from '../../models/book.model';
 import { BookMetadataCandidate } from '../../models/book-metadata.model';
 import { BookMetadataService } from '../../services/book-metadata.service';
@@ -216,5 +217,33 @@ describe('BookEditModalComponent', () => {
       name: 'dune',
       volumeNumber: 3,
     });
+  });
+
+  it('should hard-block 2925 and prompt only when manually changing to an unapproved antique year', async () => {
+    const fixture = TestBed.createComponent(BookEditModalComponent);
+    fixture.componentRef.setInput('bookId', sampleBook.id);
+    const confirmDialogService = TestBed.inject(ConfirmDialogService);
+    const savedSpy = vi.fn<(book: Book) => void>();
+    fixture.componentInstance.saved.subscribe(savedSpy);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const yearInput = root.querySelector('#edit-book-publication-year') as HTMLInputElement;
+
+    yearInput.value = '2925';
+    yearInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(fixture.componentInstance['editForm'].invalid).toBe(true);
+
+    yearInput.value = '1605';
+    yearInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(fixture.componentInstance['editForm'].valid).toBe(true);
+
+    const savePromise = fixture.componentInstance['save']();
+    expect(confirmDialogService.activeDialog()?.suppressibleKey).toBe('manualAntiqueYear');
+    confirmDialogService.accept();
+    await savePromise;
+    expect(savedSpy).toHaveBeenCalledTimes(1);
   });
 });

@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- _No active phase. Next queued milestone: **Phase 16** (see [`docs/ROADMAP.md`](ROADMAP.md) for the full Phases 16–20 specification)._
+_None — Ready for Phase 17 planning via `/grill-me`._
 
 ---
 
@@ -16,7 +16,6 @@
 
 > Full architectural and product specifications for upcoming phases live in [`docs/ROADMAP.md`](ROADMAP.md).
 
-- [ ] **[Phase 16: Data Health, Temporal Bounds Fix (`2925`) & Native Confirmation Dialog Engine](ROADMAP.md#phase-16-data-health-temporal-bounds-fix-2925--native-confirmation-dialog-engine)** — _Planned_ (Fix anomalous year filter bug [`2925`] in `/stats` with strict date bounds [`1900`..`currentYear + 1`], replace all browser `window.confirm()` calls with a custom Signal-driven `<app-confirm-dialog>` for deleting books/logs, unlinking sagas, and overwriting backups with optional suppression for minor prompts, plus a 1-click Library Data Health Auditor).
 - [ ] **[Phase 17: Major Visual Overhaul & Tailwind CSS v4 `@theme` Design System Modernization](ROADMAP.md#phase-17-major-visual-overhaul--tailwind-css-v4-theme-design-system-modernization)** — _Roadmapped_ (Site-wide modern editorial redesign: semantic `@theme` tokens in `src/styles.css`, warmer high-contrast dark mode, selectable brand accent palettes, floating/dock navigation shell redesign, `tabular-nums` typography hierarchy, and premium book/saga cards with realistic depth and micro-interactions).
 - [ ] **[Phase 18: Extended Categorized Settings (`/settings`), Advanced Mode & Privacy/Crypto Hardening](ROADMAP.md#phase-18-extended-categorized-settings-settings-advanced-mode--privacycrypto-hardening)** — _Roadmapped_ (Categorized `/settings` navigation [General, Catalog & Reading Defaults, Data & Backups, Privacy & Security, Advanced], master 100% Offline Mode toggle, granular 5-provider metadata controls, `navigator.storage.persist()` safeguard, Web Crypto `AES-GCM` password-encrypted backups, and advanced compression/reset tuning).
 - [ ] **[Phase 19: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy](ROADMAP.md#phase-19-expanded-analytics-stats-adaptive-timevelocity-engine--tagsgenres-taxonomy)** — _Roadmapped_ (Adaptive time/velocity disclosure hiding `pp/h` and Time tabs when no timed sessions exist, `Book.tags` / genres taxonomy with thematic distribution charts, 365-day reading activity heatmap calendar, book longevity & length distribution metrics, period-over-period deltas, and personal all-time records).
@@ -25,6 +24,8 @@
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 16: Data Health, Temporal Bounds Fix (`2925`) & Native Confirmation Dialog Engine](tasks/phase-16-data-health-and-confirm-dialogs/index.md)** — _Completed 2026-11_ (Centralized temporal bounds `temporal-bounds.utils.ts` [`1900`..`currentYear + 1`], `/stats` `2925` year filter & `all-time` bucket immunity, source-aware antique `publicationYear` handling [silent external metadata vs. manual confirmation prompt], Signal-driven `<app-confirm-dialog>` + `ConfirmDialogService` replacing all `window.confirm()` calls with entity previews & minor-action suppression, and 1-click Library Data Health Auditor [`DataHealthService` + `<app-data-health-section>`] in `/settings`).
 
 - [x] **[Phase 15: Multi-Source Metadata Engine (5 Providers), Integral Auto-Enrichment & Offline `.ZIP` Bundles](tasks/phase-15-multi-source-metadata-and-offline-bundles/index.md)** — _Completed 2026-11_ (5-source browser-native metadata waterfall [`Open Library` + `Google Books` + `Wikidata` + `Apple Books ES` + `Internet Archive / Crossref`], cross-edition metadata fusion & balanced 8-result quota, automatic ISBN $\to$ Title+Author integral enrichment backfilling covers, `totalPages`, `publicationYear`, `publisher`, `isbn`, and `series`, flexible external/AI JSON & CSV import normalizer, and 4-mode offline export/import suite including self-contained `.ZIP` bundles with `/covers` image files).
 

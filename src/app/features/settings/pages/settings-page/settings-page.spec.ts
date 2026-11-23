@@ -84,10 +84,11 @@ describe('SettingsPage', () => {
     fixture.detectChanges();
   });
 
-  it('renders all five settings sections and removes legacy roadmap placeholder', () => {
+  it('renders all six settings sections and removes legacy roadmap placeholder', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('app-settings-preferences-section')).toBeTruthy();
     expect(el.querySelector('app-storage-quota-inspector')).toBeTruthy();
+    expect(el.querySelector('app-data-health-section')).toBeTruthy();
     expect(el.querySelector('app-data-portability-section')).toBeTruthy();
     expect(el.querySelector('app-cover-enrichment-section')).toBeTruthy();
     expect(el.querySelector('app-danger-zone-section')).toBeTruthy();

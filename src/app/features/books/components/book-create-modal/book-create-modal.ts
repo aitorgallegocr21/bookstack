@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { ExistingSeriesOption, SeriesService } from '../../../series/services/series.service';
 import { normalizeSeriesKey } from '../../../series/utils/series.utils';
@@ -27,6 +28,13 @@ import {
   normalizeBookFormat,
   normalizeBookRating,
 } from '../../utils/book-form.utils';
+import {
+  MIN_HISTORICAL_PUBLICATION_YEAR,
+  extractYearFromIsoPrefix,
+  getMaxAllowedIsoDate,
+  getMaxAllowedYear,
+  requiresManualAntiqueYearConfirmation,
+} from '../../utils/temporal-bounds.utils';
 import { BookMetadataLookupComponent } from '../book-metadata-lookup/book-metadata-lookup';
 import { CoverPickerComponent } from '../cover-picker/cover-picker';
 
@@ -46,13 +54,22 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
   protected readonly i18n = inject(I18nService);
   private readonly booksService = inject(BooksService);
   private readonly seriesService = inject(SeriesService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
   private readonly fb = inject(FormBuilder);
 
   readonly closed = output<void>();
   readonly saved = output<Book>();
 
   private readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('titleInput');
+  private readonly publicationYearInput =
+    viewChild<ElementRef<HTMLInputElement>>('publicationYearInput');
+  private readonly startDateInput = viewChild<ElementRef<HTMLInputElement>>('startDateInput');
+  private readonly endDateInput = viewChild<ElementRef<HTMLInputElement>>('endDateInput');
   private readonly metadataLookup = viewChild(BookMetadataLookupComponent);
+
+  protected readonly maxAllowedYear = getMaxAllowedYear();
+  protected readonly maxAllowedIsoDate = getMaxAllowedIsoDate();
+  private readonly providerApprovedYear = signal<number | null>(null);
 
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
@@ -67,7 +84,10 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     author: ['', [Validators.required, Validators.minLength(1)]],
     isbn: [''],
     publisher: [''],
-    publicationYear: [null as number | null],
+    publicationYear: [
+      null as number | null,
+      [Validators.min(MIN_HISTORICAL_PUBLICATION_YEAR), Validators.max(this.maxAllowedYear)],
+    ],
     totalPages: [null as number | null, [Validators.required, Validators.min(1)]],
     currentPage: [0, [Validators.min(0)]],
     totalCharacters: [0, [Validators.min(0)]],
@@ -90,10 +110,19 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     this.createForm.addValidators((control) => {
       const total = Number(control.get('totalPages')?.value) || 0;
       const current = Number(control.get('currentPage')?.value) || 0;
+      const startYear = extractYearFromIsoPrefix(control.get('startDate')?.value);
+      const endYear = extractYearFromIsoPrefix(control.get('endDate')?.value);
+      const errors: Record<string, boolean> = {};
       if (total > 0 && current > total) {
-        return { currentPageExceedsTotal: true };
+        errors['currentPageExceedsTotal'] = true;
       }
-      return null;
+      if (startYear !== null && startYear > this.maxAllowedYear) {
+        errors['startDateExceedsMaxYear'] = true;
+      }
+      if (endYear !== null && endYear > this.maxAllowedYear) {
+        errors['endDateExceedsMaxYear'] = true;
+      }
+      return Object.keys(errors).length > 0 ? errors : null;
     });
 
     effect(() => {
@@ -119,6 +148,9 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
   }
 
   protected handleEscape(): void {
+    if (this.confirmDialogService.activeDialog() !== null) {
+      return;
+    }
     this.cancel();
   }
 
@@ -199,6 +231,9 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     }
 
     this.createForm.patchValue(extendedPatch);
+    if (patch.publicationYear != null) {
+      this.providerApprovedYear.set(Number(patch.publicationYear));
+    }
 
     for (const key of Object.keys(extendedPatch)) {
       const control = this.createForm.get(key);
@@ -227,6 +262,34 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
         endDate,
       })
     );
+
+    const preCheckVal = this.createForm.getRawValue();
+    const pubYear = preCheckVal.publicationYear ? Number(preCheckVal.publicationYear) : null;
+    const antiqueCheck = requiresManualAntiqueYearConfirmation({
+      publicationYear: pubYear,
+      startDate: preCheckVal.startDate || null,
+      endDate: preCheckVal.endDate || null,
+      isFromExternalProvider: pubYear !== null && pubYear === this.providerApprovedYear(),
+    });
+    if (antiqueCheck.required) {
+      const t = this.i18n.t();
+      const confirmed = await this.confirmDialogService.confirm({
+        title: t.bookForm.antiqueYearConfirmTitle,
+        message: t.bookForm.antiqueYearConfirmMessage.replace(
+          '{years}',
+          antiqueCheck.anomalousYears.join(', ')
+        ),
+        confirmLabel: t.bookForm.antiqueYearConfirmAction,
+        cancelLabel: t.bookForm.antiqueYearCancelAction,
+        severity: 'warning',
+        suppressibleKey: 'manualAntiqueYear',
+        suppressCheckboxLabel: t.confirmDialog.dontAskAgainMinor,
+      });
+      if (!confirmed) {
+        this.focusAntiqueYearInput(preCheckVal.startDate, preCheckVal.endDate);
+        return;
+      }
+    }
 
     this.isSaving.set(true);
     const val = this.createForm.getRawValue();
@@ -294,5 +357,19 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     if (event.target === event.currentTarget) {
       this.cancel();
     }
+  }
+
+  private focusAntiqueYearInput(startDate?: string | null, endDate?: string | null): void {
+    const startYear = extractYearFromIsoPrefix(startDate);
+    if (startYear !== null && startYear < 1900) {
+      this.startDateInput()?.nativeElement.focus({ preventScroll: true });
+      return;
+    }
+    const endYear = extractYearFromIsoPrefix(endDate);
+    if (endYear !== null && endYear < 1900) {
+      this.endDateInput()?.nativeElement.focus({ preventScroll: true });
+      return;
+    }
+    this.publicationYearInput()?.nativeElement.focus({ preventScroll: true });
   }
 }

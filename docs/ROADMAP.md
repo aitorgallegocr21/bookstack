@@ -28,11 +28,12 @@ flowchart LR
 
 ### Phase 16: Data Health, Temporal Bounds Fix (`2925`) & Native Confirmation Dialog Engine
 
-- **Status:** Planned (Next Up)
-- **Primary Goal:** Eliminate native browser confirmation dialogs in favor of a cohesive, accessible in-app confirmation system, resolve anomalous date/year filtering bugs (`2925`) across analytics and forms, and provide a 1-click Data Health Auditor.
+- **Status:** Completed ([`docs/tasks/phase-16-data-health-and-confirm-dialogs/index.md`](tasks/phase-16-data-health-and-confirm-dialogs/index.md))
+- **Primary Goal:** Eliminate native browser confirmation dialogs in favor of a cohesive, accessible in-app confirmation system, resolve anomalous date/year filtering bugs (`2925`) across analytics and forms while honoring antique book publication years, and provide a 1-click Data Health Auditor.
 - **Core Deliverables:**
-  1. **Temporal Sanity Bounds & `/stats` Year Filter Fix (`2925` Defect):**
-     - Enforce logical reading date bounds (`1900-01-01` through `currentYear + 1`) across `BookSchema`, `ReadingLogSchema`, `<input type="date">` controls (`min`/`max`), and `DataPortabilityService` import normalizers.
+  1. **Temporal Sanity Bounds, Antique Book Tolerance & `/stats` Year Filter Fix (`2925` Defect):**
+     - Enforce logical personal reading date bounds (`1900-01-01` through `currentYear + 1`) across `BookSchema`, `ReadingLogSchema`, `<input type="date">` controls (`min`/`max`), and `DataPortabilityService` import normalizers, while strictly rejecting impossible future years (`> currentYear + 1` such as `2925`).
+     - **Source-Aware Antique Book Publication Years (`publicationYear`):** Allow classic/antique books that are hundreds of years old (`< 1900`). When `publicationYear` comes from an external metadata provider/database (`Open Library`, `Google Books`, `Wikidata`, `Apple Books`, `Internet Archive / Crossref`) or backup import, accept historical years silently; when entered **manually** by the user (`< 1900`), show a confirmation warning asking the user to verify that the antique year is intentional and not a typo.
      - Harden `AnalyticsService.availableYears()` and the `all-time` multi-year trend bucket generator so out-of-range typo years (e.g., `2925` instead of `2025`) cannot pollute the year selector or spawn hundreds of empty chart buckets.
   2. **In-App Confirmation Dialog Engine (`ConfirmDialogService` & `<app-confirm-dialog>`):**
      - Replace all native `window.confirm()` calls with a Promise-based, Signal-driven modal component styled with BookStack's modal animations, keyboard focus trap, Escape closure, and `UiStateService` reference-counted scroll lock.

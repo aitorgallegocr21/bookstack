@@ -669,5 +669,53 @@ describe('DataPortabilityService', () => {
       expect(result.booksImported).toBe(1);
       expect(result.incompleteMetadataCount).toBe(1); // missing valid ISBN
     });
+
+    it('sanitizes future typo years (e.g. 2925 -> 2025) in JSON and CSV imports', () => {
+      const jsonPayload = JSON.stringify({
+        schemaVersion: 1,
+        app: 'BookStack',
+        exportedAt: '2026-06-15T10:00:00.000Z',
+        books: [
+          {
+            id: 'typo-json-1',
+            title: 'Typo Book',
+            author: 'Test Author',
+            publicationYear: 2925,
+            startDate: '2925-05-01',
+            endDate: '2925-05-10',
+            totalPages: 250,
+            currentPage: 250,
+            status: 'completed',
+          },
+        ],
+        readingLogs: [
+          {
+            id: 'typo-log-1',
+            bookId: 'typo-json-1',
+            date: '2925-05-05',
+            pagesRead: 40,
+            createdAt: '2026-06-15T10:00:00.000Z',
+          },
+        ],
+      });
+
+      const jsonPreview = service.analyzeImportFile('typo-backup.json', jsonPayload);
+      expect(jsonPreview.validBooks).toHaveLength(1);
+      expect(jsonPreview.validBooks[0].publicationYear).toBe(2025);
+      expect(jsonPreview.validBooks[0].startDate).toBe('2025-05-01');
+      expect(jsonPreview.validBooks[0].endDate).toBe('2025-05-10');
+      expect(jsonPreview.validReadingLogs).toHaveLength(1);
+      expect(jsonPreview.validReadingLogs[0].date).toBe('2025-05-05');
+
+      const csvPayload = [
+        'title,author,publicationYear,startDate,endDate,totalPages,currentPage,status',
+        'Typo CSV Book,CSV Author,2925,2925-01-10,2925-01-20,300,300,completed',
+      ].join('\n');
+      const csvPreview = service.analyzeImportFile('typo-catalog.csv', csvPayload);
+      expect(csvPreview.validBooks).toHaveLength(1);
+      expect(csvPreview.validBooks[0].publicationYear).toBe(2025);
+      expect(csvPreview.validBooks[0].startDate).toBe('2025-01-10');
+      expect(csvPreview.validBooks[0].endDate).toBe('2025-01-20');
+    });
   });
 });

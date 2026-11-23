@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import {
   formatLocalizedDate,
@@ -20,6 +21,12 @@ import {
 } from '../../../../core/utils/date-formatter';
 import { ReadingLog } from '../../models/book.model';
 import { ReadingLogService } from '../../services/reading-log.service';
+import {
+  extractYearFromIsoPrefix,
+  getMaxAllowedIsoDate,
+  getMaxAllowedYear,
+  isValidReadingActivityYear,
+} from '../../utils/temporal-bounds.utils';
 
 @Component({
   selector: 'app-reading-log-editor',
@@ -36,6 +43,11 @@ export class ReadingLogEditorComponent implements AfterViewInit, OnDestroy {
   private readonly uiState = inject(UiStateService);
   protected readonly i18n = inject(I18nService);
   private readonly readingLogService = inject(ReadingLogService);
+  private readonly confirmDialogService = inject(ConfirmDialogService);
+
+  protected readonly maxAllowedYear = getMaxAllowedYear();
+  protected readonly maxAllowedDateTime = `${getMaxAllowedIsoDate()}T23:59`;
+  protected readonly dateError = signal<string | null>(null);
 
   readonly bookId = input.required<string>();
   readonly existingLog = input<ReadingLog | undefined>(undefined);
@@ -74,6 +86,9 @@ export class ReadingLogEditorComponent implements AfterViewInit, OnDestroy {
   }
 
   protected handleEscape(event: Event): void {
+    if (this.confirmDialogService.activeDialog() !== null) {
+      return;
+    }
     event.preventDefault();
     this.cancel();
   }
@@ -88,6 +103,16 @@ export class ReadingLogEditorComponent implements AfterViewInit, OnDestroy {
     if (this.isSaving()) {
       return;
     }
+
+    const effectiveDate = this.draft.date || getCurrentLocalDateTime();
+    const parsedYear = extractYearFromIsoPrefix(effectiveDate);
+    if (parsedYear === null || !isValidReadingActivityYear(parsedYear)) {
+      this.dateError.set(
+        this.i18n.t().readingLog.dateInvalidBoundsError.replace('{max}', '' + this.maxAllowedYear)
+      );
+      return;
+    }
+    this.dateError.set(null);
 
     this.isSaving.set(true);
     const now = new Date().toISOString();

@@ -30,6 +30,13 @@ export interface ShellI18n {
     cancel: string;
     close: string;
   };
+  confirmDialog: {
+    confirm: string;
+    cancel: string;
+    delete: string;
+    dontAskAgainMinor: string;
+    entityPreviewFallbackAlt: string;
+  };
 }
 
 export const ES_SHELL: ShellI18n = {
@@ -64,6 +71,13 @@ export const ES_SHELL: ShellI18n = {
     cancel: 'Cancelar',
     close: 'Cerrar',
   },
+  confirmDialog: {
+    confirm: 'Confirmar',
+    cancel: 'Cancelar',
+    delete: 'Eliminar',
+    dontAskAgainMinor: 'No volver a preguntar para esta acción',
+    entityPreviewFallbackAlt: 'Portada del elemento',
+  },
 };
 
 export const EN_SHELL: ShellI18n = {
@@ -97,5 +111,12 @@ export const EN_SHELL: ShellI18n = {
     saving: 'Saving...',
     cancel: 'Cancel',
     close: 'Close',
+  },
+  confirmDialog: {
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    delete: 'Delete',
+    dontAskAgainMinor: 'Do not ask again for this action',
+    entityPreviewFallbackAlt: 'Item cover',
   },
 };

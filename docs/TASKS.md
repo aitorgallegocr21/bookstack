@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- [ ] **[Phase 17B: Performance Stabilization, Route Transitions & Editorial UX Polish (`v2.3.1`)](tasks/phase-17b-performance-stabilization-and-ux-polish/index.md)** — _Active (Documented)_ (Fix `/books` CPU spike & cover-tint flicker via $O(1)$ per-key signals + bounded idle queue + card containment, fix mobile dock left-edge symmetry, add lightweight GPU-composited editorial route transitions, redesign `/settings` Interface Preferences for desktop symmetry & zero overlap, and polish theme-aware hover micro-interactions).
+- _None — ready for Phase 18 planning (`docs/ROADMAP.md`)._
 
 ---
 
@@ -23,6 +23,8 @@
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 17B: Performance Stabilization, Route Transitions & Editorial UX Polish (`v2.3.1`)](tasks/phase-17b-performance-stabilization-and-ux-polish/index.md)** — _Completed 2026-11_ ($O(1)$ per-key `CoverColorService` signals with concurrency-2 idle queue, debounced `localStorage` persistence & `.catalog-card-contain` containment; centered horizontal drag pill on `BottomNavComponent` for 6-control edge symmetry; `withViewTransitions({ skipInitialTransition: true })` with pinned dock `view-transition-name` layers & `prefers-reduced-motion` guard; vertical editorial `/settings` Interface Preferences with 5-column Accent Swatch grid & non-overlapping 4-edge/2-edge dock selectors; and `@media (hover: hover)` GPU-composited hover micro-interactions).
 
 - [x] **[Phase 17: Major Visual Overhaul, 4-Edge Dockable Shell & Adaptive Cover Aesthetics (`v2.3.0`)](tasks/phase-17-visual-overhaul-and-dock-shell/index.md)** — _Completed 2026-11_ (Warm Modern Editorial `@theme` surfaces, zero-overhead editorial serif + `tabular-nums` typography, 5 WCAG AA accent palettes + `system` theme mode, 4-edge dockable desktop shell + unified 2-edge floating mobile dock with magnetic drag-and-snap, official `<app-brand-logo>`, cached `16×16` canvas cover-color adaptive tinting [`--book-tint`] across cards & `BookDetailModal` hero, mobile lookup/scanner layout fix, `/settings` appearance controls, and expanded Playwright E2E suite).
 

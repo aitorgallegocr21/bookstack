@@ -1,7 +1,7 @@
 # Task 17B.5: Editorial Hover Micro-Interactions, Full Verification & Tier 2 Docs Sync (`v2.3.1`)
 
 - **Phase:** 17B — Performance Stabilization, Route Transitions & Editorial UX Polish (`v2.3.1`)
-- **Status:** Pending
+- **Status:** Completed
 - **Goal:** Elevate hover micro-interactions across navigation docks, book/saga cards, dashboard tiles, and interactive buttons with theme-aware GPU-composited polish (`@media (hover: hover)` + reduced-motion guards, zero `transition-all`), run the full verification & Playwright E2E suites, and complete the Tier 2 docs sync (`v2.3.1`) and branch cleanup.
 
 ---
@@ -50,8 +50,8 @@ All hover enhancements MUST strictly use GPU-composited properties (`transform`,
 
 ## 3. Verification & Tier 2 Sync Checklist
 
-- [ ] Verify zero `transition-all` occurrences across `src/` (`rg "transition-all" src/`).
-- [ ] Run `npm run verify:quiet` (all 5 gates: `check`, `lint`, `format`, `test`, `build`).
-- [ ] Run `npm run test:e2e:quiet` (all Playwright E2E specs pass across mobile & desktop viewports).
-- [ ] Complete Tier 2 Documentation Sync (`package.json` `2.3.1`, `docs/TASKS.md`, `CONTEXT.md`, `docs/DESIGN_SYSTEM.md`, `README.md`, `README.es.md`).
-- [ ] Merge `fix/phase-17b-performance-and-ux-polish` into `develop`, push `origin/develop`, and execute Autonomous Branch Hygiene cleanup (delete completed branch locally and on `origin`).
+- [x] Verify zero `transition-all` occurrences across `src/` (`rg "transition-all" src/`).
+- [x] Run `npm run verify:quiet` (all 5 gates: `check`, `lint`, `format`, `test`, `build`).
+- [x] Run `npm run test:e2e:quiet` (all Playwright E2E specs pass across mobile & desktop viewports).
+- [x] Complete Tier 2 Documentation Sync (`package.json` `2.3.1`, `docs/TASKS.md`, `CONTEXT.md`, `docs/DESIGN_SYSTEM.md`, `README.md`, `README.es.md`).
+- [x] Merge `fix/phase-17b-performance-and-ux-polish` into `develop`, push `origin/develop`, and execute Autonomous Branch Hygiene cleanup (delete completed branch locally and on `origin`).

@@ -509,4 +509,72 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
     await expect(page.locator('#create-book-isbn')).toHaveValue('9788401337208');
     await expect(page.locator('app-book-create-modal app-cover-picker img').first()).toBeVisible();
   });
+
+  test('should render metadata lookup and ISBN scanner controls without overlap or horizontal overflow at 320px and 375px', async ({
+    page,
+  }) => {
+    for (const width of [320, 375]) {
+      await page.setViewportSize({ width, height: 740 });
+      await page.goto('/books');
+
+      await page.getByRole('button', { name: 'Crear nuevo libro' }).click();
+      await expect(page.locator('#create-modal-title')).toBeVisible();
+
+      const lookupPanel = page.locator('app-book-metadata-lookup');
+      const scanBtn = lookupPanel.getByRole('button', { name: 'Escanear código', exact: true });
+      const searchTabBtn = lookupPanel.getByRole('button', { name: 'Buscar libro', exact: true });
+      const expandBtn = lookupPanel.getByRole('button', { name: /Expandir panel/i });
+
+      await expect(scanBtn).toBeVisible();
+      await expect(searchTabBtn).toBeVisible();
+      await expect(expandBtn).toBeVisible();
+
+      // Wait for modal entrance scale animation to settle so boundingBox reflects final >= 44px touch height
+      await expect
+        .poll(async () => (await scanBtn.boundingBox())?.height ?? 0)
+        .toBeGreaterThanOrEqual(44);
+
+      const scanBox = await scanBtn.boundingBox();
+      const searchBox = await searchTabBtn.boundingBox();
+      const expandBox = await expandBtn.boundingBox();
+      expect(scanBox).not.toBeNull();
+      expect(searchBox).not.toBeNull();
+      expect(expandBox).not.toBeNull();
+
+      // Buttons must not overlap horizontally and must meet >= 44px touch height
+      expect(scanBox!.height).toBeGreaterThanOrEqual(44);
+      expect(searchBox!.height).toBeGreaterThanOrEqual(44);
+      expect(expandBox!.height).toBeGreaterThanOrEqual(44);
+      expect(scanBox!.x + scanBox!.width).toBeLessThanOrEqual(searchBox!.x + 1);
+      expect(searchBox!.x + searchBox!.width).toBeLessThanOrEqual(expandBox!.x + 1);
+
+      // Expand search tab and verify zero horizontal overflow inside lookup panel & modal
+      await searchTabBtn.click();
+      await expect(lookupPanel.locator('input[type="search"]')).toBeVisible();
+
+      const lookupSearchOverflow = await lookupPanel.evaluate(
+        (el) => el.scrollWidth > el.clientWidth
+      );
+      expect(lookupSearchOverflow).toBe(false);
+
+      const modalSearchOverflow = await page
+        .locator('app-book-create-modal .modal-panel')
+        .evaluate((el) => el.scrollWidth > el.clientWidth);
+      expect(modalSearchOverflow).toBe(false);
+
+      // Switch to scanner tab and verify zero horizontal overflow inside lookup panel & modal
+      await scanBtn.click();
+      await expect(lookupPanel.locator('app-isbn-scanner')).toBeVisible();
+
+      const lookupScannerOverflow = await lookupPanel.evaluate(
+        (el) => el.scrollWidth > el.clientWidth
+      );
+      expect(lookupScannerOverflow).toBe(false);
+
+      const modalScannerOverflow = await page
+        .locator('app-book-create-modal .modal-panel')
+        .evaluate((el) => el.scrollWidth > el.clientWidth);
+      expect(modalScannerOverflow).toBe(false);
+    }
+  });
 });

@@ -3,9 +3,24 @@ import { I18nService } from '../../../../core/i18n/i18n.service';
 import { SupportedLocale } from '../../../../core/i18n/i18n.types';
 import { CONFIRM_SUPPRESSION_KEYS } from '../../../../core/models/confirm-dialog.model';
 import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
-import { ThemeService } from '../../../../core/services/theme.service';
+import { DockPositionService } from '../../../../core/services/dock-position.service';
+import { AccentPalette, ThemeMode, ThemeService } from '../../../../core/services/theme.service';
+import { DockPosition, MobileDockPosition } from '../../../../core/utils/dock-snap.utils';
 import { CatalogViewMode } from '../../../books/models/catalog-filter.model';
 import { CatalogFilterService } from '../../../books/services/catalog-filter.service';
+
+interface AccentSwatchOption {
+  readonly id: AccentPalette;
+  readonly colorHex: string;
+}
+
+const ACCENT_SWATCH_OPTIONS: readonly AccentSwatchOption[] = [
+  { id: 'blue', colorHex: '#2563eb' },
+  { id: 'indigo', colorHex: '#4f46e5' },
+  { id: 'emerald', colorHex: '#059669' },
+  { id: 'amber', colorHex: '#b45309' },
+  { id: 'rose', colorHex: '#be123c' },
+] as const;
 
 @Component({
   selector: 'app-settings-preferences-section',
@@ -19,8 +34,18 @@ import { CatalogFilterService } from '../../../books/services/catalog-filter.ser
 export class SettingsPreferencesSectionComponent {
   protected readonly i18n = inject(I18nService);
   protected readonly themeService = inject(ThemeService);
+  protected readonly dockPositionService = inject(DockPositionService);
   protected readonly catalogFilter = inject(CatalogFilterService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
+
+  protected readonly accentSwatches = ACCENT_SWATCH_OPTIONS;
+  protected readonly desktopDockPositions: readonly DockPosition[] = [
+    'left',
+    'right',
+    'top',
+    'bottom',
+  ];
+  protected readonly mobileDockPositions: readonly MobileDockPosition[] = ['bottom', 'top'];
 
   protected readonly hasSuppressedConfirms = signal<boolean>(this.checkHasSuppressedConfirms());
   protected readonly confirmsResetDone = signal<boolean>(false);
@@ -31,8 +56,35 @@ export class SettingsPreferencesSectionComponent {
     this.i18n.setLocale(nextLocale);
   }
 
-  protected setTheme(theme: 'light' | 'dark'): void {
+  protected setTheme(theme: ThemeMode): void {
     this.themeService.setTheme(theme);
+  }
+
+  protected setAccent(accent: AccentPalette): void {
+    this.themeService.setAccent(accent);
+  }
+
+  protected getAccentLabel(accent: AccentPalette): string {
+    return this.i18n.t().settings.preferences.accents[accent];
+  }
+
+  protected setDesktopDock(position: DockPosition): void {
+    this.dockPositionService.setDesktopPosition(position);
+  }
+
+  protected setMobileDock(position: MobileDockPosition): void {
+    this.dockPositionService.setMobilePosition(position);
+  }
+
+  protected getDockPositionLabel(position: DockPosition): string {
+    const nav = this.i18n.t().nav;
+    const labels: Record<DockPosition, string> = {
+      left: nav.dockLeft,
+      right: nav.dockRight,
+      top: nav.dockTop,
+      bottom: nav.dockBottom,
+    };
+    return labels[position];
   }
 
   protected onViewModeChange(event: Event): void {

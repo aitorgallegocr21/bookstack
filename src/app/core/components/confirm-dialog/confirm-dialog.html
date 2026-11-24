@@ -1,6 +1,6 @@
 @if (confirmDialogService.activeDialog(); as dialog) {
   <div
-    class="modal-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs"
+    class="modal-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-black/55 p-4 backdrop-blur-xs"
     tabindex="-1"
     (click)="onBackdropClick($event)"
     (keydown.escape)="onEscape($event)"
@@ -10,7 +10,7 @@
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
       aria-describedby="confirm-dialog-message"
-      class="modal-panel w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6 dark:border-slate-800 dark:bg-slate-900"
+      class="modal-panel w-full max-w-md rounded-2xl border border-subtle bg-surface p-5 shadow-2xl sm:p-6"
     >
       <div class="flex items-start gap-3.5">
         <div
@@ -20,7 +20,7 @@
               ? 'bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400'
               : dialog.severity === 'warning'
                 ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400'
-                : 'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400'
+                : 'bg-accent-soft text-accent-soft-text'
           "
           aria-hidden="true"
         >
@@ -74,16 +74,10 @@
         </div>
 
         <div class="min-w-0 flex-1">
-          <h2
-            id="confirm-dialog-title"
-            class="text-base leading-snug font-bold text-slate-900 dark:text-slate-100"
-          >
+          <h2 id="confirm-dialog-title" class="text-base leading-snug font-bold text-ink">
             {{ dialog.title }}
           </h2>
-          <p
-            id="confirm-dialog-message"
-            class="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300"
-          >
+          <p id="confirm-dialog-message" class="mt-1.5 text-sm leading-relaxed text-ink-secondary">
             {{ dialog.message }}
           </p>
         </div>
@@ -91,10 +85,10 @@
 
       @if (dialog.entityPreview; as preview) {
         <div
-          class="mt-4 flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/60"
+          class="mt-4 flex items-center gap-3 rounded-xl border border-subtle bg-surface-subtle p-3"
         >
           <div
-            class="flex h-14 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-300"
+            class="flex h-14 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-elevated text-ink-muted"
           >
             @if (preview.coverUrl) {
               <img
@@ -123,17 +117,17 @@
           </div>
 
           <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+            <p class="truncate text-sm font-semibold text-ink">
               {{ preview.title }}
             </p>
             @if (preview.subtitle) {
-              <p class="truncate text-xs text-slate-500 dark:text-slate-400">
+              <p class="truncate text-xs text-ink-muted">
                 {{ preview.subtitle }}
               </p>
             }
             @if (preview.badge) {
               <span
-                class="mt-1 inline-flex items-center rounded-md bg-slate-200/80 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:bg-slate-700 dark:text-slate-200"
+                class="mt-1 inline-flex items-center rounded-md bg-surface-elevated px-2 py-0.5 text-[11px] font-medium text-ink-secondary"
               >
                 {{ preview.badge }}
               </span>
@@ -144,11 +138,11 @@
 
       @if (dialog.suppressibleKey) {
         <label
-          class="mt-4 flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-1 py-1 text-sm text-slate-600 select-none dark:text-slate-300"
+          class="mt-4 flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-1 py-1 text-sm text-ink-secondary select-none"
         >
           <input
             type="checkbox"
-            class="h-4 w-4 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800"
+            class="h-4 w-4 shrink-0 rounded border-strong text-accent focus:ring-2 focus:ring-accent"
             [checked]="confirmDialogService.dontAskAgainChecked()"
             (change)="onDontAskAgainChange($event)"
           />
@@ -162,7 +156,7 @@
         <button
           #cancelButton
           type="button"
-          class="min-h-11 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus:ring-2 focus:ring-slate-400 focus:outline-none sm:w-auto dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          class="min-h-11 w-full rounded-xl border border-strong bg-surface-elevated px-4 py-2.5 text-sm font-semibold text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus:ring-2 focus:ring-accent focus:outline-none sm:w-auto"
           (click)="confirmDialogService.cancel()"
         >
           {{ dialog.cancelLabel || i18n.t().confirmDialog.cancel }}
@@ -177,7 +171,7 @@
               ? 'bg-rose-600 hover:bg-rose-700 focus:ring-rose-500'
               : dialog.severity === 'warning'
                 ? 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500'
-                : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                : 'bg-accent hover:bg-accent-hover focus:ring-accent'
           "
           (click)="confirmDialogService.accept()"
         >

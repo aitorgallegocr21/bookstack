@@ -11,6 +11,7 @@ import {
   LucideStar,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { CoverColorService } from '../../../../core/services/cover-color.service';
 import { BOOK_STATUS_CONFIG, Book } from '../../../books/models/book.model';
 import { SagaAggregation, SeriesPublicationStatus } from '../../models/series.model';
 
@@ -26,6 +27,7 @@ import { SagaAggregation, SeriesPublicationStatus } from '../../models/series.mo
 })
 export class SagaBentoCardComponent {
   protected readonly i18n = inject(I18nService);
+  private readonly coverColorService = inject(CoverColorService);
 
   readonly saga = input.required<SagaAggregation>();
 
@@ -82,6 +84,14 @@ export class SagaBentoCardComponent {
 
   protected readonly compactCovers = computed<Book[]>(() => {
     return this.saga().books.slice(0, 2);
+  });
+
+  protected readonly sagaTint = computed<string>(() => {
+    const firstBook = this.saga().books[0];
+    if (firstBook) {
+      return this.coverColorService.getTint(firstBook);
+    }
+    return this.coverColorService.getFallbackTint(this.saga().name, this.authorLabel());
   });
 
   protected readonly formattedReadingTime = computed<string>(() => {

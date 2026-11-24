@@ -1,16 +1,13 @@
 <section
-  class="space-y-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+  class="space-y-5 rounded-2xl border border-subtle bg-surface p-5 shadow-sm"
   aria-labelledby="settings-storage-heading"
 >
   <div class="flex flex-wrap items-start justify-between gap-3">
     <div>
-      <h2
-        id="settings-storage-heading"
-        class="text-base font-bold text-slate-900 dark:text-slate-100"
-      >
+      <h2 id="settings-storage-heading" class="font-editorial text-base font-bold text-ink">
         {{ i18n.t().settings.storage.sectionTitle }}
       </h2>
-      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+      <p class="mt-1 text-sm text-ink-secondary">
         {{ i18n.t().settings.storage.sectionDescription }}
       </p>
     </div>
@@ -18,7 +15,7 @@
     <button
       type="button"
       data-testid="storage-refresh-btn"
-      class="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+      class="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-strong bg-surface-elevated px-3.5 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
       (click)="refreshRequested.emit()"
     >
       {{ i18n.t().settings.storage.refreshAction }}
@@ -27,20 +24,20 @@
 
   <!-- Header Status Row -->
   <div
-    class="flex flex-wrap items-center gap-2.5 rounded-xl border border-slate-100 bg-slate-50/70 p-3.5 dark:border-slate-800 dark:bg-slate-800/50"
+    class="flex flex-wrap items-center gap-2.5 rounded-xl border border-subtle bg-surface-subtle/60 p-3.5"
   >
     <div class="flex items-center gap-1.5 text-sm">
-      <span class="font-medium text-slate-600 dark:text-slate-400">
+      <span class="font-medium text-ink-secondary">
         {{ i18n.t().settings.storage.totalUsedLabel }}:
       </span>
-      <span data-testid="storage-total-used" class="font-bold text-slate-900 dark:text-slate-100">
+      <span data-testid="storage-total-used" class="font-bold text-ink tabular-nums">
         {{ formatBytes(breakdown().totalBookstackBytes) }}
       </span>
     </div>
 
     <span
       data-testid="storage-engine-badge"
-      class="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+      class="inline-flex items-center rounded-full border border-subtle bg-surface-elevated px-2.5 py-0.5 text-xs font-semibold text-ink-secondary"
     >
       {{ i18n.t().settings.storage.engineLabel }}: {{ engineLabel() }}
     </span>
@@ -53,12 +50,9 @@
       {{ healthLabel() }}
     </span>
 
-    <div class="ml-auto flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+    <div class="ml-auto flex items-center gap-1.5 text-xs text-ink-secondary">
       <span>{{ i18n.t().settings.storage.browserQuotaLabel }}:</span>
-      <span
-        data-testid="storage-browser-quota"
-        class="font-semibold text-slate-800 dark:text-slate-200"
-      >
+      <span data-testid="storage-browser-quota" class="font-semibold text-ink tabular-nums">
         {{ browserQuotaText() }}
       </span>
     </div>
@@ -66,7 +60,7 @@
 
   <!-- Segmented Horizontal Bar -->
   <div
-    class="flex h-3 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+    class="flex h-3 w-full overflow-hidden rounded-full bg-surface-subtle"
     role="img"
     [attr.aria-label]="i18n.t().settings.storage.sectionTitle"
   >
@@ -85,27 +79,27 @@
     @for (category of categories(); track category.id) {
       <div
         [attr.data-testid]="'storage-card-' + category.id"
-        class="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3.5 dark:border-slate-800 dark:bg-slate-900/70"
+        class="flex items-center justify-between gap-3 rounded-xl border border-subtle bg-surface-elevated p-3.5"
       >
         <div class="flex min-w-0 items-center gap-2.5">
           <span class="h-2.5 w-2.5 shrink-0 rounded-full" [class]="category.dotClass"></span>
           <div class="min-w-0">
-            <p class="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+            <p class="truncate text-sm font-semibold text-ink">
               {{ category.label }}
             </p>
             @if (category.countText) {
-              <p class="text-xs text-slate-500 dark:text-slate-400">
+              <p class="text-xs text-ink-secondary tabular-nums">
                 {{ category.countText }}
               </p>
             }
           </div>
         </div>
 
-        <div class="shrink-0 text-right">
-          <p class="text-sm font-bold text-slate-900 dark:text-slate-100">
+        <div class="shrink-0 text-right tabular-nums">
+          <p class="text-sm font-bold text-ink">
             {{ category.formattedBytes }}
           </p>
-          <p class="text-xs text-slate-500 dark:text-slate-400">
+          <p class="text-xs text-ink-secondary">
             {{ formatPercent(category.percentage) }}
           </p>
         </div>

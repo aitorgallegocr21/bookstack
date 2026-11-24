@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { StorageAdapterService } from '../../../../core/services/storage-adapter.service';
 import { I18nService } from '../../../../core/i18n/i18n.service';
-import { ThemeService } from '../../../../core/services/theme.service';
+import { DockPositionService } from '../../../../core/services/dock-position.service';
+import { StorageAdapterService } from '../../../../core/services/storage-adapter.service';
+import { ACCENT_PALETTES, ThemeService } from '../../../../core/services/theme.service';
 import { CatalogFilterService } from '../../../books/services/catalog-filter.service';
 import { SettingsPreferencesSectionComponent } from './settings-preferences-section';
 
@@ -149,5 +150,59 @@ describe('SettingsPreferencesSectionComponent', () => {
 
     expect(storage.getSuppressedConfirms()).toEqual([]);
     expect(host.querySelector('[data-testid="reset-suppressed-confirms-btn"]')).toBeNull();
+  });
+
+  it('should switch theme mode to system and update accent palette via ThemeService', () => {
+    const fixture = TestBed.createComponent(SettingsPreferencesSectionComponent);
+    const themeService = TestBed.inject(ThemeService);
+    themeService.setTheme('dark');
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const systemBtn = host.querySelector('[data-testid="theme-system-btn"]') as HTMLButtonElement;
+    expect(systemBtn).not.toBeNull();
+
+    systemBtn.click();
+    fixture.detectChanges();
+    expect(themeService.themeMode()).toBe('system');
+    expect(systemBtn.getAttribute('aria-pressed')).toBe('true');
+
+    for (const palette of ACCENT_PALETTES) {
+      const swatchBtn = host.querySelector(
+        `[data-testid="accent-swatch-${palette}"]`
+      ) as HTMLButtonElement;
+      expect(swatchBtn).not.toBeNull();
+      swatchBtn.click();
+      fixture.detectChanges();
+      expect(themeService.accent()).toBe(palette);
+      expect(swatchBtn.getAttribute('aria-pressed')).toBe('true');
+      expect(document.documentElement.getAttribute('data-accent')).toBe(palette);
+    }
+  });
+
+  it('should update desktop and mobile dock positions via DockPositionService', () => {
+    const fixture = TestBed.createComponent(SettingsPreferencesSectionComponent);
+    const dockService = TestBed.inject(DockPositionService);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+
+    for (const pos of ['right', 'top', 'bottom', 'left'] as const) {
+      const btn = host.querySelector(`[data-testid="dock-desktop-${pos}"]`) as HTMLButtonElement;
+      expect(btn).not.toBeNull();
+      btn.click();
+      fixture.detectChanges();
+      expect(dockService.desktopPosition()).toBe(pos);
+      expect(btn.getAttribute('aria-pressed')).toBe('true');
+    }
+
+    for (const pos of ['top', 'bottom'] as const) {
+      const btn = host.querySelector(`[data-testid="dock-mobile-${pos}"]`) as HTMLButtonElement;
+      expect(btn).not.toBeNull();
+      btn.click();
+      fixture.detectChanges();
+      expect(dockService.mobilePosition()).toBe(pos);
+      expect(btn.getAttribute('aria-pressed')).toBe('true');
+    }
   });
 });

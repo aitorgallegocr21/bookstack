@@ -13,9 +13,10 @@
 ## 2. Technology Stack & Architectural Decision Records (ADR)
 
 1. **Signal-First State (`Angular 22+`):** Standalone `OnPush` components, native `@if`/`@for`/`@defer`, lazy routes (`loadComponent`), and Signals (`signal`, `computed`, `effect`). RxJS subscriptions are forbidden for local state.
-2. **Asymmetric Responsive Shell (`Tailwind CSS v4`):**
-   - Tablet & Desktop ($\ge 768\text{px}$): Collapsible `SidebarComponent` (`hidden md:flex`, `68px` $\leftrightarrow$ `240px`) persisted via `UiStateService`.
-   - Mobile ($< 768\text{px}$): Compact `HeaderComponent` + fixed `BottomNavComponent` (`env(safe-area-inset-bottom)`).
+2. **Asymmetric 4-Edge & 2-Edge Dockable Shell (`Tailwind CSS v4` `@theme`):**
+   - Tablet & Desktop ($\ge 768\text{px}$): 4-edge dockable `SidebarComponent` (`hidden md:flex`, `left`/`right` collapsible `68px` $\leftrightarrow$ `240px`, or `top`/`bottom` floating horizontal bar) persisted via `DockPositionService` & `UiStateService`, with magnetic quadrant drag-and-snap (`dock-snap.utils.ts`) and quick-dock popover.
+   - Mobile ($< 768\text{px}$): Unified floating translucent `BottomNavComponent` movable between `bottom` (default) and `top` (`env(safe-area-inset-*)`), housing the 4 primary routes, central `+` Add Book CTA, and `<app-brand-logo>` overflow menu.
+   - **Warm Modern Editorial Surfaces & Adaptive Cover Tinting:** Semantic `@theme` tokens in `src/styles.css` with 5 WCAG AA `[data-accent]` palettes (`blue`, `indigo`, `emerald`, `amber`, `rose`), `light`/`dark`/`system` theme mode (`ThemeService`), and `CoverColorService` (`16×16` canvas extraction + LRU cache + deterministic fallback) driving `--book-tint` ambient washes on cards and `BookDetailModal` hero.
    - **Container-Aware Grids & Toolbars (`@container`):** Dashboard split, catalog grids/card actions, and unified filter toolbars adapt to actual container width (accounting for sidebar expand/collapse at ~1000px), paired with `.no-scrollbar` + `.modal-scroll-area` scroll cues on modal bodies.
 3. **Rendering & Bundle Efficiency:** Discrete CSS transitions (`transition-colors`, `transition-[width]`, `transition-[grid-template-rows]`); `transition-all` is banned. Global `BookCreateModalComponent` loads via `@defer`. Cover images use `decoding="async" loading="lazy"`. Shared modal/form primitives reside in `src/styles.css`.
 4. **Client-Side Canvas Cover Optimization:** `ImageOptimizerService` scales and compresses uploaded covers ($\le 400\text{px}$, quality `0.75`, WebP/JPEG fallback) before persistence.
@@ -38,9 +39,9 @@ src/
 ├── styles.css                                 # Tailwind CSS v4 entry, dark variant & shared modal/form styles
 └── app/
     ├── app.config.ts / app.routes.ts          # Root config & lazy routes (/, /books, /series, /stats, /settings, /about)
-    ├── app.ts / app.html / app.spec.ts        # Root shell (<app-sidebar>, <app-header>, <main>, <app-bottom-nav>, @defer modal)
+    ├── app.ts / app.html / app.spec.ts        # Root shell (<app-sidebar>, <main>, <app-bottom-nav>, snap preview, @defer modal)
     ├── core/
-    │   ├── components/{sidebar,header,bottom-nav,confirm-dialog}/  # Asymmetric shell & global <app-confirm-dialog>
+    │   ├── components/{sidebar,bottom-nav,brand-logo,confirm-dialog}/  # 4-edge desktop dock, 2-edge mobile dock, brand logo & <app-confirm-dialog>
     │   ├── i18n/                              # i18n.types.ts (L1-18), es.ts (L1-18), en.ts (L1-18), i18n.service.ts (L1-49)
     │   │   └── domains/                       # shell, dashboard, books, analytics, series, settings, about
     │   ├── models/
@@ -48,11 +49,14 @@ src/
     │   │   └── confirm-dialog.model.ts        # ConfirmDialogOptions, ConfirmEntityPreview & ConfirmSuppressionKey
     │   ├── services/
     │   │   ├── confirm-dialog.service.ts      # Promise-based Signal confirmation dialog & suppression preferences
+    │   │   ├── cover-color.service.ts         # 16x16 canvas cover hue extraction + LRU cache & O(1) fallback
+    │   │   ├── dock-position.service.ts       # 4-edge desktop & 2-edge mobile dock position + drag preview signals
     │   │   ├── storage-adapter.service.ts     # L1-361: IndexedDB + LocalStorage fallback + catalog/confirm prefs
-    │   │   ├── theme.service.ts               # L1-83: Light/dark theme signal & persistence
+    │   │   ├── theme.service.ts               # Light/dark/system theme mode & 5 accent palettes persistence
     │   │   └── ui-state.service.ts            # L1-66: Sidebar collapse, create modal state/prefill & scroll lock
     │   └── utils/
     │       ├── date-formatter.ts              # Locale-aware Intl date & month formatters
+    │       ├── dock-snap.utils.ts             # Quadrant snap-edge detection & preview rect calculation
     │       └── temporal-bounds.utils.ts       # Temporal bounds (1900..currentYear+1), antique year check & typo repair
     ├── shared/
     │   └── utils/book-display.utils.ts        # Shared getStatusBadgeClass & formatRatingBadge helpers

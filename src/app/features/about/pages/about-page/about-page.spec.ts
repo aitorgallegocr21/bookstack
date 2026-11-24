@@ -63,4 +63,13 @@ describe('AboutPage', () => {
       expect(anchor?.getAttribute('rel')).toBe('noopener noreferrer');
     }
   });
+
+  it('should render the official BrandLogoComponent in the hero header', () => {
+    const fixture = TestBed.createComponent(AboutPage);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const brandLogo = root.querySelector('header app-brand-logo svg');
+    expect(brandLogo).not.toBeNull();
+  });
 });

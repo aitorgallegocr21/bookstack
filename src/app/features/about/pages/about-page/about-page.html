@@ -1,27 +1,30 @@
 <div class="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
   <!-- Compact Hero Header -->
   <header
-    class="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-slate-50 to-blue-50/60 p-6 shadow-sm dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/30"
+    class="rounded-2xl border border-subtle bg-surface p-6 shadow-sm"
+    style="
+      background-image: linear-gradient(
+        135deg,
+        var(--surface-elevated) 0%,
+        var(--surface-card) 58%,
+        var(--accent-soft) 100%
+      );
+    "
   >
-    <div class="flex flex-wrap items-center gap-3">
-      <span
-        class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm"
-        aria-hidden="true"
-      >
-        <svg [lucideIcon]="BookOpen" size="20" stroke-width="2"></svg>
-      </span>
+    <div class="flex flex-wrap items-center gap-3.5">
+      <app-brand-logo [size]="44" />
       <div class="min-w-0 flex-1">
         <div class="flex flex-wrap items-center gap-2.5">
-          <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+          <h1 class="font-editorial text-2xl font-bold tracking-tight text-ink sm:text-3xl">
             {{ i18n.t().about.title }}
           </h1>
           <span
-            class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:border-blue-800/80 dark:bg-blue-950/60 dark:text-blue-300"
+            class="inline-flex items-center rounded-full border border-accent-border bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent-soft-text tabular-nums"
           >
             {{ appVersion }}
           </span>
         </div>
-        <p class="mt-1 text-sm text-slate-600 sm:text-base dark:text-slate-400">
+        <p class="mt-1 text-sm text-ink-secondary sm:text-base">
           {{ i18n.t().about.subtitle }}
         </p>
       </div>
@@ -30,7 +33,7 @@
     <div class="mt-4 flex flex-wrap gap-2">
       @for (pill of techPills; track pill) {
         <span
-          class="inline-flex items-center rounded-lg border border-slate-200 bg-white/80 px-2.5 py-1 text-xs font-medium text-slate-700 dark:border-slate-700/80 dark:bg-slate-800/70 dark:text-slate-300"
+          class="inline-flex items-center rounded-lg border border-subtle bg-surface-elevated px-2.5 py-1 text-xs font-medium text-ink-secondary"
         >
           {{ pill }}
         </span>
@@ -41,69 +44,55 @@
   <!-- 2-Column Bento Grid: Local-First Manifesto & Privacy -->
   <section class="grid grid-cols-1 gap-4 md:grid-cols-2">
     <!-- Local-First Manifesto -->
-    <article
-      class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/70"
-    >
+    <article class="rounded-2xl border border-subtle bg-surface p-5 shadow-sm">
       <div class="mb-3 flex items-center gap-2.5">
         <span
-          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400"
+          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent-soft text-accent-soft-text"
           aria-hidden="true"
         >
           <svg [lucideIcon]="Database" size="18" stroke-width="2"></svg>
         </span>
-        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+        <h2 class="font-editorial text-lg font-semibold text-ink">
           {{ i18n.t().about.manifestoTitle }}
         </h2>
       </div>
-      <p class="mb-3 text-sm text-slate-600 dark:text-slate-400">
+      <p class="mb-3 text-sm text-ink-secondary">
         {{ i18n.t().about.manifestoIntroPrefix }}
-        <strong class="text-slate-800 dark:text-slate-200">{{
-          i18n.t().about.manifestoIntroStrong
-        }}</strong>
+        <strong class="text-ink">{{ i18n.t().about.manifestoIntroStrong }}</strong>
       </p>
-      <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+      <ul class="space-y-2 text-sm text-ink-secondary">
         <li class="flex gap-2">
-          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></span>
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
           <span>
-            <strong class="text-slate-800 dark:text-slate-200">{{
-              i18n.t().about.manifestoPoints.localDataTitle
-            }}</strong>
+            <strong class="text-ink">{{ i18n.t().about.manifestoPoints.localDataTitle }}</strong>
             {{ i18n.t().about.manifestoPoints.localDataText }}
           </span>
         </li>
         <li class="flex gap-2">
-          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></span>
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
           <span>
-            <strong class="text-slate-800 dark:text-slate-200">{{
-              i18n.t().about.manifestoPoints.privacyTitle
-            }}</strong>
+            <strong class="text-ink">{{ i18n.t().about.manifestoPoints.privacyTitle }}</strong>
             {{ i18n.t().about.manifestoPoints.privacyText }}
           </span>
         </li>
         <li class="flex gap-2">
-          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></span>
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
           <span>
-            <strong class="text-slate-800 dark:text-slate-200">{{
-              i18n.t().about.manifestoPoints.performanceTitle
-            }}</strong>
+            <strong class="text-ink">{{ i18n.t().about.manifestoPoints.performanceTitle }}</strong>
             {{ i18n.t().about.manifestoPoints.performanceText }}
           </span>
         </li>
         <li class="flex gap-2">
-          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></span>
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
           <span>
-            <strong class="text-slate-800 dark:text-slate-200">{{
-              i18n.t().about.manifestoPoints.independenceTitle
-            }}</strong>
+            <strong class="text-ink">{{ i18n.t().about.manifestoPoints.independenceTitle }}</strong>
             {{ i18n.t().about.manifestoPoints.independenceText }}
           </span>
         </li>
         <li class="flex gap-2">
-          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></span>
+          <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
           <span>
-            <strong class="text-slate-800 dark:text-slate-200">{{
-              i18n.t().about.manifestoPoints.portabilityTitle
-            }}</strong>
+            <strong class="text-ink">{{ i18n.t().about.manifestoPoints.portabilityTitle }}</strong>
             {{ i18n.t().about.manifestoPoints.portabilityText }}
           </span>
         </li>
@@ -111,48 +100,40 @@
     </article>
 
     <!-- Privacy & Device Permissions -->
-    <article
-      class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/70"
-    >
+    <article class="rounded-2xl border border-subtle bg-surface p-5 shadow-sm">
       <div class="mb-3 flex items-center gap-2.5">
         <span
-          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400"
+          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/12 text-emerald-700 dark:text-emerald-300"
           aria-hidden="true"
         >
           <svg [lucideIcon]="ShieldCheck" size="18" stroke-width="2"></svg>
         </span>
-        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+        <h2 class="font-editorial text-lg font-semibold text-ink">
           {{ i18n.t().about.privacyTitle }}
         </h2>
       </div>
-      <p class="mb-3 text-sm text-slate-600 dark:text-slate-400">
+      <p class="mb-3 text-sm text-ink-secondary">
         {{ i18n.t().about.privacyIntro }}
       </p>
-      <ul class="space-y-2.5 text-sm text-slate-600 dark:text-slate-400">
+      <ul class="space-y-2.5 text-sm text-ink-secondary">
         <li class="flex gap-2">
           <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
           <span>
-            <strong class="text-slate-800 dark:text-slate-200">{{
-              i18n.t().about.privacyItems.localStorageTitle
-            }}</strong>
+            <strong class="text-ink">{{ i18n.t().about.privacyItems.localStorageTitle }}</strong>
             {{ i18n.t().about.privacyItems.localStorageText }}
           </span>
         </li>
         <li class="flex gap-2">
           <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
           <span>
-            <strong class="text-slate-800 dark:text-slate-200">{{
-              i18n.t().about.privacyItems.externalLookupTitle
-            }}</strong>
+            <strong class="text-ink">{{ i18n.t().about.privacyItems.externalLookupTitle }}</strong>
             {{ i18n.t().about.privacyItems.externalLookupText }}
           </span>
         </li>
         <li class="flex gap-2">
           <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
           <span>
-            <strong class="text-slate-800 dark:text-slate-200">{{
-              i18n.t().about.privacyItems.cameraAccessTitle
-            }}</strong>
+            <strong class="text-ink">{{ i18n.t().about.privacyItems.cameraAccessTitle }}</strong>
             {{ i18n.t().about.privacyItems.cameraAccessText }}
           </span>
         </li>
@@ -163,21 +144,19 @@
   <!-- Compact Features & Legal / Attributions -->
   <section class="grid grid-cols-1 gap-4 md:grid-cols-5">
     <!-- Core Features -->
-    <article
-      class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm md:col-span-2 dark:border-slate-800 dark:bg-slate-900/70"
-    >
+    <article class="rounded-2xl border border-subtle bg-surface p-5 shadow-sm md:col-span-2">
       <div class="mb-3 flex items-center gap-2.5">
         <span
-          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400"
+          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/12 text-amber-700 dark:text-amber-300"
           aria-hidden="true"
         >
           <svg [lucideIcon]="Sparkles" size="18" stroke-width="2"></svg>
         </span>
-        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+        <h2 class="font-editorial text-lg font-semibold text-ink">
           {{ i18n.t().about.featuresTitle }}
         </h2>
       </div>
-      <ul class="space-y-1.5 text-sm text-slate-600 dark:text-slate-400">
+      <ul class="space-y-1.5 text-sm text-ink-secondary">
         <li class="flex items-start gap-2">
           <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500"></span>
           <span>{{ i18n.t().about.features.catalog }}</span>
@@ -206,31 +185,28 @@
     </article>
 
     <!-- Legal Notice, License & Attributions -->
-    <details
-      open
-      class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm md:col-span-3 dark:border-slate-800 dark:bg-slate-900/70"
-    >
+    <details open class="rounded-2xl border border-subtle bg-surface p-5 shadow-sm md:col-span-3">
       <summary class="flex cursor-pointer list-none items-center gap-2.5 select-none">
         <span
-          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+          class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-surface-subtle text-ink-secondary"
           aria-hidden="true"
         >
           <svg [lucideIcon]="Scale" size="18" stroke-width="2"></svg>
         </span>
-        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">
+        <h2 class="font-editorial text-lg font-semibold text-ink">
           {{ i18n.t().about.legalTitle }}
         </h2>
       </summary>
-      <div class="mt-3 space-y-3 text-sm text-slate-600 dark:text-slate-400">
+      <div class="mt-3 space-y-3 text-sm text-ink-secondary">
         <div>
-          <h3 class="font-semibold text-slate-900 dark:text-white">
+          <h3 class="font-semibold text-ink">
             {{ i18n.t().about.licenseHeading }}
           </h3>
           <p class="mt-1">{{ i18n.t().about.licenseSummary }}</p>
           <p class="mt-1">{{ i18n.t().about.warrantyNotice }}</p>
         </div>
-        <div class="border-t border-slate-200 pt-3 dark:border-slate-800">
-          <h3 class="font-semibold text-slate-900 dark:text-white">
+        <div class="border-t border-subtle pt-3">
+          <h3 class="font-semibold text-ink">
             {{ i18n.t().about.attributionsHeading }}
           </h3>
           <p class="mt-1">{{ i18n.t().about.attributionsText }}</p>
@@ -241,28 +217,32 @@
 
   <!-- Personal Author Profile Card -->
   <article
-    class="relative overflow-hidden rounded-2xl border border-blue-200/80 bg-gradient-to-br from-blue-50/80 via-white to-indigo-50/70 p-6 shadow-sm dark:border-blue-900/60 dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/40"
+    class="relative overflow-hidden rounded-2xl border border-accent-border bg-surface p-6 shadow-sm"
+    style="
+      background-image: linear-gradient(
+        135deg,
+        var(--accent-soft) 0%,
+        var(--surface-card) 55%,
+        var(--surface-elevated) 100%
+      );
+    "
   >
     <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex items-center gap-4">
         <div
-          class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-lg font-bold tracking-tight text-white shadow-md"
+          class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent text-lg font-bold tracking-tight text-white shadow-md"
           aria-hidden="true"
         >
           AG
         </div>
         <div class="min-w-0">
-          <p
-            class="text-xs font-semibold tracking-wider text-blue-600 uppercase dark:text-blue-400"
-          >
+          <p class="text-xs font-semibold tracking-wider text-accent-soft-text uppercase">
             {{ i18n.t().about.authorshipTitle }}
           </p>
-          <h2 class="mt-0.5 text-lg font-bold text-slate-900 sm:text-xl dark:text-white">
+          <h2 class="mt-0.5 font-editorial text-lg font-bold text-ink sm:text-xl">
             Aitor Gallego-Casilda Romero
           </h2>
-          <p class="mt-1 text-sm text-slate-600 italic dark:text-slate-300">
-            "{{ i18n.t().about.authorMotto }}"
-          </p>
+          <p class="mt-1 text-sm text-ink-secondary italic">"{{ i18n.t().about.authorMotto }}"</p>
         </div>
       </div>
     </div>
@@ -272,7 +252,7 @@
         href="https://github.com/aitorgallegocr21"
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:bg-slate-700"
+        class="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-strong bg-surface-elevated px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         [attr.aria-label]="i18n.t().about.githubProfileAria"
       >
         <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -287,7 +267,7 @@
         href="https://aitorgallegocr21.github.io/personal-website/"
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:bg-slate-700"
+        class="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-strong bg-surface-elevated px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         [attr.aria-label]="i18n.t().about.personalWebsiteAria"
       >
         <svg [lucideIcon]="Globe" size="16" stroke-width="2" aria-hidden="true"></svg>
@@ -298,7 +278,7 @@
         href="https://www.instagram.com/aitorgallegoo_cr/"
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:bg-slate-700"
+        class="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-strong bg-surface-elevated px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         [attr.aria-label]="i18n.t().about.instagramAria"
       >
         <svg
@@ -322,7 +302,7 @@
         href="https://github.com/aitorgallegocr21/bookstack"
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+        class="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         [attr.aria-label]="i18n.t().about.githubRepoAria"
       >
         <svg [lucideIcon]="Code2" size="16" stroke-width="2" aria-hidden="true"></svg>
@@ -333,8 +313,8 @@
   </article>
 
   <!-- Footer -->
-  <footer class="border-t border-slate-200 pt-5 dark:border-slate-800">
-    <p class="text-center text-sm text-slate-500 dark:text-slate-400">
+  <footer class="border-t border-subtle pt-5">
+    <p class="text-center text-sm text-ink-muted">
       {{ i18n.t().about.footerTagline }}
     </p>
   </footer>

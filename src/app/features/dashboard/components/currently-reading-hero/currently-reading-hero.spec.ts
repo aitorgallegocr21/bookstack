@@ -245,15 +245,15 @@ describe('CurrentlyReadingHeroComponent', () => {
     expect(selectSpy).toHaveBeenCalledWith(parallelBook);
   });
 
-  it('should use valid dark hover contrast classes on the detailed reading log button', () => {
+  it('should use valid semantic surface hover contrast classes on the detailed reading log button', () => {
     fixture.componentRef.setInput('totalBooksCount', 3);
     fixture.componentRef.setInput('activeBook', sampleBook);
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
     const detailBtn = root.querySelector('button') as HTMLButtonElement;
-    expect(detailBtn.className).toContain('dark:hover:bg-slate-700');
-    expect(detailBtn.className).toContain('dark:hover:text-white');
+    expect(detailBtn.className).toContain('hover:bg-surface-subtle');
+    expect(detailBtn.className).toContain('text-ink');
     expect(detailBtn.className).not.toContain('dark:hover:bg-slate-750');
   });
 

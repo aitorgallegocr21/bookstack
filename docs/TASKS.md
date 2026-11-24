@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-_None — Ready for Phase 17 planning via `/grill-me`._
+_None — Ready for Phase 18 planning via `/grill-me`._
 
 ---
 
@@ -16,7 +16,6 @@ _None — Ready for Phase 17 planning via `/grill-me`._
 
 > Full architectural and product specifications for upcoming phases live in [`docs/ROADMAP.md`](ROADMAP.md).
 
-- [ ] **[Phase 17: Major Visual Overhaul & Tailwind CSS v4 `@theme` Design System Modernization](ROADMAP.md#phase-17-major-visual-overhaul--tailwind-css-v4-theme-design-system-modernization)** — _Roadmapped_ (Site-wide modern editorial redesign: semantic `@theme` tokens in `src/styles.css`, warmer high-contrast dark mode, selectable brand accent palettes, floating/dock navigation shell redesign, `tabular-nums` typography hierarchy, and premium book/saga cards with realistic depth and micro-interactions).
 - [ ] **[Phase 18: Extended Categorized Settings (`/settings`), Advanced Mode & Privacy/Crypto Hardening](ROADMAP.md#phase-18-extended-categorized-settings-settings-advanced-mode--privacycrypto-hardening)** — _Roadmapped_ (Categorized `/settings` navigation [General, Catalog & Reading Defaults, Data & Backups, Privacy & Security, Advanced], master 100% Offline Mode toggle, granular 5-provider metadata controls, `navigator.storage.persist()` safeguard, Web Crypto `AES-GCM` password-encrypted backups, and advanced compression/reset tuning).
 - [ ] **[Phase 19: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy](ROADMAP.md#phase-19-expanded-analytics-stats-adaptive-timevelocity-engine--tagsgenres-taxonomy)** — _Roadmapped_ (Adaptive time/velocity disclosure hiding `pp/h` and Time tabs when no timed sessions exist, `Book.tags` / genres taxonomy with thematic distribution charts, 365-day reading activity heatmap calendar, book longevity & length distribution metrics, period-over-period deltas, and personal all-time records).
 - [ ] **[Phase 20: Integrated eBook Reader (`/reader/:id`) & Binary Metadata Extractor](ROADMAP.md#phase-20-long-term-milestone-integrated-ebook-reader-readerid--binary-metadata-extractor)** — _Long-Term Milestone_ (Isolated IndexedDB `ebookFiles` binary store for `.EPUB`/`.PDF` uploads, 100% browser-native metadata/cover/TOC extraction, lazy-loaded `/reader/:id` view with customizable typography/themes/bookmarks, automatic `currentPage` & timed `ReadingLog` session tracking, and eBook quota manager in `/settings`).
@@ -24,6 +23,8 @@ _None — Ready for Phase 17 planning via `/grill-me`._
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 17: Major Visual Overhaul, 4-Edge Dockable Shell & Adaptive Cover Aesthetics (`v2.3.0`)](tasks/phase-17-visual-overhaul-and-dock-shell/index.md)** — _Completed 2026-11_ (Warm Modern Editorial `@theme` surfaces, zero-overhead editorial serif + `tabular-nums` typography, 5 WCAG AA accent palettes + `system` theme mode, 4-edge dockable desktop shell + unified 2-edge floating mobile dock with magnetic drag-and-snap, official `<app-brand-logo>`, cached `16×16` canvas cover-color adaptive tinting [`--book-tint`] across cards & `BookDetailModal` hero, mobile lookup/scanner layout fix, `/settings` appearance controls, and expanded Playwright E2E suite).
 
 - [x] **[Phase 16: Data Health, Temporal Bounds Fix (`2925`) & Native Confirmation Dialog Engine](tasks/phase-16-data-health-and-confirm-dialogs/index.md)** — _Completed 2026-11_ (Centralized temporal bounds `temporal-bounds.utils.ts` [`1900`..`currentYear + 1`], `/stats` `2925` year filter & `all-time` bucket immunity, source-aware antique `publicationYear` handling [silent external metadata vs. manual confirmation prompt], Signal-driven `<app-confirm-dialog>` + `ConfirmDialogService` replacing all `window.confirm()` calls with entity previews & minor-action suppression, and 1-click Library Data Health Auditor [`DataHealthService` + `<app-data-health-section>`] in `/settings`).
 

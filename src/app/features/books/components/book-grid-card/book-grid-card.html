@@ -1,10 +1,11 @@
 <article
-  class="group @container relative flex h-full min-w-0 flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-2.5 shadow-2xs transition-transform duration-200 hover:-translate-y-1 hover:shadow-md sm:p-3 dark:border-slate-800 dark:bg-slate-900"
+  [style.--book-tint]="bookTint()"
+  class="group book-tint-card card-lift @container relative flex h-full min-w-0 flex-col justify-between rounded-2xl border p-2.5 shadow-2xs hover:-translate-y-1 hover:shadow-md sm:p-3"
 >
   <div class="min-w-0">
     <!-- Cover Wrapper with Badges & Base Progress Bar -->
     <div
-      class="relative aspect-[2/3] w-full cursor-pointer overflow-hidden rounded-xl border border-slate-200/70 bg-slate-100 shadow-2xs dark:border-slate-800 dark:bg-slate-800"
+      class="book-cover-frame relative aspect-[2/3] w-full cursor-pointer overflow-hidden rounded-xl border border-subtle bg-surface-subtle"
       (click)="viewDetails.emit(book().id)"
       (keydown.enter)="viewDetails.emit(book().id)"
       (keydown.space)="viewDetails.emit(book().id); $event.preventDefault()"
@@ -22,7 +23,8 @@
         />
       } @else {
         <div
-          class="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-100 text-3xl font-extrabold text-slate-700 dark:from-slate-700 dark:to-slate-800 dark:text-slate-300"
+          class="flex h-full w-full items-center justify-center font-editorial text-3xl font-bold text-ink"
+          [style.background]="'linear-gradient(145deg, color-mix(in srgb, var(--book-tint) 24%, var(--surface-subtle)), var(--surface-card))'"
         >
           {{ book().title.slice(0, 1) }}
         </div>
@@ -41,7 +43,7 @@
       <!-- Floating Rating Badge (Top-Right) -->
       @if (displayRating(); as rating) {
         <span
-          class="absolute top-2 right-2 rounded-md bg-slate-950/80 px-1.5 py-0.5 text-[10px] font-bold text-amber-300 shadow-2xs backdrop-blur-xs"
+          class="absolute top-2 right-2 rounded-md bg-stone-950/80 px-1.5 py-0.5 text-[10px] font-bold text-amber-300 tabular-nums shadow-2xs backdrop-blur-xs"
         >
           ★ {{ rating }}
         </span>
@@ -61,11 +63,11 @@
 
     <!-- Metadata Below Cover -->
     <div class="mt-2.5">
-      <h2 class="min-h-[2.5rem] text-sm leading-5 font-semibold text-slate-900 dark:text-slate-100">
+      <h2 class="min-h-[2.5rem] font-editorial text-sm leading-5 font-semibold text-ink">
         <button
           type="button"
           (click)="viewDetails.emit(book().id)"
-          class="line-clamp-2 block max-w-full rounded text-left hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:hover:text-blue-400"
+          class="line-clamp-2 block max-w-full rounded text-left transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           [attr.aria-label]="i18n.t().books.viewDetails + ': ' + book().title"
           [title]="book().title"
         >
@@ -73,15 +75,13 @@
         </button>
       </h2>
 
-      <p class="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400" [title]="book().author">
+      <p class="mt-0.5 truncate text-xs text-ink-secondary" [title]="book().author">
         {{ book().author }}
       </p>
 
-      <div
-        class="mt-1 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400"
-      >
+      <div class="mt-1 flex items-center justify-between text-[11px] text-ink-muted">
         <span class="truncate">{{ formatLabel() }}</span>
-        <span class="shrink-0 font-medium">
+        <span class="shrink-0 font-medium tabular-nums">
           {{ book().currentPage }}/{{ book().totalPages }} {{ i18n.t().books.pagesUnit }}
         </span>
       </div>
@@ -89,13 +89,11 @@
   </div>
 
   <!-- Bottom Actions -->
-  <div
-    class="mt-2.5 flex min-w-0 items-center justify-between gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-800"
-  >
+  <div class="mt-2.5 flex min-w-0 items-center justify-between gap-1.5 border-t border-subtle pt-2">
     <button
       type="button"
       (click)="logReading.emit(book().id)"
-      class="inline-flex h-8 min-w-[32px] shrink-0 items-center justify-center gap-1 rounded-lg bg-blue-50 px-2 py-1 text-xs font-medium whitespace-nowrap text-blue-600 transition-colors hover:bg-blue-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900/60"
+      class="inline-flex h-8 min-w-[32px] shrink-0 items-center justify-center gap-1 rounded-lg bg-accent-soft px-2 py-1 text-xs font-medium whitespace-nowrap text-accent-soft-text transition-colors hover:brightness-95 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
       [attr.aria-label]="i18n.t().books.logReadingAria + ' ' + book().title"
       [title]="i18n.t().books.logAction"
     >
@@ -107,7 +105,7 @@
       <button
         type="button"
         (click)="viewDetails.emit(book().id)"
-        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-blue-400"
+        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-surface-subtle hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         [attr.aria-label]="i18n.t().books.viewDetails + ': ' + book().title"
         [title]="i18n.t().books.viewDetails"
       >
@@ -117,7 +115,7 @@
       <button
         type="button"
         (click)="editBook.emit(book().id)"
-        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         [attr.aria-label]="i18n.t().books.edit + ' ' + book().title"
         [title]="i18n.t().books.edit"
       >
@@ -127,7 +125,7 @@
       <button
         type="button"
         (click)="deleteBook.emit(book().id)"
-        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-400 dark:hover:bg-rose-950/30 dark:hover:text-rose-400"
+        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-rose-50 hover:text-rose-600 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none dark:hover:bg-rose-950/30 dark:hover:text-rose-400"
         [attr.aria-label]="i18n.t().books.delete + ' ' + book().title"
         [title]="i18n.t().books.delete"
       >

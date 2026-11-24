@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { ThemeService } from './theme.service';
+import { ACCENT_PALETTES, ThemeService } from './theme.service';
 
 const THEME_STORAGE_KEY = 'bookstack_theme_v1';
+const ACCENT_STORAGE_KEY = 'bookstack_accent_v1';
 
 describe('ThemeService', () => {
   const originalMatchMedia = window.matchMedia;
@@ -10,6 +11,7 @@ describe('ThemeService', () => {
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.classList.remove('dark');
+    document.documentElement.removeAttribute('data-accent');
   });
 
   afterEach(() => {
@@ -19,21 +21,26 @@ describe('ThemeService', () => {
       value: originalMatchMedia,
     });
     document.documentElement.classList.remove('dark');
+    document.documentElement.removeAttribute('data-accent');
     localStorage.clear();
     vi.restoreAllMocks();
   });
 
-  it('should default to light theme when no preference or dark media query matches', () => {
+  it('should default to system mode (resolving light) and blue accent when unset', () => {
     const service = TestBed.inject(ThemeService);
+    expect(service.themeMode()).toBe('system');
     expect(service.getTheme()).toBe('light');
     expect(service.isDark()).toBe(false);
+    expect(service.accent()).toBe('blue');
     expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(document.documentElement.getAttribute('data-accent')).toBe('blue');
   });
 
   it('should respect a persisted dark preference from localStorage', () => {
     localStorage.setItem(THEME_STORAGE_KEY, 'dark');
 
     const service = TestBed.inject(ThemeService);
+    expect(service.themeMode()).toBe('dark');
     expect(service.getTheme()).toBe('dark');
     expect(service.isDark()).toBe(true);
     expect(document.documentElement.classList.contains('dark')).toBe(true);
@@ -56,8 +63,43 @@ describe('ThemeService', () => {
     });
 
     const service = TestBed.inject(ThemeService);
+    expect(service.themeMode()).toBe('system');
     expect(service.getTheme()).toBe('dark');
     expect(service.isDark()).toBe(true);
+  });
+
+  it('should reactively update isDark when matchMedia emits a change event in system mode', () => {
+    const listenerRef: { cb?: (event: MediaQueryListEvent) => void } = {};
+    const removeEventListener = vi.fn();
+
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      configurable: true,
+      value: vi.fn().mockReturnValue({
+        matches: false,
+        media: '(prefers-color-scheme: dark)',
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn((_event: string, cb: (event: MediaQueryListEvent) => void) => {
+          listenerRef.cb = cb;
+        }),
+        removeEventListener,
+        dispatchEvent: vi.fn(),
+      }),
+    });
+
+    const service = TestBed.inject(ThemeService);
+    expect(service.isDark()).toBe(false);
+
+    listenerRef.cb?.({ matches: true } as MediaQueryListEvent);
+    TestBed.flushEffects();
+
+    expect(service.isDark()).toBe(true);
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+
+    TestBed.resetTestingModule();
+    expect(removeEventListener).toHaveBeenCalledTimes(1);
   });
 
   it('should not throw when window.matchMedia is unavailable (regression)', () => {
@@ -78,6 +120,7 @@ describe('ThemeService', () => {
     service.toggleTheme();
     TestBed.flushEffects();
 
+    expect(service.themeMode()).toBe('dark');
     expect(service.isDark()).toBe(true);
     expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark');
@@ -85,8 +128,37 @@ describe('ThemeService', () => {
     service.setTheme('light');
     TestBed.flushEffects();
 
+    expect(service.themeMode()).toBe('light');
     expect(service.isDark()).toBe(false);
     expect(document.documentElement.classList.contains('dark')).toBe(false);
     expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
+
+    service.setTheme('system');
+    TestBed.flushEffects();
+    expect(service.themeMode()).toBe('system');
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('system');
+  });
+
+  it('should apply and persist all 5 accent palettes', () => {
+    const service = TestBed.inject(ThemeService);
+
+    for (const palette of ACCENT_PALETTES) {
+      service.setAccent(palette);
+      TestBed.flushEffects();
+
+      expect(service.accent()).toBe(palette);
+      expect(document.documentElement.getAttribute('data-accent')).toBe(palette);
+      expect(localStorage.getItem(ACCENT_STORAGE_KEY)).toBe(palette);
+    }
+  });
+
+  it('should fall back safely when localStorage contains invalid theme or accent values', () => {
+    localStorage.setItem(THEME_STORAGE_KEY, 'sepia-invalid');
+    localStorage.setItem(ACCENT_STORAGE_KEY, 'neon-invalid');
+
+    const service = TestBed.inject(ThemeService);
+    expect(service.themeMode()).toBe('system');
+    expect(service.accent()).toBe('blue');
+    expect(document.documentElement.getAttribute('data-accent')).toBe('blue');
   });
 });

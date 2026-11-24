@@ -47,17 +47,16 @@ Build and maintain **BookStack**, a minimalist, visual, private, high-performanc
 Agents operating in Antigravity MUST actively optimize token consumption and model quota by matching intelligence tiers to task complexity and quota pools:
 
 1. **Swarm Mode (`swarm` tool — Exact Model Selection):**
-   - **Tier 1 — Fast Atomic & Mechanical (`gemini-4-hydrogen-low` / `gemini-4-hydrogen-medium`):** Use for i18n dictionaries, Tailwind v4 UI tweaks, simple unit specs, and lightweight parallel workers (fast-resetting quota pool).
-   - **Tier 2 — Daily Feature Engineering & Orchestration (`gemini-4-neon-medium` / `gemini-4-neon-high` / `gemini-pro-orchestrator-neon`):** Default model for daily `Task X.Y` implementation (Angular 22+ Signals, IndexedDB/Zod schemas, multi-file refactors, Playwright E2E, and code reviews). Provides high-tier reasoning while drawing from the fast-resetting quota pool instead of the weekly `gemini-4-argon-*` pool.
-   - **Tier 3 — Frontier Architecture & Deep Debugging (`gemini-4-argon-high` / `claude-opus-5-5-*` / `claude-sonnet-5-5-*`):** Reserve strictly for `/grill-me` architecture design, complex Signal/IndexedDB coordination, and hard root-cause debugging.
-   - **Argon Quota Fallback:** If the weekly `gemini-4-argon-*` quota is exhausted, fall back to **`gemini-4-neon-high`** or **`gemini-4-neon-xhigh`** for architecture planning, phase/task documentation, Tier 2 doc syncs, and deep reasoning tasks.
+   - **Tier 1 — Fast Implementation & Mechanical (`gemini-4-hydrogen-low` / `gemini-4-hydrogen-medium`):** Default for implementing well-specified `Task X.Y` specs, i18n dictionaries, Tailwind v4 UI tweaks, simple unit specs, and lightweight parallel workers (fast-resetting quota pool).
+   - **Tier 2 — Documentation, Debugging & Complex Engineering (`gemini-4-neon-medium` / `gemini-4-neon-high` / `gemini-pro-orchestrator-neon`):** Default for phase/task documentation, error analysis & fixes, complex Angular 22+ Signals / IndexedDB / Zod / crypto logic, multi-file refactors, Playwright E2E, code reviews, and Orchestrator coordination. Use **`gemini-4-neon-high`** / **`gemini-4-neon-xhigh`** for `/grill-me` architecture design and Tier 2 doc syncs.
+   - **Tier 3 — Frontier Escalation (`Carbon` / `claude-opus-5-5-*` / `claude-sonnet-5-5-*`):** Optional heavy-quota reserve strictly for rare architectural bottlenecks or deep root-cause debugging when Neon is insufficient.
 2. **Subagent Mode (`invoke_subagent` — Tier Enum `'inherit' | 'flash_lite' | 'flash' | 'pro'`):**
-   - `invoke_subagent` only accepts generic tier names (`inherit`, `flash_lite`, `flash`, `pro`), not `"hydrogen"` or `"neon"` directly.
+   - `invoke_subagent` only accepts generic tier names (`inherit`, `flash_lite`, `flash`, `pro`), not `"hydrogen"`, `"neon"`, or `"carbon"` directly.
    - **When the primary chat is on Gemini 4 Neon or Gemini 4 Hydrogen:** Pass `Model: "inherit"` for `research` and `self` subagents so they stay on the active fast-resetting Gemini 4 tier instead of downgrading to `flash`.
-   - **When the primary chat is on a weekly/heavy model (e.g., Gemini 4 Argon / Claude):** Pass `Model: "flash"` (or `"flash_lite"`) for `research` (>4 file scans) and mechanical `self` subtasks to protect the weekly quota.
+   - **When the primary chat is on a heavy/weekly model (e.g., Carbon / Claude):** Pass `Model: "flash"` (or `"flash_lite"`) for `research` (>4 file scans) and mechanical `self` subtasks to protect the heavy quota.
    - **Live UI & Viewport Inspection (`browser` subagent):** Always pass `Model: "flash"` by default unless the user requests otherwise.
 3. **Proactive Session & Model Guidance:**
-   - In standard single-agent chat where the UI selector controls the primary thread model, proactively advise the user in 1 line at phase/task transitions when switching the UI model (e.g., **Gemini 4 Argon (High)** — or **Gemini 4 Neon (High/XHigh)** if Argon quota is exhausted — for `/grill-me` and documentation $\to$ **Gemini 4 Neon (Medium)** for feature coding $\to$ **Gemini 4 Hydrogen (Low/Medium)** for mechanical/i18n tasks) or running `/compact` will save quota.
+   - In standard single-agent chat where the UI selector controls the primary thread model, proactively advise the user in 1 line at phase/task transitions when switching the UI model (e.g., **Gemini 4 Neon (Medium/High)** for `/grill-me`, documentation, error fixes, and complex logic $\to$ **Gemini 4 Hydrogen (Medium)** for implementing documented `Task X.Y` specs, UI/CSS, and i18n) or running `/compact` will save quota.
    - Recommend starting a fresh chat or running `/compact` after completing each atomic `Task X.Y` to avoid quadratic multi-turn token accumulation.
 
 ---

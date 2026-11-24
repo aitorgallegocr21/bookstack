@@ -1,7 +1,7 @@
 # Task 17B.4: Redesign `/settings` Interface Preferences Layout, Ordering & Control Symmetry
 
 - **Phase:** 17B — Performance Stabilization, Route Transitions & Editorial UX Polish (`v2.3.1`)
-- **Status:** Pending
+- **Status:** Completed
 - **Goal:** Redesign `SettingsPreferencesSectionComponent` in `/settings` so desktop and mobile share a crisp, symmetric, vertical editorial layout with zero overlapping buttons in the 4-edge Desktop Dock selector, equal-width Theme Mode & Default Catalog View controls, and an intentionally ordered 5-column Accent Swatch grid.
 
 ---
@@ -53,8 +53,8 @@ Restructure `settings-preferences-section.html` into a **vertical editorial sett
 
 ## 4. Verification & Acceptance Criteria
 
-- [ ] On desktop (`1280px`) and tablet (`768px`/`1000px`), all 4 Desktop Dock buttons (`Izquierda`, `Derecha`, `Arriba`, `Abajo`) have zero bounding-box overlap and zero clipped text.
-- [ ] All 3 Theme Mode buttons (`Claro`, `Oscuro`, `Sistema`) have identical widths ($\le 1\text{px}$ variance).
-- [ ] All 5 Accent Swatches align in a single clean 5-column row on desktop (`sm:grid-cols-5`) with equal widths.
-- [ ] Zero horizontal overflow on mobile (`320px` & `375px`).
-- [ ] `npm run test:file -- src/app/features/settings/components/settings-preferences-section/settings-preferences-section.spec.ts` passes.
+- [x] On desktop (`1280px`) and tablet (`768px`/`1000px`), all 4 Desktop Dock buttons (`Izquierda`, `Derecha`, `Arriba`, `Abajo`) have zero bounding-box overlap and zero clipped text.
+- [x] All 3 Theme Mode buttons (`Claro`, `Oscuro`, `Sistema`) have identical widths ($\le 1\text{px}$ variance).
+- [x] All 5 Accent Swatches align in a single clean 5-column row on desktop (`sm:grid-cols-5`) with equal widths.
+- [x] Zero horizontal overflow on mobile (`320px` & `375px`).
+- [x] `npm run test:file -- src/app/features/settings/components/settings-preferences-section/settings-preferences-section.spec.ts` passes.

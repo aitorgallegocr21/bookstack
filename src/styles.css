@@ -2,24 +2,190 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --color-canvas: var(--surface-canvas);
+  --color-surface: var(--surface-card);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-glass: var(--surface-glass);
+
+  --color-subtle: var(--border-subtle);
+  --color-strong: var(--border-strong);
+
+  --color-ink: var(--text-primary);
+  --color-ink-secondary: var(--text-secondary);
+  --color-ink-muted: var(--text-muted);
+
+  --color-accent: var(--accent-primary);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-text: var(--accent-soft-text);
+  --color-accent-border: var(--accent-border);
+  --color-accent-ring: var(--accent-ring);
+
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-editorial:
+    'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, Cambria, 'Times New Roman',
+    serif;
+}
+
+:root {
+  --surface-canvas: #f6f4ef;
+  --surface-card: #fcfbf8;
+  --surface-elevated: #ffffff;
+  --surface-subtle: #eeebe3;
+  --surface-glass: rgba(252, 251, 248, 0.82);
+
+  --border-subtle: rgba(41, 37, 36, 0.1);
+  --border-strong: rgba(41, 37, 36, 0.18);
+
+  --text-primary: #1c1917;
+  --text-secondary: #57534e;
+  --text-muted: #78716c;
+
+  /* Default accent: blue */
+  --accent-primary: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --accent-soft-text: #1d4ed8;
+  --accent-border: rgba(37, 99, 235, 0.28);
+  --accent-ring: rgba(37, 99, 235, 0.35);
+  --accent-glow: rgba(37, 99, 235, 0.18);
+}
+
+.dark {
+  --surface-canvas: #111010;
+  --surface-card: #1a1817;
+  --surface-elevated: #242120;
+  --surface-subtle: #262322;
+  --surface-glass: rgba(26, 24, 23, 0.84);
+
+  --border-subtle: rgba(245, 240, 235, 0.1);
+  --border-strong: rgba(245, 240, 235, 0.18);
+
+  --text-primary: #f5f2ed;
+  --text-secondary: #b8b2a8;
+  --text-muted: #8c857b;
+
+  /* Default dark accent: blue */
+  --accent-primary: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-soft: rgba(59, 130, 246, 0.18);
+  --accent-soft-text: #93c5fd;
+  --accent-border: rgba(59, 130, 246, 0.35);
+  --accent-ring: rgba(96, 165, 250, 0.4);
+  --accent-glow: rgba(59, 130, 246, 0.24);
+}
+
+html[data-accent='blue'] {
+  --accent-primary: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --accent-soft-text: #1d4ed8;
+  --accent-border: rgba(37, 99, 235, 0.28);
+  --accent-ring: rgba(37, 99, 235, 0.35);
+  --accent-glow: rgba(37, 99, 235, 0.18);
+}
+
+html.dark[data-accent='blue'] {
+  --accent-primary: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-soft: rgba(59, 130, 246, 0.18);
+  --accent-soft-text: #93c5fd;
+  --accent-border: rgba(59, 130, 246, 0.35);
+  --accent-ring: rgba(96, 165, 250, 0.4);
+  --accent-glow: rgba(59, 130, 246, 0.24);
+}
+
+html[data-accent='indigo'] {
+  --accent-primary: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-soft: rgba(79, 70, 229, 0.12);
+  --accent-soft-text: #4338ca;
+  --accent-border: rgba(79, 70, 229, 0.28);
+  --accent-ring: rgba(79, 70, 229, 0.35);
+  --accent-glow: rgba(79, 70, 229, 0.18);
+}
+
+html.dark[data-accent='indigo'] {
+  --accent-primary: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-soft: rgba(99, 102, 241, 0.18);
+  --accent-soft-text: #a5b4fc;
+  --accent-border: rgba(99, 102, 241, 0.35);
+  --accent-ring: rgba(129, 140, 248, 0.4);
+  --accent-glow: rgba(99, 102, 241, 0.24);
+}
+
+html[data-accent='emerald'] {
+  --accent-primary: #059669;
+  --accent-hover: #047857;
+  --accent-soft: rgba(5, 150, 105, 0.12);
+  --accent-soft-text: #047857;
+  --accent-border: rgba(5, 150, 105, 0.28);
+  --accent-ring: rgba(5, 150, 105, 0.35);
+  --accent-glow: rgba(5, 150, 105, 0.18);
+}
+
+html.dark[data-accent='emerald'] {
+  --accent-primary: #10b981;
+  --accent-hover: #34d399;
+  --accent-soft: rgba(16, 185, 129, 0.18);
+  --accent-soft-text: #6ee7b7;
+  --accent-border: rgba(16, 185, 129, 0.35);
+  --accent-ring: rgba(52, 211, 153, 0.4);
+  --accent-glow: rgba(16, 185, 129, 0.24);
+}
+
+html[data-accent='amber'] {
+  --accent-primary: #b45309;
+  --accent-hover: #92400e;
+  --accent-soft: rgba(180, 83, 9, 0.12);
+  --accent-soft-text: #92400e;
+  --accent-border: rgba(180, 83, 9, 0.28);
+  --accent-ring: rgba(180, 83, 9, 0.35);
+  --accent-glow: rgba(180, 83, 9, 0.18);
+}
+
+html.dark[data-accent='amber'] {
+  --accent-primary: #d97706;
+  --accent-hover: #f59e0b;
+  --accent-soft: rgba(217, 119, 6, 0.18);
+  --accent-soft-text: #fcd34d;
+  --accent-border: rgba(217, 119, 6, 0.35);
+  --accent-ring: rgba(245, 158, 11, 0.4);
+  --accent-glow: rgba(217, 119, 6, 0.24);
+}
+
+html[data-accent='rose'] {
+  --accent-primary: #be123c;
+  --accent-hover: #9f1239;
+  --accent-soft: rgba(190, 18, 60, 0.12);
+  --accent-soft-text: #9f1239;
+  --accent-border: rgba(190, 18, 60, 0.28);
+  --accent-ring: rgba(190, 18, 60, 0.35);
+  --accent-glow: rgba(190, 18, 60, 0.18);
+}
+
+html.dark[data-accent='rose'] {
+  --accent-primary: #e11d48;
+  --accent-hover: #fb7185;
+  --accent-soft: rgba(225, 29, 72, 0.18);
+  --accent-soft-text: #fda4af;
+  --accent-border: rgba(225, 29, 72, 0.35);
+  --accent-ring: rgba(251, 113, 133, 0.4);
+  --accent-glow: rgba(225, 29, 72, 0.24);
+}
+
 @layer base {
   html,
   body {
     height: 100%;
     margin: 0;
     padding: 0;
-    font-family:
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      'Segoe UI',
-      Roboto,
-      Oxygen,
-      Ubuntu,
-      Cantarell,
-      sans-serif;
-    background-color: #f9fafb;
-    color: #111827;
+    font-family: var(--font-sans);
+    background-color: var(--surface-canvas);
+    color: var(--text-primary);
   }
 }
 
@@ -328,4 +494,105 @@
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+.page-enter {
+  animation: pageEnter 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.card-lift {
+  transition:
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.dock-popover-top {
+  animation: popover-spring-top 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.dock-popover-bottom {
+  animation: popover-spring-bottom 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.dock-popover-left {
+  animation: popover-spring-left 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.dock-popover-right {
+  animation: popover-spring-right 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes popover-spring-top {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -6px, 0) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes popover-spring-bottom {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes popover-spring-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-6px, 0, 0) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes popover-spring-right {
+  from {
+    opacity: 0;
+    transform: translate3d(6px, 0, 0) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .dock-popover-top,
+  .dock-popover-bottom,
+  .dock-popover-left,
+  .dock-popover-right,
+  .modal-backdrop,
+  .modal-backdrop--closing,
+  .modal-panel,
+  .modal-backdrop--closing .modal-panel {
+    animation: none !important;
+  }
+
+  .card-lift,
+  .series-fields {
+    transition: none !important;
+  }
 }

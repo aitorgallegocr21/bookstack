@@ -1,7 +1,7 @@
 # Task 17B.3: Lightweight GPU-Composited Editorial Route Transition Animations
 
 - **Phase:** 17B — Performance Stabilization, Route Transitions & Editorial UX Polish (`v2.3.1`)
-- **Status:** Pending
+- **Status:** Completed
 - **Goal:** Introduce a subtle, modern, GPU-composited editorial cross-fade and micro-rise animation when navigating between routes (`/`, `/books`, `/series`, `/stats`, `/settings`, `/about`) while keeping the desktop/mobile dock rock-steady, adding zero JS bundle overhead, and respecting `prefers-reduced-motion: reduce`.
 
 ---
@@ -39,7 +39,7 @@
 
 ## 3. Verification & Acceptance Criteria
 
-- [ ] Navigating between `/`, `/books`, `/series`, `/stats`, `/settings`, and `/about` plays a smooth `~220ms` editorial cross-fade + micro-rise while the desktop/mobile dock stays completely still.
-- [ ] Under `prefers-reduced-motion: reduce`, route transitions complete instantaneously with zero animation.
-- [ ] Zero console errors or view-transition aborts when clicking navigation links rapidly in Playwright E2E tests.
-- [ ] `npm run test:file -- src/app/app.spec.ts` passes.
+- [x] Navigating between `/`, `/books`, `/series`, `/stats`, `/settings`, and `/about` plays a smooth `~220ms` editorial cross-fade + micro-rise while the desktop/mobile dock stays completely still.
+- [x] Under `prefers-reduced-motion: reduce`, route transitions complete instantaneously with zero animation.
+- [x] Zero console errors or view-transition aborts when clicking navigation links rapidly in Playwright E2E tests.
+- [x] `npm run test:file -- src/app/app.spec.ts` passes.

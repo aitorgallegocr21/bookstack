@@ -228,4 +228,48 @@ test.describe('Navigation and Theme persistence', () => {
       .poll(() => page.locator('html').evaluate((el) => el.classList.contains('dark')))
       .toBe(false);
   });
+
+  test('should pin desktop/mobile docks for view transitions and navigate rapidly without console errors or reduced-motion issues', async ({
+    page,
+  }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (err) => errors.push(err.message));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        errors.push(msg.text());
+      }
+    });
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+
+    const aside = page.locator('app-sidebar aside');
+    await expect(aside).toHaveCSS('view-transition-name', 'desktop-dock');
+    await expect(page.locator('app-bottom-nav nav')).toHaveCSS(
+      'view-transition-name',
+      'mobile-dock'
+    );
+
+    // Rapidly click through all main routes
+    for (const [label, urlPattern] of [
+      ['Libros', /\/books$/],
+      ['Sagas', /\/series$/],
+      ['Stats', /\/stats$/],
+      ['Ajustes', /\/settings$/],
+      ['Acerca de', /\/about$/],
+      ['Inicio', /\/$/],
+    ] as const) {
+      await aside.getByRole('link', { name: label }).click();
+      await expect(page).toHaveURL(urlPattern);
+    }
+
+    // Verify navigation under prefers-reduced-motion: reduce
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await aside.getByRole('link', { name: 'Libros' }).click();
+    await expect(page).toHaveURL(/\/books$/);
+    await aside.getByRole('link', { name: 'Inicio' }).click();
+    await expect(page).toHaveURL(/\/$/);
+
+    expect(errors).toEqual([]);
+  });
 });

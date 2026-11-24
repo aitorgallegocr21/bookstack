@@ -19,7 +19,7 @@
     [class]="mainOffsetClasses()"
     [style.--sidebar-width]="uiState.isSidebarCollapsed() ? '68px' : '240px'"
   >
-    <router-outlet></router-outlet>
+    <router-outlet (activate)="onRouteActivate()"></router-outlet>
   </main>
 
   <app-bottom-nav class="md:hidden"></app-bottom-nav>

@@ -1,6 +1,4 @@
-<div
-  class="rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700/80 dark:bg-zinc-900/60"
->
+<div class="rounded-xl border border-subtle bg-surface p-3">
   <!-- Scanner Viewport -->
   <div class="relative overflow-hidden rounded-lg bg-zinc-950">
     <div
@@ -15,7 +13,7 @@
         role="status"
         aria-live="polite"
       >
-        <svg [lucideIcon]="RefreshCw" size="20" class="animate-spin text-amber-400"></svg>
+        <svg [lucideIcon]="RefreshCw" size="20" class="animate-spin text-accent"></svg>
         <span>{{ i18n.t().bookForm.lookup.scanningHint }}</span>
       </div>
     }
@@ -24,7 +22,7 @@
       <div
         class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-950/90 px-4 py-4 text-center"
       >
-        <svg [lucideIcon]="Camera" size="24" class="text-amber-400" aria-hidden="true"></svg>
+        <svg [lucideIcon]="Camera" size="24" class="text-accent" aria-hidden="true"></svg>
         <p class="max-w-xs text-xs leading-relaxed text-zinc-200">
           {{ i18n.t().bookForm.lookup.cameraConsentHint }}
         </p>
@@ -32,7 +30,7 @@
           type="button"
           data-testid="enable-camera-consent-btn"
           (click)="grantCameraConsentAndStart(selectedCameraId() ?? undefined)"
-          class="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-amber-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500"
+          class="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         >
           <svg [lucideIcon]="Camera" size="16" aria-hidden="true"></svg>
           <span>{{ i18n.t().bookForm.lookup.enableCamera }}</span>
@@ -43,7 +41,7 @@
 
   <!-- Live Scanning Hint / Non-ISBN Ignore Notice -->
   @if (scannerState() === 'scanning') {
-    <p class="mt-2.5 text-xs text-zinc-600 dark:text-zinc-400" role="status" aria-live="polite">
+    <p class="mt-2.5 text-xs text-ink-secondary" role="status" aria-live="polite">
       @if (ignoredNonIsbnHint()) {
         <span class="font-medium text-amber-700 dark:text-amber-400">
           {{ i18n.t().bookForm.lookup.invalidBarcodeError }}
@@ -66,23 +64,23 @@
   }
 
   <!-- Controls Bar -->
-  <div class="mt-3 flex flex-wrap items-center gap-2">
+  <div class="mt-3 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">
     @if (scannerState() === 'scanning' || scannerState() === 'starting') {
       <button
         type="button"
         (click)="stopCamera()"
-        class="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+        class="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl border border-strong bg-surface-elevated px-3 py-2 text-xs font-medium text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-auto"
       >
-        <svg [lucideIcon]="CameraOff" size="15"></svg>
+        <svg [lucideIcon]="CameraOff" size="15" class="shrink-0"></svg>
         <span>{{ i18n.t().bookForm.lookup.stopCamera }}</span>
       </button>
     } @else {
       <button
         type="button"
         (click)="grantCameraConsentAndStart(selectedCameraId() ?? undefined)"
-        class="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+        class="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl border border-strong bg-surface-elevated px-3 py-2 text-xs font-medium text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-auto"
       >
-        <svg [lucideIcon]="Camera" size="15"></svg>
+        <svg [lucideIcon]="Camera" size="15" class="shrink-0"></svg>
         <span>{{ i18n.t().bookForm.lookup.startCamera }}</span>
       </button>
     }
@@ -92,7 +90,7 @@
         [attr.aria-label]="i18n.t().bookForm.lookup.switchCamera"
         [value]="selectedCameraId() ?? ''"
         (change)="onCameraSelectChange($event)"
-        class="min-h-[44px] max-w-full flex-1 truncate rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-700 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+        class="min-h-[44px] w-full min-w-0 truncate rounded-xl border border-strong bg-surface-elevated px-3 py-2 text-xs font-medium text-ink transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:flex-1"
       >
         <option value="" disabled>{{ i18n.t().bookForm.lookup.switchCamera }}</option>
         @for (camera of availableCameras(); track camera.id) {
@@ -104,9 +102,9 @@
     <button
       type="button"
       (click)="photoInput.click()"
-      class="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+      class="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl border border-strong bg-surface-elevated px-3 py-2 text-xs font-medium text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-auto"
     >
-      <svg [lucideIcon]="ImagePlus" size="15"></svg>
+      <svg [lucideIcon]="ImagePlus" size="15" class="shrink-0"></svg>
       <span>{{ i18n.t().bookForm.lookup.uploadPhoto }}</span>
     </button>
 

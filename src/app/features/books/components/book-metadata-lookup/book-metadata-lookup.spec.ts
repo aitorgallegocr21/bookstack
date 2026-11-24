@@ -275,4 +275,20 @@ describe('BookMetadataLookupComponent', () => {
       'https://books.google.com/books/content?id=fallback'
     );
   });
+
+  it('uses stacked mobile header and non-overlapping action grid for narrow viewports', () => {
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const header = root.querySelector('section > div') as HTMLElement;
+    const actionsGroup = header.lastElementChild as HTMLElement;
+    const buttons = Array.from(actionsGroup.querySelectorAll('button'));
+
+    expect(header.className).toContain('flex-col');
+    expect(header.className).toContain('sm:flex-row');
+    expect(actionsGroup.className).toContain('grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]');
+    expect(buttons).toHaveLength(3);
+    for (const button of buttons) {
+      expect(button.className).toContain('min-h-[44px]');
+    }
+  });
 });

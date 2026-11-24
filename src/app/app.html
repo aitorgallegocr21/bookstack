@@ -1,12 +1,25 @@
-<div class="min-h-screen bg-slate-100/80 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+<div class="min-h-[100dvh] bg-canvas text-ink">
   <app-sidebar class="hidden md:flex"></app-sidebar>
-  <app-header class="md:hidden"></app-header>
+
+  @if (dockPosition.isDragging() && snapPreviewRect(); as rect) {
+    <div
+      class="pointer-events-none fixed z-40 rounded-2xl border-2 border-dashed border-accent-border bg-accent-soft/60 transition-[top,right,bottom,left,width,height] duration-150"
+      [style.top]="rect.top"
+      [style.right]="rect.right"
+      [style.bottom]="rect.bottom"
+      [style.left]="rect.left"
+      [style.width]="rect.width"
+      [style.height]="rect.height"
+      aria-hidden="true"
+    ></div>
+  }
 
   <main
-    class="pt-4 pb-20 duration-200 md:ml-[var(--sidebar-width)] md:transition-[margin]"
+    class="transition-[margin,padding] duration-200"
+    [class]="mainOffsetClasses()"
     [style.--sidebar-width]="uiState.isSidebarCollapsed() ? '68px' : '240px'"
   >
-    <router-outlet></router-outlet>
+    <router-outlet (activate)="onRouteActivate()"></router-outlet>
   </main>
 
   <app-bottom-nav class="md:hidden"></app-bottom-nav>

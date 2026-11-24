@@ -8,6 +8,7 @@ import {
   LucideTrash2,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { CoverColorService } from '../../../../core/services/cover-color.service';
 import { getStatusBadgeClass } from '../../../../shared/utils/book-display.utils';
 import { BOOK_STATUS_CONFIG, Book } from '../../models/book.model';
 import { translateBookFormat } from '../../utils/book-form.utils';
@@ -19,11 +20,12 @@ import { translateBookFormat } from '../../utils/book-form.utils';
   templateUrl: './book-grid-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'block h-full',
+    class: 'block h-full catalog-card-contain',
   },
 })
 export class BookGridCardComponent {
   protected readonly i18n = inject(I18nService);
+  private readonly coverColorService = inject(CoverColorService);
 
   readonly book = input.required<Book>();
 
@@ -53,6 +55,10 @@ export class BookGridCardComponent {
       return 0;
     }
     return Math.min(100, Math.max(0, (b.currentPage / b.totalPages) * 100));
+  });
+
+  protected readonly bookTint = computed(() => {
+    return this.coverColorService.getTint(this.book());
   });
 
   protected readonly getStatusBadgeClass = getStatusBadgeClass;

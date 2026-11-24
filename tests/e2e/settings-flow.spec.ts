@@ -413,7 +413,7 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
         ).toBeLessThanOrEqual(1);
       }
 
-      // On tablet/desktop multi-column layout, verify single-line labels & aligned controls
+      // On tablet/desktop vertical editorial rows, verify aligned single-line labels & right-aligned controls
       if (vp.width >= 768) {
         const labels = page.locator('app-settings-preferences-section .field-label');
         await expect(labels).toHaveCount(3);
@@ -424,16 +424,14 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
             return box!;
           })
         );
-        const baseLabelY = labelBoxes[0].y;
+        const baseLabelX = labelBoxes[0].x;
         const baseLabelHeight = labelBoxes[0].height;
-        for (let i = 1; i < labelBoxes.length; i++) {
-          expect(Math.abs(labelBoxes[i].y - baseLabelY)).toBeLessThanOrEqual(1);
+        const baseControlRight = controlBoxes[0]!.x + controlBoxes[0]!.width;
+        for (let i = 0; i < labelBoxes.length; i++) {
+          expect(Math.abs(labelBoxes[i].x - baseLabelX)).toBeLessThanOrEqual(1);
           expect(Math.abs(labelBoxes[i].height - baseLabelHeight)).toBeLessThanOrEqual(1);
-        }
-
-        const baseControlY = controlBoxes[0]!.y;
-        for (let i = 1; i < controlBoxes.length; i++) {
-          expect(Math.abs(controlBoxes[i]!.y - baseControlY)).toBeLessThanOrEqual(1);
+          const controlRight = controlBoxes[i]!.x + controlBoxes[i]!.width;
+          expect(Math.abs(controlRight - baseControlRight)).toBeLessThanOrEqual(2);
         }
       }
     }
@@ -948,5 +946,70 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
     await expect(page.getByTestId('data-health-feedback')).toBeVisible();
     await expect(scoreBadge).toContainText('100% Saludable');
     await expect(page.getByTestId('data-health-healthy-state')).toBeVisible();
+  });
+
+  test('renders symmetric theme buttons, 5-column accent grid, and non-overlapping 4-edge dock controls on desktop & mobile', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/settings');
+
+    // 1. Theme Mode buttons have equal widths (<= 1px variance)
+    const themeIds = ['theme-light-btn', 'theme-dark-btn', 'theme-system-btn'] as const;
+    const themeBoxes = await Promise.all(themeIds.map((id) => page.getByTestId(id).boundingBox()));
+    for (const box of themeBoxes) {
+      expect(box).not.toBeNull();
+    }
+    const themeWidths = themeBoxes.map((b) => b!.width);
+    expect(Math.max(...themeWidths) - Math.min(...themeWidths)).toBeLessThanOrEqual(1);
+
+    // 2. All 5 Accent Swatches align in a single 5-column row with equal widths
+    const accentIds = [
+      'accent-swatch-blue',
+      'accent-swatch-indigo',
+      'accent-swatch-emerald',
+      'accent-swatch-amber',
+      'accent-swatch-rose',
+    ] as const;
+    const accentBoxes = await Promise.all(
+      accentIds.map((id) => page.getByTestId(id).boundingBox())
+    );
+    for (const box of accentBoxes) {
+      expect(box).not.toBeNull();
+    }
+    const accentYs = accentBoxes.map((b) => b!.y);
+    const accentWidths = accentBoxes.map((b) => b!.width);
+    expect(Math.max(...accentYs) - Math.min(...accentYs)).toBeLessThanOrEqual(1);
+    expect(Math.max(...accentWidths) - Math.min(...accentWidths)).toBeLessThanOrEqual(1);
+
+    // 3. All 4 Desktop Dock buttons have zero bounding-box overlap and zero clipped text
+    const dockPositions = ['left', 'right', 'top', 'bottom'] as const;
+    const dockBoxes = await Promise.all(
+      dockPositions.map((pos) => page.getByTestId(`dock-desktop-${pos}`).boundingBox())
+    );
+    for (let i = 0; i < dockPositions.length; i++) {
+      const btn = page.getByTestId(`dock-desktop-${dockPositions[i]}`);
+      const box = dockBoxes[i];
+      expect(box).not.toBeNull();
+      expect(box!.height).toBeGreaterThanOrEqual(44);
+      const isClipped = await btn.evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+      expect(isClipped).toBe(false);
+    }
+    for (let i = 0; i < dockBoxes.length - 1; i++) {
+      const curr = dockBoxes[i]!;
+      const next = dockBoxes[i + 1]!;
+      expect(curr.x + curr.width).toBeLessThanOrEqual(next.x + 0.5);
+    }
+
+    // 4. Mobile 375px & 320px zero horizontal overflow
+    for (const width of [375, 320]) {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto('/settings');
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      const hasOverflow = await page.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth
+      );
+      expect(hasOverflow, `Horizontal overflow at ${width}px`).toBe(false);
+    }
   });
 });

@@ -1,5 +1,5 @@
 <div
-  class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm"
+  class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
   [class.modal-backdrop--closing]="isClosing()"
   tabindex="-1"
   aria-labelledby="edit-modal-title"
@@ -7,18 +7,16 @@
   (keydown.escape)="handleEscape()"
 >
   <div
-    class="modal-panel relative max-h-[90dvh] w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+    class="modal-panel relative max-h-[90dvh] w-full max-w-2xl overflow-hidden rounded-2xl border border-subtle bg-surface shadow-2xl"
   >
     <div
-      class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-800"
+      class="flex items-center justify-between border-b border-subtle bg-surface-subtle/60 px-6 py-4"
     >
       <div>
-        <p
-          class="text-[10px] font-extrabold tracking-[0.2em] text-slate-400 uppercase dark:text-slate-500"
-        >
+        <p class="text-[10px] font-extrabold tracking-[0.2em] text-ink-muted uppercase">
           {{ i18n.t().bookForm.libraryBadge }}
         </p>
-        <h2 id="edit-modal-title" class="text-xl font-bold text-slate-900 dark:text-slate-100">
+        <h2 id="edit-modal-title" class="font-editorial text-xl font-bold text-ink">
           {{ i18n.t().bookForm.editTitle }}
         </h2>
       </div>
@@ -26,7 +24,7 @@
       <button
         type="button"
         (click)="cancel()"
-        class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-200/60 hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-500 dark:hover:bg-slate-700/60 dark:hover:text-slate-300"
+        class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         [attr.aria-label]="i18n.t().bookForm.closeModalAria"
         [title]="i18n.t().common.close"
       >
@@ -57,14 +55,10 @@
             (candidateApplied)="onMetadataCandidateApplied($event)"
           />
 
-          <section
-            class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/50"
-          >
+          <section class="space-y-4 rounded-2xl border border-subtle bg-surface-subtle/55 p-4">
             <div class="flex items-center gap-2">
-              <span class="inline-flex h-2.5 w-2.5 rounded-full bg-blue-500"></span>
-              <h3
-                class="text-sm font-bold tracking-[0.16em] text-slate-700 uppercase dark:text-slate-300"
-              >
+              <span class="inline-flex h-2.5 w-2.5 rounded-full bg-accent"></span>
+              <h3 class="text-sm font-bold tracking-[0.16em] text-ink-secondary uppercase">
                 {{ i18n.t().bookForm.basicInfoSection }}
               </h3>
             </div>
@@ -79,7 +73,7 @@
                 type="text"
                 formControlName="title"
                 [placeholder]="i18n.t().bookForm.titlePlaceholder"
-                class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                class="field-input"
               />
             </div>
 
@@ -92,7 +86,7 @@
                 type="text"
                 formControlName="author"
                 [placeholder]="i18n.t().bookForm.authorPlaceholder"
-                class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                class="field-input"
               />
             </div>
 
@@ -107,13 +101,13 @@
                     type="text"
                     formControlName="isbn"
                     [placeholder]="i18n.t().bookForm.isbnPlaceholder"
-                    class="field-input min-w-0 flex-1 border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                    class="field-input min-w-0 flex-1"
                   />
                   <button
                     type="button"
                     (click)="triggerInlineIsbnLookup()"
                     [attr.aria-label]="i18n.t().bookForm.lookup.isbnLookupAria"
-                    class="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                    class="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl border border-strong bg-surface-elevated px-3 text-xs font-semibold text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                   >
                     {{ i18n.t().bookForm.lookup.isbnLookupButton }}
                   </button>
@@ -131,7 +125,7 @@
                   [attr.max]="maxAllowedYear"
                   formControlName="publicationYear"
                   [placeholder]="i18n.t().bookForm.yearPlaceholder"
-                  class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                  class="field-input"
                 />
                 @if (editForm.get('publicationYear')?.hasError('max')) {
                   <p class="mt-1 text-xs font-medium text-rose-600 dark:text-rose-400">
@@ -151,7 +145,7 @@
                   type="text"
                   formControlName="publisher"
                   [placeholder]="i18n.t().bookForm.publisherPlaceholder"
-                  class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                  class="field-input"
                 />
               </div>
               <div>
@@ -165,22 +159,13 @@
                     formControlName="format"
                     class="field-select"
                   >
-                    <option
-                      class="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-                      value="Físico"
-                    >
+                    <option value="Físico">
                       {{ i18n.t().bookForm.formats.physical }}
                     </option>
-                    <option
-                      class="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-                      value="Ebook"
-                    >
+                    <option value="Ebook">
                       {{ i18n.t().bookForm.formats.ebook }}
                     </option>
-                    <option
-                      class="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-                      value="Audiolibro"
-                    >
+                    <option value="Audiolibro">
                       {{ i18n.t().bookForm.formats.audiobook }}
                     </option>
                   </select>
@@ -189,14 +174,10 @@
             </div>
           </section>
 
-          <section
-            class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/50"
-          >
+          <section class="space-y-4 rounded-2xl border border-subtle bg-surface-subtle/55 p-4">
             <div class="flex items-center gap-2">
               <span class="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-              <h3
-                class="text-sm font-bold tracking-[0.16em] text-slate-700 uppercase dark:text-slate-300"
-              >
+              <h3 class="text-sm font-bold tracking-[0.16em] text-ink-secondary uppercase">
                 {{ i18n.t().bookForm.progressFormatSection }}
               </h3>
             </div>
@@ -215,10 +196,7 @@
                     (change)="onStatusChange($any($event.target).value)"
                   >
                     @for (statusValue of statusValues; track statusValue) {
-                      <option
-                        class="bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100"
-                        [value]="statusValue"
-                      >
+                      <option [value]="statusValue">
                         {{ i18n.t().status[statusValue] }}
                       </option>
                     }
@@ -237,7 +215,7 @@
                   step="0.5"
                   formControlName="rating"
                   [placeholder]="i18n.t().bookForm.ratingPlaceholder"
-                  class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                  class="field-input"
                 />
               </div>
             </div>
@@ -252,7 +230,7 @@
                   type="number"
                   min="1"
                   formControlName="totalPages"
-                  class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                  class="field-input"
                 />
                 @if (editForm.controls.totalPages.touched && editForm.controls.totalPages.invalid) {
                   <p class="mt-1 text-xs font-medium text-rose-500">
@@ -269,7 +247,7 @@
                   type="number"
                   min="0"
                   formControlName="currentPage"
-                  class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                  class="field-input"
                 />
                 @if (
                   editForm.hasError('currentPageExceedsTotal') &&
@@ -292,7 +270,7 @@
                   type="number"
                   min="0"
                   formControlName="totalChapters"
-                  class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                  class="field-input"
                 />
               </div>
               <div>
@@ -304,7 +282,7 @@
                   type="number"
                   min="0"
                   formControlName="currentChapter"
-                  class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                  class="field-input"
                 />
               </div>
             </div>
@@ -318,26 +296,22 @@
                 type="number"
                 min="0"
                 formControlName="totalCharacters"
-                class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                class="field-input"
               />
             </div>
           </section>
 
-          <section
-            class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/50"
-          >
+          <section class="space-y-4 rounded-2xl border border-subtle bg-surface-subtle/55 p-4">
             <div class="flex items-center gap-2">
               <span class="inline-flex h-2.5 w-2.5 rounded-full bg-violet-500"></span>
-              <h3
-                class="text-sm font-bold tracking-[0.16em] text-slate-700 uppercase dark:text-slate-300"
-              >
+              <h3 class="text-sm font-bold tracking-[0.16em] text-ink-secondary uppercase">
                 {{ i18n.t().bookForm.seriesSection }}
               </h3>
             </div>
 
             <label
               for="edit-book-series-enabled"
-              class="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300"
+              class="flex min-h-[44px] cursor-pointer items-center justify-between gap-3 rounded-xl border border-subtle bg-surface-elevated px-3.5 py-2 text-sm text-ink-secondary"
             >
               <span>{{ i18n.t().bookForm.belongsToSeriesLabel }}</span>
               <span class="relative inline-flex shrink-0 items-center">
@@ -348,10 +322,10 @@
                   class="peer sr-only"
                 />
                 <span
-                  class="h-6 w-11 rounded-full bg-slate-300 transition-colors peer-checked:bg-blue-600 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2 dark:bg-slate-600 dark:peer-checked:bg-blue-500"
+                  class="h-6 w-11 rounded-full bg-strong transition-colors peer-checked:bg-accent peer-focus-visible:ring-2 peer-focus-visible:ring-accent peer-focus-visible:ring-offset-2"
                 ></span>
                 <span
-                  class="pointer-events-none absolute left-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5 dark:bg-slate-100"
+                  class="pointer-events-none absolute left-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5"
                 ></span>
               </span>
             </label>
@@ -373,7 +347,7 @@
                       formControlName="seriesName"
                       (input)="onSeriesNameInput($any($event.target).value)"
                       [placeholder]="i18n.t().bookForm.seriesNamePlaceholder"
-                      class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                      class="field-input"
                     />
                     <datalist id="edit-series-suggestions">
                       @for (option of existingSeriesOptions(); track option.id) {
@@ -391,7 +365,7 @@
                       min="1"
                       formControlName="seriesVolumeNumber"
                       [placeholder]="i18n.t().bookForm.seriesVolumePlaceholder"
-                      class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                      class="field-input"
                     />
                   </div>
                 </div>
@@ -403,10 +377,10 @@
                       <button
                         type="button"
                         (click)="selectSeriesOption(option)"
-                        class="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-indigo-950/50 dark:hover:text-indigo-300"
+                        class="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-subtle bg-surface-elevated px-3 py-1.5 text-xs font-medium text-ink-secondary transition-colors hover:border-accent-border hover:bg-accent-soft hover:text-accent-soft-text focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                       >
                         <span>{{ option.name }}</span>
-                        <span class="text-slate-400 dark:text-slate-500">
+                        <span class="text-ink-muted">
                           · {{ i18n.t().series.card.volumeShort }} {{ option.nextVolumeNumber }}
                         </span>
                       </button>
@@ -417,14 +391,10 @@
             </div>
           </section>
 
-          <section
-            class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/50"
-          >
+          <section class="space-y-4 rounded-2xl border border-subtle bg-surface-subtle/55 p-4">
             <div class="flex items-center gap-2">
               <span class="inline-flex h-2.5 w-2.5 rounded-full bg-amber-500"></span>
-              <h3
-                class="text-sm font-bold tracking-[0.16em] text-slate-700 uppercase dark:text-slate-300"
-              >
+              <h3 class="text-sm font-bold tracking-[0.16em] text-ink-secondary uppercase">
                 {{ i18n.t().bookForm.datesCoverSection }}
               </h3>
             </div>
@@ -441,7 +411,7 @@
                   [attr.min]="'1900-01-01'"
                   [attr.max]="maxAllowedIsoDate"
                   formControlName="startDate"
-                  class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                  class="field-input"
                 />
                 @if (editForm.hasError('startDateExceedsMaxYear')) {
                   <p class="mt-1 text-xs font-medium text-rose-600 dark:text-rose-400">
@@ -460,7 +430,7 @@
                   [attr.min]="'1900-01-01'"
                   [attr.max]="maxAllowedIsoDate"
                   formControlName="endDate"
-                  class="field-input border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+                  class="field-input"
                 />
                 @if (editForm.hasError('endDateExceedsMaxYear')) {
                   <p class="mt-1 text-xs font-medium text-rose-600 dark:text-rose-400">
@@ -477,14 +447,10 @@
             />
           </section>
 
-          <section
-            class="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/50"
-          >
+          <section class="space-y-3 rounded-2xl border border-subtle bg-surface-subtle/55 p-4">
             <div class="flex items-center gap-2">
               <span class="inline-flex h-2.5 w-2.5 rounded-full bg-rose-500"></span>
-              <h3
-                class="text-sm font-bold tracking-[0.16em] text-slate-700 uppercase dark:text-slate-300"
-              >
+              <h3 class="text-sm font-bold tracking-[0.16em] text-ink-secondary uppercase">
                 {{ i18n.t().bookForm.notesSection }}
               </h3>
             </div>
@@ -493,18 +459,18 @@
               formControlName="notes"
               rows="3"
               [placeholder]="i18n.t().bookForm.notesPlaceholder"
-              class="field-textarea border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+              class="field-textarea"
             ></textarea>
           </section>
         </div>
 
         <div
-          class="flex items-center justify-end gap-3 border-t border-slate-200 bg-white px-6 py-4 dark:border-slate-800 dark:bg-slate-900"
+          class="flex items-center justify-end gap-3 border-t border-subtle bg-surface px-6 py-4"
         >
           <button
             type="button"
             (click)="cancel()"
-            class="rounded-full border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800/60"
+            class="min-h-[44px] rounded-full border border-strong bg-surface-elevated px-4 py-2 text-xs font-bold text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             [title]="i18n.t().common.cancel"
           >
             {{ i18n.t().common.cancel }}
@@ -512,7 +478,7 @@
           <button
             type="submit"
             [disabled]="editForm.invalid || isSaving()"
-            class="rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700"
+            class="min-h-[44px] rounded-full bg-accent px-5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:opacity-50"
             [title]="i18n.t().bookForm.saveChanges"
           >
             {{ isSaving() ? i18n.t().common.saving : i18n.t().bookForm.saveChanges }}

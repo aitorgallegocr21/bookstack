@@ -89,4 +89,187 @@ test.describe('Navigation and Theme persistence', () => {
     );
     expect(overflowEn).toBe(false);
   });
+
+  test('should dock desktop shell across all 4 edges (left, right, top, bottom) and persist across reload', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+
+    const aside = page.locator('app-sidebar aside');
+    await expect(aside).toBeVisible();
+
+    // Switch to right via quick-dock popover
+    await aside.getByRole('button', { name: 'Cambiar posición del dock' }).click();
+    await aside.getByRole('menuitemradio', { name: 'Derecha' }).click();
+    await expect.poll(async () => (await aside.boundingBox())?.x ?? 0).toBeGreaterThan(900);
+
+    // Switch to top via quick-dock popover
+    await aside.getByRole('button', { name: 'Cambiar posición del dock' }).click();
+    await aside.getByRole('menuitemradio', { name: 'Arriba' }).click();
+    await expect
+      .poll(async () => {
+        const b = await aside.boundingBox();
+        return b ? b.y < 80 && b.width > b.height : false;
+      })
+      .toBe(true);
+
+    // Switch to bottom via quick-dock popover and verify persistence across reload
+    await aside.getByRole('button', { name: 'Cambiar posición del dock' }).click();
+    await aside.getByRole('menuitemradio', { name: 'Abajo' }).click();
+    await expect.poll(async () => (await aside.boundingBox())?.y ?? 0).toBeGreaterThan(600);
+
+    await page.reload();
+    await expect.poll(async () => (await aside.boundingBox())?.y ?? 0).toBeGreaterThan(600);
+
+    // Reset back to left via quick-dock popover
+    await aside.getByRole('button', { name: 'Cambiar posición del dock' }).click();
+    await aside.getByRole('menuitemradio', { name: 'Izquierda' }).click();
+    await expect.poll(async () => (await aside.boundingBox())?.x ?? 999).toBeLessThan(20);
+  });
+
+  test('should support unified mobile dock top/bottom toggle at 320px and 375px with zero horizontal overflow', async ({
+    page,
+  }) => {
+    for (const width of [320, 375]) {
+      await page.setViewportSize({ width, height: 667 });
+      await page.goto('/');
+
+      const mobileDock = page.locator('app-bottom-nav nav');
+      await expect(mobileDock).toBeVisible();
+      await expect(page.locator('app-sidebar aside')).toBeHidden();
+
+      // Default is bottom
+      await expect.poll(async () => (await mobileDock.boundingBox())?.y ?? 0).toBeGreaterThan(400);
+
+      // Verify symmetric left/right dock inset and >= 44x44px touch targets
+      const dockShell = mobileDock.getByTestId('mobile-dock-shell');
+      const dockRow = mobileDock.getByTestId('mobile-dock-row');
+      const shellBox = await dockShell.boundingBox();
+      const homeBox = await dockRow.locator('a[href="/"]').boundingBox();
+      const menuBox = await dockRow
+        .getByRole('button', { name: 'Más opciones de navegación' })
+        .boundingBox();
+      expect(shellBox).not.toBeNull();
+      expect(homeBox).not.toBeNull();
+      expect(menuBox).not.toBeNull();
+      if (shellBox && homeBox && menuBox) {
+        const leftInset = homeBox.x - shellBox.x;
+        const rightInset = shellBox.x + shellBox.width - (menuBox.x + menuBox.width);
+        expect(Math.abs(leftInset - rightInset)).toBeLessThanOrEqual(2);
+      }
+
+      const controlsCount = await dockRow.locator('> *').count();
+      expect(controlsCount).toBe(6);
+      for (let i = 0; i < controlsCount; i++) {
+        const box = await dockRow.locator('> *').nth(i).boundingBox();
+        expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
+        expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+      }
+
+      // Open overflow menu and move dock to top
+      await mobileDock.getByRole('button', { name: 'Más opciones de navegación' }).click();
+      await mobileDock.getByRole('menuitem', { name: 'Mover arriba' }).click();
+
+      await expect.poll(async () => (await mobileDock.boundingBox())?.y ?? 999).toBeLessThan(100);
+
+      const overflowTop = await page.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth
+      );
+      expect(overflowTop).toBe(false);
+
+      // Reload and verify top position persisted
+      await page.reload();
+      await expect.poll(async () => (await mobileDock.boundingBox())?.y ?? 999).toBeLessThan(100);
+
+      // Move back to bottom
+      await mobileDock.getByRole('button', { name: 'Más opciones de navegación' }).click();
+      await mobileDock.getByRole('menuitem', { name: 'Mover abajo' }).click();
+
+      await expect.poll(async () => (await mobileDock.boundingBox())?.y ?? 0).toBeGreaterThan(400);
+
+      const overflowBottom = await page.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth
+      );
+      expect(overflowBottom).toBe(false);
+    }
+  });
+
+  test('should persist accent palette and light/dark/system theme modes from /settings across reload', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/settings');
+
+    // Select editorial amber accent and dark theme
+    await page.getByTestId('accent-swatch-amber').click();
+    await expect(page.locator('html')).toHaveAttribute('data-accent', 'amber');
+
+    await page.getByTestId('theme-dark-btn').click();
+    await expect
+      .poll(() => page.locator('html').evaluate((el) => el.classList.contains('dark')))
+      .toBe(true);
+
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-accent', 'amber');
+    await expect
+      .poll(() => page.locator('html').evaluate((el) => el.classList.contains('dark')))
+      .toBe(true);
+
+    // Switch to rose accent and system mode, then light mode
+    await page.getByTestId('accent-swatch-rose').click();
+    await expect(page.locator('html')).toHaveAttribute('data-accent', 'rose');
+
+    await page.getByTestId('theme-system-btn').click();
+    await expect(page.getByTestId('theme-system-btn')).toHaveAttribute('aria-pressed', 'true');
+
+    await page.getByTestId('theme-light-btn').click();
+    await expect
+      .poll(() => page.locator('html').evaluate((el) => el.classList.contains('dark')))
+      .toBe(false);
+  });
+
+  test('should pin desktop/mobile docks for view transitions and navigate rapidly without console errors or reduced-motion issues', async ({
+    page,
+  }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (err) => errors.push(err.message));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        errors.push(msg.text());
+      }
+    });
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+
+    const aside = page.locator('app-sidebar aside');
+    await expect(aside).toHaveCSS('view-transition-name', 'desktop-dock');
+    await expect(page.locator('app-bottom-nav nav')).toHaveCSS(
+      'view-transition-name',
+      'mobile-dock'
+    );
+
+    // Rapidly click through all main routes
+    for (const [label, urlPattern] of [
+      ['Libros', /\/books$/],
+      ['Sagas', /\/series$/],
+      ['Stats', /\/stats$/],
+      ['Ajustes', /\/settings$/],
+      ['Acerca de', /\/about$/],
+      ['Inicio', /\/$/],
+    ] as const) {
+      await aside.getByRole('link', { name: label }).click();
+      await expect(page).toHaveURL(urlPattern);
+    }
+
+    // Verify navigation under prefers-reduced-motion: reduce
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await aside.getByRole('link', { name: 'Libros' }).click();
+    await expect(page).toHaveURL(/\/books$/);
+    await aside.getByRole('link', { name: 'Inicio' }).click();
+    await expect(page).toHaveURL(/\/$/);
+
+    expect(errors).toEqual([]);
+  });
 });

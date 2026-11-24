@@ -12,15 +12,16 @@ BookStack uses **Tailwind CSS v4** (`@import 'tailwindcss';` in `src/styles.css`
 @custom-variant dark (&:where(.dark, .dark *));
 ```
 
-### Surface Hierarchy
+### Surface Hierarchy (Warm Modern Editorial `@theme`)
 
-| Role                                 | Light Mode                                 | Dark Mode                                            |
-| :----------------------------------- | :----------------------------------------- | :--------------------------------------------------- |
-| **App Canvas**                       | `bg-slate-100/80 text-slate-900`           | `dark:bg-slate-950 dark:text-slate-100`              |
-| **Elevated Card / Sidebar / Header** | `bg-white border-slate-300/80`             | `dark:bg-slate-900 dark:border-slate-800`            |
-| **Subtle Surface / Input**           | `bg-slate-100 border-slate-200`            | `dark:bg-slate-800 dark:border-slate-700`            |
-| **Primary Brand Accent**             | `bg-blue-600 hover:bg-blue-700 text-white` | `dark:bg-blue-600 dark:hover:bg-blue-500 text-white` |
-| **Active Nav Pill**                  | `bg-blue-50 text-blue-700`                 | `dark:bg-blue-950/60 dark:text-blue-400`             |
+| Role                                       | Light Mode (Warm Paper/Stone)                                                               | Dark Mode (Warm Charcoal)                        |
+| :----------------------------------------- | :------------------------------------------------------------------------------------------ | :----------------------------------------------- |
+| **App Canvas**                             | `bg-canvas` (`#f6f4ef` / `text-ink`)                                                        | `dark` (`#111010` / `text-ink`)                  |
+| **Elevated Card / Dock / Modal**           | `bg-surface` (`#fcfbf8` / `border-subtle`)                                                  | `dark` (`#1a1817` / `border-subtle`)             |
+| **Subtle Surface / Input**                 | `bg-surface-subtle` (`border-subtle`)                                                       | `dark` (`bg-surface-subtle` / `border-subtle`)   |
+| **Primary Brand Accent (`[data-accent]`)** | `bg-accent hover:bg-accent-hover text-white` (`blue`, `indigo`, `emerald`, `amber`, `rose`) | Same WCAG AA token variables per `[data-accent]` |
+| **Active Nav Pill**                        | `bg-accent-soft text-accent-soft-text`                                                      | `bg-accent-soft text-accent-soft-text`           |
+| **Adaptive Cover Tint (`--book-tint`)**    | `CoverColorService` `8%–14%` ambient wash                                                   | `CoverColorService` `14%–22%` ambient wash       |
 
 ### Status Badge Tokens (`BOOK_STATUS_CONFIG`)
 
@@ -35,11 +36,11 @@ Defined centrally in `src/app/features/books/models/book.model.ts`:
 
 ## 2. Responsive Breakpoints & Asymmetric Shell
 
-| Viewport               | Breakpoint         | Navigation Pattern                                                                                                                      | Layout Rules                                                                                                                                                                               |
-| :--------------------- | :----------------- | :-------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Ultra-Small Mobile** | `< 360px`          | Compact `HeaderComponent` + `BottomNavComponent` (4 primary tabs, `/about` hidden below `350px`)                                        | Book cards stack vertically (`max-[359px]:flex-col`), cover switches to `aspect-[5/2]`                                                                                                     |
-| **Mobile**             | `< 768px` (`< md`) | `HeaderComponent` (top) + `BottomNavComponent` (fixed bottom, `>= 48px` hit targets) + `md:hidden` `Libros \| Sagas` segmented switcher | Main container uses `pb-20` bottom clearance for fixed nav                                                                                                                                 |
-| **Tablet & Desktop**   | `>= 768px` (`md:`) | Fixed collapsible `SidebarComponent` (`68px` collapsed / `240px` expanded)                                                              | Both `app-sidebar` host and `app.html` align strictly on `hidden md:flex` and `md:ml-[var(--sidebar-width)]`. `/series` uses a 12-column variable-scale Bento grid (`1×1` / `2×1` / `2×2`) |
+| Viewport               | Breakpoint         | Navigation Pattern                                                                                                                           | Layout Rules                                                                                                                                                                     |
+| :--------------------- | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Ultra-Small Mobile** | `< 360px`          | Unified floating `BottomNavComponent` (`bottom` default or `top` via drag/menu, `>= 44px` hit targets, `<app-brand-logo>` overflow menu)     | Book cards stack vertically (`max-[359px]:flex-col`), cover switches to `aspect-[5/2]`                                                                                           |
+| **Mobile**             | `< 768px` (`< md`) | Unified floating `BottomNavComponent` (`top`/`bottom` edge, `env(safe-area-inset-*)`) + `md:hidden` `Libros \| Sagas` segmented switcher     | Dynamic main shell clearance for `top` or `bottom` dock                                                                                                                          |
+| **Tablet & Desktop**   | `>= 768px` (`md:`) | 4-edge dockable `SidebarComponent` (`left`/`right` `68px` ↔ `240px` or `top`/`bottom` floating horizontal dock) via drag-and-snap or popover | Both `app-sidebar` host and `app.html` align strictly on `hidden md:flex` and dynamic edge offsets. `/series` uses a 12-column variable-scale Bento grid (`1×1` / `2×1` / `2×2`) |
 
 ---
 
@@ -58,8 +59,9 @@ Defined centrally in `src/app/features/books/models/book.model.ts`:
 
 ## 4. Rendering Performance Rules
 
-- **No `transition-all`:** Use discrete property transitions (`transition-colors`, `transition-opacity`, `transition-[width]`, `transition-[margin]`, `transition-transform`, `transition-[height]`, `transition-[height,background-color]`).
+- **No `transition-all`:** Use discrete property transitions (`transition-colors`, `transition-opacity`, `transition-[width]`, `transition-[margin]`, `transition-transform`, `transition-[height]`, `transition-[height,background-color]`, `transition-[transform,background-color,box-shadow]`).
+- **Editorial Route Transitions & Hover Craft:** `withViewTransitions({ skipInitialTransition: true })` pins desktop/mobile docks via `view-transition-name` while cross-fading route content; pointer hover elevations (`@media (hover: hover)`) and tactile button/card helpers (`.editorial-hover-card`, `.btn-tactile`, `.book-tint-card:hover`, `.book-tint-row:hover`) are neutralized under `@media (prefers-reduced-motion: reduce)`.
 - **Native SVG & CSS Visualizations:** Analytics charts (velocity bars, format donut, status stacked bar, rating histogram, weekday pace) use pure reactive SVG/CSS with zero external chart libraries and wrapping pill controls for `320px` overflow safety.
-- **List Containment:** Catalog cards apply `contain: layout paint; content-visibility: auto;`.
+- **List Containment:** Catalog cards apply `contain: layout style paint; content-visibility: auto;`.
 - **Deferred Heavy Modals:** Secondary modals (`BookDetailModal`, `BookEditModal`, `ReadingLogEditor`, `SagaDetailModal`, `BookCreateModal`) load lazily via `@defer (when ...)` to keep initial route bundles lean.
 - **Image Optimization:** Cover uploads compress to WebP/JPEG (`<= 400px`, `0.75` quality) via `ImageOptimizerService`, while bulk cover enrichment enforces an anti-placeholder dimension guard (`>= 80x120px`); cover `<img>` tags include `loading="lazy"` and `decoding="async"`.

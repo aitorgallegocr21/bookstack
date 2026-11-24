@@ -288,4 +288,23 @@ describe('IsbnScannerComponent', () => {
       TestBed.inject(I18nService).t().bookForm.lookup.noBarcodeInImageError
     );
   });
+
+  it('stacks scanner control buttons full-width on mobile with 44px touch targets', async () => {
+    const fixture = createFixture();
+    fixture.detectChanges();
+    await flushMicrotasks();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const controlsBar = root.querySelector('div.mt-3.grid') as HTMLElement;
+    expect(controlsBar).toBeTruthy();
+    expect(controlsBar.className).toContain('grid-cols-1');
+    expect(controlsBar.className).toContain('sm:flex');
+
+    const buttons = Array.from(controlsBar.querySelectorAll('button'));
+    expect(buttons.length).toBeGreaterThanOrEqual(2);
+    for (const button of buttons) {
+      expect(button.className).toContain('min-h-[44px]');
+      expect(button.className).toContain('w-full');
+    }
+  });
 });

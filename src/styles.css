@@ -214,11 +214,7 @@ html.dark[data-accent='rose'] {
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: rgb(71 85 105);
-  }
-
-  .dark .field-label {
-    color: rgb(148 163 184);
+    color: var(--text-secondary);
   }
 
   .field-input,
@@ -226,9 +222,10 @@ html.dark[data-accent='rose'] {
   .field-select,
   .field-file {
     width: 100%;
-    border: 1px solid rgb(226 232 240);
-    background: rgb(255 255 255);
-    color: rgb(15 23 42);
+    border: 1px solid var(--border-strong);
+    background: var(--surface-elevated);
+    color: var(--text-primary);
+    caret-color: var(--text-primary);
     border-radius: 0.875rem;
     padding: 0.7rem 0.875rem;
     font-size: 0.875rem;
@@ -238,19 +235,9 @@ html.dark[data-accent='rose'] {
       background-color 0.2s ease;
   }
 
-  .dark .field-input,
-  .dark .field-textarea,
-  .dark .field-select,
-  .dark .field-file {
-    border-color: rgb(71 85 105);
-    background: rgb(30 41 59);
-    color: rgb(241 245 249);
-    caret-color: rgb(241 245 249);
-  }
-
-  .dark .field-input::placeholder,
-  .dark .field-textarea::placeholder {
-    color: rgb(148 163 184);
+  .field-input::placeholder,
+  .field-textarea::placeholder {
+    color: var(--text-muted);
     opacity: 1;
   }
 
@@ -259,8 +246,8 @@ html.dark[data-accent='rose'] {
   .field-select:focus,
   .field-file:focus {
     outline: none;
-    border-color: rgb(59 130 246);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-ring);
   }
 
   .field-textarea {
@@ -279,52 +266,46 @@ html.dark[data-accent='rose'] {
     top: 50%;
     width: 0.6rem;
     height: 0.6rem;
-    border-right: 2px solid rgb(100 116 139);
-    border-bottom: 2px solid rgb(100 116 139);
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
     transform: translateY(-75%) rotate(45deg);
     pointer-events: none;
     transition: border-color 0.2s ease;
   }
 
-  .dark .select-wrap::after {
-    border-right-color: rgb(148 163 184);
-    border-bottom-color: rgb(148 163 184);
-  }
-
   .field-select {
     appearance: none;
-    background: linear-gradient(180deg, rgb(255 255 255) 0%, rgb(248 250 252) 100%);
+    background: var(--surface-elevated);
+    color: var(--text-primary);
     cursor: pointer;
     padding-right: 2.7rem;
-    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+    box-shadow: inset 0 1px 2px rgba(28, 25, 23, 0.04);
   }
 
   .dark .field-select {
-    background: linear-gradient(180deg, rgb(30 41 59) 0%, rgb(15 23 42) 100%);
-    color: rgb(241 245 249);
     box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.04);
   }
 
-  .dark .field-select option {
-    background: rgb(30 41 59);
-    color: rgb(241 245 249);
+  .field-select option {
+    background: var(--surface-elevated);
+    color: var(--text-primary);
   }
 
   .select-wrap:hover .field-select,
   .select-wrap:focus-within .field-select {
-    border-color: rgb(148 163 184);
+    border-color: var(--border-strong);
   }
 
   .select-wrap:focus-within::after {
-    border-color: rgb(59 130 246);
+    border-color: var(--accent-primary);
   }
 
   .field-file {
     padding: 0.75rem 0.9rem;
   }
 
-  .dark .field-file::file-selector-button {
-    color: rgb(226 232 240);
+  .field-file::file-selector-button {
+    color: var(--text-primary);
   }
 
   .cover-dropzone {
@@ -334,7 +315,8 @@ html.dark[data-accent='rose'] {
     align-items: center;
     justify-content: center;
     gap: 0.45rem;
-    border: 1px dashed rgb(148 163 184);
+    border: 1px dashed var(--border-strong);
+    background: var(--surface-subtle);
     border-radius: 1rem;
     padding: 1rem;
     text-align: center;
@@ -346,20 +328,15 @@ html.dark[data-accent='rose'] {
 
   .cover-dropzone:hover,
   .cover-dropzone--active {
-    border-color: rgb(59 130 246);
-    background: rgba(239, 246, 255, 0.8);
+    border-color: var(--accent-primary);
+    background: var(--accent-soft);
     transform: translateY(-1px);
-  }
-
-  .dark .cover-dropzone:hover,
-  .dark .cover-dropzone--active {
-    background: rgba(30, 41, 59, 0.8);
   }
 
   .cover-file-button {
     cursor: pointer;
     border-radius: 999px;
-    background: rgb(15 23 42);
+    background: var(--accent-primary);
     padding: 0.55rem 0.9rem;
     font-size: 0.75rem;
     font-weight: 700;
@@ -368,15 +345,7 @@ html.dark[data-accent='rose'] {
   }
 
   .cover-file-button:hover {
-    background: rgb(30 41 59);
-  }
-
-  .dark .cover-file-button {
-    background: rgb(37 99 235);
-  }
-
-  .dark .cover-file-button:hover {
-    background: rgb(29 78 216);
+    background: var(--accent-hover);
   }
 
   .cover-file-badge {
@@ -385,15 +354,10 @@ html.dark[data-accent='rose'] {
     text-overflow: ellipsis;
     white-space: nowrap;
     border-radius: 999px;
-    background: rgb(219 234 254);
+    background: var(--accent-soft);
     padding: 0.3rem 0.65rem;
     font-size: 0.7rem;
-    color: rgb(30 64 175);
-  }
-
-  .dark .cover-file-badge {
-    background: rgb(30 58 138);
-    color: rgb(191 219 254);
+    color: var(--accent-soft-text);
   }
 
   .series-fields {
@@ -416,10 +380,10 @@ html.dark[data-accent='rose'] {
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     background-image:
-      linear-gradient(to bottom, rgb(255 255 255 / 1), rgb(255 255 255 / 0)),
-      linear-gradient(to top, rgb(255 255 255 / 1), rgb(255 255 255 / 0)),
-      radial-gradient(farthest-side at 50% 0, rgb(15 23 42 / 0.1), rgb(15 23 42 / 0)),
-      radial-gradient(farthest-side at 50% 100%, rgb(15 23 42 / 0.1), rgb(15 23 42 / 0));
+      linear-gradient(to bottom, var(--surface-card), transparent),
+      linear-gradient(to top, var(--surface-card), transparent),
+      radial-gradient(farthest-side at 50% 0, rgb(28 25 23 / 0.1), rgb(28 25 23 / 0)),
+      radial-gradient(farthest-side at 50% 100%, rgb(28 25 23 / 0.1), rgb(28 25 23 / 0));
     background-position:
       top center,
       bottom center,
@@ -436,8 +400,8 @@ html.dark[data-accent='rose'] {
 
   .dark .modal-scroll-area {
     background-image:
-      linear-gradient(to bottom, rgb(15 23 42 / 1), rgb(15 23 42 / 0)),
-      linear-gradient(to top, rgb(15 23 42 / 1), rgb(15 23 42 / 0)),
+      linear-gradient(to bottom, var(--surface-card), transparent),
+      linear-gradient(to top, var(--surface-card), transparent),
       radial-gradient(farthest-side at 50% 0, rgb(0 0 0 / 0.45), rgb(0 0 0 / 0)),
       radial-gradient(farthest-side at 50% 100%, rgb(0 0 0 / 0.45), rgb(0 0 0 / 0));
   }

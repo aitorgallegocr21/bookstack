@@ -1,10 +1,11 @@
 <article
   role="button"
   tabindex="0"
+  [style.--book-tint]="sagaTint()"
   (click)="onCardClick()"
   (keydown)="onCardKeydown($event)"
   [attr.aria-label]="i18n.t().series.card.openDetailsAria + ': ' + saga().name"
-  class="group flex h-full min-w-0 cursor-pointer flex-col justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs transition-colors hover:border-slate-300 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none sm:p-5 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
+  class="group book-tint-card card-lift flex h-full min-w-0 cursor-pointer flex-col justify-between gap-4 rounded-2xl border p-4 shadow-xs hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:p-5"
 >
   @switch (saga().bentoScale) {
     <!-- COMPACT (1-2 volumes) -->
@@ -23,7 +24,7 @@
                   ? 'z-10 translate-x-0 rotate-0'
                   : 'z-0 translate-x-5 translate-y-1 rotate-3 opacity-90'
               "
-              class="absolute top-0 left-0 h-24 w-16 overflow-hidden rounded-lg border border-slate-200 bg-slate-100 shadow-sm transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-800"
+              class="book-cover-frame absolute top-0 left-0 h-24 w-16 overflow-hidden rounded-lg border border-subtle bg-surface-subtle transition-transform hover:scale-105 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             >
               @if (book.coverUrl) {
                 <img
@@ -35,15 +36,11 @@
                 />
               } @else {
                 <div
-                  class="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 p-1.5 text-center dark:from-slate-800 dark:to-slate-900"
+                  class="flex h-full w-full flex-col items-center justify-center bg-surface-subtle p-1.5 text-center"
                 >
-                  <svg
-                    [lucideIcon]="BookOpen"
-                    size="18"
-                    class="text-slate-400 dark:text-slate-500"
-                  ></svg>
+                  <svg [lucideIcon]="BookOpen" size="18" class="text-ink-muted"></svg>
                   <span
-                    class="mt-1 line-clamp-2 text-[9px] leading-tight font-semibold text-slate-600 dark:text-slate-300"
+                    class="mt-1 line-clamp-2 text-[9px] leading-tight font-semibold text-ink-secondary"
                   >
                     {{ book.title }}
                   </span>
@@ -56,26 +53,26 @@
         <!-- Saga Info -->
         <div class="min-w-0 flex-1">
           <h2
-            class="text-base leading-snug font-bold break-words text-slate-900 group-hover:text-blue-600 dark:text-slate-100 dark:group-hover:text-blue-400"
+            class="font-editorial text-base leading-snug font-bold break-words text-ink transition-colors group-hover:text-accent"
           >
             {{ saga().name }}
           </h2>
           @if (authorLabel()) {
-            <p class="mt-0.5 text-xs leading-snug break-words text-slate-500 dark:text-slate-400">
+            <p class="mt-0.5 text-xs leading-snug break-words text-ink-secondary">
               {{ authorLabel() }}
             </p>
           }
 
           <div class="mt-2 flex flex-wrap items-center gap-1.5">
             <span
-              class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+              class="inline-flex items-center rounded-full bg-surface-subtle px-2.5 py-0.5 text-[11px] font-semibold text-ink-secondary tabular-nums"
             >
               {{ volumePillLabel() }}
             </span>
 
             @if (saga().missingVolumes.length > 0) {
               <span
-                class="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:border-amber-800/60 dark:bg-amber-950/50 dark:text-amber-300"
+                class="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 tabular-nums dark:border-amber-800/60 dark:bg-amber-950/50 dark:text-amber-300"
               >
                 <svg [lucideIcon]="AlertTriangle" size="11" stroke-width="2.2"></svg>
                 <span>{{ missingPillLabel() }}</span>
@@ -92,12 +89,12 @@
         <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div class="min-w-0 flex-1">
             <h2
-              class="text-lg leading-snug font-bold break-words text-slate-900 group-hover:text-blue-600 dark:text-slate-100 dark:group-hover:text-blue-400"
+              class="font-editorial text-lg leading-snug font-bold break-words text-ink transition-colors group-hover:text-accent"
             >
               {{ saga().name }}
             </h2>
             @if (authorLabel()) {
-              <p class="mt-0.5 text-xs leading-snug break-words text-slate-500 dark:text-slate-400">
+              <p class="mt-0.5 text-xs leading-snug break-words text-ink-secondary">
                 {{ authorLabel() }}
               </p>
             }
@@ -105,14 +102,14 @@
 
           <div class="flex flex-wrap items-center gap-1.5">
             <span
-              class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+              class="inline-flex items-center rounded-full bg-surface-subtle px-2.5 py-0.5 text-xs font-semibold text-ink-secondary tabular-nums"
             >
               {{ volumePillLabel() }}
             </span>
 
             @if (saga().missingVolumes.length > 0) {
               <span
-                class="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:border-amber-800/60 dark:bg-amber-950/50 dark:text-amber-300"
+                class="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 tabular-nums dark:border-amber-800/60 dark:bg-amber-950/50 dark:text-amber-300"
               >
                 <svg [lucideIcon]="AlertTriangle" size="12" stroke-width="2.2"></svg>
                 <span>{{ missingPillLabel() }}</span>
@@ -130,7 +127,7 @@
                 (click)="onBookClick($event, slot.book.id)"
                 [attr.aria-label]="slot.book.title"
                 [title]="slot.book.title"
-                class="group/vol relative flex h-[108px] w-[72px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-2xs transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none sm:h-28 sm:w-20 dark:border-slate-700 dark:bg-slate-800"
+                class="group/vol book-cover-frame relative flex h-[108px] w-[72px] shrink-0 flex-col overflow-hidden rounded-xl border border-subtle bg-surface-subtle transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:h-28 sm:w-20"
               >
                 @if (slot.book.coverUrl) {
                   <img
@@ -142,15 +139,11 @@
                   />
                 } @else {
                   <div
-                    class="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 p-1.5 text-center dark:from-slate-800 dark:to-slate-900"
+                    class="flex h-full w-full flex-col items-center justify-center bg-surface-subtle p-1.5 text-center"
                   >
-                    <svg
-                      [lucideIcon]="BookOpen"
-                      size="18"
-                      class="text-slate-400 dark:text-slate-500"
-                    ></svg>
+                    <svg [lucideIcon]="BookOpen" size="18" class="text-ink-muted"></svg>
                     <span
-                      class="mt-1 line-clamp-2 text-[10px] leading-tight font-semibold text-slate-700 dark:text-slate-300"
+                      class="mt-1 line-clamp-2 text-[10px] leading-tight font-semibold text-ink-secondary"
                     >
                       {{ slot.book.title }}
                     </span>
@@ -159,7 +152,7 @@
 
                 @if (slot.volumeNumber !== null) {
                   <span
-                    class="absolute bottom-1 left-1 rounded-md bg-slate-900/80 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs"
+                    class="absolute bottom-1 left-1 rounded-md bg-stone-900/80 px-1.5 py-0.5 text-[10px] font-bold text-white tabular-nums backdrop-blur-xs"
                   >
                     {{ i18n.t().series.card.volumeShort }} {{ slot.volumeNumber }}
                   </span>
@@ -167,7 +160,7 @@
 
                 <span
                   [class]="getStatusDotClass(slot.book)"
-                  class="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-white dark:ring-slate-900"
+                  class="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-surface"
                   aria-hidden="true"
                 ></span>
               </button>
@@ -181,7 +174,7 @@
                 class="flex h-[108px] w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-amber-300/90 bg-amber-50/50 p-2 text-center text-amber-700 transition-colors hover:border-amber-400 hover:bg-amber-100/70 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none sm:h-28 sm:w-20 dark:border-amber-700/70 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:border-amber-600 dark:hover:bg-amber-900/40"
               >
                 <svg [lucideIcon]="Plus" size="18" stroke-width="2.5"></svg>
-                <span class="text-[11px] font-bold">
+                <span class="text-[11px] font-bold tabular-nums">
                   {{ i18n.t().series.card.volumeShort }} {{ slot.volumeNumber }}
                 </span>
               </button>
@@ -198,22 +191,20 @@
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
               <h2
-                class="text-xl leading-snug font-bold break-words text-slate-900 group-hover:text-blue-600 dark:text-slate-100 dark:group-hover:text-blue-400"
+                class="font-editorial text-xl leading-snug font-bold break-words text-ink transition-colors group-hover:text-accent"
               >
                 {{ saga().name }}
               </h2>
               @if (getPublicationStatusLabel(saga().metadata?.publicationStatus); as pubStatus) {
                 <span
-                  class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700 dark:border-blue-800/60 dark:bg-blue-950/50 dark:text-blue-300"
+                  class="inline-flex items-center rounded-full border border-accent-border bg-accent-soft px-2.5 py-0.5 text-[11px] font-semibold text-accent-soft-text"
                 >
                   {{ pubStatus }}
                 </span>
               }
             </div>
             @if (authorLabel()) {
-              <p
-                class="mt-0.5 text-xs leading-snug break-words text-slate-500 sm:text-sm dark:text-slate-400"
-              >
+              <p class="mt-0.5 text-xs leading-snug break-words text-ink-secondary sm:text-sm">
                 {{ authorLabel() }}
               </p>
             }
@@ -221,7 +212,7 @@
 
           <div class="flex flex-wrap items-center gap-1.5">
             <span
-              class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+              class="inline-flex items-center gap-1 rounded-full bg-surface-subtle px-2.5 py-1 text-xs font-semibold text-ink-secondary tabular-nums"
             >
               <svg [lucideIcon]="Library" size="12" stroke-width="2.2"></svg>
               <span>{{ volumePillLabel() }}</span>
@@ -229,7 +220,7 @@
 
             @if (saga().missingVolumes.length > 0) {
               <span
-                class="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:border-amber-800/60 dark:bg-amber-950/50 dark:text-amber-300"
+                class="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 tabular-nums dark:border-amber-800/60 dark:bg-amber-950/50 dark:text-amber-300"
               >
                 <svg [lucideIcon]="AlertTriangle" size="12" stroke-width="2.2"></svg>
                 <span>{{ missingPillLabel() }}</span>
@@ -247,7 +238,7 @@
                 (click)="onBookClick($event, slot.book.id)"
                 [attr.aria-label]="slot.book.title"
                 [title]="slot.book.title"
-                class="group/vol relative flex h-[108px] w-[72px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-2xs transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none sm:h-32 sm:w-22 dark:border-slate-700 dark:bg-slate-800"
+                class="group/vol book-cover-frame relative flex h-[108px] w-[72px] shrink-0 flex-col overflow-hidden rounded-xl border border-subtle bg-surface-subtle transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:h-32 sm:w-22"
               >
                 @if (slot.book.coverUrl) {
                   <img
@@ -259,15 +250,11 @@
                   />
                 } @else {
                   <div
-                    class="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 p-2 text-center dark:from-slate-800 dark:to-slate-900"
+                    class="flex h-full w-full flex-col items-center justify-center bg-surface-subtle p-2 text-center"
                   >
-                    <svg
-                      [lucideIcon]="BookOpen"
-                      size="20"
-                      class="text-slate-400 dark:text-slate-500"
-                    ></svg>
+                    <svg [lucideIcon]="BookOpen" size="20" class="text-ink-muted"></svg>
                     <span
-                      class="mt-1 line-clamp-3 text-[10px] leading-tight font-semibold text-slate-700 dark:text-slate-300"
+                      class="mt-1 line-clamp-3 text-[10px] leading-tight font-semibold text-ink-secondary"
                     >
                       {{ slot.book.title }}
                     </span>
@@ -276,7 +263,7 @@
 
                 @if (slot.volumeNumber !== null) {
                   <span
-                    class="absolute bottom-1 left-1 rounded-md bg-slate-900/80 px-1.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs"
+                    class="absolute bottom-1 left-1 rounded-md bg-stone-900/80 px-1.5 py-0.5 text-[10px] font-bold text-white tabular-nums backdrop-blur-xs"
                   >
                     {{ i18n.t().series.card.volumeShort }} {{ slot.volumeNumber }}
                   </span>
@@ -284,7 +271,7 @@
 
                 <span
                   [class]="getStatusDotClass(slot.book)"
-                  class="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-white dark:ring-slate-900"
+                  class="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-surface"
                   aria-hidden="true"
                 ></span>
               </button>
@@ -298,7 +285,7 @@
                 class="flex h-[108px] w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-amber-300/90 bg-amber-50/50 p-2 text-center text-amber-700 transition-colors hover:border-amber-400 hover:bg-amber-100/70 focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:outline-none sm:h-32 sm:w-22 dark:border-amber-700/70 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:border-amber-600 dark:hover:bg-amber-900/40"
               >
                 <svg [lucideIcon]="Plus" size="18" stroke-width="2.5"></svg>
-                <span class="text-[11px] font-bold">
+                <span class="text-[11px] font-bold tabular-nums">
                   {{ i18n.t().series.card.volumeShort }} {{ slot.volumeNumber }}
                 </span>
               </button>
@@ -308,26 +295,22 @@
 
         <!-- Aggregated Metrics Strip -->
         <div
-          class="grid grid-cols-2 gap-2 rounded-xl border border-slate-100 bg-slate-50/80 p-3 sm:grid-cols-3 dark:border-slate-800 dark:bg-slate-800/50"
+          class="grid grid-cols-2 gap-2 rounded-xl border border-subtle bg-surface-subtle/60 p-3 sm:grid-cols-3"
         >
           <div class="min-w-0">
-            <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            <p class="text-[11px] font-medium text-ink-muted">
               {{ i18n.t().series.card.pagesProgress }}
             </p>
-            <p
-              class="mt-0.5 truncate text-sm font-bold text-slate-900 tabular-nums dark:text-slate-100"
-            >
+            <p class="mt-0.5 truncate text-sm font-bold text-ink tabular-nums">
               {{ saga().readPages }} / {{ saga().totalPages }}
             </p>
           </div>
 
           <div class="min-w-0">
-            <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            <p class="text-[11px] font-medium text-ink-muted">
               {{ i18n.t().series.card.averageRating }}
             </p>
-            <p
-              class="mt-0.5 flex items-center gap-1 text-sm font-bold text-slate-900 tabular-nums dark:text-slate-100"
-            >
+            <p class="mt-0.5 flex items-center gap-1 text-sm font-bold text-ink tabular-nums">
               <svg [lucideIcon]="Star" size="13" class="text-amber-500"></svg>
               <span>{{
                 saga().averageRating !== undefined ? saga().averageRating + '/10' : '—'
@@ -336,13 +319,11 @@
           </div>
 
           <div class="col-span-2 min-w-0 sm:col-span-1">
-            <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            <p class="text-[11px] font-medium text-ink-muted">
               {{ i18n.t().series.card.readingTime }}
             </p>
-            <p
-              class="mt-0.5 flex items-center gap-1 text-sm font-bold text-slate-900 tabular-nums dark:text-slate-100"
-            >
-              <svg [lucideIcon]="Clock" size="13" class="text-blue-500"></svg>
+            <p class="mt-0.5 flex items-center gap-1 text-sm font-bold text-ink tabular-nums">
+              <svg [lucideIcon]="Clock" size="13" class="text-accent"></svg>
               <span>{{ formattedReadingTime() }}</span>
             </p>
           </div>
@@ -352,25 +333,23 @@
   }
 
   <!-- Shared Footer: Progress Bar + Smart CTA -->
-  <div class="flex flex-col gap-2.5 border-t border-slate-100 pt-3 dark:border-slate-800">
+  <div class="flex flex-col gap-2.5 border-t border-subtle pt-3">
     <div class="flex items-center justify-between gap-2 text-xs">
-      <span class="font-medium text-slate-500 dark:text-slate-400">
+      <span class="font-medium text-ink-secondary tabular-nums">
         {{ saga().completedCount }}/{{ saga().ownedCount }} {{ i18n.t().series.card.ownedVolumes }}
       </span>
-      <span class="font-bold text-slate-800 tabular-nums dark:text-slate-200">
-        {{ saga().progressPercent }}%
-      </span>
+      <span class="font-bold text-ink tabular-nums"> {{ saga().progressPercent }}% </span>
     </div>
 
     <div
-      class="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+      class="h-2 w-full overflow-hidden rounded-full bg-surface-subtle"
       role="progressbar"
       [attr.aria-valuenow]="saga().progressPercent"
       aria-valuemin="0"
       aria-valuemax="100"
     >
       <div
-        class="h-full rounded-full bg-blue-600 transition-[width] duration-300 dark:bg-blue-500"
+        class="h-full rounded-full bg-accent transition-[width] duration-300"
         [style.width.%]="saga().progressPercent"
       ></div>
     </div>
@@ -379,7 +358,7 @@
       <button
         type="button"
         (click)="onContinueClick($event, nextBook)"
-        class="mt-1 inline-flex min-h-[44px] w-full items-center justify-between gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-left text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm dark:bg-blue-600 dark:hover:bg-blue-500 dark:focus-visible:ring-offset-slate-900"
+        class="mt-1 inline-flex min-h-[44px] w-full items-center justify-between gap-2 rounded-xl bg-accent px-3.5 py-2 text-left text-xs font-semibold text-white shadow-xs transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface focus-visible:outline-none sm:text-sm"
       >
         <span class="min-w-0 truncate">{{ nextBookCtaLabel() }}</span>
         <svg [lucideIcon]="Play" size="15" stroke-width="2.4" class="shrink-0"></svg>

@@ -48,6 +48,7 @@ src/
     │   │   └── confirm-dialog.model.ts        # ConfirmDialogOptions, ConfirmEntityPreview & ConfirmSuppressionKey
     │   ├── services/
     │   │   ├── confirm-dialog.service.ts      # Promise-based Signal confirmation dialog & suppression preferences
+    │   │   ├── cover-color.service.ts         # 16x16 canvas cover hue extraction + LRU cache & O(1) fallback
     │   │   ├── dock-position.service.ts       # 4-edge desktop & 2-edge mobile dock position + drag preview signals
     │   │   ├── storage-adapter.service.ts     # L1-361: IndexedDB + LocalStorage fallback + catalog/confirm prefs
     │   │   ├── theme.service.ts               # Light/dark/system theme mode & 5 accent palettes persistence

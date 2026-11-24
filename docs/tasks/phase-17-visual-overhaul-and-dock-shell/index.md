@@ -1,6 +1,6 @@
 # Phase 17: Major Visual Overhaul, 4-Edge Dockable Shell & Adaptive Cover Aesthetics (`v2.3.0`)
 
-- **Status:** Active (In Progress — Task 17.1 Completed)
+- **Status:** Active (In Progress — Task 17.3 Completed)
 - **Target Release:** `v2.3.0` (Minor release on completion; `v3.0.0` reserved for Phase 20 Integrated eBook Reader milestone)
 - **Recommended Branch:** `feat/phase-17-visual-overhaul-and-dock-shell` (branched from `develop`)
 
@@ -39,7 +39,7 @@ Elevate BookStack's entire interface to a **Warm Modern Editorial** aesthetic wh
 
 - [x] **[Task 17.1: Semantic `@theme` Tokens, 5 Accent Palettes, `system` Theme Mode & `<app-brand-logo>`](task-17.1-theme-tokens-accents-and-brand-logo.md)** — Core CSS `@theme` architecture, warm editorial light/dark surfaces, 5 WCAG AA accents, `ThemeService` upgrade (`system` mode + accent persistence), GPU transition utilities, and official `<app-brand-logo>` component.
 - [x] **[Task 17.2: 4-Edge Dockable Desktop Shell & Unified 2-Edge Floating Mobile Dock](task-17.2-dockable-desktop-and-unified-mobile-shell.md)** — `DockPositionService`, magnetic drag-and-snap utility, redesigned 4-edge desktop dock, unified floating 2-edge mobile dock (retiring separate mobile header), directional popovers, and dynamic `App` shell offsets.
-- [ ] **[Task 17.3: Cached Cover-Color Adaptive Tinting, Tactile Book/Saga Cards & `BookDetailModal`](task-17.3-cover-color-tinting-cards-and-detail-modal.md)** — `CoverColorService` (`16×16` canvas extraction + `O(1)` persistent cache + deterministic fallback), tactile cover framing across Grid/Detailed/Compact cards & `SagaBentoCard`, and cover-tinted `BookDetailModal` hero redesign.
+- [x] **[Task 17.3: Cached Cover-Color Adaptive Tinting, Tactile Book/Saga Cards & `BookDetailModal`](task-17.3-cover-color-tinting-cards-and-detail-modal.md)** — `CoverColorService` (`16×16` canvas extraction + `O(1)` persistent cache + deterministic fallback), tactile cover framing across Grid/Detailed/Compact cards & `SagaBentoCard`, and cover-tinted `BookDetailModal` hero redesign.
 - [ ] **[Task 17.4: Mobile Metadata Lookup & ISBN Scanner Fix + Editorial Modals & Forms](task-17.4-mobile-lookup-scanner-fix-and-modals.md)** — Fix mobile button alignment/overlap in `book-metadata-lookup` and `isbn-scanner`, and migrate shared form controls and all modals/dialogs to the warm editorial token system.
 - [ ] **[Task 17.5: Full-App Editorial Surface Migration & Essential `/settings` Appearance Controls](task-17.5-full-editorial-surface-migration-and-settings.md)** — Migrate `/`, `/books`, `/series`, `/stats`, `/settings`, and `/about` (with `<app-brand-logo>`) to semantic `@theme` tokens, `tabular-nums`, and dynamic accents; add Theme Mode, 5 Accent Swatches, and Dock Position controls to `/settings` with full ES/EN i18n.
 - [ ] **[Task 17.6: Playwright E2E Suite, Performance Verification & Tier 2 Docs Sync (`v2.3.0`)](task-17.6-e2e-verification-and-phase-sync.md)** — Update & expand Playwright E2E specs (4-edge desktop dock, unified mobile dock `top`/`bottom` at `320px`/`375px`, accent & theme persistence, mobile lookup/scanner layout, cover tinting), verify bundle & `npm run verify:quiet`, and complete Tier 2 docs sync.

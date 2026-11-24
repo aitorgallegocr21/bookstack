@@ -1,10 +1,11 @@
 <article
-  class="book-card-item @container flex h-full min-w-0 gap-3.5 rounded-2xl border border-slate-300/80 bg-white p-3 shadow-xs transition-colors hover:border-slate-400 max-[359px]:flex-col max-[359px]:gap-3 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
+  [style.--book-tint]="bookTint()"
+  class="book-card-item book-tint-card card-lift @container flex h-full min-w-0 gap-3.5 rounded-2xl border p-3 shadow-xs hover:-translate-y-0.5 hover:shadow-md max-[359px]:flex-col max-[359px]:gap-3"
 >
   <!-- Book Cover on the Left -->
   <button
     type="button"
-    class="group relative aspect-[2/3] w-20 shrink-0 self-start overflow-hidden rounded-lg border border-slate-300/80 bg-slate-100 shadow-2xs transition-opacity duration-200 hover:scale-[1.02] hover:opacity-90 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none max-[359px]:aspect-[5/2] max-[359px]:w-full sm:w-24 dark:border-slate-700 dark:bg-slate-800"
+    class="group book-cover-frame relative aspect-[2/3] w-20 shrink-0 self-start overflow-hidden rounded-lg border border-subtle bg-surface-subtle transition-transform duration-200 hover:scale-[1.02] focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none max-[359px]:aspect-[5/2] max-[359px]:w-full sm:w-24"
     [attr.aria-label]="i18n.t().books.viewDetails + ': ' + book().title"
     [attr.title]="i18n.t().books.viewDetails + ': ' + book().title"
     (click)="viewDetails.emit(book().id)"
@@ -19,7 +20,8 @@
       />
     } @else {
       <div
-        class="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-100 text-2xl font-extrabold text-slate-700 dark:from-slate-700 dark:to-slate-800 dark:text-slate-300"
+        class="flex h-full w-full items-center justify-center font-editorial text-2xl font-bold text-ink"
+        [style.background]="'linear-gradient(145deg, color-mix(in srgb, var(--book-tint) 24%, var(--surface-subtle)), var(--surface-card))'"
       >
         {{ book().title.slice(0, 1) }}
       </div>
@@ -31,13 +33,13 @@
     <div class="min-w-0 space-y-2">
       <!-- Title + Status Badge -->
       <div class="flex min-w-0 items-start justify-between gap-2">
-        <h2 class="min-w-0 flex-1">
+        <h2 class="min-w-0 flex-1 font-editorial">
           <button
             type="button"
-            class="block max-w-full truncate text-left text-sm font-semibold text-slate-900 hover:underline focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-100"
+            class="block max-w-full truncate text-left text-sm font-semibold text-ink transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             (click)="viewDetails.emit(book().id)"
             [attr.aria-label]="i18n.t().books.viewDetails + ': ' + book().title"
-            [attr.title]="book().title"
+            [title]="book().title"
           >
             {{ book().title }}
           </button>
@@ -54,16 +56,14 @@
       </div>
 
       <!-- Author -->
-      <p class="truncate text-xs text-slate-700 dark:text-slate-300" [title]="book().author">
+      <p class="truncate text-xs text-ink-secondary" [title]="book().author">
         {{ book().author }}
       </p>
 
       <!-- Series Badge (if assigned) -->
       @if (book().series?.name || book().seriesInfo?.seriesName; as sName) {
-        <div class="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
-          <span
-            class="rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-medium dark:bg-blue-950/60"
-          >
+        <div class="flex items-center gap-1.5 text-xs text-accent-soft-text">
+          <span class="rounded-md bg-accent-soft px-2 py-0.5 text-[11px] font-medium">
             {{ sName }}
             @if (book().series?.volumeNumber || book().seriesInfo?.orderInSeries; as vol) {
               #{{ vol }}
@@ -73,13 +73,11 @@
       }
 
       <!-- Format, Total Pages, Rating Badge -->
-      <div
-        class="flex min-w-0 flex-wrap gap-x-3 gap-y-1 text-xs text-slate-700 dark:text-slate-300"
-      >
+      <div class="flex min-w-0 flex-wrap gap-x-3 gap-y-1 text-xs text-ink-secondary">
         <span class="truncate">{{ formatLabel() }}</span>
-        <span>{{ book().totalPages }} {{ i18n.t().books.pagesUnit }}</span>
+        <span class="tabular-nums">{{ book().totalPages }} {{ i18n.t().books.pagesUnit }}</span>
         @if (displayRating(); as rating) {
-          <span class="font-semibold text-amber-600 dark:text-amber-300">
+          <span class="font-semibold text-amber-600 tabular-nums dark:text-amber-300">
             {{ getRatingBadge(rating) }}
           </span>
         }
@@ -87,14 +85,14 @@
 
       <!-- Progress Bar & Percentage -->
       <div class="space-y-1">
-        <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+        <div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-subtle">
           <div
             class="h-full rounded-full transition-[width] duration-300"
             [class]="BOOK_STATUS_CONFIG[book().status].dotClass"
             [style.width.%]="progressPercent()"
           ></div>
         </div>
-        <div class="flex justify-between gap-2 text-xs text-slate-700 dark:text-slate-300">
+        <div class="flex justify-between gap-2 text-xs text-ink-secondary tabular-nums">
           <span
             >{{ book().currentPage }} / {{ book().totalPages }} {{ i18n.t().books.pagesUnit }}</span
           >
@@ -105,12 +103,12 @@
 
     <!-- Actions Row -->
     <div
-      class="flex items-center justify-between gap-2 border-t border-slate-100 pt-2 max-[359px]:gap-1.5 dark:border-slate-800"
+      class="flex items-center justify-between gap-2 border-t border-subtle pt-2 max-[359px]:gap-1.5"
     >
       <button
         type="button"
         (click)="logReading.emit(book().id)"
-        class="inline-flex min-h-[36px] min-w-0 flex-1 items-center justify-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-medium whitespace-nowrap text-blue-600 transition-colors hover:bg-blue-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900/60"
+        class="inline-flex min-h-[36px] min-w-0 flex-1 items-center justify-center gap-1 rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-medium whitespace-nowrap text-accent-soft-text transition-colors hover:brightness-95 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         [attr.aria-label]="i18n.t().books.logReadingAria + ' ' + book().title"
         [title]="i18n.t().books.logAction"
       >
@@ -122,7 +120,7 @@
         <button
           type="button"
           (click)="viewDetails.emit(book().id)"
-          class="rounded-lg p-1.5 text-blue-600 transition-colors hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-blue-400 dark:hover:bg-blue-950/20"
+          class="rounded-lg p-1.5 text-accent transition-colors hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           [attr.aria-label]="i18n.t().books.viewDetails + ': ' + book().title"
           [title]="i18n.t().books.viewDetails"
         >
@@ -132,7 +130,7 @@
         <button
           type="button"
           (click)="editBook.emit(book().id)"
-          class="rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-slate-400 dark:hover:bg-slate-800/50"
+          class="rounded-lg p-1.5 text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           [attr.aria-label]="i18n.t().books.edit + ' ' + book().title"
           [title]="i18n.t().books.edit"
         >
@@ -142,7 +140,7 @@
         <button
           type="button"
           (click)="deleteBook.emit(book().id)"
-          class="rounded-lg p-1.5 text-rose-600 transition-colors hover:bg-rose-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:text-rose-400 dark:hover:bg-rose-950/20"
+          class="rounded-lg p-1.5 text-rose-600 transition-colors hover:bg-rose-50 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none dark:text-rose-400 dark:hover:bg-rose-950/20"
           [attr.aria-label]="i18n.t().books.delete + ' ' + book().title"
           [title]="i18n.t().books.delete"
         >

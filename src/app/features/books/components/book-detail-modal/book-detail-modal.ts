@@ -11,6 +11,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { CoverColorService } from '../../../../core/services/cover-color.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { formatLocalizedDate } from '../../../../core/utils/date-formatter';
 import {
@@ -40,6 +41,7 @@ export class BookDetailModalComponent implements OnDestroy {
   private readonly booksService = inject(BooksService);
   private readonly readingLogService = inject(ReadingLogService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
+  private readonly coverColorService = inject(CoverColorService);
 
   readonly bookId = input.required<string>();
   readonly closed = output<void>();
@@ -60,6 +62,11 @@ export class BookDetailModalComponent implements OnDestroy {
 
   protected readonly book = computed<Book | undefined>(() => {
     return this.booksService.books().find((b) => b.id === this.bookId());
+  });
+
+  protected readonly bookTint = computed<string | null>(() => {
+    const currentBook = this.book();
+    return currentBook ? this.coverColorService.getTint(currentBook) : null;
   });
 
   protected readonly bookLogs = computed<ReadingLog[]>(() => {

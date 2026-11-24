@@ -8,8 +8,8 @@
 
 <nav
   class="fixed left-1/2 z-40 flex max-w-[calc(100vw-1rem)] -translate-x-1/2 flex-col items-center md:hidden"
-  [class.bottom-[max(0.75rem,env(safe-area-inset-bottom))]]="position() === 'bottom'"
-  [class.top-[max(0.75rem,env(safe-area-inset-top))]]="position() === 'top'"
+  [style.bottom]="position() === 'bottom' ? 'max(0.75rem, env(safe-area-inset-bottom))' : 'auto'"
+  [style.top]="position() === 'top' ? 'max(0.75rem, env(safe-area-inset-top))' : 'auto'"
   role="navigation"
   [attr.aria-label]="i18n.t().nav.bottomNavAria"
 >

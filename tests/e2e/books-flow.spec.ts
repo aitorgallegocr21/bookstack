@@ -121,4 +121,40 @@ test.describe('End-to-end Book & Reading Log lifecycle', () => {
         .first()
     ).toBeVisible();
   });
+
+  test('should apply --book-tint adaptive cover color to catalog cards and detail modal hero', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/books');
+
+    await page.getByRole('button', { name: 'Crear nuevo libro' }).click();
+    await expect(page.locator('#create-modal-title')).toBeVisible();
+
+    await page.locator('#create-book-title').fill('El Hobbit');
+    await page.locator('#create-book-author').fill('J.R.R. Tolkien');
+    await page.locator('#create-book-total-pages').fill('310');
+    await page.getByRole('button', { name: 'Añadir libro', exact: true }).click();
+    await expect(page.locator('#create-modal-title')).toBeHidden();
+
+    // Detailed card (default view) should have --book-tint inline CSS custom property
+    const tintedCard = page.locator('app-book-detailed-card article').first();
+    await expect(tintedCard).toBeVisible();
+    const cardTint = await tintedCard.evaluate((el) =>
+      el.style.getPropertyValue('--book-tint').trim()
+    );
+    expect(cardTint).not.toBe('');
+
+    // Open BookDetailModal and verify --book-tint on modal hero container
+    await page
+      .getByRole('button', { name: 'Ver detalles: El Hobbit', exact: true })
+      .first()
+      .click();
+    const detailDialog = page.locator('app-book-detail-modal .modal-panel');
+    await expect(detailDialog).toBeVisible();
+    const modalTint = await detailDialog.evaluate((el) =>
+      el.style.getPropertyValue('--book-tint').trim()
+    );
+    expect(modalTint).not.toBe('');
+  });
 });

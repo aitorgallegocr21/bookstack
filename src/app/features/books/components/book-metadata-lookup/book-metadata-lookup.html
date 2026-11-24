@@ -108,7 +108,7 @@
     [class.grid-rows-[1fr]]="isExpanded()"
     [class.grid-rows-[0fr]]="!isExpanded()"
   >
-    <div class="overflow-hidden">
+    <div class="min-w-0 overflow-hidden">
       <div class="mt-3 border-t border-subtle pt-3">
         @if (activeTab() === 'scan') {
           @if (isExpanded()) {

@@ -42,7 +42,7 @@ describe('BottomNavComponent', () => {
     const nav = root.querySelector('nav[role="navigation"]');
     expect(nav).not.toBeNull();
     expect(nav?.classList.contains('md:hidden')).toBe(true);
-    expect(nav?.className).toContain('env(safe-area-inset-bottom)');
+    expect(nav?.getAttribute('style')).toContain('env(safe-area-inset-bottom)');
 
     const links = root.querySelectorAll('nav a[routerLink]');
     expect(links.length).toBe(4);
@@ -92,7 +92,7 @@ describe('BottomNavComponent', () => {
     expect(root.querySelector('[role="menu"]')).toBeNull();
 
     const nav = root.querySelector('nav[role="navigation"]');
-    expect(nav?.className).toContain('env(safe-area-inset-top)');
+    expect(nav?.getAttribute('style')).toContain('env(safe-area-inset-top)');
 
     // Reopen in top mode -> popover opens downward
     menuTrigger.click();

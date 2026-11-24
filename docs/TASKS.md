@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-_None — Ready for Phase 18 planning via `/grill-me`._
+- [ ] **[Phase 17B: Performance Stabilization, Route Transitions & Editorial UX Polish (`v2.3.1`)](tasks/phase-17b-performance-stabilization-and-ux-polish/index.md)** — _Active (Documented)_ (Fix `/books` CPU spike & cover-tint flicker via $O(1)$ per-key signals + bounded idle queue + card containment, fix mobile dock left-edge symmetry, add lightweight GPU-composited editorial route transitions, redesign `/settings` Interface Preferences for desktop symmetry & zero overlap, and polish theme-aware hover micro-interactions).
 
 ---
 

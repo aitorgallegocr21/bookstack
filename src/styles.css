@@ -488,6 +488,18 @@ html.dark[data-accent='rose'] {
     0 3px 10px rgba(0, 0, 0, 0.35);
 }
 
+.catalog-card-contain {
+  contain: layout style paint;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 220px;
+}
+
+.catalog-row-contain {
+  contain: layout style paint;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 64px;
+}
+
 .book-tint-card {
   background-color: var(--surface-card);
   background-image: linear-gradient(

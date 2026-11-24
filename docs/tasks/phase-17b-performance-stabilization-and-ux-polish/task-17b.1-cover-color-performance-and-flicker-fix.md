@@ -1,7 +1,7 @@
 # Task 17B.1: Fix `/books` CPU Spike, Infinite LRU Thrashing & Cover Tint Flicker
 
 - **Phase:** 17B — Performance Stabilization, Route Transitions & Editorial UX Polish (`v2.3.1`)
-- **Status:** Pending
+- **Status:** Completed
 - **Goal:** Completely eliminate the `/books` route load lag, CPU fan spike, and continuous `BookDetailModal` cover-tint flicker by re-architecting `CoverColorService` to $O(1)$ per-key signal reactivity with a bounded idle extraction queue, zero in-memory LRU eviction thrashing, debounced persistence, and CSS render containment on catalog cards.
 
 ---
@@ -78,8 +78,8 @@
 
 ## 4. Verification & Acceptance Criteria
 
-- [ ] Unit test (`cover-color.service.spec.ts`): Calling `getTint()` for 300 distinct books with covers does **not** evict or re-extract earlier books (each book extracts at most once).
-- [ ] Unit test (`cover-color.service.spec.ts`): Updating book A's tint does **not** re-run a `computed()` reading book B's tint ($O(1)$ signal isolation).
-- [ ] Unit test (`cover-color.service.spec.ts`): Concurrent extractions never exceed `2`, and `localStorage.setItem` is debounced rather than called per book.
-- [ ] `BookDetailModal` displays a steady `--book-tint` with zero flickering even in a library with 300+ books.
-- [ ] `npm run test:file -- src/app/core/services/cover-color.service.spec.ts` and `npm run verify:quiet` pass.
+- [x] Unit test (`cover-color.service.spec.ts`): Calling `getTint()` for 300 distinct books with covers does **not** evict or re-extract earlier books (each book extracts at most once).
+- [x] Unit test (`cover-color.service.spec.ts`): Updating book A's tint does **not** re-run a `computed()` reading book B's tint ($O(1)$ signal isolation).
+- [x] Unit test (`cover-color.service.spec.ts`): Concurrent extractions never exceed `2`, and `localStorage.setItem` is debounced rather than called per book.
+- [x] `BookDetailModal` displays a steady `--book-tint` with zero flickering even in a library with 300+ books.
+- [x] `npm run test:file -- src/app/core/services/cover-color.service.spec.ts` and `npm run verify:quiet` pass.

@@ -1,3 +1,4 @@
+import { computed } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CoverColorService } from './cover-color.service';
@@ -12,6 +13,8 @@ describe('CoverColorService', () => {
   });
 
   afterEach(() => {
+    service.clearCache();
+    vi.useRealTimers();
     vi.restoreAllMocks();
     localStorage.clear();
   });
@@ -51,6 +54,8 @@ describe('CoverColorService', () => {
   });
 
   it('extracts a muted dominant hue via 16x16 canvas and persists it to localStorage', async () => {
+    vi.useFakeTimers();
+
     const mockImage = {
       crossOrigin: '',
       onload: null as (() => void) | null,
@@ -73,6 +78,7 @@ describe('CoverColorService', () => {
     }
 
     const mockContext = {
+      clearRect: vi.fn(),
       drawImage: vi.fn(),
       getImageData: vi.fn(() => ({ data: pixels })),
     };
@@ -99,7 +105,7 @@ describe('CoverColorService', () => {
     const initialTint = service.getTint(book);
     expect(initialTint).toMatch(/^#[0-9a-f]{6}$/i);
 
-    await new Promise((resolve) => setTimeout(resolve, 20));
+    await vi.advanceTimersByTimeAsync(600);
 
     const cachedTint = service.getTint(book);
     expect(cachedTint).toMatch(/^#[0-9a-f]{6}$/i);
@@ -111,6 +117,8 @@ describe('CoverColorService', () => {
   });
 
   it('falls back gracefully when canvas pixel access throws a CORS SecurityError', async () => {
+    vi.useFakeTimers();
+
     const mockImage = {
       crossOrigin: '',
       onload: null as (() => void) | null,
@@ -125,6 +133,7 @@ describe('CoverColorService', () => {
     } as unknown as typeof Image);
 
     const mockContext = {
+      clearRect: vi.fn(),
       drawImage: vi.fn(),
       getImageData: vi.fn(() => {
         throw new DOMException('Tainted canvas', 'SecurityError');
@@ -153,8 +162,223 @@ describe('CoverColorService', () => {
     const fallback = service.getFallbackTint(book.title, book.author);
     expect(service.getTint(book)).toBe(fallback);
 
-    await new Promise((resolve) => setTimeout(resolve, 20));
+    await vi.advanceTimersByTimeAsync(100);
 
     expect(service.getTint(book)).toBe(fallback);
+  });
+
+  it('does not evict or re-extract earlier books when processing 300 distinct books', async () => {
+    vi.useFakeTimers();
+
+    let imageLoads = 0;
+    const pixels = new Uint8ClampedArray(16 * 16 * 4);
+    for (let i = 0; i < pixels.length; i += 4) {
+      pixels[i] = 40;
+      pixels[i + 1] = 120;
+      pixels[i + 2] = 180;
+      pixels[i + 3] = 255;
+    }
+
+    const mockContext = {
+      clearRect: vi.fn(),
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => ({ data: pixels })),
+    };
+
+    const originalCreateElement = document.createElement.bind(document);
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName === 'canvas') {
+        return {
+          width: 0,
+          height: 0,
+          getContext: () => mockContext,
+        } as unknown as HTMLCanvasElement;
+      }
+      return originalCreateElement(tagName);
+    });
+
+    vi.spyOn(globalThis, 'Image').mockImplementation(function () {
+      const img = {
+        crossOrigin: '',
+        onload: null as (() => void) | null,
+        onerror: null as (() => void) | null,
+        set src(_value: string) {
+          imageLoads += 1;
+          queueMicrotask(() => img.onload?.());
+        },
+      };
+      return img as unknown as HTMLImageElement;
+    } as unknown as typeof Image);
+
+    const books = Array.from({ length: 300 }, (_, i) => ({
+      id: `book-${i}`,
+      title: `Title ${i}`,
+      author: `Author ${i}`,
+      coverUrl: `https://covers.example.com/${i}.jpg`,
+    }));
+
+    for (const book of books) {
+      service.getTint(book);
+    }
+
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(imageLoads).toBe(300);
+
+    // Re-reading book 0 and book 299 must not trigger any additional extractions.
+    const tint0 = service.getTint(books[0]);
+    const tint299 = service.getTint(books[299]);
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(tint0).toMatch(/^#[0-9a-f]{6}$/i);
+    expect(tint299).toMatch(/^#[0-9a-f]{6}$/i);
+    expect(imageLoads).toBe(300);
+  });
+
+  it('isolates per-key signals so updating book A does not re-run a computed reading book B', async () => {
+    vi.useFakeTimers();
+
+    const pixels = new Uint8ClampedArray(16 * 16 * 4);
+    for (let i = 0; i < pixels.length; i += 4) {
+      pixels[i] = 180;
+      pixels[i + 1] = 80;
+      pixels[i + 2] = 60;
+      pixels[i + 3] = 255;
+    }
+
+    const mockContext = {
+      clearRect: vi.fn(),
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => ({ data: pixels })),
+    };
+
+    const originalCreateElement = document.createElement.bind(document);
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName === 'canvas') {
+        return {
+          width: 0,
+          height: 0,
+          getContext: () => mockContext,
+        } as unknown as HTMLCanvasElement;
+      }
+      return originalCreateElement(tagName);
+    });
+
+    vi.spyOn(globalThis, 'Image').mockImplementation(function () {
+      const img = {
+        crossOrigin: '',
+        onload: null as (() => void) | null,
+        onerror: null as (() => void) | null,
+        set src(_value: string) {
+          queueMicrotask(() => img.onload?.());
+        },
+      };
+      return img as unknown as HTMLImageElement;
+    } as unknown as typeof Image);
+
+    const bookA = {
+      id: 'book-a',
+      title: 'Book A',
+      coverUrl: 'https://covers.example.com/a.jpg',
+    };
+    const bookB = {
+      id: 'book-b',
+      title: 'Book B',
+    };
+
+    let bookBComputations = 0;
+    const bookATint = computed(() => service.getTint(bookA));
+    const bookBTint = computed(() => {
+      bookBComputations += 1;
+      return service.getTint(bookB);
+    });
+
+    expect(bookATint()).toMatch(/^#[0-9a-f]{6}$/i);
+    expect(bookBTint()).toMatch(/^#[0-9a-f]{6}$/i);
+    expect(bookBComputations).toBe(1);
+
+    await vi.advanceTimersByTimeAsync(100);
+
+    // Book A resolves to its extracted tint, but Book B's computed() must not re-evaluate.
+    expect(bookATint()).toMatch(/^#[0-9a-f]{6}$/i);
+    expect(bookBTint()).toMatch(/^#[0-9a-f]{6}$/i);
+    expect(bookBComputations).toBe(1);
+  });
+
+  it('caps concurrent extractions at 2 and debounces localStorage writes', async () => {
+    vi.useFakeTimers();
+
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const pendingResolvers: (() => void)[] = [];
+
+    const pixels = new Uint8ClampedArray(16 * 16 * 4);
+    for (let i = 0; i < pixels.length; i += 4) {
+      pixels[i] = 90;
+      pixels[i + 1] = 140;
+      pixels[i + 2] = 110;
+      pixels[i + 3] = 255;
+    }
+
+    const mockContext = {
+      clearRect: vi.fn(),
+      drawImage: vi.fn(),
+      getImageData: vi.fn(() => ({ data: pixels })),
+    };
+
+    const originalCreateElement = document.createElement.bind(document);
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName === 'canvas') {
+        return {
+          width: 0,
+          height: 0,
+          getContext: () => mockContext,
+        } as unknown as HTMLCanvasElement;
+      }
+      return originalCreateElement(tagName);
+    });
+
+    vi.spyOn(globalThis, 'Image').mockImplementation(function () {
+      const img = {
+        crossOrigin: '',
+        onload: null as (() => void) | null,
+        onerror: null as (() => void) | null,
+        set src(_value: string) {
+          inFlight += 1;
+          maxInFlight = Math.max(maxInFlight, inFlight);
+          pendingResolvers.push(() => {
+            inFlight -= 1;
+            img.onload?.();
+          });
+        },
+      };
+      return img as unknown as HTMLImageElement;
+    } as unknown as typeof Image);
+
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+
+    for (let i = 0; i < 6; i += 1) {
+      service.getTint({
+        id: `queued-${i}`,
+        title: `Queued ${i}`,
+        coverUrl: `https://covers.example.com/q${i}.jpg`,
+      });
+    }
+
+    // Drain first batch (max 2 concurrent)
+    await vi.advanceTimersByTimeAsync(20);
+    expect(maxInFlight).toBe(2);
+    expect(pendingResolvers.length).toBe(2);
+
+    // Resolve all 6 jobs across batches
+    while (pendingResolvers.length > 0) {
+      const resolveNext = pendingResolvers.shift()!;
+      resolveNext();
+      await vi.advanceTimersByTimeAsync(20);
+    }
+
+    expect(maxInFlight).toBe(2);
+    // Debounce has not elapsed yet if we check immediately, or once 500ms elapses it writes once.
+    await vi.advanceTimersByTimeAsync(500);
+    expect(setItemSpy).toHaveBeenCalledTimes(1);
   });
 });

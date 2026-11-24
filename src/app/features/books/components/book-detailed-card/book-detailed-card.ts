@@ -23,7 +23,7 @@ import { translateBookFormat } from '../../utils/book-form.utils';
   templateUrl: './book-detailed-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'block h-full',
+    class: 'block h-full catalog-card-contain',
   },
 })
 export class BookDetailedCardComponent {

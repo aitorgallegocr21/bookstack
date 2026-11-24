@@ -20,7 +20,7 @@ import { translateBookFormat } from '../../utils/book-form.utils';
   templateUrl: './book-grid-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'block h-full',
+    class: 'block h-full catalog-card-contain',
   },
 })
 export class BookGridCardComponent {

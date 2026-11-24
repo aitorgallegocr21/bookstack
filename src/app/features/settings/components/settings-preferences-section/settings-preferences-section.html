@@ -1,5 +1,5 @@
 <section
-  class="space-y-5 rounded-2xl border border-subtle bg-surface p-5 shadow-sm"
+  class="space-y-4 rounded-2xl border border-subtle bg-surface p-5 shadow-sm"
   aria-labelledby="settings-preferences-heading"
 >
   <div>
@@ -11,16 +11,19 @@
     </p>
   </div>
 
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-    <!-- Active Language -->
-    <div class="flex flex-col justify-between">
-      <label for="settings-language" class="field-label truncate">
+  <div class="divide-y divide-subtle border-t border-subtle">
+    <!-- Row 1: Active Language -->
+    <div
+      class="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+      data-testid="pref-row-language"
+    >
+      <label for="settings-language" class="field-label mb-0 truncate">
         {{ i18n.t().settings.languageLabel }}
       </label>
-      <div class="select-wrap">
+      <div class="select-wrap w-full sm:w-72 sm:shrink-0">
         <select
           id="settings-language"
-          class="field-select h-11 py-0"
+          class="field-select h-11 w-full py-0"
           [value]="i18n.locale()"
           (change)="onLocaleChange($event)"
         >
@@ -30,70 +33,57 @@
       </div>
     </div>
 
-    <!-- Visual Theme (Light / Dark / System) -->
-    <div class="flex flex-col justify-between">
-      <span id="settings-theme-label" class="field-label truncate">
+    <!-- Row 2: Visual Theme (Light / Dark / System) -->
+    <div
+      class="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+      data-testid="pref-row-theme"
+    >
+      <span id="settings-theme-label" class="field-label mb-0 truncate">
         {{ i18n.t().settings.preferences.themeLabel }}
       </span>
       <div
         role="group"
         aria-labelledby="settings-theme-label"
-        class="grid h-11 grid-cols-3 gap-1 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1"
+        class="grid h-11 w-full grid-cols-3 gap-1 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1 sm:w-80 sm:shrink-0"
       >
-        <button
-          type="button"
-          data-testid="theme-light-btn"
-          class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:text-sm"
-          [class]="
-            themeService.themeMode() === 'light'
-              ? 'bg-surface-elevated text-ink shadow-sm'
-              : 'text-ink-secondary hover:text-ink'
-          "
-          [attr.aria-pressed]="themeService.themeMode() === 'light'"
-          (click)="setTheme('light')"
-        >
-          {{ i18n.t().settings.preferences.themeLight }}
-        </button>
-        <button
-          type="button"
-          data-testid="theme-dark-btn"
-          class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:text-sm"
-          [class]="
-            themeService.themeMode() === 'dark'
-              ? 'bg-surface-elevated text-ink shadow-sm'
-              : 'text-ink-secondary hover:text-ink'
-          "
-          [attr.aria-pressed]="themeService.themeMode() === 'dark'"
-          (click)="setTheme('dark')"
-        >
-          {{ i18n.t().settings.preferences.themeDark }}
-        </button>
-        <button
-          type="button"
-          data-testid="theme-system-btn"
-          class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:text-sm"
-          [class]="
-            themeService.themeMode() === 'system'
-              ? 'bg-surface-elevated text-ink shadow-sm'
-              : 'text-ink-secondary hover:text-ink'
-          "
-          [attr.aria-pressed]="themeService.themeMode() === 'system'"
-          (click)="setTheme('system')"
-        >
-          {{ i18n.t().settings.preferences.themeSystem }}
-        </button>
+        @for (opt of themeOptions; track opt.mode) {
+          <button
+            type="button"
+            [attr.data-testid]="opt.testId"
+            class="inline-flex h-full min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[0.625rem] px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:text-sm"
+            [class]="
+              themeService.themeMode() === opt.mode
+                ? 'bg-surface-elevated text-ink shadow-sm'
+                : 'text-ink-secondary hover:text-ink'
+            "
+            [attr.aria-pressed]="themeService.themeMode() === opt.mode"
+            (click)="setTheme(opt.mode)"
+          >
+            <svg
+              [lucideIcon]="opt.icon"
+              size="14"
+              stroke-width="2"
+              class="shrink-0"
+              aria-hidden="true"
+            ></svg>
+            <span class="truncate">{{ getThemeLabel(opt.mode) }}</span>
+          </button>
+        }
       </div>
     </div>
 
-    <!-- Default Catalog View -->
-    <div class="flex flex-col justify-between">
-      <label for="settings-default-view" class="field-label truncate">
+    <!-- Row 3: Default Catalog View -->
+    <div
+      class="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+      data-testid="pref-row-default-view"
+    >
+      <label for="settings-default-view" class="field-label mb-0 truncate">
         {{ i18n.t().settings.preferences.defaultViewLabel }}
       </label>
-      <div class="select-wrap">
+      <div class="select-wrap w-full sm:w-72 sm:shrink-0">
         <select
           id="settings-default-view"
-          class="field-select h-11 py-0"
+          class="field-select h-11 w-full py-0"
           [value]="catalogFilter.viewMode()"
           (change)="onViewModeChange($event)"
         >
@@ -103,12 +93,9 @@
         </select>
       </div>
     </div>
-  </div>
 
-  <!-- Accent Color & Dock Position Controls -->
-  <div class="grid grid-cols-1 gap-4 border-t border-subtle pt-4 md:grid-cols-2">
-    <!-- 5 Accent Swatches -->
-    <div class="flex flex-col gap-2">
+    <!-- Row 4: Accent Color (Ordered 5-Column Chromatic Grid) -->
+    <div class="space-y-3 py-4" data-testid="pref-row-accent">
       <span
         id="settings-accent-label"
         class="block text-[0.7rem] font-bold tracking-[0.12em] text-ink-secondary uppercase"
@@ -118,7 +105,7 @@
       <div
         role="group"
         aria-labelledby="settings-accent-label"
-        class="flex flex-wrap items-center gap-2"
+        class="grid grid-cols-2 gap-2.5 sm:grid-cols-5"
       >
         @for (swatch of accentSwatches; track swatch.id) {
           <button
@@ -133,22 +120,31 @@
                 ? 'border-accent bg-accent-soft text-accent-soft-text ring-2 ring-accent-ring'
                 : 'border-subtle bg-surface-elevated text-ink-secondary hover:border-strong hover:text-ink'
             "
-            class="inline-flex min-h-[44px] items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            class="inline-flex min-h-[44px] w-full min-w-0 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
             <span
-              class="h-3.5 w-3.5 shrink-0 rounded-full ring-1 ring-black/15"
+              class="h-4 w-4 shrink-0 rounded-full ring-1 ring-black/15"
               [style.background-color]="swatch.colorHex"
               aria-hidden="true"
             ></span>
-            <span>{{ getAccentLabel(swatch.id) }}</span>
+            <span class="truncate">{{ getAccentLabel(swatch.id) }}</span>
+            @if (themeService.accent() === swatch.id) {
+              <svg
+                [lucideIcon]="Check"
+                size="13"
+                stroke-width="2.5"
+                class="shrink-0"
+                aria-hidden="true"
+              ></svg>
+            }
           </button>
         }
       </div>
     </div>
 
-    <!-- Dock Position (Desktop 4-Edge & Mobile 2-Edge) -->
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      <div class="flex flex-col gap-2">
+    <!-- Row 5: Dock Position (Desktop 4-Edge & Mobile 2-Edge) -->
+    <div class="grid grid-cols-1 gap-4 pt-4 lg:grid-cols-12" data-testid="pref-row-dock">
+      <div class="flex flex-col gap-2 lg:col-span-8">
         <span
           id="settings-desktop-dock-label"
           class="block text-[0.7rem] font-bold tracking-[0.12em] text-ink-secondary uppercase"
@@ -158,7 +154,7 @@
         <div
           role="group"
           aria-labelledby="settings-desktop-dock-label"
-          class="grid h-11 grid-cols-4 gap-1 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1"
+          class="grid grid-cols-2 gap-1.5 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1.5 sm:grid-cols-4"
         >
           @for (pos of desktopDockPositions; track pos) {
             <button
@@ -171,15 +167,22 @@
                   ? 'bg-surface-elevated text-ink shadow-sm'
                   : 'text-ink-secondary hover:text-ink'
               "
-              class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-1 text-[11px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              class="inline-flex min-h-[44px] w-full min-w-0 items-center justify-center gap-1.5 rounded-[0.625rem] px-2.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             >
-              {{ getDockPositionLabel(pos) }}
+              <svg
+                [lucideIcon]="dockIcons[pos]"
+                size="15"
+                stroke-width="2"
+                class="shrink-0"
+                aria-hidden="true"
+              ></svg>
+              <span>{{ getDockPositionLabel(pos) }}</span>
             </button>
           }
         </div>
       </div>
 
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-2 lg:col-span-4">
         <span
           id="settings-mobile-dock-label"
           class="block text-[0.7rem] font-bold tracking-[0.12em] text-ink-secondary uppercase"
@@ -189,7 +192,7 @@
         <div
           role="group"
           aria-labelledby="settings-mobile-dock-label"
-          class="grid h-11 grid-cols-2 gap-1 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1"
+          class="grid grid-cols-2 gap-1.5 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1.5"
         >
           @for (pos of mobileDockPositions; track pos) {
             <button
@@ -202,9 +205,16 @@
                   ? 'bg-surface-elevated text-ink shadow-sm'
                   : 'text-ink-secondary hover:text-ink'
               "
-              class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              class="inline-flex min-h-[44px] w-full min-w-0 items-center justify-center gap-1.5 rounded-[0.625rem] px-2.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
             >
-              {{ getDockPositionLabel(pos) }}
+              <svg
+                [lucideIcon]="dockIcons[pos]"
+                size="15"
+                stroke-width="2"
+                class="shrink-0"
+                aria-hidden="true"
+              ></svg>
+              <span>{{ getDockPositionLabel(pos) }}</span>
             </button>
           }
         </div>

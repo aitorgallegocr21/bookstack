@@ -1,4 +1,4 @@
-import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, WritableSignal, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { z } from 'zod';
 
@@ -9,8 +9,18 @@ export interface CoverTintBookInput {
   coverUrl?: string;
 }
 
+export type CoverTintPriority = 'high' | 'normal';
+
+interface ExtractionJob {
+  cacheKey: string;
+  coverUrl: string;
+  fallback: string;
+}
+
 const COVER_TINT_STORAGE_KEY = 'bookstack_cover_tints_v1';
-const MAX_CACHE_ENTRIES = 250;
+const MAX_PERSISTED_ENTRIES = 500;
+const MAX_CONCURRENT_EXTRACTIONS = 2;
+const PERSIST_DEBOUNCE_MS = 500;
 const CANVAS_SAMPLE_SIZE = 16;
 
 const CoverTintCacheSchema = z.array(z.tuple([z.string(), z.string()]));
@@ -40,8 +50,15 @@ const EDITORIAL_FALLBACK_PALETTE: readonly string[] = [
 export class CoverColorService {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly cache = new Map<string, string>();
+  private readonly entrySignals = new Map<string, WritableSignal<string>>();
   private readonly pendingKeys = new Set<string>();
-  private readonly cacheSignal = signal<Record<string, string>>({});
+  private readonly resolvedKeys = new Set<string>();
+  private readonly queue: ExtractionJob[] = [];
+  private activeExtractions = 0;
+  private drainScheduled = false;
+  private idleHandle: number | ReturnType<typeof setTimeout> | null = null;
+  private persistTimer: ReturnType<typeof setTimeout> | null = null;
+  private sampleCanvas: HTMLCanvasElement | null = null;
 
   constructor() {
     this.hydrateFromStorage();
@@ -49,27 +66,29 @@ export class CoverColorService {
 
   /**
    * Returns a CSS color string suitable for `--book-tint`.
-   * Reads reactively from the internal cache signal and schedules background
-   * 16x16 canvas extraction when an uncached `coverUrl` is provided.
+   * Reads reactively from a per-key signal (O(1) isolation) and queues
+   * bounded idle 16x16 canvas extraction when an uncached `coverUrl` is provided.
    */
-  getTint(book: CoverTintBookInput): string {
+  getTint(book: CoverTintBookInput, priority: CoverTintPriority = 'normal'): string {
     const cacheKey = this.buildCacheKey(book);
-    const snapshot = this.cacheSignal();
-    const cached = snapshot[cacheKey] ?? this.cache.get(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
     const fallback = this.getFallbackTint(book.title, book.author);
 
-    if (this.isBrowser && book.coverUrl && !this.pendingKeys.has(cacheKey)) {
-      this.pendingKeys.add(cacheKey);
-      queueMicrotask(() => {
-        void this.extractAndCache(cacheKey, book.coverUrl!, fallback);
-      });
+    let entrySignal = this.entrySignals.get(cacheKey);
+    if (!entrySignal) {
+      const initial = this.cache.get(cacheKey) ?? fallback;
+      entrySignal = signal(initial);
+      this.entrySignals.set(cacheKey, entrySignal);
     }
 
-    return fallback;
+    if (this.isBrowser && book.coverUrl && !this.resolvedKeys.has(cacheKey)) {
+      if (!this.pendingKeys.has(cacheKey)) {
+        this.enqueueExtraction({ cacheKey, coverUrl: book.coverUrl, fallback }, priority);
+      } else if (priority === 'high') {
+        this.promoteQueuedJob(cacheKey);
+      }
+    }
+
+    return entrySignal();
   }
 
   /**
@@ -90,9 +109,20 @@ export class CoverColorService {
    * Clears in-memory and persisted tint caches (primarily for testing or reset).
    */
   clearCache(): void {
+    if (this.persistTimer !== null) {
+      clearTimeout(this.persistTimer);
+      this.persistTimer = null;
+    }
+    this.cancelScheduledDrain();
+    this.queue.length = 0;
+    this.activeExtractions = 0;
+    this.drainScheduled = false;
     this.cache.clear();
+    this.entrySignals.clear();
     this.pendingKeys.clear();
-    this.cacheSignal.set({});
+    this.resolvedKeys.clear();
+    this.sampleCanvas = null;
+
     if (this.isBrowser) {
       try {
         localStorage.removeItem(COVER_TINT_STORAGE_KEY);
@@ -111,6 +141,66 @@ export class CoverColorService {
     return `${book.id}:${signature}`;
   }
 
+  private enqueueExtraction(job: ExtractionJob, priority: CoverTintPriority): void {
+    this.pendingKeys.add(job.cacheKey);
+    if (priority === 'high') {
+      this.queue.unshift(job);
+    } else {
+      this.queue.push(job);
+    }
+    this.scheduleDrain();
+  }
+
+  private promoteQueuedJob(cacheKey: string): void {
+    const index = this.queue.findIndex((job) => job.cacheKey === cacheKey);
+    if (index > 0) {
+      const [job] = this.queue.splice(index, 1);
+      this.queue.unshift(job);
+    }
+  }
+
+  private scheduleDrain(): void {
+    if (
+      this.drainScheduled ||
+      this.queue.length === 0 ||
+      this.activeExtractions >= MAX_CONCURRENT_EXTRACTIONS
+    ) {
+      return;
+    }
+
+    this.drainScheduled = true;
+    if (typeof requestIdleCallback === 'function') {
+      this.idleHandle = requestIdleCallback(() => {
+        this.idleHandle = null;
+        this.drainQueue();
+      });
+    } else {
+      this.idleHandle = setTimeout(() => {
+        this.idleHandle = null;
+        this.drainQueue();
+      }, 16);
+    }
+  }
+
+  private cancelScheduledDrain(): void {
+    if (this.idleHandle === null) return;
+    if (typeof cancelIdleCallback === 'function' && typeof this.idleHandle === 'number') {
+      cancelIdleCallback(this.idleHandle);
+    } else {
+      clearTimeout(this.idleHandle);
+    }
+    this.idleHandle = null;
+  }
+
+  private drainQueue(): void {
+    this.drainScheduled = false;
+    while (this.activeExtractions < MAX_CONCURRENT_EXTRACTIONS && this.queue.length > 0) {
+      const job = this.queue.shift()!;
+      this.activeExtractions += 1;
+      void this.extractAndCache(job.cacheKey, job.coverUrl, job.fallback);
+    }
+  }
+
   private async extractAndCache(
     cacheKey: string,
     coverUrl: string,
@@ -123,7 +213,22 @@ export class CoverColorService {
       this.setCacheEntry(cacheKey, fallback);
     } finally {
       this.pendingKeys.delete(cacheKey);
+      this.resolvedKeys.add(cacheKey);
+      this.activeExtractions = Math.max(0, this.activeExtractions - 1);
+      if (this.queue.length > 0) {
+        this.scheduleDrain();
+      }
     }
+  }
+
+  private getSampleCanvas(): HTMLCanvasElement | null {
+    if (!this.sampleCanvas && typeof document !== 'undefined') {
+      const canvas = document.createElement('canvas');
+      canvas.width = CANVAS_SAMPLE_SIZE;
+      canvas.height = CANVAS_SAMPLE_SIZE;
+      this.sampleCanvas = canvas;
+    }
+    return this.sampleCanvas;
   }
 
   private extractDominantHue(coverUrl: string): Promise<string | null> {
@@ -140,15 +245,14 @@ export class CoverColorService {
 
       img.onload = () => {
         try {
-          const canvas = document.createElement('canvas');
-          canvas.width = CANVAS_SAMPLE_SIZE;
-          canvas.height = CANVAS_SAMPLE_SIZE;
-          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          const canvas = this.getSampleCanvas();
+          const ctx = canvas?.getContext('2d', { willReadFrequently: true });
           if (!ctx) {
             resolve(null);
             return;
           }
 
+          ctx.clearRect?.(0, 0, CANVAS_SAMPLE_SIZE, CANVAS_SAMPLE_SIZE);
           ctx.drawImage(img, 0, 0, CANVAS_SAMPLE_SIZE, CANVAS_SAMPLE_SIZE);
           const { data } = ctx.getImageData(0, 0, CANVAS_SAMPLE_SIZE, CANVAS_SAMPLE_SIZE);
           resolve(this.computeMutedHexFromPixels(data));
@@ -274,15 +378,16 @@ export class CoverColorService {
       this.cache.delete(key);
     }
     this.cache.set(key, color);
+    this.resolvedKeys.add(key);
 
-    while (this.cache.size > MAX_CACHE_ENTRIES) {
-      const oldestKey = this.cache.keys().next().value;
-      if (oldestKey === undefined) break;
-      this.cache.delete(oldestKey);
+    const existingSignal = this.entrySignals.get(key);
+    if (existingSignal) {
+      existingSignal.set(color);
+    } else {
+      this.entrySignals.set(key, signal(color));
     }
 
-    this.cacheSignal.set(Object.fromEntries(this.cache));
-    this.persistToStorage();
+    this.schedulePersist();
   }
 
   private hydrateFromStorage(): void {
@@ -293,19 +398,31 @@ export class CoverColorService {
       const parsed = CoverTintCacheSchema.safeParse(JSON.parse(raw));
       if (!parsed.success) return;
 
-      for (const [key, value] of parsed.data.slice(-MAX_CACHE_ENTRIES)) {
+      for (const [key, value] of parsed.data.slice(-MAX_PERSISTED_ENTRIES)) {
         this.cache.set(key, value);
+        this.resolvedKeys.add(key);
+        this.entrySignals.set(key, signal(value));
       }
-      this.cacheSignal.set(Object.fromEntries(this.cache));
     } catch {
       // Ignore malformed or inaccessible storage.
     }
   }
 
+  private schedulePersist(): void {
+    if (!this.isBrowser) return;
+    if (this.persistTimer !== null) {
+      clearTimeout(this.persistTimer);
+    }
+    this.persistTimer = setTimeout(() => {
+      this.persistTimer = null;
+      this.persistToStorage();
+    }, PERSIST_DEBOUNCE_MS);
+  }
+
   private persistToStorage(): void {
     if (!this.isBrowser) return;
     try {
-      const entries = Array.from(this.cache.entries()).slice(-MAX_CACHE_ENTRIES);
+      const entries = Array.from(this.cache.entries()).slice(-MAX_PERSISTED_ENTRIES);
       localStorage.setItem(COVER_TINT_STORAGE_KEY, JSON.stringify(entries));
     } catch {
       // Ignore QuotaExceededError or private mode errors.

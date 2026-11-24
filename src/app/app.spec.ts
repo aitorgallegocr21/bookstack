@@ -115,4 +115,57 @@ describe('App', () => {
     await expect(confirmPromise).resolves.toBe(false);
     expect(root.querySelector('[role="alertdialog"]')).toBeNull();
   });
+
+  it('should toggle fallback .page-enter class on route activation only when View Transitions API is unavailable', async () => {
+    const originalStartViewTransition = document.startViewTransition;
+    const originalRaf = window.requestAnimationFrame;
+
+    try {
+      // Simulate non-VTA browser (e.g. older Safari / Firefox)
+      Object.defineProperty(document, 'startViewTransition', {
+        configurable: true,
+        writable: true,
+        value: undefined,
+      });
+      window.requestAnimationFrame = ((cb: FrameRequestCallback) => {
+        cb(0);
+        return 1;
+      }) as typeof window.requestAnimationFrame;
+
+      const fixture = TestBed.createComponent(App);
+      fixture.detectChanges();
+
+      const main = (fixture.nativeElement as HTMLElement).querySelector('main') as HTMLElement;
+      expect(main.classList.contains('page-enter')).toBe(false);
+
+      (fixture.componentInstance as unknown as { onRouteActivate: () => void }).onRouteActivate();
+      fixture.detectChanges();
+      expect(main.classList.contains('page-enter')).toBe(true);
+
+      // Simulate VTA-capable browser: fallback class should stay inactive
+      Object.defineProperty(document, 'startViewTransition', {
+        configurable: true,
+        writable: true,
+        value: () => ({ finished: Promise.resolve() }),
+      });
+
+      const fixtureVta = TestBed.createComponent(App);
+      fixtureVta.detectChanges();
+      const mainVta = (fixtureVta.nativeElement as HTMLElement).querySelector(
+        'main'
+      ) as HTMLElement;
+      (
+        fixtureVta.componentInstance as unknown as { onRouteActivate: () => void }
+      ).onRouteActivate();
+      fixtureVta.detectChanges();
+      expect(mainVta.classList.contains('page-enter')).toBe(false);
+    } finally {
+      Object.defineProperty(document, 'startViewTransition', {
+        configurable: true,
+        writable: true,
+        value: originalStartViewTransition,
+      });
+      window.requestAnimationFrame = originalRaf;
+    }
+  });
 });

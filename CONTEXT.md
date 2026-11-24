@@ -16,7 +16,8 @@
 2. **Asymmetric 4-Edge & 2-Edge Dockable Shell (`Tailwind CSS v4` `@theme`):**
    - Tablet & Desktop ($\ge 768\text{px}$): 4-edge dockable `SidebarComponent` (`hidden md:flex`, `left`/`right` collapsible `68px` $\leftrightarrow$ `240px`, or `top`/`bottom` floating horizontal bar) persisted via `DockPositionService` & `UiStateService`, with magnetic quadrant drag-and-snap (`dock-snap.utils.ts`) and quick-dock popover.
    - Mobile ($< 768\text{px}$): Unified floating translucent `BottomNavComponent` movable between `bottom` (default) and `top` (`env(safe-area-inset-*)`), housing the 4 primary routes, central `+` Add Book CTA, and `<app-brand-logo>` overflow menu.
-   - **Warm Modern Editorial Surfaces & Adaptive Cover Tinting:** Semantic `@theme` tokens in `src/styles.css` with 5 WCAG AA `[data-accent]` palettes (`blue`, `indigo`, `emerald`, `amber`, `rose`), `light`/`dark`/`system` theme mode (`ThemeService`), and `CoverColorService` (`16×16` canvas extraction + LRU cache + deterministic fallback) driving `--book-tint` ambient washes on cards and `BookDetailModal` hero.
+   - **Warm Modern Editorial Surfaces & Adaptive Cover Tinting:** Semantic `@theme` tokens in `src/styles.css` with 5 WCAG AA `[data-accent]` palettes (`blue`, `indigo`, `emerald`, `amber`, `rose`), `light`/`dark`/`system` theme mode (`ThemeService`), and `CoverColorService` (per-key $O(1)$ signals, concurrency-2 idle queue, debounced `localStorage` persistence, `16×16` canvas extraction & deterministic fallback) driving `--book-tint` ambient washes on cards and `BookDetailModal` hero.
+   - **Editorial Route Transitions & Hover Craft:** Native `withViewTransitions({ skipInitialTransition: true })` with pinned dock `view-transition-name` layers, GPU-composited cross-fade/rise animations, `.page-enter` fallback, `@media (hover: hover)` hover polish, and `prefers-reduced-motion: reduce` guards.
    - **Container-Aware Grids & Toolbars (`@container`):** Dashboard split, catalog grids/card actions, and unified filter toolbars adapt to actual container width (accounting for sidebar expand/collapse at ~1000px), paired with `.no-scrollbar` + `.modal-scroll-area` scroll cues on modal bodies.
 3. **Rendering & Bundle Efficiency:** Discrete CSS transitions (`transition-colors`, `transition-[width]`, `transition-[grid-template-rows]`); `transition-all` is banned. Global `BookCreateModalComponent` loads via `@defer`. Cover images use `decoding="async" loading="lazy"`. Shared modal/form primitives reside in `src/styles.css`.
 4. **Client-Side Canvas Cover Optimization:** `ImageOptimizerService` scales and compresses uploaded covers ($\le 400\text{px}$, quality `0.75`, WebP/JPEG fallback) before persistence.
@@ -49,7 +50,7 @@ src/
     │   │   └── confirm-dialog.model.ts        # ConfirmDialogOptions, ConfirmEntityPreview & ConfirmSuppressionKey
     │   ├── services/
     │   │   ├── confirm-dialog.service.ts      # Promise-based Signal confirmation dialog & suppression preferences
-    │   │   ├── cover-color.service.ts         # 16x16 canvas cover hue extraction + LRU cache & O(1) fallback
+    │   │   ├── cover-color.service.ts         # Per-key O(1) cover hue signals, idle queue & debounced persistence
     │   │   ├── dock-position.service.ts       # 4-edge desktop & 2-edge mobile dock position + drag preview signals
     │   │   ├── storage-adapter.service.ts     # L1-361: IndexedDB + LocalStorage fallback + catalog/confirm prefs
     │   │   ├── theme.service.ts               # Light/dark/system theme mode & 5 accent palettes persistence

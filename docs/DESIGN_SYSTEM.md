@@ -59,8 +59,9 @@ Defined centrally in `src/app/features/books/models/book.model.ts`:
 
 ## 4. Rendering Performance Rules
 
-- **No `transition-all`:** Use discrete property transitions (`transition-colors`, `transition-opacity`, `transition-[width]`, `transition-[margin]`, `transition-transform`, `transition-[height]`, `transition-[height,background-color]`).
+- **No `transition-all`:** Use discrete property transitions (`transition-colors`, `transition-opacity`, `transition-[width]`, `transition-[margin]`, `transition-transform`, `transition-[height]`, `transition-[height,background-color]`, `transition-[transform,background-color,box-shadow]`).
+- **Editorial Route Transitions & Hover Craft:** `withViewTransitions({ skipInitialTransition: true })` pins desktop/mobile docks via `view-transition-name` while cross-fading route content; pointer hover elevations (`@media (hover: hover)`) and tactile button/card helpers (`.editorial-hover-card`, `.btn-tactile`, `.book-tint-card:hover`, `.book-tint-row:hover`) are neutralized under `@media (prefers-reduced-motion: reduce)`.
 - **Native SVG & CSS Visualizations:** Analytics charts (velocity bars, format donut, status stacked bar, rating histogram, weekday pace) use pure reactive SVG/CSS with zero external chart libraries and wrapping pill controls for `320px` overflow safety.
-- **List Containment:** Catalog cards apply `contain: layout paint; content-visibility: auto;`.
+- **List Containment:** Catalog cards apply `contain: layout style paint; content-visibility: auto;`.
 - **Deferred Heavy Modals:** Secondary modals (`BookDetailModal`, `BookEditModal`, `ReadingLogEditor`, `SagaDetailModal`, `BookCreateModal`) load lazily via `@defer (when ...)` to keep initial route bundles lean.
 - **Image Optimization:** Cover uploads compress to WebP/JPEG (`<= 400px`, `0.75` quality) via `ImageOptimizerService`, while bulk cover enrichment enforces an anti-placeholder dimension guard (`>= 80x120px`); cover `<img>` tags include `loading="lazy"` and `decoding="async"`.

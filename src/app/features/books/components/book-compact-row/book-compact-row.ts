@@ -19,6 +19,9 @@ import { translateBookFormat } from '../../utils/book-form.utils';
   imports: [CommonModule, LucideDynamicIcon],
   templateUrl: './book-compact-row.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block catalog-row-contain',
+  },
 })
 export class BookCompactRowComponent {
   protected readonly i18n = inject(I18nService);

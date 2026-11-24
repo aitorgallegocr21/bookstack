@@ -1,4 +1,15 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  LucideCheck,
+  LucideDynamicIcon,
+  LucideMonitor,
+  LucideMoon,
+  LucidePanelBottom,
+  LucidePanelLeft,
+  LucidePanelRight,
+  LucidePanelTop,
+  LucideSun,
+} from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { SupportedLocale } from '../../../../core/i18n/i18n.types';
 import { CONFIRM_SUPPRESSION_KEYS } from '../../../../core/models/confirm-dialog.model';
@@ -14,6 +25,19 @@ interface AccentSwatchOption {
   readonly colorHex: string;
 }
 
+type ThemeModeIcon = typeof LucideSun | typeof LucideMoon | typeof LucideMonitor;
+type DockPositionIcon =
+  | typeof LucidePanelLeft
+  | typeof LucidePanelRight
+  | typeof LucidePanelTop
+  | typeof LucidePanelBottom;
+
+interface ThemeModeOption {
+  readonly mode: ThemeMode;
+  readonly testId: string;
+  readonly icon: ThemeModeIcon;
+}
+
 const ACCENT_SWATCH_OPTIONS: readonly AccentSwatchOption[] = [
   { id: 'blue', colorHex: '#2563eb' },
   { id: 'indigo', colorHex: '#4f46e5' },
@@ -22,9 +46,23 @@ const ACCENT_SWATCH_OPTIONS: readonly AccentSwatchOption[] = [
   { id: 'rose', colorHex: '#be123c' },
 ] as const;
 
+const THEME_MODE_OPTIONS: readonly ThemeModeOption[] = [
+  { mode: 'light', testId: 'theme-light-btn', icon: LucideSun },
+  { mode: 'dark', testId: 'theme-dark-btn', icon: LucideMoon },
+  { mode: 'system', testId: 'theme-system-btn', icon: LucideMonitor },
+] as const;
+
+const DOCK_POSITION_ICONS: Record<DockPosition, DockPositionIcon> = {
+  left: LucidePanelLeft,
+  right: LucidePanelRight,
+  top: LucidePanelTop,
+  bottom: LucidePanelBottom,
+};
+
 @Component({
   selector: 'app-settings-preferences-section',
   standalone: true,
+  imports: [LucideDynamicIcon],
   templateUrl: './settings-preferences-section.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -38,7 +76,10 @@ export class SettingsPreferencesSectionComponent {
   protected readonly catalogFilter = inject(CatalogFilterService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
 
+  protected readonly Check = LucideCheck;
+  protected readonly themeOptions = THEME_MODE_OPTIONS;
   protected readonly accentSwatches = ACCENT_SWATCH_OPTIONS;
+  protected readonly dockIcons = DOCK_POSITION_ICONS;
   protected readonly desktopDockPositions: readonly DockPosition[] = [
     'left',
     'right',
@@ -58,6 +99,16 @@ export class SettingsPreferencesSectionComponent {
 
   protected setTheme(theme: ThemeMode): void {
     this.themeService.setTheme(theme);
+  }
+
+  protected getThemeLabel(mode: ThemeMode): string {
+    const prefs = this.i18n.t().settings.preferences;
+    const labels: Record<ThemeMode, string> = {
+      light: prefs.themeLight,
+      dark: prefs.themeDark,
+      system: prefs.themeSystem,
+    };
+    return labels[mode];
   }
 
   protected setAccent(accent: AccentPalette): void {

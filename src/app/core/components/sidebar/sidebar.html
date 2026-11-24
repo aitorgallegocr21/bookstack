@@ -53,7 +53,7 @@
       <button
         type="button"
         (click)="openCreate()"
-        class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-3 py-2.5 text-sm font-medium text-white shadow-xs transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+        class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-3 py-2.5 text-sm font-medium text-white shadow-xs transition-[transform,background-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-md focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none active:translate-y-0 active:scale-[0.98]"
         [attr.aria-label]="i18n.t().nav.createBookAria"
         [title]="i18n.t().nav.createBookAria"
       >
@@ -73,14 +73,19 @@
           [routerLink]="item.path"
           [routerLinkActive]="'bg-accent-soft text-accent-soft-text font-semibold shadow-xs'"
           [routerLinkActiveOptions]="item.path === '/' ? { exact: true } : { exact: false }"
-          class="flex items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm text-ink-secondary transition-colors duration-200 hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+          class="group flex items-center gap-3 rounded-xl px-2.5 py-2.5 text-sm text-ink-secondary transition-colors duration-200 hover:bg-accent-soft/65 hover:text-accent-soft-text focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
           [class.justify-center]="uiState.isSidebarCollapsed()"
           [class.justify-start]="!uiState.isSidebarCollapsed()"
           [attr.aria-label]="item.label"
           [title]="item.label"
         >
           <span class="flex h-7 w-7 items-center justify-center rounded-lg">
-            <svg [lucideIcon]="item.icon" size="18" stroke-width="2" class="shrink-0"></svg>
+            <svg
+              [lucideIcon]="item.icon"
+              size="18"
+              stroke-width="2"
+              class="shrink-0 transition-transform duration-200 group-hover:scale-105"
+            ></svg>
           </span>
 
           @if (!uiState.isSidebarCollapsed()) {
@@ -98,14 +103,19 @@
         <a
           [routerLink]="item.path"
           [routerLinkActive]="'bg-accent-soft text-accent-soft-text font-semibold shadow-xs'"
-          class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-ink-secondary transition-colors duration-200 hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+          class="group flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-ink-secondary transition-colors duration-200 hover:bg-accent-soft/65 hover:text-accent-soft-text focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
           [class.justify-center]="uiState.isSidebarCollapsed()"
           [class.justify-start]="!uiState.isSidebarCollapsed()"
           [attr.aria-label]="item.label"
           [title]="item.label"
         >
           <span class="flex h-7 w-7 items-center justify-center rounded-lg">
-            <svg [lucideIcon]="item.icon" size="18" stroke-width="2" class="shrink-0"></svg>
+            <svg
+              [lucideIcon]="item.icon"
+              size="18"
+              stroke-width="2"
+              class="shrink-0 transition-transform duration-200 group-hover:scale-105"
+            ></svg>
           </span>
 
           @if (!uiState.isSidebarCollapsed()) {
@@ -121,7 +131,7 @@
         <button
           type="button"
           (click)="toggleDockMenu($event)"
-          class="flex flex-1 items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-ink-secondary transition-colors duration-200 hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+          class="group flex flex-1 items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-ink-secondary transition-colors duration-200 hover:bg-accent-soft/65 hover:text-accent-soft-text focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
           [class.w-full]="uiState.isSidebarCollapsed()"
           [class.justify-center]="uiState.isSidebarCollapsed()"
           [class.justify-start]="!uiState.isSidebarCollapsed()"
@@ -130,7 +140,12 @@
           [title]="i18n.t().nav.quickDockAria"
         >
           <span class="flex h-7 w-7 items-center justify-center rounded-lg">
-            <svg [lucideIcon]="Move" size="18" stroke-width="2" class="shrink-0"></svg>
+            <svg
+              [lucideIcon]="Move"
+              size="18"
+              stroke-width="2"
+              class="shrink-0 transition-transform duration-200 group-hover:scale-105"
+            ></svg>
           </span>
           @if (!uiState.isSidebarCollapsed()) {
             <span class="truncate">{{ i18n.t().nav.dockPosition }}</span>
@@ -189,14 +204,19 @@
       <button
         type="button"
         (click)="openGitHub()"
-        class="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-ink-secondary transition-colors duration-200 hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+        class="group flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-ink-secondary transition-colors duration-200 hover:bg-accent-soft/65 hover:text-accent-soft-text focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
         [class.justify-center]="uiState.isSidebarCollapsed()"
         [class.justify-start]="!uiState.isSidebarCollapsed()"
         [attr.aria-label]="i18n.t().nav.github"
         [title]="i18n.t().nav.github"
       >
         <span class="flex h-7 w-7 items-center justify-center rounded-lg">
-          <svg [lucideIcon]="Github" size="18" stroke-width="2" class="shrink-0"></svg>
+          <svg
+            [lucideIcon]="Github"
+            size="18"
+            stroke-width="2"
+            class="shrink-0 transition-transform duration-200 group-hover:scale-105"
+          ></svg>
         </span>
 
         @if (!uiState.isSidebarCollapsed()) {
@@ -209,7 +229,7 @@
       <button
         type="button"
         (click)="toggleTheme()"
-        class="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-ink-secondary transition-colors duration-200 hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+        class="group flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-sm text-ink-secondary transition-colors duration-200 hover:bg-accent-soft/65 hover:text-accent-soft-text focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
         [class.justify-center]="uiState.isSidebarCollapsed()"
         [class.justify-start]="!uiState.isSidebarCollapsed()"
         [attr.aria-label]="
@@ -222,7 +242,7 @@
             [lucideIcon]="themeService.isDark() ? Sun : Moon"
             size="18"
             stroke-width="2"
-            class="shrink-0 transition-transform duration-300"
+            class="shrink-0 transition-transform duration-300 group-hover:scale-105"
           ></svg>
         </span>
 
@@ -256,7 +276,7 @@
     <button
       type="button"
       (click)="openCreate()"
-      class="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-accent px-2.5 text-xs font-medium text-white shadow-xs transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+      class="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-accent px-2.5 text-xs font-medium text-white shadow-xs transition-[transform,background-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:bg-accent-hover hover:shadow-md focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none active:translate-y-0 active:scale-[0.98]"
       [attr.aria-label]="i18n.t().nav.createBookAria"
       [title]="i18n.t().nav.createBookAria"
     >
@@ -272,11 +292,16 @@
           [routerLink]="item.path"
           [routerLinkActive]="'bg-accent-soft text-accent-soft-text font-semibold shadow-xs'"
           [routerLinkActiveOptions]="item.path === '/' ? { exact: true } : { exact: false }"
-          class="flex h-9 items-center gap-1.5 rounded-xl px-2.5 text-xs text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+          class="group flex h-9 items-center gap-1.5 rounded-xl px-2.5 text-xs text-ink-secondary transition-colors hover:bg-accent-soft/65 hover:text-accent-soft-text focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
           [attr.aria-label]="item.label"
           [title]="item.label"
         >
-          <svg [lucideIcon]="item.icon" size="17" stroke-width="2" class="shrink-0"></svg>
+          <svg
+            [lucideIcon]="item.icon"
+            size="17"
+            stroke-width="2"
+            class="shrink-0 transition-transform duration-200 group-hover:scale-105"
+          ></svg>
           <span class="hidden lg:inline">{{ item.label }}</span>
         </a>
       }
@@ -285,11 +310,16 @@
         <a
           [routerLink]="item.path"
           [routerLinkActive]="'bg-accent-soft text-accent-soft-text font-semibold shadow-xs'"
-          class="flex h-9 items-center gap-1.5 rounded-xl px-2.5 text-xs text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+          class="group flex h-9 items-center gap-1.5 rounded-xl px-2.5 text-xs text-ink-secondary transition-colors hover:bg-accent-soft/65 hover:text-accent-soft-text focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
           [attr.aria-label]="item.label"
           [title]="item.label"
         >
-          <svg [lucideIcon]="item.icon" size="17" stroke-width="2" class="shrink-0"></svg>
+          <svg
+            [lucideIcon]="item.icon"
+            size="17"
+            stroke-width="2"
+            class="shrink-0 transition-transform duration-200 group-hover:scale-105"
+          ></svg>
           <span class="sr-only">{{ item.label }}</span>
         </a>
       }

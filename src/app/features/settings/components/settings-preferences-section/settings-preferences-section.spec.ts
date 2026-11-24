@@ -96,23 +96,15 @@ describe('SettingsPreferencesSectionComponent', () => {
     expect(catalogFilter.viewMode()).toBe('compact');
   });
 
-  it('should render block host, single-line aligned labels, and unified h-11 control heights', () => {
+  it('should render vertical editorial rows, equal-width theme controls, 5-column accent grid, and spacious dock selectors', () => {
     const fixture = TestBed.createComponent(SettingsPreferencesSectionComponent);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
     expect(host.classList.contains('block')).toBe(true);
 
-    const grid = host.querySelector('.grid.sm\\:grid-cols-3') as HTMLElement;
-    expect(grid).toBeTruthy();
-
-    const columns = Array.from(grid.children) as HTMLElement[];
-    expect(columns).toHaveLength(3);
-    for (const column of columns) {
-      expect(column.classList.contains('flex')).toBe(true);
-      expect(column.classList.contains('flex-col')).toBe(true);
-      expect(column.classList.contains('justify-between')).toBe(true);
-    }
+    const stack = host.querySelector('.divide-y.divide-subtle') as HTMLElement;
+    expect(stack).toBeTruthy();
 
     const labels = Array.from(host.querySelectorAll('.field-label')) as HTMLElement[];
     expect(labels).toHaveLength(3);
@@ -130,6 +122,35 @@ describe('SettingsPreferencesSectionComponent', () => {
       expect(control).toBeTruthy();
       expect(control.classList.contains('h-11')).toBe(true);
     }
+
+    expect(themeGroup.classList.contains('grid-cols-3')).toBe(true);
+    const themeButtons = Array.from(themeGroup.querySelectorAll('button'));
+    expect(themeButtons).toHaveLength(3);
+    for (const btn of themeButtons) {
+      expect(btn.classList.contains('min-w-0')).toBe(true);
+      expect(btn.classList.contains('flex-1')).toBe(true);
+    }
+
+    const accentGroup = host.querySelector(
+      '[role="group"][aria-labelledby="settings-accent-label"]'
+    ) as HTMLElement;
+    expect(accentGroup.classList.contains('sm:grid-cols-5')).toBe(true);
+    const swatchIds = Array.from(accentGroup.querySelectorAll('button')).map((btn) =>
+      btn.getAttribute('data-testid')
+    );
+    expect(swatchIds).toEqual([
+      'accent-swatch-blue',
+      'accent-swatch-indigo',
+      'accent-swatch-emerald',
+      'accent-swatch-amber',
+      'accent-swatch-rose',
+    ]);
+
+    const desktopDockGroup = host.querySelector(
+      '[role="group"][aria-labelledby="settings-desktop-dock-label"]'
+    ) as HTMLElement;
+    expect(desktopDockGroup.classList.contains('sm:grid-cols-4')).toBe(true);
+    expect(desktopDockGroup.querySelectorAll('button')).toHaveLength(4);
   });
 
   it('should show and execute reset suppressed confirmations button when at least one prompt is suppressed', () => {

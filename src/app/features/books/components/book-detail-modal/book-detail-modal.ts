@@ -66,7 +66,7 @@ export class BookDetailModalComponent implements OnDestroy {
 
   protected readonly bookTint = computed<string | null>(() => {
     const currentBook = this.book();
-    return currentBook ? this.coverColorService.getTint(currentBook) : null;
+    return currentBook ? this.coverColorService.getTint(currentBook, 'high') : null;
   });
 
   protected readonly bookLogs = computed<ReadingLog[]>(() => {

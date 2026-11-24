@@ -38,9 +38,9 @@ src/
 ├── styles.css                                 # Tailwind CSS v4 entry, dark variant & shared modal/form styles
 └── app/
     ├── app.config.ts / app.routes.ts          # Root config & lazy routes (/, /books, /series, /stats, /settings, /about)
-    ├── app.ts / app.html / app.spec.ts        # Root shell (<app-sidebar>, <app-header>, <main>, <app-bottom-nav>, @defer modal)
+    ├── app.ts / app.html / app.spec.ts        # Root shell (<app-sidebar>, <main>, <app-bottom-nav>, snap preview, @defer modal)
     ├── core/
-    │   ├── components/{sidebar,header,bottom-nav,confirm-dialog}/  # Asymmetric shell & global <app-confirm-dialog>
+    │   ├── components/{sidebar,bottom-nav,brand-logo,confirm-dialog}/  # 4-edge desktop dock, 2-edge mobile dock, brand logo & <app-confirm-dialog>
     │   ├── i18n/                              # i18n.types.ts (L1-18), es.ts (L1-18), en.ts (L1-18), i18n.service.ts (L1-49)
     │   │   └── domains/                       # shell, dashboard, books, analytics, series, settings, about
     │   ├── models/
@@ -48,11 +48,13 @@ src/
     │   │   └── confirm-dialog.model.ts        # ConfirmDialogOptions, ConfirmEntityPreview & ConfirmSuppressionKey
     │   ├── services/
     │   │   ├── confirm-dialog.service.ts      # Promise-based Signal confirmation dialog & suppression preferences
+    │   │   ├── dock-position.service.ts       # 4-edge desktop & 2-edge mobile dock position + drag preview signals
     │   │   ├── storage-adapter.service.ts     # L1-361: IndexedDB + LocalStorage fallback + catalog/confirm prefs
-    │   │   ├── theme.service.ts               # L1-83: Light/dark theme signal & persistence
+    │   │   ├── theme.service.ts               # Light/dark/system theme mode & 5 accent palettes persistence
     │   │   └── ui-state.service.ts            # L1-66: Sidebar collapse, create modal state/prefill & scroll lock
     │   └── utils/
     │       ├── date-formatter.ts              # Locale-aware Intl date & month formatters
+    │       ├── dock-snap.utils.ts             # Quadrant snap-edge detection & preview rect calculation
     │       └── temporal-bounds.utils.ts       # Temporal bounds (1900..currentYear+1), antique year check & typo repair
     ├── shared/
     │   └── utils/book-display.utils.ts        # Shared getStatusBadgeClass & formatRatingBadge helpers

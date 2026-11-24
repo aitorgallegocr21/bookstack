@@ -17,6 +17,16 @@ export interface ShellI18n {
     switchToDark: string;
     mainMenuAria: string;
     bottomNavAria: string;
+    dockPosition: string;
+    dockLeft: string;
+    dockRight: string;
+    dockTop: string;
+    dockBottom: string;
+    dockDragHint: string;
+    quickDockAria: string;
+    moreMenuAria: string;
+    moveDockTop: string;
+    moveDockBottom: string;
   };
   status: {
     pending: string;
@@ -58,6 +68,16 @@ export const ES_SHELL: ShellI18n = {
     switchToDark: 'Cambiar a tema oscuro',
     mainMenuAria: 'Menú principal',
     bottomNavAria: 'Navegación inferior',
+    dockPosition: 'Posición del dock',
+    dockLeft: 'Izquierda',
+    dockRight: 'Derecha',
+    dockTop: 'Arriba',
+    dockBottom: 'Abajo',
+    dockDragHint: 'Arrastra para acoplar el dock',
+    quickDockAria: 'Cambiar posición del dock',
+    moreMenuAria: 'Más opciones de navegación',
+    moveDockTop: 'Mover arriba',
+    moveDockBottom: 'Mover abajo',
   },
   status: {
     pending: 'Por leer',
@@ -99,6 +119,16 @@ export const EN_SHELL: ShellI18n = {
     switchToDark: 'Switch to dark theme',
     mainMenuAria: 'Main menu',
     bottomNavAria: 'Bottom navigation',
+    dockPosition: 'Dock position',
+    dockLeft: 'Left',
+    dockRight: 'Right',
+    dockTop: 'Top',
+    dockBottom: 'Bottom',
+    dockDragHint: 'Drag to dock to an edge',
+    quickDockAria: 'Change dock position',
+    moreMenuAria: 'More navigation options',
+    moveDockTop: 'Move to top',
+    moveDockBottom: 'Move to bottom',
   },
   status: {
     pending: 'Pending',

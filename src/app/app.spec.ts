@@ -2,6 +2,7 @@ import { DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { App } from './app';
 import { ConfirmDialogService } from './core/services/confirm-dialog.service';
+import { DockPositionService } from './core/services/dock-position.service';
 import { BooksService } from './features/books/services/books.service';
 
 describe('App', () => {
@@ -24,17 +25,53 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render the sidebar, header, main outlet, and bottom navigation', async () => {
+  it('should render the desktop dock, main outlet, and unified mobile dock without legacy header', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await fixture.whenStable();
 
     const root = fixture.nativeElement as HTMLElement;
     expect(root.querySelector('app-sidebar')).not.toBeNull();
-    expect(root.querySelector('app-header')).not.toBeNull();
+    expect(root.querySelector('app-header')).toBeNull();
     expect(root.querySelector('main router-outlet')).not.toBeNull();
     expect(root.querySelector('app-bottom-nav')).not.toBeNull();
     expect(root.querySelectorAll('app-book-create-modal').length).toBe(0);
+  });
+
+  it('should update main offsets and snap preview overlay based on DockPositionService', async () => {
+    const fixture = TestBed.createComponent(App);
+    const dockPosition = TestBed.inject(DockPositionService);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const main = root.querySelector('main') as HTMLElement;
+
+    expect(main.className).toContain('md:ml-[var(--sidebar-width)]');
+    expect(main.className).toContain('pb-24');
+
+    dockPosition.setDesktopPosition('right');
+    dockPosition.setMobilePosition('top');
+    fixture.detectChanges();
+
+    expect(main.className).toContain('md:mr-[var(--sidebar-width)]');
+    expect(main.className).toContain('pt-24');
+
+    dockPosition.setDesktopPosition('top');
+    fixture.detectChanges();
+    expect(main.className).toContain('md:pt-24');
+
+    dockPosition.setDesktopPosition('bottom');
+    fixture.detectChanges();
+    expect(main.className).toContain('md:pb-24');
+
+    dockPosition.startDrag('right');
+    fixture.detectChanges();
+    const preview = root.querySelector('[aria-hidden="true"].border-dashed');
+    expect(preview).not.toBeNull();
+
+    dockPosition.endDrag();
+    fixture.detectChanges();
+    expect(root.querySelector('[aria-hidden="true"].border-dashed')).toBeNull();
   });
 
   it('should mount a single global create-book modal when opened', async () => {

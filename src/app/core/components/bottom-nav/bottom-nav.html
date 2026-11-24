@@ -1,73 +1,182 @@
+@if (isMenuOpen()) {
+  <div
+    class="fixed inset-0 z-30 bg-black/20 backdrop-blur-[1px] md:hidden"
+    (click)="closeMenu()"
+    aria-hidden="true"
+  ></div>
+}
+
 <nav
-  class="fixed right-0 bottom-0 left-0 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden dark:border-slate-800 dark:bg-slate-900"
+  class="fixed left-1/2 z-40 flex max-w-[calc(100vw-1rem)] -translate-x-1/2 flex-col items-center md:hidden"
+  [class.bottom-[max(0.75rem,env(safe-area-inset-bottom))]]="position() === 'bottom'"
+  [class.top-[max(0.75rem,env(safe-area-inset-top))]]="position() === 'top'"
   role="navigation"
   [attr.aria-label]="i18n.t().nav.bottomNavAria"
 >
-  <div class="mx-auto flex max-w-4xl items-center justify-between px-2 py-2">
+  @if (isMenuOpen()) {
+    <div
+      role="menu"
+      [attr.aria-label]="i18n.t().nav.moreMenuAria"
+      [class]="popoverAnimationClass()"
+      class="border-border-subtle absolute right-0 z-50 w-60 rounded-2xl border bg-surface-elevated p-2 shadow-xl"
+      [class.bottom-full]="position() === 'bottom'"
+      [class.mb-2.5]="position() === 'bottom'"
+      [class.top-full]="position() === 'top'"
+      [class.mt-2.5]="position() === 'top'"
+    >
+      <div class="space-y-1">
+        <a
+          routerLink="/series"
+          routerLinkActive="bg-accent-soft text-accent-soft-text font-semibold"
+          (click)="closeMenu()"
+          role="menuitem"
+          class="flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+        >
+          <svg [lucideIcon]="Series" size="18" stroke-width="2" class="shrink-0"></svg>
+          <span>{{ i18n.t().nav.series }}</span>
+        </a>
+
+        <button
+          type="button"
+          role="menuitem"
+          (click)="toggleTheme()"
+          class="flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+        >
+          <svg
+            [lucideIcon]="themeService.isDark() ? Sun : Moon"
+            size="18"
+            stroke-width="2"
+            class="shrink-0"
+          ></svg>
+          <span>{{
+            themeService.isDark() ? i18n.t().nav.lightTheme : i18n.t().nav.darkTheme
+          }}</span>
+        </button>
+
+        <a
+          routerLink="/about"
+          routerLinkActive="bg-accent-soft text-accent-soft-text font-semibold"
+          (click)="closeMenu()"
+          role="menuitem"
+          class="flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+        >
+          <svg [lucideIcon]="About" size="18" stroke-width="2" class="shrink-0"></svg>
+          <span>{{ i18n.t().nav.about }}</span>
+        </a>
+
+        <button
+          type="button"
+          role="menuitem"
+          (click)="openGitHub()"
+          class="flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+        >
+          <svg [lucideIcon]="Github" size="18" stroke-width="2" class="shrink-0"></svg>
+          <span>{{ i18n.t().nav.github }}</span>
+        </button>
+
+        <div class="bg-border-subtle my-1 h-px"></div>
+
+        <button
+          type="button"
+          role="menuitem"
+          (click)="toggleMobileEdge()"
+          class="flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-accent-soft-text transition-colors hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+        >
+          <svg
+            [lucideIcon]="position() === 'bottom' ? ArrowUp : ArrowDown"
+            size="18"
+            stroke-width="2"
+            class="shrink-0"
+          ></svg>
+          <span>{{
+            position() === 'bottom' ? i18n.t().nav.moveDockTop : i18n.t().nav.moveDockBottom
+          }}</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  <div
+    class="border-border-subtle flex items-center gap-0.5 rounded-2xl border bg-surface-glass px-1.5 py-1 shadow-lg backdrop-blur-md"
+  >
+    <!-- Subtle vertical drag pill -->
+    <button
+      type="button"
+      (pointerdown)="onDragStart($event)"
+      class="flex h-11 w-4 shrink-0 cursor-grab touch-none items-center justify-center rounded-lg text-ink-muted focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none active:cursor-grabbing"
+      [attr.aria-label]="i18n.t().nav.dockDragHint"
+      [title]="i18n.t().nav.dockDragHint"
+    >
+      <span class="bg-border-strong h-4 w-1 rounded-full"></span>
+    </button>
+
     <a
       routerLink="/"
-      routerLinkActive="text-sky-600 dark:text-sky-400"
+      routerLinkActive="bg-accent-soft text-accent-soft-text font-semibold"
       [routerLinkActiveOptions]="{ exact: true }"
-      class="flex-1 py-3 text-center focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
       [attr.aria-label]="i18n.t().nav.home"
       [title]="i18n.t().nav.home"
     >
-      <div class="flex flex-col items-center gap-1">
-        <svg [lucideIcon]="Home" size="20" stroke-width="2"></svg>
-        <span class="text-xs">{{ i18n.t().nav.home }}</span>
-      </div>
+      <svg [lucideIcon]="Home" size="20" stroke-width="2"></svg>
+      <span class="sr-only">{{ i18n.t().nav.home }}</span>
     </a>
 
     <a
       routerLink="/books"
-      routerLinkActive="text-sky-600 dark:text-sky-400"
-      class="flex-1 py-3 text-center focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      routerLinkActive="bg-accent-soft text-accent-soft-text font-semibold"
+      class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
       [attr.aria-label]="i18n.t().nav.books"
       [title]="i18n.t().nav.books"
     >
-      <div class="flex flex-col items-center gap-1">
-        <svg [lucideIcon]="Book" size="20" stroke-width="2"></svg>
-        <span class="text-xs">{{ i18n.t().nav.books }}</span>
-      </div>
+      <svg [lucideIcon]="Book" size="20" stroke-width="2"></svg>
+      <span class="sr-only">{{ i18n.t().nav.books }}</span>
     </a>
+
+    <!-- Central Add Book CTA -->
+    <button
+      type="button"
+      (click)="openCreate()"
+      class="mx-0.5 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl bg-accent text-white shadow-sm transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+      [attr.aria-label]="i18n.t().nav.createBookAria"
+      [title]="i18n.t().nav.createBookAria"
+    >
+      <svg [lucideIcon]="Plus" size="20" stroke-width="2.4"></svg>
+    </button>
 
     <a
       routerLink="/stats"
-      routerLinkActive="text-sky-600 dark:text-sky-400"
-      class="flex-1 py-3 text-center focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      routerLinkActive="bg-accent-soft text-accent-soft-text font-semibold"
+      class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
       [attr.aria-label]="i18n.t().nav.stats"
       [title]="i18n.t().nav.stats"
     >
-      <div class="flex flex-col items-center gap-1">
-        <svg [lucideIcon]="Stats" size="20" stroke-width="2"></svg>
-        <span class="text-xs">{{ i18n.t().nav.stats }}</span>
-      </div>
+      <svg [lucideIcon]="Stats" size="20" stroke-width="2"></svg>
+      <span class="sr-only">{{ i18n.t().nav.stats }}</span>
     </a>
 
     <a
       routerLink="/settings"
-      routerLinkActive="text-sky-600 dark:text-sky-400"
-      class="flex-1 py-3 text-center focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+      routerLinkActive="bg-accent-soft text-accent-soft-text font-semibold"
+      class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
       [attr.aria-label]="i18n.t().nav.settings"
       [title]="i18n.t().nav.settings"
     >
-      <div class="flex flex-col items-center gap-1">
-        <svg [lucideIcon]="Settings" size="20" stroke-width="2"></svg>
-        <span class="text-xs">{{ i18n.t().nav.settings }}</span>
-      </div>
+      <svg [lucideIcon]="Settings" size="20" stroke-width="2"></svg>
+      <span class="sr-only">{{ i18n.t().nav.settings }}</span>
     </a>
 
-    <a
-      routerLink="/about"
-      routerLinkActive="text-sky-600 dark:text-sky-400"
-      class="hidden flex-1 py-3 text-center focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none min-[350px]:flex"
-      [attr.aria-label]="i18n.t().nav.about"
-      [title]="i18n.t().nav.about"
+    <!-- Brand logo / overflow popover trigger -->
+    <button
+      type="button"
+      (click)="toggleMenu($event)"
+      class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
+      [class.bg-accent-soft]="isMenuOpen()"
+      [attr.aria-expanded]="isMenuOpen()"
+      [attr.aria-label]="i18n.t().nav.moreMenuAria"
+      [title]="i18n.t().nav.moreMenuAria"
     >
-      <div class="flex w-full flex-col items-center gap-1">
-        <svg [lucideIcon]="About" size="20" stroke-width="2"></svg>
-        <span class="text-xs">{{ i18n.t().nav.about }}</span>
-      </div>
-    </a>
+      <app-brand-logo [size]="24" />
+    </button>
   </div>
 </nav>

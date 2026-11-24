@@ -142,6 +142,31 @@ test.describe('Navigation and Theme persistence', () => {
       // Default is bottom
       await expect.poll(async () => (await mobileDock.boundingBox())?.y ?? 0).toBeGreaterThan(400);
 
+      // Verify symmetric left/right dock inset and >= 44x44px touch targets
+      const dockShell = mobileDock.getByTestId('mobile-dock-shell');
+      const dockRow = mobileDock.getByTestId('mobile-dock-row');
+      const shellBox = await dockShell.boundingBox();
+      const homeBox = await dockRow.locator('a[href="/"]').boundingBox();
+      const menuBox = await dockRow
+        .getByRole('button', { name: 'Más opciones de navegación' })
+        .boundingBox();
+      expect(shellBox).not.toBeNull();
+      expect(homeBox).not.toBeNull();
+      expect(menuBox).not.toBeNull();
+      if (shellBox && homeBox && menuBox) {
+        const leftInset = homeBox.x - shellBox.x;
+        const rightInset = shellBox.x + shellBox.width - (menuBox.x + menuBox.width);
+        expect(Math.abs(leftInset - rightInset)).toBeLessThanOrEqual(2);
+      }
+
+      const controlsCount = await dockRow.locator('> *').count();
+      expect(controlsCount).toBe(6);
+      for (let i = 0; i < controlsCount; i++) {
+        const box = await dockRow.locator('> *').nth(i).boundingBox();
+        expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
+        expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+      }
+
       // Open overflow menu and move dock to top
       await mobileDock.getByRole('button', { name: 'Más opciones de navegación' }).click();
       await mobileDock.getByRole('menuitem', { name: 'Mover arriba' }).click();

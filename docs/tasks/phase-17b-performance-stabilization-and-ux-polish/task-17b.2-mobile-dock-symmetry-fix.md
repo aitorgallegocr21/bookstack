@@ -1,7 +1,7 @@
 # Task 17B.2: Fix Mobile Dock Left-Edge Gap & Icon Symmetry (`BottomNavComponent`)
 
 - **Phase:** 17B — Performance Stabilization, Route Transitions & Editorial UX Polish (`v2.3.1`)
-- **Status:** Pending
+- **Status:** Completed
 - **Goal:** Eliminate the asymmetric left-edge gap in the unified mobile floating dock so the Home icon on the left and the BookStack menu button on the right sit with identical visual margins from the dock border, while preserving drag-to-snap (`top` $\leftrightarrow$ `bottom`) ergonomics and WCAG 2.1 AA touch targets.
 
 ---
@@ -46,7 +46,7 @@
 
 ## 4. Verification & Acceptance Criteria
 
-- [ ] At `320px` and `375px`, the distance from the dock's left border to the Home icon equals the distance from the BookStack logo button to the dock's right border ($\le 2\text{px}$ tolerance).
-- [ ] Dragging the centered pill handle still triggers `DockPositionService` snap preview and snaps between `top` and `bottom`.
-- [ ] All 6 dock buttons meet `>= 44×44px` touch target size with zero horizontal overflow.
-- [ ] `npm run test:file -- src/app/core/components/bottom-nav/bottom-nav.spec.ts` passes.
+- [x] At `320px` and `375px`, the distance from the dock's left border to the Home icon equals the distance from the BookStack logo button to the dock's right border ($\le 2\text{px}$ tolerance).
+- [x] Dragging the centered pill handle still triggers `DockPositionService` snap preview and snaps between `top` and `bottom`.
+- [x] All 6 dock buttons meet `>= 44×44px` touch target size with zero horizontal overflow.
+- [x] `npm run test:file -- src/app/core/components/bottom-nav/bottom-nav.spec.ts` passes.

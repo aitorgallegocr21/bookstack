@@ -103,4 +103,47 @@ describe('BottomNavComponent', () => {
     fixture.detectChanges();
     expect(root.querySelector('[role="menu"]')).toBeNull();
   });
+
+  it('should render centered horizontal drag pill and symmetric 6-control icon row', () => {
+    const dockPosition = TestBed.inject(DockPositionService);
+    const fixture = TestBed.createComponent(BottomNavComponent);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const shell = root.querySelector('[data-testid="mobile-dock-shell"]') as HTMLElement;
+    const dragHandle = root.querySelector('[data-testid="dock-drag-handle"]') as HTMLButtonElement;
+    const iconRow = root.querySelector('[data-testid="mobile-dock-row"]') as HTMLElement;
+
+    expect(shell).not.toBeNull();
+    expect(dragHandle).not.toBeNull();
+    expect(iconRow).not.toBeNull();
+
+    // Drag handle sits outside the horizontal 6-control row
+    expect(iconRow.contains(dragHandle)).toBe(false);
+    expect(shell.classList.contains('flex-col')).toBe(true);
+    expect(shell.classList.contains('flex-col-reverse')).toBe(false);
+
+    // Horizontal pill indicator (w-8 h-1) inside h-3 w-12 handle
+    expect(dragHandle.classList.contains('h-3')).toBe(true);
+    expect(dragHandle.classList.contains('w-12')).toBe(true);
+    const pill = dragHandle.querySelector('span');
+    expect(pill?.classList.contains('w-8')).toBe(true);
+    expect(pill?.classList.contains('h-1')).toBe(true);
+
+    // Strictly 6 balanced interactive controls in the icon row
+    const controls = Array.from(iconRow.children) as HTMLElement[];
+    expect(controls.length).toBe(6);
+    expect(controls[0].getAttribute('href')).toBe('/');
+    expect(controls[5].getAttribute('aria-label')).toBe('Más opciones de navegación');
+    for (const control of controls) {
+      expect(control.classList.contains('min-h-[44px]')).toBe(true);
+      expect(control.classList.contains('min-w-[44px]')).toBe(true);
+    }
+
+    // Switching dock to top flips vertical order so drag pill sits on bottom lip
+    dockPosition.setMobilePosition('top');
+    fixture.detectChanges();
+    expect(shell.classList.contains('flex-col-reverse')).toBe(true);
+    expect(shell.classList.contains('flex-col')).toBe(false);
+  });
 });

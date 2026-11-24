@@ -215,7 +215,9 @@ describe('CatalogToolbarComponent', () => {
     fixture.detectChanges();
 
     // Reset button should be visible
-    const resetBtn = fixture.debugElement.query(By.css('button.text-blue-600'));
+    const resetBtn = fixture.debugElement.query(
+      By.css('button.hover\\:underline.text-accent-soft-text')
+    );
     expect(resetBtn).toBeTruthy();
 
     resetBtn.nativeElement.click();

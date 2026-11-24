@@ -1,15 +1,12 @@
 <section
-  class="space-y-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+  class="space-y-5 rounded-2xl border border-subtle bg-surface p-5 shadow-sm"
   aria-labelledby="settings-preferences-heading"
 >
   <div>
-    <h2
-      id="settings-preferences-heading"
-      class="text-base font-bold text-slate-900 dark:text-slate-100"
-    >
+    <h2 id="settings-preferences-heading" class="font-editorial text-base font-bold text-ink">
       {{ i18n.t().settings.preferences.sectionTitle }}
     </h2>
-    <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+    <p class="mt-1 text-sm text-ink-secondary">
       {{ i18n.t().settings.preferences.sectionDescription }}
     </p>
   </div>
@@ -33,7 +30,7 @@
       </div>
     </div>
 
-    <!-- Visual Theme -->
+    <!-- Visual Theme (Light / Dark / System) -->
     <div class="flex flex-col justify-between">
       <span id="settings-theme-label" class="field-label truncate">
         {{ i18n.t().settings.preferences.themeLabel }}
@@ -41,18 +38,18 @@
       <div
         role="group"
         aria-labelledby="settings-theme-label"
-        class="grid h-11 grid-cols-2 gap-1 rounded-[0.875rem] border border-slate-200 bg-slate-100 p-1 dark:border-slate-600 dark:bg-slate-800"
+        class="grid h-11 grid-cols-3 gap-1 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1"
       >
         <button
           type="button"
           data-testid="theme-light-btn"
-          class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+          class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:text-sm"
           [class]="
-            !themeService.isDark()
-              ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-slate-100'
-              : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+            themeService.themeMode() === 'light'
+              ? 'bg-surface-elevated text-ink shadow-sm'
+              : 'text-ink-secondary hover:text-ink'
           "
-          [attr.aria-pressed]="!themeService.isDark()"
+          [attr.aria-pressed]="themeService.themeMode() === 'light'"
           (click)="setTheme('light')"
         >
           {{ i18n.t().settings.preferences.themeLight }}
@@ -60,16 +57,30 @@
         <button
           type="button"
           data-testid="theme-dark-btn"
-          class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+          class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:text-sm"
           [class]="
-            themeService.isDark()
-              ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-slate-100'
-              : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+            themeService.themeMode() === 'dark'
+              ? 'bg-surface-elevated text-ink shadow-sm'
+              : 'text-ink-secondary hover:text-ink'
           "
-          [attr.aria-pressed]="themeService.isDark()"
+          [attr.aria-pressed]="themeService.themeMode() === 'dark'"
           (click)="setTheme('dark')"
         >
           {{ i18n.t().settings.preferences.themeDark }}
+        </button>
+        <button
+          type="button"
+          data-testid="theme-system-btn"
+          class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:text-sm"
+          [class]="
+            themeService.themeMode() === 'system'
+              ? 'bg-surface-elevated text-ink shadow-sm'
+              : 'text-ink-secondary hover:text-ink'
+          "
+          [attr.aria-pressed]="themeService.themeMode() === 'system'"
+          (click)="setTheme('system')"
+        >
+          {{ i18n.t().settings.preferences.themeSystem }}
         </button>
       </div>
     </div>
@@ -94,11 +105,116 @@
     </div>
   </div>
 
+  <!-- Accent Color & Dock Position Controls -->
+  <div class="grid grid-cols-1 gap-4 border-t border-subtle pt-4 md:grid-cols-2">
+    <!-- 5 Accent Swatches -->
+    <div class="flex flex-col gap-2">
+      <span
+        id="settings-accent-label"
+        class="block text-[0.7rem] font-bold tracking-[0.12em] text-ink-secondary uppercase"
+      >
+        {{ i18n.t().settings.preferences.accentLabel }}
+      </span>
+      <div
+        role="group"
+        aria-labelledby="settings-accent-label"
+        class="flex flex-wrap items-center gap-2"
+      >
+        @for (swatch of accentSwatches; track swatch.id) {
+          <button
+            type="button"
+            [attr.data-testid]="'accent-swatch-' + swatch.id"
+            [attr.aria-label]="getAccentLabel(swatch.id)"
+            [attr.title]="getAccentLabel(swatch.id)"
+            [attr.aria-pressed]="themeService.accent() === swatch.id"
+            (click)="setAccent(swatch.id)"
+            [class]="
+              themeService.accent() === swatch.id
+                ? 'border-accent bg-accent-soft text-accent-soft-text ring-2 ring-accent-ring'
+                : 'border-subtle bg-surface-elevated text-ink-secondary hover:border-strong hover:text-ink'
+            "
+            class="inline-flex min-h-[44px] items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            <span
+              class="h-3.5 w-3.5 shrink-0 rounded-full ring-1 ring-black/15"
+              [style.background-color]="swatch.colorHex"
+              aria-hidden="true"
+            ></span>
+            <span>{{ getAccentLabel(swatch.id) }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Dock Position (Desktop 4-Edge & Mobile 2-Edge) -->
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div class="flex flex-col gap-2">
+        <span
+          id="settings-desktop-dock-label"
+          class="block text-[0.7rem] font-bold tracking-[0.12em] text-ink-secondary uppercase"
+        >
+          {{ i18n.t().settings.preferences.desktopDockLabel }}
+        </span>
+        <div
+          role="group"
+          aria-labelledby="settings-desktop-dock-label"
+          class="grid h-11 grid-cols-4 gap-1 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1"
+        >
+          @for (pos of desktopDockPositions; track pos) {
+            <button
+              type="button"
+              [attr.data-testid]="'dock-desktop-' + pos"
+              [attr.aria-pressed]="dockPositionService.desktopPosition() === pos"
+              (click)="setDesktopDock(pos)"
+              [class]="
+                dockPositionService.desktopPosition() === pos
+                  ? 'bg-surface-elevated text-ink shadow-sm'
+                  : 'text-ink-secondary hover:text-ink'
+              "
+              class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-1 text-[11px] font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            >
+              {{ getDockPositionLabel(pos) }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <span
+          id="settings-mobile-dock-label"
+          class="block text-[0.7rem] font-bold tracking-[0.12em] text-ink-secondary uppercase"
+        >
+          {{ i18n.t().settings.preferences.mobileDockLabel }}
+        </span>
+        <div
+          role="group"
+          aria-labelledby="settings-mobile-dock-label"
+          class="grid h-11 grid-cols-2 gap-1 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1"
+        >
+          @for (pos of mobileDockPositions; track pos) {
+            <button
+              type="button"
+              [attr.data-testid]="'dock-mobile-' + pos"
+              [attr.aria-pressed]="dockPositionService.mobilePosition() === pos"
+              (click)="setMobileDock(pos)"
+              [class]="
+                dockPositionService.mobilePosition() === pos
+                  ? 'bg-surface-elevated text-ink shadow-sm'
+                  : 'text-ink-secondary hover:text-ink'
+              "
+              class="inline-flex h-full items-center justify-center rounded-[0.625rem] px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            >
+              {{ getDockPositionLabel(pos) }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
   @if (hasSuppressedConfirms() || confirmsResetDone()) {
-    <div
-      class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-slate-800"
-    >
-      <span class="text-sm font-medium text-slate-700 dark:text-slate-300">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-subtle pt-4">
+      <span class="text-sm font-medium text-ink-secondary">
         {{
           confirmsResetDone()
             ? i18n.t().settings.preferences.suppressedConfirmsResetDone
@@ -110,7 +226,7 @@
           type="button"
           data-testid="reset-suppressed-confirms-btn"
           (click)="resetSuppressedConfirms()"
-          class="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          class="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-strong bg-surface-elevated px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         >
           {{ i18n.t().settings.preferences.suppressedConfirmsReset }}
         </button>

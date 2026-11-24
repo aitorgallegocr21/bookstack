@@ -14,6 +14,17 @@ export interface SettingsI18n {
       themeLabel: string;
       themeLight: string;
       themeDark: string;
+      themeSystem: string;
+      accentLabel: string;
+      accents: {
+        blue: string;
+        indigo: string;
+        emerald: string;
+        amber: string;
+        rose: string;
+      };
+      desktopDockLabel: string;
+      mobileDockLabel: string;
       defaultViewLabel: string;
       viewGrid: string;
       viewDetailed: string;
@@ -244,10 +255,21 @@ export const ES_SETTINGS: SettingsI18n = {
     preferences: {
       sectionTitle: 'Preferencias de interfaz',
       sectionDescription:
-        'Personaliza el idioma, el tema visual y la vista predeterminada del catálogo.',
+        'Personaliza el idioma, el tema visual, el color de acento, el dock y la vista del catálogo.',
       themeLabel: 'Tema visual',
       themeLight: 'Claro',
       themeDark: 'Oscuro',
+      themeSystem: 'Sistema',
+      accentLabel: 'Color de acento',
+      accents: {
+        blue: 'Azul clásico',
+        indigo: 'Índigo',
+        emerald: 'Esmeralda',
+        amber: 'Ámbar editorial',
+        rose: 'Terracota',
+      },
+      desktopDockLabel: 'Dock en escritorio',
+      mobileDockLabel: 'Dock en móvil',
       defaultViewLabel: 'Vista del catálogo',
       viewGrid: 'Cuadrícula',
       viewDetailed: 'Detallada',
@@ -512,10 +534,22 @@ export const EN_SETTINGS: SettingsI18n = {
     roadmapNote: 'Advanced local backup management (import/export) will arrive in upcoming phases.',
     preferences: {
       sectionTitle: 'Interface preferences',
-      sectionDescription: 'Customize language, visual theme, and default catalog view mode.',
+      sectionDescription:
+        'Customize language, visual theme, accent color, dock position, and catalog view.',
       themeLabel: 'Visual theme',
       themeLight: 'Light',
       themeDark: 'Dark',
+      themeSystem: 'System',
+      accentLabel: 'Accent color',
+      accents: {
+        blue: 'Classic Blue',
+        indigo: 'Indigo',
+        emerald: 'Emerald',
+        amber: 'Editorial Amber',
+        rose: 'Rose',
+      },
+      desktopDockLabel: 'Desktop dock',
+      mobileDockLabel: 'Mobile dock',
       defaultViewLabel: 'Catalog view',
       viewGrid: 'Grid',
       viewDetailed: 'Detailed',

@@ -1,5 +1,5 @@
 <section
-  class="@container flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs sm:p-4 dark:border-slate-800 dark:bg-slate-900"
+  class="@container flex flex-col gap-3 rounded-2xl border border-subtle bg-surface p-3 shadow-xs sm:p-4"
   [attr.aria-label]="i18n.t().series.galleryAria"
 >
   <!-- Top Row: Live Search + Sort Dropdown -->
@@ -9,7 +9,7 @@
         {{ i18n.t().series.searchAria }}
       </label>
       <div
-        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 dark:text-slate-500"
+        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-ink-muted"
         aria-hidden="true"
       >
         <svg [lucideIcon]="Search" size="18" stroke-width="2"></svg>
@@ -22,7 +22,7 @@
         (input)="onSearchInput($event)"
         [placeholder]="i18n.t().series.searchPlaceholder"
         [attr.aria-label]="i18n.t().series.searchAria"
-        class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/70 pr-11 pl-10 text-sm text-slate-800 transition-colors placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-800"
+        class="field-input h-11 py-0 pr-11 pl-10"
       />
 
       @if (searchQuery().length > 0) {
@@ -31,7 +31,7 @@
           (click)="clearSearch()"
           [attr.aria-label]="i18n.t().series.clearSearchAria"
           [title]="i18n.t().series.clearSearchAria"
-          class="absolute inset-y-0 right-0 flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 transition-colors hover:text-slate-700 focus-visible:rounded-xl focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none dark:hover:text-slate-200"
+          class="absolute inset-y-0 right-0 flex min-h-[44px] min-w-[44px] items-center justify-center text-ink-muted transition-colors hover:text-ink focus-visible:rounded-xl focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         >
           <svg [lucideIcon]="X" size="18" stroke-width="2.5"></svg>
         </button>
@@ -47,7 +47,7 @@
         [value]="sortOption()"
         (change)="onSortChange($event)"
         [attr.aria-label]="i18n.t().series.sortAria"
-        class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3 text-xs font-medium text-slate-700 transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none sm:w-auto sm:text-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200 dark:focus:border-blue-400 dark:focus:bg-slate-800"
+        class="field-select h-11 py-0 text-xs font-medium sm:w-auto sm:text-sm"
       >
         @for (opt of sortOptions; track opt) {
           <option [value]="opt">{{ getSortLabel(opt) }}</option>
@@ -57,9 +57,7 @@
   </div>
 
   <!-- Bottom Row: Mobile/Tablet Status Selector (< 680px) / Symmetric Status Chips (>= 680px) + Non-Shifting Reset Slot -->
-  <div
-    class="flex items-center justify-between gap-2 border-t border-slate-100 pt-2.5 dark:border-slate-800/80"
-  >
+  <div class="flex items-center justify-between gap-2 border-t border-subtle pt-2.5">
     <!-- Mobile & Tablet Accessible Status Selector (< 680px) -->
     <div class="relative min-w-0 flex-1 @[680px]:hidden">
       <label for="series-mobile-status-select" class="sr-only">
@@ -70,7 +68,7 @@
         [value]="statusFilter()"
         (change)="onStatusSelectChange($event)"
         [attr.aria-label]="i18n.t().series.galleryAria"
-        class="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-xs font-medium text-slate-800 transition-colors focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:outline-none dark:border-slate-700 dark:bg-slate-800/90 dark:text-slate-100 dark:focus:border-blue-400 dark:focus:bg-slate-800"
+        class="field-select h-11 py-0 text-xs font-medium"
       >
         @for (status of filterStatuses; track status) {
           <option [value]="status">
@@ -94,17 +92,17 @@
           [attr.aria-selected]="statusFilter() === status"
           [class]="
             statusFilter() === status
-              ? 'border-blue-600 bg-blue-600 text-white shadow-xs hover:bg-blue-500 dark:border-blue-500 dark:hover:bg-blue-500'
-              : 'border-slate-200/90 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700/80 dark:hover:text-white'
+              ? 'border-accent bg-accent text-white shadow-xs hover:bg-accent-hover'
+              : 'border-subtle bg-surface-subtle/60 text-ink-secondary hover:border-strong hover:bg-surface-subtle hover:text-ink'
           "
-          class="inline-flex min-h-[38px] shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none sm:text-sm"
+          class="inline-flex min-h-[38px] shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:text-sm"
         >
           <span>{{ getStatusLabel(status) }}</span>
           <span
             [class]="
               statusFilter() === status
                 ? 'bg-white/25 text-white'
-                : 'bg-slate-200/80 text-slate-700 dark:bg-slate-700 dark:text-slate-200'
+                : 'bg-surface-elevated text-ink-secondary'
             "
             class="rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums"
           >

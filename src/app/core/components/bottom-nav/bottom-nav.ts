@@ -16,6 +16,7 @@ import {
   LucideBook,
   LucideDynamicIcon,
   LucideGitBranch,
+  LucideGripHorizontal,
   LucideHome,
   LucideInfo,
   LucideLayers,
@@ -62,6 +63,7 @@ export class BottomNavComponent implements OnDestroy {
   protected readonly Github = LucideGitBranch;
   protected readonly ArrowUp = LucideArrowUp;
   protected readonly ArrowDown = LucideArrowDown;
+  protected readonly GripHorizontal = LucideGripHorizontal;
 
   protected readonly isMenuOpen = signal(false);
   protected readonly position = this.dockPosition.mobilePosition;

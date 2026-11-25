@@ -157,6 +157,10 @@ test.describe('Navigation and Theme persistence', () => {
         const leftInset = homeBox.x - shellBox.x;
         const rightInset = shellBox.x + shellBox.width - (menuBox.x + menuBox.width);
         expect(Math.abs(leftInset - rightInset)).toBeLessThanOrEqual(2);
+
+        const topInset = homeBox.y - shellBox.y;
+        const bottomInset = shellBox.y + shellBox.height - (homeBox.y + homeBox.height);
+        expect(Math.abs(topInset - bottomInset)).toBeLessThanOrEqual(2);
       }
 
       const controlsCount = await dockRow.locator('> *').count();
@@ -178,9 +182,27 @@ test.describe('Navigation and Theme persistence', () => {
       );
       expect(overflowTop).toBe(false);
 
-      // Reload and verify top position persisted
+      // Reload and verify top position persisted and vertical inset remains symmetric
       await page.reload();
       await expect.poll(async () => (await mobileDock.boundingBox())?.y ?? 999).toBeLessThan(100);
+
+      const topShellBox = await dockShell.boundingBox();
+      const topHomeBox = await dockRow.locator('a[href="/"]').boundingBox();
+      expect(topShellBox).not.toBeNull();
+      expect(topHomeBox).not.toBeNull();
+      if (topShellBox && topHomeBox) {
+        const topInset = topHomeBox.y - topShellBox.y;
+        const bottomInset = topShellBox.y + topShellBox.height - (topHomeBox.y + topHomeBox.height);
+        expect(Math.abs(topInset - bottomInset)).toBeLessThanOrEqual(2);
+      }
+
+      // Open overflow menu and click another dock route to verify auto-close
+      await mobileDock.getByRole('button', { name: 'Más opciones de navegación' }).click();
+      await expect(mobileDock.getByRole('menu')).toBeVisible();
+      await dockRow.locator('a[href="/books"]').click();
+      await expect(mobileDock.getByRole('menu')).toBeHidden();
+      await dockRow.locator('a[href="/"]').click();
+      await expect(page).toHaveURL(/\/$/);
 
       // Move back to bottom
       await mobileDock.getByRole('button', { name: 'Más opciones de navegación' }).click();

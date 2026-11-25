@@ -33,6 +33,7 @@
     "@angular/router": "^22.2.6",
     "@angular/service-worker": "^22.2.6",
     "@lucide/angular": "^1.72.0",
+    "barcode-detector": "^3.2.5",
     "html5-qrcode": "^2.3.8",
     "rxjs": "~7.8.2",
     "tslib": "^2.9.1",

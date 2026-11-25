@@ -17,26 +17,6 @@
         <span>{{ i18n.t().bookForm.lookup.scanningHint }}</span>
       </div>
     }
-
-    @if (scannerState() === 'idle') {
-      <div
-        class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-zinc-950/90 px-4 py-4 text-center"
-      >
-        <svg [lucideIcon]="Camera" size="24" class="text-accent" aria-hidden="true"></svg>
-        <p class="max-w-xs text-xs leading-relaxed text-zinc-200">
-          {{ i18n.t().bookForm.lookup.cameraConsentHint }}
-        </p>
-        <button
-          type="button"
-          data-testid="enable-camera-consent-btn"
-          (click)="grantCameraConsentAndStart(selectedCameraId() ?? undefined)"
-          class="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-        >
-          <svg [lucideIcon]="Camera" size="16" aria-hidden="true"></svg>
-          <span>{{ i18n.t().bookForm.lookup.enableCamera }}</span>
-        </button>
-      </div>
-    }
   </div>
 
   <!-- Live Scanning Hint / Non-ISBN Ignore Notice -->
@@ -77,7 +57,7 @@
     } @else {
       <button
         type="button"
-        (click)="grantCameraConsentAndStart(selectedCameraId() ?? undefined)"
+        (click)="startCamera(selectedCameraId() ?? undefined)"
         class="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl border border-strong bg-surface-elevated px-3 py-2 text-xs font-medium text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-auto"
       >
         <svg [lucideIcon]="Camera" size="15" class="shrink-0"></svg>
@@ -85,18 +65,32 @@
       </button>
     }
 
-    @if (availableCameras().length > 1) {
-      <select
-        [attr.aria-label]="i18n.t().bookForm.lookup.switchCamera"
-        [value]="selectedCameraId() ?? ''"
-        (change)="onCameraSelectChange($event)"
-        class="min-h-[44px] w-full min-w-0 truncate rounded-xl border border-strong bg-surface-elevated px-3 py-2 text-xs font-medium text-ink transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:flex-1"
-      >
-        <option value="" disabled>{{ i18n.t().bookForm.lookup.switchCamera }}</option>
-        @for (camera of availableCameras(); track camera.id) {
-          <option [value]="camera.id">{{ camera.label }}</option>
-        }
-      </select>
+    @switch (cameraSwitchPlan().mode) {
+      @case ('facing-toggle') {
+        <button
+          type="button"
+          data-testid="toggle-camera-facing-btn"
+          (click)="onToggleCameraFacing()"
+          class="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl border border-strong bg-surface-elevated px-3 py-2 text-xs font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-auto"
+        >
+          <svg [lucideIcon]="SwitchCamera" size="15" class="shrink-0" aria-hidden="true"></svg>
+          <span>{{ toggleCameraLabel() }}</span>
+        </button>
+      }
+      @case ('select') {
+        <select
+          data-testid="camera-device-select"
+          [attr.aria-label]="i18n.t().bookForm.lookup.switchCamera"
+          [value]="selectedCameraId() ?? ''"
+          (change)="onCameraSelectChange($event)"
+          class="min-h-[44px] w-full min-w-0 truncate rounded-xl border border-strong bg-surface-elevated px-3 py-2 text-xs font-medium text-ink transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:flex-1"
+        >
+          <option value="" disabled>{{ i18n.t().bookForm.lookup.switchCamera }}</option>
+          @for (camera of cameraSwitchPlan().cameras; track camera.id) {
+            <option [value]="camera.id">{{ camera.label }}</option>
+          }
+        </select>
+      }
     }
 
     <button
@@ -118,4 +112,8 @@
       (change)="onFileSelected($event)"
     />
   </div>
+
+  <p class="text-[11px] leading-relaxed text-ink-muted">
+    {{ i18n.t().bookForm.lookup.cameraConsentHint }}
+  </p>
 </div>

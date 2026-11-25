@@ -156,6 +156,11 @@ export interface BooksI18n {
       cameraConsentHint: string;
       stopCamera: string;
       switchCamera: string;
+      switchToFrontCamera: string;
+      switchToRearCamera: string;
+      rearCamera: string;
+      frontCamera: string;
+      genericCameraPrefix: string;
       uploadPhoto: string;
       scanningHint: string;
       externalLookupNotice: string;
@@ -392,6 +397,11 @@ export const ES_BOOKS: BooksI18n = {
         'La cámara se procesa únicamente en tu navegador para leer códigos ISBN. No se graban ni envían imágenes.',
       stopCamera: 'Detener cámara',
       switchCamera: 'Cambiar cámara',
+      switchToFrontCamera: 'Cambiar a cámara frontal',
+      switchToRearCamera: 'Cambiar a cámara trasera',
+      rearCamera: 'Cámara trasera',
+      frontCamera: 'Cámara frontal',
+      genericCameraPrefix: 'Cámara',
       uploadPhoto: 'Subir foto del código',
       scanningHint: 'Apunta la cámara al código de barras ISBN (978/979) del libro.',
       externalLookupNotice:
@@ -629,6 +639,11 @@ export const EN_BOOKS: BooksI18n = {
         'Your camera is processed locally in your browser to read ISBN barcodes. No video is recorded or sent.',
       stopCamera: 'Stop camera',
       switchCamera: 'Switch camera',
+      switchToFrontCamera: 'Switch to front camera',
+      switchToRearCamera: 'Switch to rear camera',
+      rearCamera: 'Rear camera',
+      frontCamera: 'Front camera',
+      genericCameraPrefix: 'Camera',
       uploadPhoto: 'Upload barcode photo',
       scanningHint: 'Point the camera at the book ISBN barcode (978/979).',
       externalLookupNotice:

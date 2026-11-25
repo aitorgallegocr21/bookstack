@@ -436,19 +436,27 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
     expect(hasHorizontalOverflow).toBe(false);
   });
 
-  test('should gate camera initialization behind explicit user consent in IsbnScannerComponent', async ({
+  test('should start rear HD camera immediately upon clicking Escanear código with zero pre-click getUserMedia calls', async ({
     page,
   }) => {
     await page.addInitScript(() => {
       let getUserMediaCalls = 0;
-      (window as unknown as { __getUserMediaCalls: () => number }).__getUserMediaCalls = () =>
-        getUserMediaCalls;
+      let lastVideoConstraints: unknown = null;
+      (
+        window as unknown as {
+          __getCameraSpy: () => { calls: number; lastVideoConstraints: unknown };
+        }
+      ).__getCameraSpy = () => ({
+        calls: getUserMediaCalls,
+        lastVideoConstraints,
+      });
       Object.defineProperty(navigator, 'mediaDevices', {
         configurable: true,
         value: {
-          getUserMedia: () => {
+          getUserMedia: (constraints?: MediaStreamConstraints) => {
             getUserMediaCalls += 1;
-            return Promise.reject(new Error('NotAllowedError'));
+            lastVideoConstraints = constraints?.video ?? null;
+            return Promise.reject(new DOMException('Permission denied', 'NotAllowedError'));
           },
           enumerateDevices: () => Promise.resolve([]),
         },
@@ -461,21 +469,52 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
     await page.getByRole('button', { name: 'Crear nuevo libro' }).click();
     await expect(page.locator('#create-modal-title')).toBeVisible();
 
+    const spyBeforeClick = await page.evaluate(() =>
+      (
+        window as unknown as {
+          __getCameraSpy: () => { calls: number; lastVideoConstraints: unknown };
+        }
+      ).__getCameraSpy()
+    );
+    expect(spyBeforeClick.calls).toBe(0);
+
     const lookupPanel = page.locator('app-book-metadata-lookup');
     await lookupPanel.getByRole('button', { name: 'Escanear código' }).click();
 
-    const consentButton = page.getByTestId('enable-camera-consent-btn');
-    await expect(consentButton).toBeVisible();
+    await expect(page.getByTestId('enable-camera-consent-btn')).toHaveCount(0);
     await expect(
       lookupPanel.getByText(
         'La cámara se procesa únicamente en tu navegador para leer códigos ISBN. No se graban ni envían imágenes.'
       )
     ).toBeVisible();
 
-    const callsBeforeConsent = await page.evaluate(() =>
-      (window as unknown as { __getUserMediaCalls: () => number }).__getUserMediaCalls()
+    await expect
+      .poll(async () => {
+        const spy = await page.evaluate(() =>
+          (
+            window as unknown as {
+              __getCameraSpy: () => { calls: number; lastVideoConstraints: unknown };
+            }
+          ).__getCameraSpy()
+        );
+        return spy.calls;
+      })
+      .toBeGreaterThanOrEqual(1);
+
+    const spyAfterClick = await page.evaluate(() =>
+      (
+        window as unknown as {
+          __getCameraSpy: () => { calls: number; lastVideoConstraints: unknown };
+        }
+      ).__getCameraSpy()
     );
-    expect(callsBeforeConsent).toBe(0);
+    expect(spyAfterClick.lastVideoConstraints).toEqual(
+      expect.objectContaining({
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      })
+    );
   });
 
   test('should fuse 5-provider search results and populate totalPages, publicationYear, publisher, isbn, and coverUrl on selection', async ({

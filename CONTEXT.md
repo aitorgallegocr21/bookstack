@@ -83,6 +83,7 @@ src/
         │   │   └── book-metadata.service.ts   # 5-source metadata waterfall, cross-edition fusion, balanced 8-result quota & duplicate detector
         │   ├── utils/
         │   │   ├── book-form.utils.ts         # Shared status/autofill/format/rating/series & metadata form-patch helpers
+        │   │   ├── camera-selection.utils.ts  # Pure camera facing classification, auxiliary lens filtering & switcher plan builder
         │   │   └── isbn.utils.ts              # Pure ISBN-10/13 checksum & normalization helpers
         │   ├── pages/books-page/              # Catalog coordinator, 3 view modes & zero-match empty state
         │   └── components/{cover-picker,isbn-scanner,book-metadata-lookup,book-create-modal,book-edit-modal,book-detail-modal,reading-log-editor,catalog-toolbar,book-grid-card,book-detailed-card,book-compact-row}/

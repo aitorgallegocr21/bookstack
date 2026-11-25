@@ -8,6 +8,9 @@ interface MockHtml5QrcodeInstance {
   stop: ReturnType<typeof vi.fn>;
   clear: ReturnType<typeof vi.fn>;
   scanFile: ReturnType<typeof vi.fn>;
+  getRunningTrackSettings: ReturnType<typeof vi.fn>;
+  getRunningTrackCapabilities: ReturnType<typeof vi.fn>;
+  applyVideoConstraints: ReturnType<typeof vi.fn>;
 }
 
 const flushMicrotasks = async (): Promise<void> => {
@@ -16,13 +19,18 @@ const flushMicrotasks = async (): Promise<void> => {
 
 describe('IsbnScannerComponent', () => {
   let capturedSuccessCallback: ((decodedText: string) => void) | null = null;
-  let mockCameras: { id: string; label: string }[];
+  let mockMediaDevicesList: Array<{ deviceId: string; kind: string; label: string }>;
   let getCamerasMock: ReturnType<typeof vi.fn>;
+  let enumerateDevicesMock: ReturnType<typeof vi.fn>;
   let startMock: ReturnType<typeof vi.fn>;
   let stopMock: ReturnType<typeof vi.fn>;
   let clearMock: ReturnType<typeof vi.fn>;
   let scanFileMock: ReturnType<typeof vi.fn>;
+  let getRunningTrackSettingsMock: ReturnType<typeof vi.fn>;
+  let getRunningTrackCapabilitiesMock: ReturnType<typeof vi.fn>;
+  let applyVideoConstraintsMock: ReturnType<typeof vi.fn>;
   let mockLibrary: typeof import('html5-qrcode');
+  let originalMediaDevices: MediaDevices | undefined;
 
   const createFixture = (): ComponentFixture<IsbnScannerComponent> => {
     const fixture = TestBed.createComponent(IsbnScannerComponent);
@@ -35,26 +43,22 @@ describe('IsbnScannerComponent', () => {
     return fixture;
   };
 
-  const clickEnableCamera = async (
-    fixture: ComponentFixture<IsbnScannerComponent>
-  ): Promise<void> => {
-    const btn = (fixture.nativeElement as HTMLElement).querySelector(
-      '[data-testid="enable-camera-consent-btn"]'
-    ) as HTMLButtonElement | null;
-    expect(btn).not.toBeNull();
-    btn!.click();
-    await flushMicrotasks();
-    fixture.detectChanges();
-  };
-
   beforeEach(async () => {
-    IsbnScannerComponent.resetSessionConsent();
     localStorage.clear();
     capturedSuccessCallback = null;
-    mockCameras = [
-      { id: 'cam-front', label: 'Front Camera' },
-      { id: 'cam-back', label: 'Back Camera' },
+    mockMediaDevicesList = [
+      { deviceId: 'cam-front', kind: 'videoinput', label: 'camera2 1, facing front' },
+      { deviceId: 'cam-back', kind: 'videoinput', label: 'camera2 0, facing back' },
     ];
+
+    originalMediaDevices = navigator.mediaDevices;
+    enumerateDevicesMock = vi.fn(async () => mockMediaDevicesList);
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: {
+        enumerateDevices: enumerateDevicesMock,
+      },
+    });
 
     startMock = vi.fn(
       async (
@@ -69,7 +73,10 @@ describe('IsbnScannerComponent', () => {
     stopMock = vi.fn(async () => undefined);
     clearMock = vi.fn(() => undefined);
     scanFileMock = vi.fn(async () => '9780441172719');
-    getCamerasMock = vi.fn(async () => mockCameras);
+    getRunningTrackSettingsMock = vi.fn(() => ({ deviceId: 'cam-back' }));
+    getRunningTrackCapabilitiesMock = vi.fn(() => ({}));
+    applyVideoConstraintsMock = vi.fn(async () => undefined);
+    getCamerasMock = vi.fn(async () => []);
 
     class MockHtml5Qrcode implements MockHtml5QrcodeInstance {
       static getCameras = getCamerasMock;
@@ -77,6 +84,9 @@ describe('IsbnScannerComponent', () => {
       stop = stopMock;
       clear = clearMock;
       scanFile = scanFileMock;
+      getRunningTrackSettings = getRunningTrackSettingsMock;
+      getRunningTrackCapabilities = getRunningTrackCapabilitiesMock;
+      applyVideoConstraints = applyVideoConstraintsMock;
     }
 
     mockLibrary = {
@@ -96,37 +106,196 @@ describe('IsbnScannerComponent', () => {
 
   afterEach(() => {
     localStorage.clear();
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: originalMediaDevices,
+    });
     vi.restoreAllMocks();
   });
 
-  it('stays idle without starting camera on init until user grants consent, then auto-starts in same session', async () => {
+  it('auto-starts rear HD camera immediately on mount without calling Html5Qrcode.getCameras() and shows inline privacy hint', async () => {
     const fixture = createFixture();
     fixture.detectChanges();
     await flushMicrotasks();
     fixture.detectChanges();
 
-    expect(startMock).not.toHaveBeenCalled();
-    const root = fixture.nativeElement as HTMLElement;
-    const i18n = TestBed.inject(I18nService);
-    expect(root.textContent).toContain(i18n.t().bookForm.lookup.cameraConsentHint);
-    expect(root.textContent).toContain(i18n.t().bookForm.lookup.enableCamera);
-
-    await clickEnableCamera(fixture);
-
-    expect(getCamerasMock).toHaveBeenCalledTimes(1);
+    expect(getCamerasMock).not.toHaveBeenCalled();
+    expect(enumerateDevicesMock).toHaveBeenCalledTimes(1);
+    expect(startMock).toHaveBeenCalledTimes(1);
     expect(startMock).toHaveBeenCalledWith(
-      { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 240, height: 120 } },
+      { facingMode: { ideal: 'environment' } },
+      {
+        fps: 10,
+        qrbox: expect.any(Function),
+        videoConstraints: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      },
       expect.any(Function),
       expect.any(Function)
     );
-    expect(root.textContent).toContain(i18n.t().bookForm.lookup.stopCamera);
 
-    // Subsequent mount in the same session reuses granted consent
-    const secondFixture = createFixture();
-    secondFixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const i18n = TestBed.inject(I18nService);
+    expect(root.querySelector('[data-testid="enable-camera-consent-btn"]')).toBeNull();
+    expect(root.textContent).toContain(i18n.t().bookForm.lookup.cameraConsentHint);
+    expect(root.textContent).toContain(i18n.t().bookForm.lookup.stopCamera);
+  });
+
+  it('applies continuous autofocus when running track capabilities support it', async () => {
+    getRunningTrackCapabilitiesMock.mockReturnValue({
+      focusMode: ['manual', 'continuous'],
+    });
+
+    const fixture = createFixture();
+    fixture.detectChanges();
     await flushMicrotasks();
-    expect(startMock).toHaveBeenCalledTimes(2);
+    fixture.detectChanges();
+
+    expect(applyVideoConstraintsMock).toHaveBeenCalledWith({
+      advanced: [{ focusMode: 'continuous' }],
+    });
+  });
+
+  it('falls back to bare environment and then front camera on OverconstrainedError', async () => {
+    startMock
+      .mockRejectedValueOnce(new DOMException('Overconstrained', 'OverconstrainedError'))
+      .mockRejectedValueOnce(new DOMException('NotFound', 'NotFoundError'))
+      .mockImplementationOnce(
+        async (
+          _cameraIdOrConfig: string | MediaTrackConstraints,
+          _config: unknown,
+          onSuccess: (decodedText: string) => void
+        ) => {
+          capturedSuccessCallback = onSuccess;
+          return null;
+        }
+      );
+
+    const fixture = createFixture();
+    fixture.detectChanges();
+    await flushMicrotasks();
+    fixture.detectChanges();
+
+    expect(startMock).toHaveBeenCalledTimes(3);
+    expect(startMock.mock.calls[0]?.[0]).toEqual({ facingMode: { ideal: 'environment' } });
+    expect(startMock.mock.calls[1]?.[0]).toEqual({ facingMode: 'environment' });
+    expect(startMock.mock.calls[2]?.[0]).toEqual({ facingMode: 'user' });
+  });
+
+  it('does not fall back when permission is denied (NotAllowedError)', async () => {
+    startMock.mockRejectedValueOnce(new DOMException('Permission denied', 'NotAllowedError'));
+
+    const fixture = createFixture();
+    fixture.detectChanges();
+    await flushMicrotasks();
+    fixture.detectChanges();
+
+    expect(startMock).toHaveBeenCalledTimes(1);
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain(
+      TestBed.inject(I18nService).t().bookForm.lookup.permissionError
+    );
+  });
+
+  it('shows 1-tap facing toggle on mobile when rear and front cameras exist and switches between them', async () => {
+    mockMediaDevicesList = [
+      { deviceId: 'cam-back', kind: 'videoinput', label: 'camera2 0, facing back' },
+      { deviceId: 'cam-depth', kind: 'videoinput', label: 'camera2 2, facing back (depth)' },
+      { deviceId: 'cam-macro', kind: 'videoinput', label: 'camera2 3, macro' },
+      { deviceId: 'cam-front', kind: 'videoinput', label: 'camera2 1, facing front' },
+    ];
+    getRunningTrackSettingsMock.mockReturnValue({ deviceId: 'cam-back' });
+
+    const fixture = createFixture();
+    fixture.detectChanges();
+    await flushMicrotasks();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const toggleBtn = root.querySelector(
+      '[data-testid="toggle-camera-facing-btn"]'
+    ) as HTMLButtonElement | null;
+    expect(toggleBtn).not.toBeNull();
+    expect(root.querySelector('[data-testid="camera-device-select"]')).toBeNull();
+    expect(toggleBtn!.textContent).toContain(
+      TestBed.inject(I18nService).t().bookForm.lookup.switchToFrontCamera
+    );
+
+    getRunningTrackSettingsMock.mockReturnValue({ deviceId: 'cam-front' });
+    toggleBtn!.click();
+    await flushMicrotasks();
+    fixture.detectChanges();
+
+    expect(stopMock).toHaveBeenCalledTimes(1);
+    expect(startMock).toHaveBeenLastCalledWith(
+      'cam-front',
+      {
+        fps: 10,
+        qrbox: expect.any(Function),
+        videoConstraints: {
+          deviceId: { exact: 'cam-front' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      },
+      expect.any(Function),
+      expect.any(Function)
+    );
+  });
+
+  it('hides switcher for a single webcam and shows select dropdown for multiple desktop webcams', async () => {
+    mockMediaDevicesList = [
+      { deviceId: 'usb-1', kind: 'videoinput', label: 'Logitech HD Webcam (046d:082d)' },
+    ];
+    getRunningTrackSettingsMock.mockReturnValue({ deviceId: 'usb-1' });
+
+    const singleFixture = createFixture();
+    singleFixture.detectChanges();
+    await flushMicrotasks();
+    singleFixture.detectChanges();
+
+    const singleRoot = singleFixture.nativeElement as HTMLElement;
+    expect(singleRoot.querySelector('[data-testid="toggle-camera-facing-btn"]')).toBeNull();
+    expect(singleRoot.querySelector('[data-testid="camera-device-select"]')).toBeNull();
+    singleFixture.destroy();
+
+    mockMediaDevicesList = [
+      { deviceId: 'usb-1', kind: 'videoinput', label: 'Logitech C920 (046d:082d)' },
+      { deviceId: 'usb-2', kind: 'videoinput', label: 'Elgato Facecam (0fd9:0078)' },
+    ];
+    const multiFixture = createFixture();
+    multiFixture.detectChanges();
+    await flushMicrotasks();
+    multiFixture.detectChanges();
+
+    const multiRoot = multiFixture.nativeElement as HTMLElement;
+    const selectEl = multiRoot.querySelector(
+      '[data-testid="camera-device-select"]'
+    ) as HTMLSelectElement | null;
+    expect(selectEl).not.toBeNull();
+    expect(selectEl!.options[1]?.textContent).toBe('Logitech C920');
+    expect(selectEl!.options[2]?.textContent).toBe('Elgato Facecam');
+
+    selectEl!.value = 'usb-2';
+    selectEl!.dispatchEvent(new Event('change'));
+    await flushMicrotasks();
+    multiFixture.detectChanges();
+
+    expect(startMock).toHaveBeenLastCalledWith(
+      'usb-2',
+      expect.objectContaining({
+        videoConstraints: {
+          deviceId: { exact: 'usb-2' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      }),
+      expect.any(Function),
+      expect.any(Function)
+    );
   });
 
   it('ignores non-ISBN barcodes without stopping camera and emits normalized ISBN-13 on valid scan', async () => {
@@ -135,7 +304,8 @@ describe('IsbnScannerComponent', () => {
     fixture.componentInstance.isbnDetected.subscribe((isbn) => emitted.push(isbn));
 
     fixture.detectChanges();
-    await clickEnableCamera(fixture);
+    await flushMicrotasks();
+    fixture.detectChanges();
 
     expect(capturedSuccessCallback).not.toBeNull();
 
@@ -163,7 +333,8 @@ describe('IsbnScannerComponent', () => {
   it('guarantees camera stream teardown on ngOnDestroy', async () => {
     const fixture = createFixture();
     fixture.detectChanges();
-    await clickEnableCamera(fixture);
+    await flushMicrotasks();
+    fixture.detectChanges();
 
     fixture.destroy();
     await flushMicrotasks();
@@ -172,51 +343,14 @@ describe('IsbnScannerComponent', () => {
     expect(clearMock).toHaveBeenCalledTimes(1);
   });
 
-  it('switches cameras when multiple devices are available', async () => {
+  it('shows cameraUnavailableError when no camera device is found', async () => {
+    mockMediaDevicesList = [];
+    startMock.mockRejectedValue(new DOMException('Requested device not found', 'NotFoundError'));
+
     const fixture = createFixture();
     fixture.detectChanges();
-    await clickEnableCamera(fixture);
-
-    const root = fixture.nativeElement as HTMLElement;
-    const selectEl = root.querySelector('select') as HTMLSelectElement;
-    expect(selectEl).not.toBeNull();
-
-    selectEl.value = 'cam-front';
-    selectEl.dispatchEvent(new Event('change'));
     await flushMicrotasks();
     fixture.detectChanges();
-
-    expect(stopMock).toHaveBeenCalledTimes(1);
-    expect(startMock).toHaveBeenLastCalledWith(
-      'cam-front',
-      { fps: 10, qrbox: { width: 240, height: 120 } },
-      expect.any(Function),
-      expect.any(Function)
-    );
-  });
-
-  it('shows permissionError when camera access is denied', async () => {
-    startMock.mockRejectedValueOnce(new DOMException('Permission denied', 'NotAllowedError'));
-
-    const fixture = createFixture();
-    fixture.detectChanges();
-    await clickEnableCamera(fixture);
-
-    const root = fixture.nativeElement as HTMLElement;
-    expect(root.textContent).toContain(
-      TestBed.inject(I18nService).t().bookForm.lookup.permissionError
-    );
-  });
-
-  it('shows cameraUnavailableError when no camera device is found', async () => {
-    mockCameras = [];
-    startMock.mockRejectedValueOnce(
-      new DOMException('Requested device not found', 'NotFoundError')
-    );
-
-    const fixture = createFixture();
-    fixture.detectChanges();
-    await clickEnableCamera(fixture);
 
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain(
@@ -230,7 +364,8 @@ describe('IsbnScannerComponent', () => {
     fixture.componentInstance.isbnDetected.subscribe((isbn) => emitted.push(isbn));
 
     fixture.detectChanges();
-    await clickEnableCamera(fixture);
+    await flushMicrotasks();
+    fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
     const fileInput = root.querySelector('input[type="file"]') as HTMLInputElement;
@@ -293,6 +428,7 @@ describe('IsbnScannerComponent', () => {
     const fixture = createFixture();
     fixture.detectChanges();
     await flushMicrotasks();
+    fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
     const controlsBar = root.querySelector('div.mt-3.grid') as HTMLElement;

@@ -1,0 +1,152 @@
+export type CameraFacing = 'rear' | 'front' | 'unknown';
+
+export interface ScannerCameraDevice {
+  id: string;
+  label: string;
+  facing: CameraFacing;
+}
+
+export interface CameraLabelTranslations {
+  rearCamera: string;
+  frontCamera: string;
+  genericCameraPrefix: string;
+}
+
+export interface CameraSwitchPlan {
+  mode: 'none' | 'facing-toggle' | 'select';
+  rearCamera: ScannerCameraDevice | null;
+  frontCamera: ScannerCameraDevice | null;
+  cameras: ScannerCameraDevice[];
+}
+
+export interface VideoDeviceLike {
+  deviceId: string;
+  kind: string;
+  label: string;
+}
+
+const AUXILIARY_LENS_REGEX =
+  /\b(depth|tof|time[- ]of[- ]flight|ir|infrared|macro|telephoto|tele|ultra[- ]?wide|ultrawide|bokeh|monochrome|mono|spatial)\b/i;
+
+const REAR_FACING_REGEX = /\b(back|rear|environment|trasera|posterior)\b/i;
+const FRONT_FACING_REGEX = /\b(front|user|selfie|facetime|frontal|delantera)\b/i;
+const USB_ID_SUFFIX_REGEX = /\s*\([0-9a-f]{4}:[0-9a-f]{4}\)\s*$/i;
+
+/** Returns true when a camera label identifies a specialized auxiliary lens unsuitable for barcode scanning. */
+export function isAuxiliaryCameraLabel(label: string): boolean {
+  return AUXILIARY_LENS_REGEX.test(label);
+}
+
+/** Classifies a camera device label as rear, front, or unknown. */
+export function classifyCameraFacing(label: string): CameraFacing {
+  if (REAR_FACING_REGEX.test(label)) {
+    return 'rear';
+  }
+  if (FRONT_FACING_REGEX.test(label)) {
+    return 'front';
+  }
+  return 'unknown';
+}
+
+/** Formats a raw MediaDeviceInfo label into a clean, user-friendly camera name. */
+export function formatCameraLabel(
+  rawLabel: string,
+  index: number,
+  facing: CameraFacing,
+  translations: CameraLabelTranslations
+): string {
+  if (facing === 'rear') {
+    return translations.rearCamera;
+  }
+  if (facing === 'front') {
+    return translations.frontCamera;
+  }
+
+  const cleaned = rawLabel.replace(USB_ID_SUFFIX_REGEX, '').trim();
+  if (cleaned.length > 0 && !/^camera2\s+\d+/i.test(cleaned)) {
+    return cleaned;
+  }
+
+  return `${translations.genericCameraPrefix} ${index + 1}`;
+}
+
+/** Filters non-video/auxiliary devices and normalizes camera metadata for the UI. */
+export function filterAndNormalizeCameras(
+  devices: readonly VideoDeviceLike[],
+  translations: CameraLabelTranslations
+): ScannerCameraDevice[] {
+  const seenIds = new Set<string>();
+  const normalized: ScannerCameraDevice[] = [];
+
+  for (const device of devices) {
+    if (device.kind !== 'videoinput') {
+      continue;
+    }
+
+    const id = device.deviceId.trim();
+    if (!id || seenIds.has(id)) {
+      continue;
+    }
+
+    if (isAuxiliaryCameraLabel(device.label)) {
+      continue;
+    }
+
+    seenIds.add(id);
+    const facing = classifyCameraFacing(device.label);
+    const label = formatCameraLabel(device.label, normalized.length, facing, translations);
+
+    normalized.push({ id, label, facing });
+  }
+
+  return normalized;
+}
+
+/** Determines whether to hide switcher controls, show a 1-tap front/rear toggle, or show a desktop selector. */
+export function buildCameraSwitchPlan(
+  cameras: readonly ScannerCameraDevice[],
+  activeDeviceId: string | null
+): CameraSwitchPlan {
+  const rearCameras = cameras.filter((camera) => camera.facing === 'rear');
+  const frontCameras = cameras.filter((camera) => camera.facing === 'front');
+
+  const activeRear =
+    rearCameras.find((camera) => camera.id === activeDeviceId) ?? rearCameras[0] ?? null;
+  const activeFront =
+    frontCameras.find((camera) => camera.id === activeDeviceId) ?? frontCameras[0] ?? null;
+
+  if (cameras.length <= 1) {
+    return {
+      mode: 'none',
+      rearCamera: activeRear,
+      frontCamera: activeFront,
+      cameras: [...cameras],
+    };
+  }
+
+  if (activeRear && activeFront) {
+    return {
+      mode: 'facing-toggle',
+      rearCamera: activeRear,
+      frontCamera: activeFront,
+      cameras: [activeRear, activeFront],
+    };
+  }
+
+  const unknownCameras = cameras.filter((camera) => camera.facing === 'unknown');
+  if (unknownCameras.length === 0) {
+    return {
+      mode: 'none',
+      rearCamera: activeRear,
+      frontCamera: activeFront,
+      cameras: [...cameras],
+    };
+  }
+
+  return {
+    mode: 'select',
+    rearCamera: activeRear,
+    frontCamera: activeFront,
+    cameras: [...cameras],
+  };
+}

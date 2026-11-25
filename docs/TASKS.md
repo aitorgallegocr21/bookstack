@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- _None — ready for Phase 18 planning (`docs/ROADMAP.md`)._
+_None — Phase 17D completed (`v2.3.3`). Next up: Phase 18._
 
 ---
 
@@ -23,6 +23,8 @@
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 17D: ISBN Scanner Smart Camera Selection, HD Quality & UX Simplification (`v2.3.3`)](tasks/phase-17d-isbn-scanner-camera-fix/index.md)** — _Completed 2026-11_ (Eliminated pre-start `Html5Qrcode.getCameras()` double-stream race, added 1-tap direct rear HD camera startup with `OverconstrainedError` fallback ladder and continuous autofocus, filtered auxiliary Android `camera2` lenses via `camera-selection.utils.ts`, collapsed mobile switchers into a 1-tap front/rear toggle button while hiding single-camera controls, and displayed the local-only privacy notice inline).
 
 - [x] **[Phase 17C: Mobile Dock Exterior Grip Tab & Overflow Popover Auto-Close (`v2.3.2`)](tasks/phase-17c-mobile-dock-polish/index.md)** — _Completed 2026-11_ (Replaced flat drag pill with exterior centered `LucideGripHorizontal` grip tab on `BottomNavComponent` for strict vertical/horizontal dock symmetry at `bottom` & `top` edges, increased popover clearance to `20px`, and auto-closed `[role="menu"]` on all 4 primary dock route clicks).
 

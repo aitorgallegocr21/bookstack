@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnDestroy,
+  computed,
   inject,
   output,
   signal,
@@ -14,18 +15,21 @@ import {
   LucideDynamicIcon,
   LucideImagePlus,
   LucideRefreshCw,
+  LucideSwitchCamera,
 } from '@lucide/angular';
 import type { Html5Qrcode } from 'html5-qrcode';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import {
+  buildCameraSwitchPlan,
+  filterAndNormalizeCameras,
+  type ScannerCameraDevice,
+} from '../../utils/camera-selection.utils';
 import { isValidIsbn, normalizeIsbn } from '../../utils/isbn.utils';
+
+export type { ScannerCameraDevice };
 
 export type IsbnScannerState =
   'idle' | 'starting' | 'scanning' | 'processing-file' | 'error' | 'permission-denied';
-
-export interface ScannerCameraDevice {
-  id: string;
-  label: string;
-}
 
 @Component({
   selector: 'app-isbn-scanner',
@@ -39,16 +43,12 @@ export interface ScannerCameraDevice {
 })
 export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
   private static nextElementId = 0;
-  private static sessionCameraConsent = false;
-
-  static resetSessionConsent(): void {
-    IsbnScannerComponent.sessionCameraConsent = false;
-  }
 
   protected readonly i18n = inject(I18nService);
   protected readonly Camera = LucideCamera;
   protected readonly CameraOff = LucideCameraOff;
   protected readonly RefreshCw = LucideRefreshCw;
+  protected readonly SwitchCamera = LucideSwitchCamera;
   protected readonly ImagePlus = LucideImagePlus;
   protected readonly AlertCircle = LucideAlertCircle;
 
@@ -63,20 +63,43 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly ignoredNonIsbnHint = signal<boolean>(false);
 
+  protected readonly cameraSwitchPlan = computed(() =>
+    buildCameraSwitchPlan(this.availableCameras(), this.selectedCameraId())
+  );
+
+  protected readonly nextToggleCamera = computed<ScannerCameraDevice | null>(() => {
+    const plan = this.cameraSwitchPlan();
+    if (plan.mode !== 'facing-toggle' || !plan.rearCamera || !plan.frontCamera) {
+      return null;
+    }
+    return this.selectedCameraId() === plan.frontCamera.id ? plan.rearCamera : plan.frontCamera;
+  });
+
+  protected readonly toggleCameraLabel = computed(() => {
+    const next = this.nextToggleCamera();
+    if (!next) {
+      return this.i18n.t().bookForm.lookup.switchCamera;
+    }
+    return next.facing === 'front'
+      ? this.i18n.t().bookForm.lookup.switchToFrontCamera
+      : this.i18n.t().bookForm.lookup.switchToRearCamera;
+  });
+
   private scannerInstance: Html5Qrcode | null = null;
   private isCameraRunning = false;
   private isDestroyed = false;
   private handlingDetection = false;
 
   ngAfterViewInit(): void {
-    if (IsbnScannerComponent.sessionCameraConsent) {
-      void this.startCamera();
-    }
+    void this.startCamera();
   }
 
-  protected grantCameraConsentAndStart(preferredCameraId?: string): void {
-    IsbnScannerComponent.sessionCameraConsent = true;
-    void this.startCamera(preferredCameraId);
+  protected onToggleCameraFacing(): void {
+    const next = this.nextToggleCamera();
+    if (!next) {
+      return;
+    }
+    void this.startCamera(next.id);
   }
 
   ngOnDestroy(): void {
@@ -110,15 +133,6 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
         return;
       }
 
-      await this.refreshAvailableCameras(lib);
-      if (this.isDestroyed) {
-        return;
-      }
-
-      const cameraIdOrConfig: string | MediaTrackConstraints = preferredCameraId ?? {
-        facingMode: 'environment',
-      };
-
       if (preferredCameraId) {
         this.selectedCameraId.set(preferredCameraId);
       }
@@ -126,19 +140,7 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
       const scanner = this.createScannerInstance(lib);
       this.scannerInstance = scanner;
 
-      await scanner.start(
-        cameraIdOrConfig,
-        {
-          fps: 10,
-          qrbox: { width: 240, height: 120 },
-        },
-        (decodedText: string) => {
-          void this.handleDecodedText(decodedText);
-        },
-        () => {
-          // Ignore per-frame decode misses while scanning live video.
-        }
-      );
+      await this.startWithFallbackLadder(scanner, preferredCameraId);
 
       this.isCameraRunning = true;
 
@@ -147,8 +149,16 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
         return;
       }
 
-      if (this.availableCameras().length === 0) {
-        await this.refreshAvailableCameras(lib);
+      const activeDeviceId = this.getRunningDeviceId(scanner) ?? preferredCameraId ?? null;
+      if (activeDeviceId) {
+        this.selectedCameraId.set(activeDeviceId);
+      }
+
+      await this.applyContinuousAutofocus(scanner);
+      await this.refreshAvailableCameras();
+
+      if (!this.selectedCameraId() && this.availableCameras().length > 0) {
+        this.selectedCameraId.set(this.availableCameras()[0].id);
       }
 
       this.scannerState.set('scanning');
@@ -159,9 +169,6 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
       }
 
       const isPermissionError = this.isPermissionDeniedError(error);
-      if (isPermissionError) {
-        IsbnScannerComponent.sessionCameraConsent = false;
-      }
 
       this.errorMessage.set(
         isPermissionError
@@ -320,19 +327,138 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
       ? new lib.Html5Qrcode(this.scannerElementId, {
           verbose: false,
           formatsToSupport: formats,
+          useBarCodeDetectorIfSupported: true,
         })
-      : new lib.Html5Qrcode(this.scannerElementId, false);
+      : new lib.Html5Qrcode(this.scannerElementId, {
+          verbose: false,
+          useBarCodeDetectorIfSupported: true,
+        });
   }
 
-  private async refreshAvailableCameras(lib: typeof import('html5-qrcode')): Promise<void> {
+  private async startWithFallbackLadder(
+    scanner: Html5Qrcode,
+    preferredCameraId?: string
+  ): Promise<void> {
+    const qrbox = (viewfinderWidth: number, viewfinderHeight: number) => ({
+      width: Math.max(180, Math.min(320, Math.floor(viewfinderWidth * 0.8))),
+      height: Math.max(96, Math.min(160, Math.floor(viewfinderHeight * 0.55))),
+    });
+    const onDecode = (decodedText: string) => {
+      void this.handleDecodedText(decodedText);
+    };
+    const onFrameMiss = () => {
+      // Ignore per-frame decode misses while scanning live video.
+    };
+
+    if (preferredCameraId) {
+      await scanner.start(
+        preferredCameraId,
+        {
+          fps: 10,
+          qrbox,
+          videoConstraints: {
+            deviceId: { exact: preferredCameraId },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+        },
+        onDecode,
+        onFrameMiss
+      );
+      return;
+    }
+
+    const attempts: Array<{
+      cameraIdOrConfig: MediaTrackConstraints;
+      videoConstraints?: MediaTrackConstraints;
+    }> = [
+      {
+        cameraIdOrConfig: { facingMode: { ideal: 'environment' } },
+        videoConstraints: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      },
+      {
+        cameraIdOrConfig: { facingMode: 'environment' },
+      },
+      {
+        cameraIdOrConfig: { facingMode: 'user' },
+      },
+    ];
+
+    let lastError: unknown;
+    for (const attempt of attempts) {
+      if (this.isDestroyed) {
+        return;
+      }
+      try {
+        await scanner.start(
+          attempt.cameraIdOrConfig,
+          {
+            fps: 10,
+            qrbox,
+            ...(attempt.videoConstraints ? { videoConstraints: attempt.videoConstraints } : {}),
+          },
+          onDecode,
+          onFrameMiss
+        );
+        return;
+      } catch (error: unknown) {
+        if (this.isPermissionDeniedError(error)) {
+          throw error;
+        }
+        lastError = error;
+      }
+    }
+
+    throw lastError;
+  }
+
+  private getRunningDeviceId(scanner: Html5Qrcode): string | null {
     try {
-      const devices = await lib.Html5Qrcode.getCameras();
+      const settings = scanner.getRunningTrackSettings?.();
+      return typeof settings?.deviceId === 'string' && settings.deviceId.trim().length > 0
+        ? settings.deviceId
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async applyContinuousAutofocus(scanner: Html5Qrcode): Promise<void> {
+    try {
+      const capabilities = scanner.getRunningTrackCapabilities?.() as
+        (MediaTrackCapabilities & { focusMode?: string[] }) | undefined;
+      if (
+        capabilities &&
+        Array.isArray(capabilities.focusMode) &&
+        capabilities.focusMode.includes('continuous')
+      ) {
+        await scanner.applyVideoConstraints({
+          advanced: [{ focusMode: 'continuous' } as MediaTrackConstraintSet],
+        });
+      }
+    } catch {
+      // Ignore unsupported autofocus constraints on devices without continuous focus.
+    }
+  }
+
+  private async refreshAvailableCameras(): Promise<void> {
+    try {
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices?.enumerateDevices) {
+        return;
+      }
+      const devices = await navigator.mediaDevices.enumerateDevices();
       if (!this.isDestroyed) {
+        const lookup = this.i18n.t().bookForm.lookup;
         this.availableCameras.set(
-          devices.map((device) => ({
-            id: device.id,
-            label: device.label || device.id,
-          }))
+          filterAndNormalizeCameras(devices, {
+            rearCamera: lookup.rearCamera,
+            frontCamera: lookup.frontCamera,
+            genericCameraPrefix: lookup.genericCameraPrefix,
+          })
         );
       }
     } catch {

@@ -19,7 +19,7 @@ Build and maintain **BookStack**, a minimalist, visual, private, high-performanc
    - Strictly **FORBIDDEN** to use `any` (use explicit types, generics, or `unknown`) or leave `// TODO` / mocked implementations.
 3. **Two-Tier Documentation Synchronization (Zero Loss + Low Token Overhead):**
    - **Tier 1 — Per-Task Sync (Lightweight):** On completing an atomic task (`Task X.Y`), update ONLY the task checkbox `[x]` in `docs/tasks/phase-XX-<name>/index.md` (and `CONTEXT.md` ONLY if new directories/services were created). Do NOT touch `README*.md`, `docs/TASKS.md`, or `docs/DESIGN_SYSTEM.md` on intermediate subtasks.
-   - **Tier 2 — Per-Phase Sync (Milestone Completion):** On completing the final task of a phase, perform the full sync in one batch: move the phase to `Completed Phases` in `docs/TASKS.md`, mark `docs/tasks/phase-XX-<name>/index.md` as `Completed`, update `CONTEXT.md`, `docs/DESIGN_SYSTEM.md`, `README.md`, and `README.es.md`, integrate the branch into `develop` (`origin/develop`), and execute the Autonomous Branch Hygiene cleanup (Rule 5).
+   - **Tier 2 — Per-Phase Sync (Milestone Completion):** On completing the final task of a phase, perform the full sync in one batch: bump the app version in `package.json` / `package-lock.json` (Rule 10), move the phase to `Completed Phases` in `docs/TASKS.md`, mark `docs/tasks/phase-XX-<name>/index.md` as `Completed`, update `CONTEXT.md`, `docs/DESIGN_SYSTEM.md`, `README.md`, and `README.es.md`, integrate the branch into `develop` (`origin/develop`), and execute the Autonomous Branch Hygiene cleanup (Rule 5).
 4. **Mandatory Test-Per-Feature & Regression-Per-Bug Policy:**
    - Every new feature, service method, pipe, or component MUST include unit/component tests (Vitest + Angular TestBed).
    - Every bug fixed MUST include a dedicated **regression test** reproducing the exact defect scenario.
@@ -39,6 +39,9 @@ Build and maintain **BookStack**, a minimalist, visual, private, high-performanc
    - Consult `CONTEXT.md` once for exact file and line pointers (`StartLine`/`EndLine`). Do NOT load `.agents/skills/*/SKILL.md` unless you need their specific boilerplate templates.
 9. **Periodic Project Hardening & Consolidation Sweep (On-Demand):**
    - After completing several feature phases (or whenever the user explicitly requests a project-wide hardening, optimization, security, or architectural cleanup sweep), activate `.agents/skills/periodic-project-hardening/SKILL.md` to execute the 8-Pillar Low-Token Diagnostic & Hardening Protocol.
+10. **Mandatory Semantic Versioning (`package.json` & `package-lock.json`):**
+
+- Every completed phase, feature, or user-facing fix/patch MUST bump the semantic version in `package.json` and `package-lock.json` (e.g., `npm version <patch|minor|major> --no-git-tag-version`) before the final commit so the About page (`/about`, which reads `packageJson.version`) always displays the up-to-date release version.
 
 ---
 
@@ -70,7 +73,7 @@ Agents operating in Antigravity MUST actively optimize token consumption and mod
 1. **Step 1 (Targeted Spec):** Read only the active `docs/tasks/phase-XX/task-X.Y-*.md` and its targeted source line ranges.
 2. **Step 2 (Code + Tests):** Implement modular Angular 22+ Signal changes and test with `npm run test:file -- <spec>`.
 3. **Step 3 (Validation):** Run `npm run verify:quiet` (+ `npm run test:e2e` for UI/routing changes).
-4. **Step 4 (Two-Tier Doc Sync):** Apply Tier 1 (checkbox only) for intermediate tasks or Tier 2 (full sync) on phase completion.
+4. **Step 4 (Two-Tier Doc Sync & Version Bump):** Apply Tier 1 (checkbox only) for intermediate tasks, or Tier 2 (full sync + semantic version bump in `package.json` / `package-lock.json`) on phase completion or standalone user-facing fixes.
 5. **Step 5 (Git Commit):** Commit using Conventional Commits (`feat`, `fix`, `refactor`, `test`, `docs`, `style`, `chore`).
 
 ---

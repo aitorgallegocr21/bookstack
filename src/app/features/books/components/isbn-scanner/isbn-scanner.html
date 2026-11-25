@@ -57,7 +57,7 @@
     } @else {
       <button
         type="button"
-        (click)="startCamera(selectedCameraId() ?? undefined)"
+        (click)="restartCamera()"
         class="inline-flex min-h-[44px] w-full items-center justify-center gap-1.5 rounded-xl border border-strong bg-surface-elevated px-3 py-2 text-xs font-medium text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-auto"
       >
         <svg [lucideIcon]="Camera" size="15" class="shrink-0"></svg>

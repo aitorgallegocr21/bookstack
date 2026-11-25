@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-_None — Phase 17D completed (`v2.3.3`). Next up: Phase 18._
+- [ ] **[Phase 18: Modern Native ISBN Scanner Engine (`getUserMedia` + `BarcodeDetector` & Local ZXing-WASM)](tasks/phase-18-native-isbn-scanner-engine/index.md)** — _Active / Ready for Implementation_ (Replace unmaintained `html5-qrcode` with native `CameraStreamService` + `BarcodeDecoderService` using hardware `BarcodeDetector` and lazy local `zxing_reader.wasm` ponyfill, `localStorage` preferred rear `deviceId` memory for `<500 ms` startup, progressive continuous autofocus, flashlight/torch control, and offline PWA + CSP `'wasm-unsafe-eval'` compliance).
 
 ---
 
@@ -16,9 +16,9 @@ _None — Phase 17D completed (`v2.3.3`). Next up: Phase 18._
 
 > Full architectural and product specifications for upcoming phases live in [`docs/ROADMAP.md`](ROADMAP.md).
 
-- [ ] **[Phase 18: Extended Categorized Settings (`/settings`), Advanced Mode & Privacy/Crypto Hardening](ROADMAP.md#phase-18-extended-categorized-settings-settings-advanced-mode--privacycrypto-hardening)** — _Roadmapped_ (Categorized `/settings` navigation [General, Catalog & Reading Defaults, Data & Backups, Privacy & Security, Advanced], master 100% Offline Mode toggle, granular 5-provider metadata controls, `navigator.storage.persist()` safeguard, Web Crypto `AES-GCM` password-encrypted backups, and advanced compression/reset tuning).
-- [ ] **[Phase 19: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy](ROADMAP.md#phase-19-expanded-analytics-stats-adaptive-timevelocity-engine--tagsgenres-taxonomy)** — _Roadmapped_ (Adaptive time/velocity disclosure hiding `pp/h` and Time tabs when no timed sessions exist, `Book.tags` / genres taxonomy with thematic distribution charts, 365-day reading activity heatmap calendar, book longevity & length distribution metrics, period-over-period deltas, and personal all-time records).
-- [ ] **[Phase 20: Integrated eBook Reader (`/reader/:id`) & Binary Metadata Extractor](ROADMAP.md#phase-20-long-term-milestone-integrated-ebook-reader-readerid--binary-metadata-extractor)** — _Long-Term Milestone_ (Isolated IndexedDB `ebookFiles` binary store for `.EPUB`/`.PDF` uploads, 100% browser-native metadata/cover/TOC extraction, lazy-loaded `/reader/:id` view with customizable typography/themes/bookmarks, automatic `currentPage` & timed `ReadingLog` session tracking, and eBook quota manager in `/settings`).
+- [ ] **[Phase 19: Extended Categorized Settings (`/settings`), Advanced Mode & Privacy/Crypto Hardening](ROADMAP.md#phase-19-extended-categorized-settings-settings-advanced-mode--privacycrypto-hardening)** — _Roadmapped_ (Categorized `/settings` navigation [General, Catalog & Reading Defaults, Data & Backups, Privacy & Security, Advanced], master 100% Offline Mode toggle, granular 5-provider metadata controls, `navigator.storage.persist()` safeguard, Web Crypto `AES-GCM` password-encrypted backups, and advanced compression/reset tuning).
+- [ ] **[Phase 20: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy](ROADMAP.md#phase-20-expanded-analytics-stats-adaptive-timevelocity-engine--tagsgenres-taxonomy)** — _Roadmapped_ (Adaptive time/velocity disclosure hiding `pp/h` and Time tabs when no timed sessions exist, `Book.tags` / genres taxonomy with thematic distribution charts, 365-day reading activity heatmap calendar, book longevity & length distribution metrics, period-over-period deltas, and personal all-time records).
+- [ ] **[Phase 21: Integrated eBook Reader (`/reader/:id`) & Binary Metadata Extractor](ROADMAP.md#phase-21-long-term-milestone-integrated-ebook-reader-readerid--binary-metadata-extractor)** — _Long-Term Milestone_ (Isolated IndexedDB `ebookFiles` binary store for `.EPUB`/`.PDF` uploads, 100% browser-native metadata/cover/TOC extraction, lazy-loaded `/reader/:id` view with customizable typography/themes/bookmarks, automatic `currentPage` & timed `ReadingLog` session tracking, and eBook quota manager in `/settings`).
 
 ---
 

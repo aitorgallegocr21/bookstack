@@ -30,7 +30,19 @@ const AUXILIARY_LENS_REGEX =
 
 const REAR_FACING_REGEX = /\b(back|rear|environment|trasera|posterior)\b/i;
 const FRONT_FACING_REGEX = /\b(front|user|selfie|facetime|frontal|delantera)\b/i;
+const ANDROID_CAMERA_INDEX_REGEX = /\bcamera2?\s+(\d+)\b/i;
 const USB_ID_SUFFIX_REGEX = /\s*\([0-9a-f]{4}:[0-9a-f]{4}\)\s*$/i;
+
+/** Extracts the numeric Android Camera2 index (e.g. `camera 0` -> `0`) when present. */
+export function extractCameraIndex(rawLabel: string): number | null {
+  const match = ANDROID_CAMERA_INDEX_REGEX.exec(rawLabel);
+  if (!match) {
+    return null;
+  }
+
+  const parsed = Number.parseInt(match[1], 10);
+  return Number.isNaN(parsed) ? null : parsed;
+}
 
 /** Returns true when a camera label identifies a specialized auxiliary lens unsuitable for barcode scanning. */
 export function isAuxiliaryCameraLabel(label: string): boolean {
@@ -76,7 +88,11 @@ export function filterAndNormalizeCameras(
   translations: CameraLabelTranslations
 ): ScannerCameraDevice[] {
   const seenIds = new Set<string>();
-  const normalized: ScannerCameraDevice[] = [];
+  const normalized: Array<{
+    device: ScannerCameraDevice;
+    cameraIndex: number | null;
+    originalOrder: number;
+  }> = [];
 
   for (const device of devices) {
     if (device.kind !== 'videoinput') {
@@ -96,10 +112,33 @@ export function filterAndNormalizeCameras(
     const facing = classifyCameraFacing(device.label);
     const label = formatCameraLabel(device.label, normalized.length, facing, translations);
 
-    normalized.push({ id, label, facing });
+    normalized.push({
+      device: { id, label, facing },
+      cameraIndex: extractCameraIndex(device.label),
+      originalOrder: normalized.length,
+    });
   }
 
-  return normalized;
+  // On Android multi-lens devices, Camera2 index 0 is the primary rear sensor and index 1 is
+  // the primary front sensor. Sort ascending by index within the same facing so primary sensors
+  // are always tried before higher-indexed auxiliary/virtual lenses (e.g. camera 4/5/6).
+  normalized.sort((a, b) => {
+    if (a.device.facing !== b.device.facing) {
+      return a.originalOrder - b.originalOrder;
+    }
+    if (a.cameraIndex !== null && b.cameraIndex !== null && a.cameraIndex !== b.cameraIndex) {
+      return a.cameraIndex - b.cameraIndex;
+    }
+    if (a.cameraIndex !== null && b.cameraIndex === null) {
+      return -1;
+    }
+    if (a.cameraIndex === null && b.cameraIndex !== null) {
+      return 1;
+    }
+    return a.originalOrder - b.originalOrder;
+  });
+
+  return normalized.map((entry) => entry.device);
 }
 
 /** Determines whether to hide switcher controls, show a 1-tap front/rear toggle, or show a desktop selector. */

@@ -20,6 +20,7 @@ const flushMicrotasks = async (): Promise<void> => {
 describe('IsbnScannerComponent', () => {
   let capturedSuccessCallback: ((decodedText: string) => void) | null = null;
   let mockMediaDevicesList: Array<{ deviceId: string; kind: string; label: string }>;
+  let createdInstancesCount = 0;
   let getCamerasMock: ReturnType<typeof vi.fn>;
   let enumerateDevicesMock: ReturnType<typeof vi.fn>;
   let startMock: ReturnType<typeof vi.fn>;
@@ -32,20 +33,25 @@ describe('IsbnScannerComponent', () => {
   let mockLibrary: typeof import('html5-qrcode');
   let originalMediaDevices: MediaDevices | undefined;
 
-  const createFixture = (): ComponentFixture<IsbnScannerComponent> => {
+  const createFixture = (options?: {
+    mockReleaseDelay?: boolean;
+  }): ComponentFixture<IsbnScannerComponent> => {
     const fixture = TestBed.createComponent(IsbnScannerComponent);
-    vi.spyOn(
-      fixture.componentInstance as unknown as {
-        loadScannerLibrary: () => Promise<typeof import('html5-qrcode')>;
-      },
-      'loadScannerLibrary'
-    ).mockResolvedValue(mockLibrary);
+    const instance = fixture.componentInstance as unknown as {
+      loadScannerLibrary: () => Promise<typeof import('html5-qrcode')>;
+      waitForCameraRelease: () => Promise<void>;
+    };
+    vi.spyOn(instance, 'loadScannerLibrary').mockResolvedValue(mockLibrary);
+    if (options?.mockReleaseDelay !== false) {
+      vi.spyOn(instance, 'waitForCameraRelease').mockResolvedValue(undefined);
+    }
     return fixture;
   };
 
   beforeEach(async () => {
     localStorage.clear();
     capturedSuccessCallback = null;
+    createdInstancesCount = 0;
     mockMediaDevicesList = [
       { deviceId: 'cam-front', kind: 'videoinput', label: 'camera2 1, facing front' },
       { deviceId: 'cam-back', kind: 'videoinput', label: 'camera2 0, facing back' },
@@ -87,6 +93,10 @@ describe('IsbnScannerComponent', () => {
       getRunningTrackSettings = getRunningTrackSettingsMock;
       getRunningTrackCapabilities = getRunningTrackCapabilitiesMock;
       applyVideoConstraints = applyVideoConstraintsMock;
+
+      constructor() {
+        createdInstancesCount++;
+      }
     }
 
     mockLibrary = {
@@ -113,22 +123,22 @@ describe('IsbnScannerComponent', () => {
     vi.restoreAllMocks();
   });
 
-  it('auto-starts rear HD camera immediately on mount without calling Html5Qrcode.getCameras() and shows inline privacy hint', async () => {
+  it('auto-starts ranked primary rear camera directly when labels are available and shows inline privacy hint', async () => {
     const fixture = createFixture();
     fixture.detectChanges();
     await flushMicrotasks();
     fixture.detectChanges();
 
     expect(getCamerasMock).not.toHaveBeenCalled();
-    expect(enumerateDevicesMock).toHaveBeenCalledTimes(1);
+    expect(enumerateDevicesMock).toHaveBeenCalledTimes(2);
     expect(startMock).toHaveBeenCalledTimes(1);
     expect(startMock).toHaveBeenCalledWith(
-      { facingMode: { ideal: 'environment' } },
+      'cam-back',
       {
         fps: 10,
         qrbox: expect.any(Function),
         videoConstraints: {
-          facingMode: { ideal: 'environment' },
+          deviceId: { exact: 'cam-back' },
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
@@ -159,8 +169,10 @@ describe('IsbnScannerComponent', () => {
     });
   });
 
-  it('falls back to bare environment and then front camera on OverconstrainedError', async () => {
+  it('falls back through exact environment, bare exact environment, soft environment, and front camera with fresh instances when labels are not yet unlocked', async () => {
+    mockMediaDevicesList = [{ deviceId: '', kind: 'videoinput', label: '' }];
     startMock
+      .mockRejectedValueOnce(new DOMException('Overconstrained', 'OverconstrainedError'))
       .mockRejectedValueOnce(new DOMException('Overconstrained', 'OverconstrainedError'))
       .mockRejectedValueOnce(new DOMException('NotFound', 'NotFoundError'))
       .mockImplementationOnce(
@@ -179,10 +191,55 @@ describe('IsbnScannerComponent', () => {
     await flushMicrotasks();
     fixture.detectChanges();
 
-    expect(startMock).toHaveBeenCalledTimes(3);
-    expect(startMock.mock.calls[0]?.[0]).toEqual({ facingMode: { ideal: 'environment' } });
-    expect(startMock.mock.calls[1]?.[0]).toEqual({ facingMode: 'environment' });
-    expect(startMock.mock.calls[2]?.[0]).toEqual({ facingMode: 'user' });
+    expect(startMock).toHaveBeenCalledTimes(4);
+    expect(createdInstancesCount).toBe(4);
+    expect(startMock.mock.calls[0]?.[0]).toEqual({ facingMode: { exact: 'environment' } });
+    expect(startMock.mock.calls[1]?.[0]).toEqual({ facingMode: { exact: 'environment' } });
+    expect(startMock.mock.calls[1]?.[1]).not.toHaveProperty('videoConstraints');
+    expect(startMock.mock.calls[2]?.[0]).toEqual({ facingMode: 'environment' });
+    expect(startMock.mock.calls[3]?.[0]).toEqual({ facingMode: 'user' });
+  });
+
+  it('auto-upgrades to primary rear camera (camera 0) once first-time user camera unlocks Android labels', async () => {
+    // Simulate first visit before permission: labels are empty until getUserMedia resolves.
+    mockMediaDevicesList = [{ deviceId: '', kind: 'videoinput', label: '' }];
+    startMock
+      .mockRejectedValueOnce(new Error('Camera start timed out'))
+      .mockRejectedValueOnce(new Error('Camera start timed out'))
+      .mockRejectedValueOnce(new Error('Camera start timed out'))
+      .mockImplementationOnce(async () => {
+        // Permission granted via front camera -> Android now reveals all 7 lenses
+        mockMediaDevicesList = [
+          { deviceId: 'cam-5', kind: 'videoinput', label: 'camera 5, facing back' },
+          { deviceId: 'cam-0', kind: 'videoinput', label: 'camera 0, facing back' },
+          { deviceId: 'cam-1', kind: 'videoinput', label: 'camera 1, facing front' },
+        ];
+        getRunningTrackSettingsMock.mockReturnValue({
+          deviceId: 'cam-1',
+          facingMode: 'user',
+        });
+        return null;
+      })
+      .mockImplementationOnce(async () => {
+        getRunningTrackSettingsMock.mockReturnValue({
+          deviceId: 'cam-0',
+          facingMode: 'environment',
+        });
+        return null;
+      });
+
+    const fixture = createFixture();
+    fixture.detectChanges();
+    await flushMicrotasks();
+    await flushMicrotasks();
+    fixture.detectChanges();
+
+    expect(startMock).toHaveBeenCalledTimes(5);
+    expect(startMock.mock.calls[3]?.[0]).toEqual({ facingMode: 'user' });
+    expect(startMock.mock.calls[4]?.[0]).toBe('cam-0');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      TestBed.inject(I18nService).t().bookForm.lookup.switchToFrontCamera
+    );
   });
 
   it('does not fall back when permission is denied (NotAllowedError)', async () => {
@@ -200,19 +257,31 @@ describe('IsbnScannerComponent', () => {
     );
   });
 
-  it('shows 1-tap facing toggle on mobile when rear and front cameras exist and switches between them', async () => {
+  it('shows 1-tap facing toggle on mobile and switches between ranked primary rear (camera 0) and front (camera 1)', async () => {
     mockMediaDevicesList = [
-      { deviceId: 'cam-back', kind: 'videoinput', label: 'camera2 0, facing back' },
-      { deviceId: 'cam-depth', kind: 'videoinput', label: 'camera2 2, facing back (depth)' },
-      { deviceId: 'cam-macro', kind: 'videoinput', label: 'camera2 3, macro' },
+      { deviceId: 'cam-back-aux', kind: 'videoinput', label: 'camera2 5, facing back' },
+      { deviceId: 'cam-back-main', kind: 'videoinput', label: 'camera2 0, facing back' },
+      { deviceId: 'cam-depth', kind: 'videoinput', label: 'camera2 3, facing back (depth)' },
+      { deviceId: 'cam-macro', kind: 'videoinput', label: 'camera2 4, macro' },
+      { deviceId: 'cam-front-aux', kind: 'videoinput', label: 'camera2 6, facing front' },
       { deviceId: 'cam-front', kind: 'videoinput', label: 'camera2 1, facing front' },
     ];
-    getRunningTrackSettingsMock.mockReturnValue({ deviceId: 'cam-back' });
+    getRunningTrackSettingsMock.mockReturnValue({
+      deviceId: 'cam-back-main',
+      facingMode: 'environment',
+    });
 
     const fixture = createFixture();
+    const waitSpy = vi.spyOn(
+      fixture.componentInstance as unknown as { waitForCameraRelease: () => Promise<void> },
+      'waitForCameraRelease'
+    );
     fixture.detectChanges();
     await flushMicrotasks();
     fixture.detectChanges();
+
+    // Initial mount picked ranked primary rear camera (camera 0, never camera 5)
+    expect(startMock.mock.calls[0]?.[0]).toBe('cam-back-main');
 
     const root = fixture.nativeElement as HTMLElement;
     const toggleBtn = root.querySelector(
@@ -224,12 +293,17 @@ describe('IsbnScannerComponent', () => {
       TestBed.inject(I18nService).t().bookForm.lookup.switchToFrontCamera
     );
 
-    getRunningTrackSettingsMock.mockReturnValue({ deviceId: 'cam-front' });
+    // Switch to primary front camera (camera 1, never camera 6)
+    getRunningTrackSettingsMock.mockReturnValue({
+      deviceId: 'cam-front',
+      facingMode: 'user',
+    });
     toggleBtn!.click();
     await flushMicrotasks();
     fixture.detectChanges();
 
     expect(stopMock).toHaveBeenCalledTimes(1);
+    expect(waitSpy).toHaveBeenCalledTimes(1);
     expect(startMock).toHaveBeenLastCalledWith(
       'cam-front',
       {
@@ -244,6 +318,70 @@ describe('IsbnScannerComponent', () => {
       expect.any(Function),
       expect.any(Function)
     );
+    expect(toggleBtn!.textContent).toContain(
+      TestBed.inject(I18nService).t().bookForm.lookup.switchToRearCamera
+    );
+
+    // Switch back to primary rear camera (camera 0, never camera 5)
+    getRunningTrackSettingsMock.mockReturnValue({
+      deviceId: 'cam-back-main',
+      facingMode: 'environment',
+    });
+    toggleBtn!.click();
+    await flushMicrotasks();
+    fixture.detectChanges();
+
+    expect(startMock).toHaveBeenLastCalledWith(
+      'cam-back-main',
+      {
+        fps: 10,
+        qrbox: expect.any(Function),
+        videoConstraints: {
+          deviceId: { exact: 'cam-back-main' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      },
+      expect.any(Function),
+      expect.any(Function)
+    );
+  });
+
+  it('recovers from a hung camera start attempt using a fresh instance, falls back, and tears down late-resolving stream', async () => {
+    let resolveHungStart: (() => void) | null = null;
+    startMock
+      .mockImplementationOnce(
+        () =>
+          new Promise<null>((resolve) => {
+            resolveHungStart = () => resolve(null);
+          })
+      )
+      .mockResolvedValueOnce(null);
+
+    const fixture = createFixture();
+    Object.defineProperty(fixture.componentInstance, 'cameraStartTimeoutMs', {
+      value: 20,
+      configurable: true,
+    });
+
+    fixture.detectChanges();
+    await new Promise<void>((resolve) => setTimeout(resolve, 60));
+    fixture.detectChanges();
+
+    // First attempt timed out and fell back on a brand-new Html5Qrcode instance
+    expect(startMock).toHaveBeenCalledTimes(2);
+    expect(createdInstancesCount).toBe(2);
+    expect(startMock.mock.calls[1]?.[0]).toBe('cam-back');
+    expect(startMock.mock.calls[1]?.[1]).not.toHaveProperty('videoConstraints');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      TestBed.inject(I18nService).t().bookForm.lookup.stopCamera
+    );
+
+    // Late resolution of the timed-out start must immediately stop/clear to avoid leaking hardware
+    resolveHungStart!();
+    await flushMicrotasks();
+    expect(stopMock).toHaveBeenCalledTimes(1);
+    expect(clearMock).toHaveBeenCalled();
   });
 
   it('hides switcher for a single webcam and shows select dropdown for multiple desktop webcams', async () => {

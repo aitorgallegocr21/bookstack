@@ -1,6 +1,6 @@
 {
   "name": "bookstack",
-  "version": "2.3.1",
+  "version": "2.5.1",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -33,7 +33,7 @@
     "@angular/router": "^22.2.6",
     "@angular/service-worker": "^22.2.6",
     "@lucide/angular": "^1.72.0",
-    "html5-qrcode": "^2.3.8",
+    "barcode-detector": "^3.2.5",
     "rxjs": "~7.8.2",
     "tslib": "^2.9.1",
     "zod": "^4.6.7"

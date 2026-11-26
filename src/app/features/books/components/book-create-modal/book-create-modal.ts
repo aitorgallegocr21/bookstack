@@ -13,6 +13,8 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { DefaultBookFormat } from '../../../../core/models/app-preferences.model';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { ExistingSeriesOption, SeriesService } from '../../../series/services/series.service';
@@ -37,11 +39,17 @@ import {
 } from '../../utils/temporal-bounds.utils';
 import { BookMetadataLookupComponent } from '../book-metadata-lookup/book-metadata-lookup';
 import { CoverPickerComponent } from '../cover-picker/cover-picker';
+import { IsbnScannerComponent } from '../isbn-scanner/isbn-scanner';
 
 @Component({
   selector: 'app-book-create-modal',
   standalone: true,
-  imports: [ReactiveFormsModule, CoverPickerComponent, BookMetadataLookupComponent],
+  imports: [
+    ReactiveFormsModule,
+    CoverPickerComponent,
+    BookMetadataLookupComponent,
+    IsbnScannerComponent,
+  ],
   templateUrl: './book-create-modal.html',
   styleUrl: './book-create-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,6 +60,7 @@ import { CoverPickerComponent } from '../cover-picker/cover-picker';
 export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
   private readonly uiState = inject(UiStateService);
   protected readonly i18n = inject(I18nService);
+  private readonly appPreferences = inject(AppPreferencesService);
   private readonly booksService = inject(BooksService);
   private readonly seriesService = inject(SeriesService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
@@ -73,6 +82,7 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
 
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
+  protected readonly isScannerOpen = signal<boolean>(false);
   protected readonly statusValues = BOOK_STATUS_VALUES;
   protected readonly existingSeriesOptions = this.seriesService.existingSeriesOptions;
   protected readonly quickPickSeriesOptions = computed(() =>
@@ -93,8 +103,8 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     totalCharacters: [0, [Validators.min(0)]],
     totalChapters: [0, [Validators.min(0)]],
     currentChapter: [0, [Validators.min(0)]],
-    format: ['Físico'],
-    status: ['pending' as BookStatus, [Validators.required]],
+    format: [this.mapDefaultBookFormat(this.appPreferences.defaultBookFormat())],
+    status: [this.appPreferences.defaultBookStatus() as BookStatus, [Validators.required]],
     coverUrl: [''],
     startDate: [''],
     endDate: [''],
@@ -148,10 +158,19 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
   }
 
   protected handleEscape(): void {
-    if (this.confirmDialogService.activeDialog() !== null) {
+    if (this.confirmDialogService.activeDialog() !== null || this.isScannerOpen()) {
       return;
     }
     this.cancel();
+  }
+
+  private mapDefaultBookFormat(format: DefaultBookFormat): string {
+    const map: Record<DefaultBookFormat, string> = {
+      physical: 'Físico',
+      ebook: 'Ebook',
+      audiobook: 'Audiolibro',
+    };
+    return map[format];
   }
 
   protected onSeriesNameInput(rawName: string): void {
@@ -198,6 +217,19 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
 
   protected triggerInlineIsbnLookup(): void {
     void this.metadataLookup()?.triggerIsbnLookup(this.createForm.controls.isbn.value || '');
+  }
+
+  protected openScanner(): void {
+    this.isScannerOpen.set(true);
+  }
+
+  protected closeScanner(): void {
+    this.isScannerOpen.set(false);
+  }
+
+  protected onScannerIsbnDetected(isbn: string): void {
+    this.isScannerOpen.set(false);
+    void this.metadataLookup()?.onIsbnScanned(isbn);
   }
 
   protected onMetadataCandidateApplied(event: {

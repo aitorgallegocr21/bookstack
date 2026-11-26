@@ -16,8 +16,8 @@
 2. **Asymmetric 4-Edge & 2-Edge Dockable Shell (`Tailwind CSS v4` `@theme`):**
    - Tablet & Desktop ($\ge 768\text{px}$): 4-edge dockable `SidebarComponent` (`hidden md:flex`, `left`/`right` collapsible `68px` $\leftrightarrow$ `240px`, or `top`/`bottom` floating horizontal bar) persisted via `DockPositionService` & `UiStateService`, with magnetic quadrant drag-and-snap (`dock-snap.utils.ts`) and quick-dock popover.
    - Mobile ($< 768\text{px}$): Unified floating translucent `BottomNavComponent` movable between `bottom` (default) and `top` (`env(safe-area-inset-*)`), housing the 4 primary routes, central `+` Add Book CTA, and `<app-brand-logo>` overflow menu.
-   - **Warm Modern Editorial Surfaces & Adaptive Cover Tinting:** Semantic `@theme` tokens in `src/styles.css` with 5 WCAG AA `[data-accent]` palettes (`blue`, `indigo`, `emerald`, `amber`, `rose`), `light`/`dark`/`system` theme mode (`ThemeService`), and `CoverColorService` (per-key $O(1)$ signals, concurrency-2 idle queue, debounced `localStorage` persistence, `16×16` canvas extraction & deterministic fallback) driving `--book-tint` ambient washes on cards and `BookDetailModal` hero.
-   - **Editorial Route Transitions & Hover Craft:** Native `withViewTransitions({ skipInitialTransition: true })` with pinned dock `view-transition-name` layers, GPU-composited cross-fade/rise animations, `.page-enter` fallback, `@media (hover: hover)` hover polish, and `prefers-reduced-motion: reduce` guards.
+   - **Warm Modern Editorial Surfaces & Adaptive Cover Tinting:** Semantic `@theme` tokens in `src/styles.css` with 5 WCAG AA `[data-accent]` palettes (`blue`, `indigo`, `emerald`, `amber`, `rose`), `light`/`dark`/`system` theme mode (`ThemeService`), and `CoverColorService` (per-key $O(1)$ signals, concurrency-2 idle queue, debounced `localStorage` persistence, `16×16` canvas extraction & deterministic fallback) driving `--book-tint` ambient washes and zero-cost pure-CSS hover intensification (`data-book-tint-active="true"`) on cards and `BookDetailModal` hero, with clean neutral fallbacks when `adaptiveCoverTint` is off.
+   - **Editorial Route Transitions & Hover Craft:** Native `withViewTransitions({ skipInitialTransition: true })` with pinned dock `view-transition-name` layers, GPU-composited cross-fade/rise animations, `.page-enter` fallback, `.catalog-card-contain` expanded paint-box (`padding: 6px 4px 10px; margin: -6px -4px -10px;`) preventing hover border clipping, `@media (hover: hover)` hover polish, and `@media (prefers-reduced-motion: reduce)` / `html[data-reduced-motion='reduce']` neutralization guards.
    - **Container-Aware Grids & Toolbars (`@container`):** Dashboard split, catalog grids/card actions, and unified filter toolbars adapt to actual container width (accounting for sidebar expand/collapse at ~1000px), paired with `.no-scrollbar` + `.modal-scroll-area` scroll cues on modal bodies.
 3. **Rendering & Bundle Efficiency:** Discrete CSS transitions (`transition-colors`, `transition-[width]`, `transition-[grid-template-rows]`); `transition-all` is banned. Global `BookCreateModalComponent` loads via `@defer`. Cover images use `decoding="async" loading="lazy"`. Shared modal/form primitives reside in `src/styles.css`.
 4. **Client-Side Canvas Cover Optimization:** `ImageOptimizerService` scales and compresses uploaded covers ($\le 400\text{px}$, quality `0.75`, WebP/JPEG fallback) before persistence.
@@ -46,14 +46,18 @@ src/
     │   ├── i18n/                              # i18n.types.ts (L1-18), es.ts (L1-18), en.ts (L1-18), i18n.service.ts (L1-49)
     │   │   └── domains/                       # shell, dashboard, books, analytics, series, settings, about
     │   ├── models/
+    │   │   ├── app-preferences.model.ts       # AppPreferences, MetadataProviderId & default bounds
     │   │   ├── catalog-preferences.model.ts   # CatalogViewMode, CatalogSortOption & runtime guards
     │   │   └── confirm-dialog.model.ts        # ConfirmDialogOptions, ConfirmEntityPreview & ConfirmSuppressionKey
+    │   ├── schemas/
+    │   │   └── app-preferences.schema.ts      # Zod AppPreferencesSchema runtime validation
     │   ├── services/
+    │   │   ├── app-preferences.service.ts     # Unified reactive preferences store (Signals + localStorage)
     │   │   ├── confirm-dialog.service.ts      # Promise-based Signal confirmation dialog & suppression preferences
     │   │   ├── cover-color.service.ts         # Per-key O(1) cover hue signals, idle queue & debounced persistence
     │   │   ├── dock-position.service.ts       # 4-edge desktop & 2-edge mobile dock position + drag preview signals
     │   │   ├── storage-adapter.service.ts     # L1-361: IndexedDB + LocalStorage fallback + catalog/confirm prefs
-    │   │   ├── theme.service.ts               # Light/dark/system theme mode & 5 accent palettes persistence
+    │   │   ├── theme.service.ts               # Light/dark/system theme mode, 5 accent palettes & reduced motion
     │   │   └── ui-state.service.ts            # L1-66: Sidebar collapse, create modal state/prefill & scroll lock
     │   └── utils/
     │       ├── date-formatter.ts              # Locale-aware Intl date & month formatters
@@ -75,7 +79,9 @@ src/
         │   │   ├── book-metadata.schema.ts    # Open Library (Bibkey/Search/Editions), Google Books, Wikidata, Apple Books, Internet Archive & Crossref Zod parsers
         │   │   └── reading-goals.schema.ts    # L1-28: ReadingGoalsSchema
         │   ├── services/
+        │   │   ├── barcode-decoder.service.ts # Hybrid native BarcodeDetector + lazy local ZXing-WASM ponyfill
         │   │   ├── books.service.ts           # L1-133: CRUD + persistence orchestration
+        │   │   ├── camera-stream.service.ts   # Native getUserMedia, preferred rear deviceId memory, progressive autofocus & torch
         │   │   ├── reading-log.service.ts     # L1-98: Session logs + bidirectional page delta sync
         │   │   ├── reading-stats.service.ts   # L1-324: Computed stats, streaks & annual goals progress
         │   │   ├── catalog-filter.service.ts  # L1-377: Omni-search, status/format/rating filters, 7 sorts & view mode state
@@ -83,6 +89,7 @@ src/
         │   │   └── book-metadata.service.ts   # 5-source metadata waterfall, cross-edition fusion, balanced 8-result quota & duplicate detector
         │   ├── utils/
         │   │   ├── book-form.utils.ts         # Shared status/autofill/format/rating/series & metadata form-patch helpers
+        │   │   ├── camera-selection.utils.ts  # Pure camera facing classification, auxiliary lens filtering & switcher plan builder
         │   │   └── isbn.utils.ts              # Pure ISBN-10/13 checksum & normalization helpers
         │   ├── pages/books-page/              # Catalog coordinator, 3 view modes & zero-match empty state
         │   └── components/{cover-picker,isbn-scanner,book-metadata-lookup,book-create-modal,book-edit-modal,book-detail-modal,reading-log-editor,catalog-toolbar,book-grid-card,book-detailed-card,book-compact-row}/
@@ -102,14 +109,16 @@ src/
         │   ├── models/cover-enrichment.model.ts       # CoverEnrichmentState, MissingCoverSummary & skipped report contracts
         │   ├── models/data-health.model.ts            # DataHealthReport, DataHealthIssue & remediation contracts
         │   ├── models/data-portability.model.ts       # BackupEnvelope, ImportPreviewSummary, StorageBreakdownSummary
-        │   ├── schemas/backup.schema.ts               # Zod BackupEnvelopeSchema & versioned restore validation
+        │   ├── models/settings-navigation.model.ts    # 5-tab SettingsTabId, SETTINGS_TABS & SETTINGS_SEARCH_ENTRIES
+        │   ├── schemas/backup.schema.ts               # Zod BackupEnvelopeSchema, EncryptedBackupEnvelopeSchema & versioned restore validation
         │   ├── services/cover-enrichment.service.ts   # Integral metadata & cover auto-enrichment (ISBN -> Title+Author cascade) + visual assistant
         │   ├── services/data-health.service.ts        # Local 4-category data health auditor & 1-click remediation engine
-        │   ├── services/data-portability.service.ts   # Light/Full JSON, expanded CSV, .ZIP bundle export/import, flexible normalizer & quota inspector
+        │   ├── services/data-portability.service.ts   # Light/Full JSON, expanded CSV, .ZIP bundle, AES-GCM encrypted export/import & quota inspector
         │   ├── utils/
+        │   │   ├── backup-crypto.utils.ts        # Zero-dependency Web Crypto PBKDF2 + AES-GCM-256 backup encryption/decryption
         │   │   └── zip-archive.utils.ts          # Zero-dependency browser-native .ZIP reader/writer (CompressionStream/DecompressionStream)
-        │   ├── components/{settings-preferences-section,storage-quota-inspector,data-portability-section,cover-enrichment-section,data-health-section,danger-zone-section}/
-        │   └── pages/settings-page/                   # /settings coordinator & reactive storage breakdown
+        │   ├── components/{settings-preferences-section,settings-catalog-reading-section,settings-privacy-scanner-section,settings-advanced-section,storage-quota-inspector,data-portability-section,cover-enrichment-section,data-health-section,danger-zone-section}/
+        │   └── pages/settings-page/                   # 5-tab Master-Detail /settings coordinator, ?tab= sync, search & 30-day backup reminder
         └── about/pages/about-page/            # Project info & Local-First manifesto (/about)
 
 tests/e2e/                                     # Playwright specs: overflow, navigation-and-theme, books-flow, dashboard-flow, catalog-flow, analytics-flow, settings-flow, isbn-lookup-flow, series-flow

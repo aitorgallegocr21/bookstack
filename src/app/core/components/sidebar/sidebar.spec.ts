@@ -144,4 +144,47 @@ describe('SidebarComponent', () => {
     fixture.detectChanges();
     expect(root.querySelector('[role="menu"]')).toBeNull();
   });
+
+  it('should auto-close dock popover when clicking another dock link, dock action, or outside', async () => {
+    const fixture = TestBed.createComponent(SidebarComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const quickDockBtn = root.querySelector(
+      'button[aria-label="Cambiar posición del dock"]'
+    ) as HTMLButtonElement;
+
+    // 1. Clicking outside closes the popover
+    quickDockBtn.click();
+    fixture.detectChanges();
+    expect(root.querySelector('[role="menu"]')).not.toBeNull();
+
+    document.body.click();
+    fixture.detectChanges();
+    expect(root.querySelector('[role="menu"]')).toBeNull();
+
+    // 2. Clicking a dock action (theme toggle) closes the popover
+    quickDockBtn.click();
+    fixture.detectChanges();
+    expect(root.querySelector('[role="menu"]')).not.toBeNull();
+
+    const themeBtn = root.querySelector(
+      'button[aria-label="Cambiar a tema oscuro"]'
+    ) as HTMLButtonElement;
+    themeBtn.click();
+    fixture.detectChanges();
+    expect(root.querySelector('[role="menu"]')).toBeNull();
+
+    // 3. Clicking another dock navigation link closes the popover
+    quickDockBtn.click();
+    fixture.detectChanges();
+    expect(root.querySelector('[role="menu"]')).not.toBeNull();
+
+    const booksLink = root.querySelector('a[href="/books"]') as HTMLAnchorElement;
+    booksLink.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(root.querySelector('[role="menu"]')).toBeNull();
+  });
 });

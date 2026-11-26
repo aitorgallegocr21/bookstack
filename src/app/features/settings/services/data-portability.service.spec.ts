@@ -3,6 +3,7 @@ import { signal } from '@angular/core';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { SupportedLocale } from '../../../core/i18n/i18n.types';
+import { DEFAULT_APP_PREFERENCES } from '../../../core/models/app-preferences.model';
 import { StorageAdapterService } from '../../../core/services/storage-adapter.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import {
@@ -88,6 +89,9 @@ describe('DataPortabilityService', () => {
   let storageAdapterMock: {
     isUsingIndexedDb: ReturnType<typeof vi.fn>;
     estimateBrowserQuota: ReturnType<typeof vi.fn>;
+    getDatabaseDiagnostics: ReturnType<typeof vi.fn>;
+    loadAppPreferences: ReturnType<typeof vi.fn>;
+    saveAppPreferences: ReturnType<typeof vi.fn>;
     getAll: ReturnType<typeof vi.fn>;
     replaceStore: ReturnType<typeof vi.fn>;
     clearStore: ReturnType<typeof vi.fn>;
@@ -95,6 +99,9 @@ describe('DataPortabilityService', () => {
   let themeServiceMock: {
     getTheme: ReturnType<typeof vi.fn>;
     setTheme: ReturnType<typeof vi.fn>;
+    themeMode: ReturnType<typeof signal<'light' | 'dark' | 'system'>>;
+    accent: ReturnType<typeof signal<'blue'>>;
+    setAccent: ReturnType<typeof vi.fn>;
   };
   let i18nServiceMock: {
     locale: ReturnType<typeof signal<SupportedLocale>>;
@@ -166,16 +173,28 @@ describe('DataPortabilityService', () => {
         usageBytes: 500_000,
         quotaBytes: 100_000_000,
       })),
+      getDatabaseDiagnostics: vi.fn(() => ({
+        dbName: 'bookstackDB',
+        version: 2,
+        objectStoresCount: 3,
+      })),
+      loadAppPreferences: vi.fn(() => ({ ...DEFAULT_APP_PREFERENCES })),
+      saveAppPreferences: vi.fn(),
       getAll: vi.fn(async () => []),
       replaceStore: vi.fn(async () => true),
       clearStore: vi.fn(async () => undefined),
     };
 
+    const themeModeSignal = signal<'light' | 'dark' | 'system'>('light');
     themeServiceMock = {
       getTheme: vi.fn(() => currentTheme),
       setTheme: vi.fn((theme: 'light' | 'dark') => {
         currentTheme = theme;
+        themeModeSignal.set(theme);
       }),
+      themeMode: themeModeSignal,
+      accent: signal<'blue'>('blue'),
+      setAccent: vi.fn(),
     };
 
     i18nServiceMock = {
@@ -224,12 +243,17 @@ describe('DataPortabilityService', () => {
       expect(envelope.readingLogs).toHaveLength(1);
       expect(envelope.seriesMetadata).toHaveLength(1);
       expect(envelope.readingGoals).toEqual({ year: 2026, targetBooks: 24, targetPages: 6000 });
-      expect(envelope.preferences).toEqual({
-        locale: 'es',
-        theme: 'light',
-        catalogViewMode: 'grid',
-        catalogSort: 'recent',
-      });
+      expect(envelope.preferences).toEqual(
+        expect.objectContaining({
+          locale: 'es',
+          theme: 'light',
+          accent: 'blue',
+          desktopDockPosition: 'left',
+          mobileDockPosition: 'bottom',
+          catalogViewMode: 'grid',
+          catalogSort: 'recent',
+        })
+      );
     });
 
     it('analyzes a JSON backup with partial invalid records and counts duplicates vs new books', () => {
@@ -716,6 +740,152 @@ describe('DataPortabilityService', () => {
       expect(csvPreview.validBooks[0].publicationYear).toBe(2025);
       expect(csvPreview.validBooks[0].startDate).toBe('2025-01-10');
       expect(csvPreview.validBooks[0].endDate).toBe('2025-01-20');
+    });
+
+    it('inspects and requests navigator.storage persistence safely across granted, denied, and unsupported environments', async () => {
+      const storageDescriptor = Object.getOwnPropertyDescriptor(navigator, 'storage');
+
+      try {
+        Object.defineProperty(navigator, 'storage', {
+          configurable: true,
+          value: {
+            persisted: vi.fn().mockResolvedValue(false),
+            persist: vi.fn().mockResolvedValue(true),
+          },
+        });
+
+        const bestEffortSummary = await service.computeStorageBreakdown();
+        expect(bestEffortSummary.persistenceStatus).toBe('best-effort');
+        expect(bestEffortSummary.indexedDbInfo).toEqual({
+          dbName: 'bookstackDB',
+          version: 2,
+          objectStoresCount: 3,
+        });
+        await expect(service.requestPersistentStorage()).resolves.toBe('persisted');
+
+        Object.defineProperty(navigator, 'storage', {
+          configurable: true,
+          value: {
+            persisted: vi.fn().mockResolvedValue(true),
+            persist: vi.fn().mockResolvedValue(false),
+          },
+        });
+        const persistedSummary = await service.computeStorageBreakdown();
+        expect(persistedSummary.persistenceStatus).toBe('persisted');
+        await expect(service.requestPersistentStorage()).resolves.toBe('denied');
+
+        Object.defineProperty(navigator, 'storage', {
+          configurable: true,
+          value: undefined,
+        });
+        const unsupportedSummary = await service.computeStorageBreakdown();
+        expect(unsupportedSummary.persistenceStatus).toBe('unsupported');
+        await expect(service.requestPersistentStorage()).resolves.toBe('unsupported');
+      } finally {
+        if (storageDescriptor) {
+          Object.defineProperty(navigator, 'storage', storageDescriptor);
+        }
+      }
+    });
+
+    it('respects includePreferencesInBackup, records lastBackupExportedAt on download, and supports opt-out on restore', async () => {
+      const { AppPreferencesService } =
+        await import('../../../core/services/app-preferences.service');
+      const prefsService = TestBed.inject(AppPreferencesService);
+
+      prefsService.updatePreferences({ includePreferencesInBackup: false, quickPageStep: 25 });
+      const envelopeWithoutPrefs = await service.buildJsonBackupEnvelope();
+      expect(envelopeWithoutPrefs.preferences).toBeUndefined();
+
+      prefsService.updatePreferences({ includePreferencesInBackup: true });
+      const envelopeWithPrefs = await service.buildJsonBackupEnvelope();
+      expect(envelopeWithPrefs.preferences).toBeDefined();
+      expect(envelopeWithPrefs.preferences?.appPreferences?.quickPageStep).toBe(25);
+
+      const legacyPayload = JSON.stringify({
+        schemaVersion: 1,
+        app: 'BookStack',
+        exportedAt: '2026-06-15T10:00:00.000Z',
+        books: [],
+        readingLogs: [],
+      });
+      const legacyPreview = service.analyzeImportFile('legacy.json', legacyPayload);
+      expect(legacyPreview.hasPreferences).toBe(false);
+
+      const withPrefsPreview = service.analyzeImportFile(
+        'with-prefs.json',
+        JSON.stringify({
+          ...envelopeWithPrefs,
+          preferences: {
+            locale: 'en',
+            appPreferences: { quickPageStep: 5 },
+          },
+        })
+      );
+      expect(withPrefsPreview.hasPreferences).toBe(true);
+
+      const skippedResult = await service.executeImport(withPrefsPreview, 'merge', {
+        applyPreferences: false,
+      });
+      expect(skippedResult.preferencesRestored).toBe(false);
+      expect(prefsService.quickPageStep()).toBe(25);
+
+      const appliedResult = await service.executeImport(withPrefsPreview, 'merge', {
+        applyPreferences: true,
+      });
+      expect(appliedResult.preferencesRestored).toBe(true);
+      expect(prefsService.quickPageStep()).toBe(5);
+
+      const originalCreateObjectUrl = URL.createObjectURL;
+      const originalRevokeObjectUrl = URL.revokeObjectURL;
+      URL.createObjectURL = vi.fn().mockReturnValue('blob:mock');
+      URL.revokeObjectURL = vi.fn();
+
+      try {
+        expect(prefsService.lastBackupExportedAt()).toBeNull();
+        await service.downloadJsonBackup();
+        expect(prefsService.lastBackupExportedAt()).not.toBeNull();
+      } finally {
+        URL.createObjectURL = originalCreateObjectUrl;
+        URL.revokeObjectURL = originalRevokeObjectUrl;
+      }
+    });
+
+    it('exports and decrypts encrypted JSON and ZIP backups through the standard preview pipeline', async () => {
+      const password = 'Str0ngBackup!Password';
+
+      const encryptedJson = await service.exportEncryptedJsonBackup(password);
+      expect(service.detectEncryptedBackup(encryptedJson)).toBe(true);
+      expect(service.detectEncryptedBackup('{"app":"BookStack"}')).toBe(false);
+
+      const jsonPreview = await service.decryptBackupFile(
+        'bookstack-backup-encrypted.enc.json',
+        encryptedJson,
+        password
+      );
+      expect(jsonPreview.format).toBe('json');
+      expect(jsonPreview.validBooks).toHaveLength(1);
+      expect(jsonPreview.validBooks[0].title).toBe('El Quijote');
+
+      const encryptedZip = await service.exportEncryptedZipBackup(password);
+      expect(service.detectEncryptedBackup(encryptedZip)).toBe(true);
+
+      const zipPreview = await service.decryptBackupFile(
+        'bookstack-bundle-encrypted.enc.json',
+        encryptedZip,
+        password
+      );
+      expect(zipPreview.format).toBe('zip');
+      expect(zipPreview.validBooks).toHaveLength(1);
+      expect(zipPreview.validReadingLogs).toHaveLength(1);
+
+      await expect(
+        service.decryptBackupFile(
+          'bookstack-backup-encrypted.enc.json',
+          encryptedJson,
+          'WrongPass!'
+        )
+      ).rejects.toMatchObject({ code: 'INVALID_PASSWORD_OR_CORRUPTED' });
     });
   });
 });

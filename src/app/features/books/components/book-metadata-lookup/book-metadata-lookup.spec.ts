@@ -186,15 +186,22 @@ describe('BookMetadataLookupComponent', () => {
     expect(emitted[1]?.applyMode).toBe('overwrite-public');
   });
 
-  it('auto-resolves and applies scanned ISBN in create mode while closing scanner tab', async () => {
+  it('emits scanRequested without expanding inline accordion when scan tab is triggered', () => {
+    const scanSpy = vi.fn();
+    component.scanRequested.subscribe(scanSpy);
+
+    component.openTab('scan');
+    fixture.detectChanges();
+
+    expect(scanSpy).toHaveBeenCalledTimes(1);
+    expect(component.isExpanded()).toBe(false);
+  });
+
+  it('auto-resolves and applies scanned ISBN in create mode while expanding search results', async () => {
     const candidate = createCandidate({ source: 'googlebooks' });
     mockMetadataService.lookupByIsbn.mockResolvedValue(candidate);
     const emitted: Array<{ candidate: BookMetadataCandidate; applyMode: string }> = [];
     component.candidateApplied.subscribe((payload) => emitted.push(payload));
-
-    component.openTab('scan');
-    fixture.detectChanges();
-    expect(component.activeTab()).toBe('scan');
 
     await component.onIsbnScanned('9780441172719');
     fixture.detectChanges();

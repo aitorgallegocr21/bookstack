@@ -1,0 +1,373 @@
+<!-- Card 1: Master 100% Offline Mode -->
+<section
+  data-setting-id="privacy-offline"
+  class="space-y-4 rounded-2xl border border-subtle bg-surface p-5 shadow-sm sm:p-6"
+  aria-labelledby="settings-offline-mode-heading"
+>
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div class="space-y-1">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <h2
+          id="settings-offline-mode-heading"
+          class="font-editorial text-xl leading-snug font-bold text-ink"
+        >
+          {{ i18n.t().settings.privacyScanner.offlineCardTitle }}
+        </h2>
+        <span
+          data-testid="offline-status-pill"
+          class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+          [class]="
+            appPreferences.offlineMode()
+              ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-200'
+              : 'bg-surface-elevated text-ink-secondary'
+          "
+        >
+          <svg
+            [lucideIcon]="appPreferences.offlineMode() ? WifiOffIcon : GlobeIcon"
+            size="13"
+            aria-hidden="true"
+          ></svg>
+          {{
+            appPreferences.offlineMode()
+              ? i18n.t().settings.privacyScanner.offlineStatusActive
+              : i18n.t().settings.privacyScanner.offlineStatusOnline
+          }}
+        </span>
+      </div>
+      <p class="max-w-2xl text-sm text-ink-secondary">
+        {{ i18n.t().settings.privacyScanner.offlineCardDescription }}
+      </p>
+    </div>
+  </div>
+
+  <div
+    data-setting-id="pref-offline-mode"
+    class="flex items-center justify-between gap-4 rounded-xl border border-subtle bg-surface-subtle/60 p-4"
+  >
+    <div class="min-w-0 space-y-0.5">
+      <span id="offline-mode-switch-label" class="field-label mb-0 block">
+        {{ i18n.t().settings.privacyScanner.offlineToggleLabel }}
+      </span>
+      <p class="text-xs leading-relaxed text-ink-secondary">
+        {{ i18n.t().settings.privacyScanner.offlineToggleDescription }}
+      </p>
+    </div>
+    <button
+      type="button"
+      role="switch"
+      data-testid="offline-mode-toggle"
+      aria-labelledby="offline-mode-switch-label"
+      [attr.aria-checked]="appPreferences.offlineMode()"
+      (click)="toggleOfflineMode()"
+      class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none"
+      [class]="appPreferences.offlineMode() ? 'bg-accent' : 'border-strong bg-surface-elevated'"
+    >
+      <span
+        class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform"
+        [class.translate-x-6]="appPreferences.offlineMode()"
+        [class.translate-x-1]="!appPreferences.offlineMode()"
+      ></span>
+    </button>
+  </div>
+</section>
+
+<!-- Card 2: Granular 5-Provider Metadata Controls -->
+<section
+  data-setting-id="pref-metadata-providers"
+  class="space-y-4 rounded-2xl border border-subtle bg-surface p-5 shadow-sm sm:p-6"
+  aria-labelledby="settings-providers-heading"
+>
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div class="space-y-1">
+      <h2
+        id="settings-providers-heading"
+        class="font-editorial text-xl leading-snug font-bold text-ink"
+      >
+        {{ i18n.t().settings.privacyScanner.providersCardTitle }}
+      </h2>
+      <p class="max-w-2xl text-sm text-ink-secondary">
+        {{ i18n.t().settings.privacyScanner.providersCardDescription }}
+      </p>
+    </div>
+
+    <button
+      type="button"
+      data-testid="reset-providers-order-btn"
+      (click)="resetProvidersOrder()"
+      class="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-xl border border-strong bg-surface-elevated px-3.5 py-2 text-xs font-semibold text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+    >
+      <svg [lucideIcon]="RotateCcwIcon" size="14" aria-hidden="true"></svg>
+      <span>{{ i18n.t().settings.privacyScanner.providersResetOrder }}</span>
+    </button>
+  </div>
+
+  @if (appPreferences.offlineMode()) {
+    <p
+      data-testid="providers-offline-hint"
+      class="rounded-xl border border-subtle bg-surface-subtle/60 px-3.5 py-2.5 text-xs text-ink-secondary"
+    >
+      {{ i18n.t().settings.privacyScanner.providersOfflineHint }}
+    </p>
+  }
+
+  @if (allProvidersDisabled()) {
+    <div
+      role="status"
+      data-testid="providers-all-disabled-warning"
+      class="flex items-start gap-2.5 rounded-xl border border-amber-500/35 bg-amber-500/12 px-3.5 py-2.5 text-xs text-amber-900 dark:text-amber-200"
+    >
+      <svg
+        [lucideIcon]="AlertTriangleIcon"
+        size="16"
+        class="mt-0.5 shrink-0"
+        aria-hidden="true"
+      ></svg>
+      <p>{{ i18n.t().settings.privacyScanner.providersAllDisabledWarning }}</p>
+    </div>
+  }
+
+  <ul
+    class="divide-y divide-subtle rounded-xl border border-subtle"
+    [class.opacity-60]="appPreferences.offlineMode()"
+  >
+    @for (provider of orderedProviders(); track provider.id; let idx = $index; let last = $last) {
+      <li
+        [attr.data-testid]="'provider-row-' + provider.id"
+        class="flex flex-col gap-3 p-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+      >
+        <div class="min-w-0 flex-1 space-y-0.5">
+          <div class="flex items-center gap-2">
+            <span
+              class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-surface-elevated text-[11px] font-bold text-ink-secondary tabular-nums"
+            >
+              {{ idx + 1 }}
+            </span>
+            <span class="text-sm font-semibold text-ink">
+              {{ getProviderCopy(provider.id).name }}
+            </span>
+          </div>
+          <p class="pl-7 text-xs leading-relaxed text-ink-secondary">
+            {{ getProviderCopy(provider.id).description }}
+          </p>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pl-7 sm:pl-0">
+          <button
+            type="button"
+            [attr.data-testid]="'provider-up-' + provider.id"
+            [disabled]="idx === 0 || appPreferences.offlineMode()"
+            [attr.aria-label]="
+              i18n.t().settings.privacyScanner.providerMoveUpAria +
+              ' ' +
+              getProviderCopy(provider.id).name
+            "
+            (click)="moveProvider(provider.id, 'up')"
+            class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-subtle bg-surface-elevated text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <svg [lucideIcon]="ArrowUpIcon" size="16" aria-hidden="true"></svg>
+          </button>
+
+          <button
+            type="button"
+            [attr.data-testid]="'provider-down-' + provider.id"
+            [disabled]="last || appPreferences.offlineMode()"
+            [attr.aria-label]="
+              i18n.t().settings.privacyScanner.providerMoveDownAria +
+              ' ' +
+              getProviderCopy(provider.id).name
+            "
+            (click)="moveProvider(provider.id, 'down')"
+            class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-subtle bg-surface-elevated text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <svg [lucideIcon]="ArrowDownIcon" size="16" aria-hidden="true"></svg>
+          </button>
+
+          <button
+            type="button"
+            role="switch"
+            [attr.data-testid]="'provider-toggle-' + provider.id"
+            [disabled]="appPreferences.offlineMode()"
+            [attr.aria-checked]="provider.enabled"
+            [attr.aria-label]="
+              i18n.t().settings.privacyScanner.providerToggleAria +
+              ' ' +
+              getProviderCopy(provider.id).name
+            "
+            (click)="toggleProvider(provider.id)"
+            class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed"
+            [class]="provider.enabled ? 'bg-accent' : 'border-strong bg-surface-elevated'"
+          >
+            <span
+              class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform"
+              [class.translate-x-6]="provider.enabled"
+              [class.translate-x-1]="!provider.enabled"
+            ></span>
+          </button>
+        </div>
+      </li>
+    }
+  </ul>
+</section>
+
+<!-- Card 3: Camera & ISBN Scanner Privacy -->
+<section
+  data-setting-id="pref-scanner-privacy"
+  class="space-y-4 rounded-2xl border border-subtle bg-surface p-5 shadow-sm sm:p-6"
+  aria-labelledby="settings-scanner-privacy-heading"
+>
+  <div class="space-y-1">
+    <div class="flex items-center gap-2">
+      <svg [lucideIcon]="CameraIcon" size="18" class="text-accent" aria-hidden="true"></svg>
+      <h2
+        id="settings-scanner-privacy-heading"
+        class="font-editorial text-xl leading-snug font-bold text-ink"
+      >
+        {{ i18n.t().settings.privacyScanner.scannerCardTitle }}
+      </h2>
+    </div>
+    <p class="max-w-2xl text-sm text-ink-secondary">
+      {{ i18n.t().settings.privacyScanner.scannerCardDescription }}
+    </p>
+  </div>
+
+  <div class="divide-y divide-subtle">
+    <!-- Camera Consent Status & Reset -->
+    <div class="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0 space-y-0.5">
+        <span class="field-label mb-0 block">
+          {{ i18n.t().settings.privacyScanner.cameraConsentLabel }}
+        </span>
+        <p data-testid="camera-consent-status" class="text-xs text-ink-secondary">
+          {{
+            hasConsent()
+              ? i18n.t().settings.privacyScanner.cameraConsentGranted
+              : i18n.t().settings.privacyScanner.cameraConsentNotGranted
+          }}
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        @if (consentResetFeedback()) {
+          <span
+            role="status"
+            class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-300"
+          >
+            <svg [lucideIcon]="CheckIcon" size="14" aria-hidden="true"></svg>
+            {{ i18n.t().settings.privacyScanner.cameraConsentRevokedDone }}
+          </span>
+        }
+        <button
+          type="button"
+          data-testid="revoke-camera-consent-btn"
+          [disabled]="!hasConsent()"
+          (click)="revokeCameraConsent()"
+          class="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-strong bg-surface-elevated px-3.5 py-2 text-xs font-semibold text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-45"
+        >
+          {{ i18n.t().settings.privacyScanner.cameraConsentRevoke }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Remembered Rear Camera Device ID -->
+    <div class="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0 space-y-0.5">
+        <span class="field-label mb-0 block">
+          {{ i18n.t().settings.privacyScanner.rememberedCameraLabel }}
+        </span>
+        <p data-testid="remembered-camera-status" class="text-xs text-ink-secondary">
+          @if (preferredRearDeviceId()) {
+            {{ i18n.t().settings.privacyScanner.rememberedCameraStored }}
+            <code class="rounded bg-surface-elevated px-1.5 py-0.5 font-mono text-[11px] text-ink">
+              {{ truncatedDeviceId() }}
+            </code>
+          } @else {
+            {{ i18n.t().settings.privacyScanner.rememberedCameraNone }}
+          }
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        @if (cameraForgottenFeedback()) {
+          <span
+            role="status"
+            class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-300"
+          >
+            <svg [lucideIcon]="CheckIcon" size="14" aria-hidden="true"></svg>
+            {{ i18n.t().settings.privacyScanner.rememberedCameraForgottenDone }}
+          </span>
+        }
+        <button
+          type="button"
+          data-testid="forget-remembered-camera-btn"
+          [disabled]="!preferredRearDeviceId()"
+          (click)="forgetRememberedCamera()"
+          class="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-strong bg-surface-elevated px-3.5 py-2 text-xs font-semibold text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-45"
+        >
+          {{ i18n.t().settings.privacyScanner.rememberedCameraForget }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Prefer Photo Upload Mode -->
+    <div class="flex items-center justify-between gap-4 py-4">
+      <div class="min-w-0 space-y-0.5">
+        <span id="prefer-photo-mode-label" class="field-label mb-0 block">
+          {{ i18n.t().settings.privacyScanner.preferPhotoModeLabel }}
+        </span>
+        <p class="text-xs leading-relaxed text-ink-secondary">
+          {{ i18n.t().settings.privacyScanner.preferPhotoModeDescription }}
+        </p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        data-testid="scanner-prefer-photo-toggle"
+        aria-labelledby="prefer-photo-mode-label"
+        [attr.aria-checked]="appPreferences.scannerPreferPhotoMode()"
+        (click)="togglePreferPhotoMode()"
+        class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none"
+        [class]="
+          appPreferences.scannerPreferPhotoMode()
+            ? 'bg-accent'
+            : 'border-strong bg-surface-elevated'
+        "
+      >
+        <span
+          class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform"
+          [class.translate-x-6]="appPreferences.scannerPreferPhotoMode()"
+          [class.translate-x-1]="!appPreferences.scannerPreferPhotoMode()"
+        ></span>
+      </button>
+    </div>
+
+    <!-- Auto-enable Flashlight (Torch) -->
+    <div class="flex items-center justify-between gap-4 pt-4">
+      <div class="min-w-0 space-y-0.5">
+        <span id="auto-torch-label" class="field-label mb-0 block">
+          {{ i18n.t().settings.privacyScanner.autoTorchLabel }}
+        </span>
+        <p class="text-xs leading-relaxed text-ink-secondary">
+          {{ i18n.t().settings.privacyScanner.autoTorchDescription }}
+        </p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        data-testid="scanner-auto-torch-toggle"
+        aria-labelledby="auto-torch-label"
+        [attr.aria-checked]="appPreferences.scannerAutoTorch()"
+        (click)="toggleAutoTorch()"
+        class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border border-transparent transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:outline-none"
+        [class]="
+          appPreferences.scannerAutoTorch() ? 'bg-accent' : 'border-strong bg-surface-elevated'
+        "
+      >
+        <span
+          class="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform"
+          [class.translate-x-6]="appPreferences.scannerAutoTorch()"
+          [class.translate-x-1]="!appPreferences.scannerAutoTorch()"
+        ></span>
+      </button>
+    </div>
+  </div>
+</section>

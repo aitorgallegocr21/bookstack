@@ -8,6 +8,7 @@ import {
   LucideTrash2,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import { CoverColorService } from '../../../../core/services/cover-color.service';
 import {
   formatRatingBadge,
@@ -28,6 +29,7 @@ import { translateBookFormat } from '../../utils/book-form.utils';
 })
 export class BookDetailedCardComponent {
   protected readonly i18n = inject(I18nService);
+  protected readonly appPreferences = inject(AppPreferencesService);
   private readonly coverColorService = inject(CoverColorService);
 
   readonly book = input.required<Book>();

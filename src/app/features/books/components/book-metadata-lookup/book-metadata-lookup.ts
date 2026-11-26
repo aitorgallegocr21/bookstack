@@ -7,6 +7,7 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import {
   LucideAlertCircle,
   LucideBookOpen,
@@ -19,6 +20,7 @@ import {
   LucideSparkles,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import {
   BookMetadataApplyMode,
   BookMetadataCandidate,
@@ -27,11 +29,10 @@ import {
   MetadataProviderSource,
 } from '../../models/book-metadata.model';
 import { BookMetadataError, BookMetadataService } from '../../services/book-metadata.service';
-import { IsbnScannerComponent } from '../isbn-scanner/isbn-scanner';
 
 @Component({
   selector: 'app-book-metadata-lookup',
-  imports: [IsbnScannerComponent, LucideDynamicIcon],
+  imports: [LucideDynamicIcon, RouterLink],
   templateUrl: './book-metadata-lookup.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -40,7 +41,10 @@ import { IsbnScannerComponent } from '../isbn-scanner/isbn-scanner';
 })
 export class BookMetadataLookupComponent {
   private readonly i18n = inject(I18nService);
+  private readonly appPreferences = inject(AppPreferencesService);
   private readonly bookMetadataService = inject(BookMetadataService);
+
+  readonly offlineMode = this.appPreferences.offlineMode;
 
   readonly mode = input<'create' | 'edit'>('create');
   readonly currentBookId = input<string | undefined>(undefined);
@@ -48,6 +52,7 @@ export class BookMetadataLookupComponent {
   readonly currentTitle = input<string>('');
   readonly currentAuthor = input<string>('');
 
+  readonly scanRequested = output<void>();
   readonly candidateApplied = output<{
     candidate: BookMetadataCandidate;
     applyMode: BookMetadataApplyMode;
@@ -91,6 +96,11 @@ export class BookMetadataLookupComponent {
   });
 
   openTab(tab: MetadataLookupMode): void {
+    if (tab === 'scan') {
+      this.errorMessage.set(null);
+      this.scanRequested.emit();
+      return;
+    }
     if (this.isExpanded() && this.activeTab() === tab) {
       this.isExpanded.set(false);
       return;
@@ -120,6 +130,10 @@ export class BookMetadataLookupComponent {
 
   async onSearchSubmit(event?: Event): Promise<void> {
     event?.preventDefault();
+    if (this.offlineMode()) {
+      this.errorMessage.set(this.t().bookForm.lookup.offlineModeBlockedError);
+      return;
+    }
     const query = this.searchQuery().trim();
     if (query.length < 2) {
       this.errorMessage.set(this.t().bookForm.lookup.searchEmptyHint);
@@ -192,6 +206,11 @@ export class BookMetadataLookupComponent {
     this.errorMessage.set(null);
     this.appliedCandidate.set(null);
 
+    if (this.offlineMode()) {
+      this.errorMessage.set(this.t().bookForm.lookup.offlineModeBlockedError);
+      return;
+    }
+
     if (!trimmed) {
       this.errorMessage.set(this.t().bookForm.lookup.searchEmptyHint);
       return;
@@ -250,6 +269,9 @@ export class BookMetadataLookupComponent {
   }
 
   private resolveLookupErrorMessage(error: unknown): string {
+    if (error instanceof BookMetadataError && error.code === 'OFFLINE_MODE') {
+      return this.t().bookForm.lookup.offlineModeBlockedError;
+    }
     if (error instanceof BookMetadataError && error.code === 'INVALID_ISBN') {
       return this.t().bookForm.lookup.invalidBarcodeError;
     }

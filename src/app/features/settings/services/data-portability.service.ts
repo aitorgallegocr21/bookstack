@@ -1,5 +1,7 @@
 import { DOCUMENT, Injectable, inject } from '@angular/core';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { AppPreferencesService } from '../../../core/services/app-preferences.service';
+import { DockPositionService } from '../../../core/services/dock-position.service';
 import { StorageAdapterService } from '../../../core/services/storage-adapter.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import {
@@ -27,10 +29,22 @@ import {
   ImportConflictMode,
   ImportExecutionResult,
   ImportPreviewSummary,
+  PersistentStorageRequestResult,
   StorageBreakdownSummary,
   StorageHealthStatus,
+  StoragePersistenceStatus,
 } from '../models/data-portability.model';
-import { normalizeImportedBookCandidate, parseBackupJson } from '../schemas/backup.schema';
+import {
+  EncryptedBackupEnvelopeSchema,
+  isEncryptedBackupPayload,
+  normalizeImportedBookCandidate,
+  parseBackupJson,
+} from '../schemas/backup.schema';
+import {
+  BackupCryptoError,
+  decryptBackupPayload,
+  encryptBackupPayload,
+} from '../utils/backup-crypto.utils';
 import {
   binaryToDataUrl,
   createZipArchive,
@@ -93,6 +107,8 @@ export class DataPortabilityService {
   private readonly catalogFilterService = inject(CatalogFilterService);
   private readonly storageAdapter = inject(StorageAdapterService);
   private readonly themeService = inject(ThemeService);
+  private readonly dockPositionService = inject(DockPositionService);
+  private readonly appPreferencesService = inject(AppPreferencesService);
   private readonly i18n = inject(I18nService);
 
   // ==========================================
@@ -114,7 +130,7 @@ export class DataPortabilityService {
       return stripped;
     });
 
-    return {
+    const envelope: BookstackBackupEnvelope = {
       schemaVersion: 1,
       app: 'BookStack',
       exportedAt: new Date().toISOString(),
@@ -122,8 +138,13 @@ export class DataPortabilityService {
       readingLogs: [...this.readingLogService.readingLogs()],
       seriesMetadata,
       readingGoals: { ...this.readingStatsService.goals() },
-      preferences: this.captureCurrentPreferences(),
     };
+
+    if (this.appPreferencesService.includePreferencesInBackup()) {
+      envelope.preferences = this.captureCurrentPreferences();
+    }
+
+    return envelope;
   }
 
   async exportJsonBackup(options: { includeCovers?: boolean } = {}): Promise<string> {
@@ -138,6 +159,7 @@ export class DataPortabilityService {
       `bookstack-backup-full-${dateStamp}.json`,
       'application/json;charset=utf-8'
     );
+    this.appPreferencesService.markBackupExported();
   }
 
   async downloadLightweightJsonBackup(): Promise<void> {
@@ -148,6 +170,7 @@ export class DataPortabilityService {
       `bookstack-backup-light-${dateStamp}.json`,
       'application/json;charset=utf-8'
     );
+    this.appPreferencesService.markBackupExported();
   }
 
   async exportZipBundle(): Promise<Uint8Array> {
@@ -188,6 +211,47 @@ export class DataPortabilityService {
     const zipBytes = await this.exportZipBundle();
     const dateStamp = this.formatDateStamp(new Date());
     this.triggerFileDownload(zipBytes, `bookstack-bundle-${dateStamp}.zip`, 'application/zip');
+    this.appPreferencesService.markBackupExported();
+  }
+
+  async exportEncryptedJsonBackup(
+    password: string,
+    options: { includeCovers?: boolean } = {}
+  ): Promise<string> {
+    const json = await this.exportJsonBackup(options);
+    const envelope = await encryptBackupPayload(json, password, 'json');
+    return JSON.stringify(envelope, null, 2);
+  }
+
+  async downloadEncryptedJsonBackup(
+    password: string,
+    options: { includeCovers?: boolean } = {}
+  ): Promise<void> {
+    const encryptedJson = await this.exportEncryptedJsonBackup(password, options);
+    const dateStamp = this.formatDateStamp(new Date());
+    this.triggerFileDownload(
+      encryptedJson,
+      `bookstack-backup-encrypted-${dateStamp}.enc.json`,
+      'application/json;charset=utf-8'
+    );
+    this.appPreferencesService.markBackupExported();
+  }
+
+  async exportEncryptedZipBackup(password: string): Promise<string> {
+    const zipBytes = await this.exportZipBundle();
+    const envelope = await encryptBackupPayload(zipBytes, password, 'zip');
+    return JSON.stringify(envelope, null, 2);
+  }
+
+  async downloadEncryptedZipBackup(password: string): Promise<void> {
+    const encryptedJson = await this.exportEncryptedZipBackup(password);
+    const dateStamp = this.formatDateStamp(new Date());
+    this.triggerFileDownload(
+      encryptedJson,
+      `bookstack-bundle-encrypted-${dateStamp}.enc.json`,
+      'application/json;charset=utf-8'
+    );
+    this.appPreferencesService.markBackupExported();
   }
 
   // ==========================================
@@ -210,6 +274,7 @@ export class DataPortabilityService {
     const csv = this.exportCsvCatalog();
     const dateStamp = this.formatDateStamp(new Date());
     this.triggerFileDownload(csv, `bookstack-catalog-${dateStamp}.csv`, 'text/csv;charset=utf-8');
+    this.appPreferencesService.markBackupExported();
   }
 
   parseCsvCatalog(rawCsv: string): { validBooks: Book[]; invalidBooksCount: number } {
@@ -256,6 +321,45 @@ export class DataPortabilityService {
   // Two-Step Import Preview & Execution
   // ==========================================
 
+  detectEncryptedBackup(rawContent: string): boolean {
+    try {
+      const parsed: unknown = JSON.parse(rawContent);
+      return isEncryptedBackupPayload(parsed);
+    } catch {
+      return false;
+    }
+  }
+
+  async decryptBackupFile(
+    fileName: string,
+    rawContent: string,
+    password: string
+  ): Promise<ImportPreviewSummary> {
+    let parsedJson: unknown;
+    try {
+      parsedJson = JSON.parse(rawContent);
+    } catch {
+      throw new BackupCryptoError(
+        'UNSUPPORTED_FORMAT',
+        'Invalid JSON syntax in encrypted backup file.'
+      );
+    }
+
+    const validated = EncryptedBackupEnvelopeSchema.safeParse(parsedJson);
+    if (!validated.success) {
+      throw new BackupCryptoError(
+        'UNSUPPORTED_FORMAT',
+        'Unsupported or malformed encrypted backup envelope.'
+      );
+    }
+
+    const decrypted = await decryptBackupPayload(validated.data, password);
+    if (decrypted.payloadType === 'zip') {
+      return this.analyzeImportZipFile(fileName, decrypted.bytes);
+    }
+    return this.analyzeImportFile(fileName, decrypted.text ?? '');
+  }
+
   analyzeImportFile(fileName: string, rawContent: string): ImportPreviewSummary {
     const format = this.detectImportFormat(fileName, rawContent);
 
@@ -284,6 +388,7 @@ export class DataPortabilityService {
         validSeriesMetadata: validation.data.validSeriesMetadata,
         readingGoals: validation.data.readingGoals,
         preferences: validation.data.preferences,
+        hasPreferences: validation.data.preferences !== null,
         invalidBooksCount: validation.data.invalidBooksCount,
         invalidLogsCount: validation.data.invalidLogsCount,
         invalidSeriesMetadataCount: validation.data.invalidSeriesMetadataCount,
@@ -303,6 +408,7 @@ export class DataPortabilityService {
       validSeriesMetadata: [],
       readingGoals: null,
       preferences: null,
+      hasPreferences: false,
       invalidBooksCount: csvResult.invalidBooksCount,
       invalidLogsCount: 0,
       invalidSeriesMetadataCount: 0,
@@ -344,6 +450,7 @@ export class DataPortabilityService {
         validSeriesMetadata: validation.data.validSeriesMetadata,
         readingGoals: validation.data.readingGoals,
         preferences: validation.data.preferences,
+        hasPreferences: validation.data.preferences !== null,
         invalidBooksCount: validation.data.invalidBooksCount,
         invalidLogsCount: validation.data.invalidLogsCount,
         invalidSeriesMetadataCount: validation.data.invalidSeriesMetadataCount,
@@ -369,6 +476,7 @@ export class DataPortabilityService {
         validSeriesMetadata: [],
         readingGoals: null,
         preferences: null,
+        hasPreferences: false,
         invalidBooksCount: csvResult.invalidBooksCount,
         invalidLogsCount: 0,
         invalidSeriesMetadataCount: 0,
@@ -382,9 +490,11 @@ export class DataPortabilityService {
 
   async executeImport(
     preview: ImportPreviewSummary,
-    mode: ImportConflictMode
+    mode: ImportConflictMode,
+    options: { applyPreferences?: boolean } = {}
   ): Promise<ImportExecutionResult> {
     const snapshot = await this.captureSnapshot();
+    const shouldApplyPreferences = options.applyPreferences ?? true;
 
     try {
       if (mode === 'overwrite') {
@@ -413,7 +523,7 @@ export class DataPortabilityService {
       }
 
       let preferencesRestored = false;
-      if (preview.preferences) {
+      if (preview.preferences && shouldApplyPreferences) {
         this.applyPreferences(preview.preferences);
         preferencesRestored = true;
       }
@@ -477,6 +587,23 @@ export class DataPortabilityService {
   // Storage Footprint & Quota Inspector
   // ==========================================
 
+  async requestPersistentStorage(): Promise<PersistentStorageRequestResult> {
+    if (
+      typeof navigator === 'undefined' ||
+      !('storage' in navigator) ||
+      typeof navigator.storage?.persist !== 'function'
+    ) {
+      return 'unsupported';
+    }
+
+    try {
+      const granted = await navigator.storage.persist();
+      return granted ? 'persisted' : 'denied';
+    } catch {
+      return 'unsupported';
+    }
+  }
+
   async computeStorageBreakdown(): Promise<StorageBreakdownSummary> {
     await this.seriesService.ensureInitialized();
     const books = this.booksService.books();
@@ -508,6 +635,8 @@ export class DataPortabilityService {
 
     const usingIndexedDb = await this.storageAdapter.isUsingIndexedDb();
     const quotaEstimate = await this.storageAdapter.estimateBrowserQuota();
+    const persistenceStatus = await this.queryStoragePersistenceStatus();
+    const indexedDbInfo = this.storageAdapter.getDatabaseDiagnostics();
     const healthStatus = this.resolveStorageHealthStatus(
       usingIndexedDb,
       totalBookstackBytes,
@@ -517,6 +646,8 @@ export class DataPortabilityService {
 
     return {
       engine: usingIndexedDb ? 'indexeddb' : 'localstorage',
+      persistenceStatus,
+      indexedDbInfo,
       totalBookstackBytes,
       booksMetadataBytes,
       coversBase64Bytes,
@@ -535,12 +666,33 @@ export class DataPortabilityService {
   // Private Helpers
   // ==========================================
 
+  private async queryStoragePersistenceStatus(): Promise<StoragePersistenceStatus> {
+    if (
+      typeof navigator === 'undefined' ||
+      !('storage' in navigator) ||
+      typeof navigator.storage?.persisted !== 'function'
+    ) {
+      return 'unsupported';
+    }
+
+    try {
+      const isPersisted = await navigator.storage.persisted();
+      return isPersisted ? 'persisted' : 'best-effort';
+    } catch {
+      return 'unsupported';
+    }
+  }
+
   private captureCurrentPreferences(): BackupPreferences {
     return {
       locale: this.i18n.locale(),
-      theme: this.themeService.getTheme(),
+      theme: this.themeService.themeMode(),
+      accent: this.themeService.accent(),
+      desktopDockPosition: this.dockPositionService.desktopPosition(),
+      mobileDockPosition: this.dockPositionService.mobilePosition(),
       catalogViewMode: this.catalogFilterService.viewMode(),
       catalogSort: this.catalogFilterService.sortOption(),
+      appPreferences: { ...this.appPreferencesService.preferences() },
     };
   }
 
@@ -574,11 +726,23 @@ export class DataPortabilityService {
     if (preferences.theme) {
       this.themeService.setTheme(preferences.theme);
     }
+    if (preferences.accent) {
+      this.themeService.setAccent(preferences.accent);
+    }
+    if (preferences.desktopDockPosition) {
+      this.dockPositionService.setDesktopPosition(preferences.desktopDockPosition);
+    }
+    if (preferences.mobileDockPosition) {
+      this.dockPositionService.setMobilePosition(preferences.mobileDockPosition);
+    }
     if (preferences.catalogViewMode) {
       this.catalogFilterService.setViewMode(preferences.catalogViewMode);
     }
     if (preferences.catalogSort) {
       this.catalogFilterService.setSortOption(preferences.catalogSort);
+    }
+    if (preferences.appPreferences) {
+      this.appPreferencesService.updatePreferences(preferences.appPreferences);
     }
   }
 

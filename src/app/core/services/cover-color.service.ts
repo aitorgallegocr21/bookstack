@@ -1,6 +1,7 @@
 import { Injectable, PLATFORM_ID, WritableSignal, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { z } from 'zod';
+import { AppPreferencesService } from './app-preferences.service';
 
 export interface CoverTintBookInput {
   id: string;
@@ -49,6 +50,7 @@ const EDITORIAL_FALLBACK_PALETTE: readonly string[] = [
 @Injectable({ providedIn: 'root' })
 export class CoverColorService {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly preferences = inject(AppPreferencesService);
   private readonly cache = new Map<string, string>();
   private readonly entrySignals = new Map<string, WritableSignal<string>>();
   private readonly pendingKeys = new Set<string>();
@@ -65,11 +67,16 @@ export class CoverColorService {
   }
 
   /**
-   * Returns a CSS color string suitable for `--book-tint`.
+   * Returns a CSS color string suitable for `--book-tint`, or `null` when adaptive
+   * cover tints are disabled in user preferences (preserving the underlying cache).
    * Reads reactively from a per-key signal (O(1) isolation) and queues
    * bounded idle 16x16 canvas extraction when an uncached `coverUrl` is provided.
    */
-  getTint(book: CoverTintBookInput, priority: CoverTintPriority = 'normal'): string {
+  getTint(book: CoverTintBookInput, priority: CoverTintPriority = 'normal'): string | null {
+    if (!this.preferences.adaptiveCoverTint()) {
+      return null;
+    }
+
     const cacheKey = this.buildCacheKey(book);
     const fallback = this.getFallbackTint(book.title, book.author);
 

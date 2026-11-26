@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import { DockPositionService } from '../../../../core/services/dock-position.service';
-import { StorageAdapterService } from '../../../../core/services/storage-adapter.service';
 import { ACCENT_PALETTES, ThemeService } from '../../../../core/services/theme.service';
-import { CatalogFilterService } from '../../../books/services/catalog-filter.service';
 import { SettingsPreferencesSectionComponent } from './settings-preferences-section';
 
 describe('SettingsPreferencesSectionComponent', () => {
@@ -71,29 +70,37 @@ describe('SettingsPreferencesSectionComponent', () => {
     expect(darkBtn.getAttribute('aria-pressed')).toBe('false');
   });
 
-  it('should update default catalog view mode via CatalogFilterService', () => {
+  it('should toggle adaptive cover tinting and reduced motion preference via AppPreferencesService', () => {
     const fixture = TestBed.createComponent(SettingsPreferencesSectionComponent);
-    const catalogFilter = TestBed.inject(CatalogFilterService);
+    const appPreferences = TestBed.inject(AppPreferencesService);
     fixture.detectChanges();
 
-    const root = fixture.nativeElement as HTMLElement;
-    const viewSelect = root.querySelector('#settings-default-view') as HTMLSelectElement;
-    expect(viewSelect.value).toBe(catalogFilter.viewMode());
+    const host = fixture.nativeElement as HTMLElement;
+    const tintSwitch = host.querySelector(
+      '[data-testid="toggle-adaptive-tint"]'
+    ) as HTMLButtonElement;
+    expect(tintSwitch).not.toBeNull();
+    expect(tintSwitch.getAttribute('role')).toBe('switch');
+    expect(tintSwitch.getAttribute('aria-checked')).toBe('true');
 
-    viewSelect.value = 'grid';
-    viewSelect.dispatchEvent(new Event('change'));
+    tintSwitch.click();
     fixture.detectChanges();
-    expect(catalogFilter.viewMode()).toBe('grid');
+    expect(appPreferences.adaptiveCoverTint()).toBe(false);
+    expect(tintSwitch.getAttribute('aria-checked')).toBe('false');
 
-    viewSelect.value = 'detailed';
-    viewSelect.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-    expect(catalogFilter.viewMode()).toBe('detailed');
+    const reduceBtn = host.querySelector(
+      '[data-testid="reduced-motion-reduce-btn"]'
+    ) as HTMLButtonElement;
+    const systemBtn = host.querySelector(
+      '[data-testid="reduced-motion-system-btn"]'
+    ) as HTMLButtonElement;
+    expect(systemBtn.getAttribute('aria-pressed')).toBe('true');
 
-    viewSelect.value = 'compact';
-    viewSelect.dispatchEvent(new Event('change'));
+    reduceBtn.click();
     fixture.detectChanges();
-    expect(catalogFilter.viewMode()).toBe('compact');
+    expect(appPreferences.reducedMotion()).toBe('reduce');
+    expect(reduceBtn.getAttribute('aria-pressed')).toBe('true');
+    expect(document.documentElement.getAttribute('data-reduced-motion')).toBe('reduce');
   });
 
   it('should render vertical editorial rows, equal-width theme controls, 5-column accent grid, and spacious dock selectors', () => {
@@ -107,7 +114,7 @@ describe('SettingsPreferencesSectionComponent', () => {
     expect(stack).toBeTruthy();
 
     const labels = Array.from(host.querySelectorAll('.field-label')) as HTMLElement[];
-    expect(labels).toHaveLength(3);
+    expect(labels).toHaveLength(2);
     for (const label of labels) {
       expect(label.classList.contains('truncate')).toBe(true);
     }
@@ -116,9 +123,8 @@ describe('SettingsPreferencesSectionComponent', () => {
     const themeGroup = host.querySelector(
       '[role="group"][aria-labelledby="settings-theme-label"]'
     ) as HTMLElement;
-    const defaultViewSelect = host.querySelector('#settings-default-view') as HTMLSelectElement;
 
-    for (const control of [languageSelect, themeGroup, defaultViewSelect]) {
+    for (const control of [languageSelect, themeGroup]) {
       expect(control).toBeTruthy();
       expect(control.classList.contains('h-11')).toBe(true);
     }
@@ -134,7 +140,7 @@ describe('SettingsPreferencesSectionComponent', () => {
     const accentGroup = host.querySelector(
       '[role="group"][aria-labelledby="settings-accent-label"]'
     ) as HTMLElement;
-    expect(accentGroup.classList.contains('sm:grid-cols-5')).toBe(true);
+    expect(accentGroup.classList.contains('lg:grid-cols-5')).toBe(true);
     const swatchIds = Array.from(accentGroup.querySelectorAll('button')).map((btn) =>
       btn.getAttribute('data-testid')
     );
@@ -149,28 +155,8 @@ describe('SettingsPreferencesSectionComponent', () => {
     const desktopDockGroup = host.querySelector(
       '[role="group"][aria-labelledby="settings-desktop-dock-label"]'
     ) as HTMLElement;
-    expect(desktopDockGroup.classList.contains('sm:grid-cols-4')).toBe(true);
+    expect(desktopDockGroup.classList.contains('lg:grid-cols-4')).toBe(true);
     expect(desktopDockGroup.querySelectorAll('button')).toHaveLength(4);
-  });
-
-  it('should show and execute reset suppressed confirmations button when at least one prompt is suppressed', () => {
-    const storage = TestBed.inject(StorageAdapterService);
-    storage.setConfirmSuppressed('deleteReadingLog', true);
-
-    const fixture = TestBed.createComponent(SettingsPreferencesSectionComponent);
-    fixture.detectChanges();
-
-    const host = fixture.nativeElement as HTMLElement;
-    const resetBtn = host.querySelector(
-      '[data-testid="reset-suppressed-confirms-btn"]'
-    ) as HTMLButtonElement;
-    expect(resetBtn).not.toBeNull();
-
-    resetBtn.click();
-    fixture.detectChanges();
-
-    expect(storage.getSuppressedConfirms()).toEqual([]);
-    expect(host.querySelector('[data-testid="reset-suppressed-confirms-btn"]')).toBeNull();
   });
 
   it('should switch theme mode to system and update accent palette via ThemeService', () => {

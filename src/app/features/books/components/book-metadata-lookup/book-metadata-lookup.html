@@ -24,13 +24,7 @@
       <button
         type="button"
         (click)="openTab('scan')"
-        [attr.aria-pressed]="isExpanded() && activeTab() === 'scan'"
-        class="inline-flex min-h-[44px] min-w-0 items-center justify-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-        [class]="
-          isExpanded() && activeTab() === 'scan'
-            ? 'border-accent bg-accent text-white'
-            : 'border-strong bg-surface-elevated text-ink-secondary hover:bg-surface-subtle hover:text-ink'
-        "
+        class="inline-flex min-h-[44px] min-w-0 items-center justify-center gap-1.5 rounded-xl border border-strong bg-surface-elevated px-3 py-1.5 text-xs font-medium whitespace-nowrap text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
       >
         <svg [lucideIcon]="ScanIcon" size="15" class="shrink-0" aria-hidden="true"></svg>
         <span class="truncate">{{ t().bookForm.lookup.scanTab }}</span>
@@ -110,245 +104,238 @@
   >
     <div class="min-w-0 overflow-hidden">
       <div class="mt-3 border-t border-subtle pt-3">
-        @if (activeTab() === 'scan') {
-          @if (isExpanded()) {
-            @defer (when isExpanded() && activeTab() === 'scan') {
-              <app-isbn-scanner
-                (isbnDetected)="onIsbnScanned($event)"
-                (closed)="onScannerClosed()"
-              />
-            } @placeholder {
-              <div
-                class="flex items-center justify-center rounded-xl border border-dashed border-strong py-8 text-xs text-ink-muted"
-              >
-                <svg
-                  [lucideIcon]="LoaderIcon"
-                  size="16"
-                  class="mr-2 animate-spin"
-                  aria-hidden="true"
-                ></svg>
-                <span>{{ t().bookForm.lookup.scanTab }}...</span>
-              </div>
+        @if (offlineMode()) {
+          <div
+            role="status"
+            data-testid="lookup-offline-banner"
+            class="mb-3 flex flex-col gap-2 rounded-xl border border-amber-500/35 bg-amber-500/12 px-3 py-2.5 text-xs text-amber-900 sm:flex-row sm:items-center sm:justify-between dark:text-amber-200"
+          >
+            <div>
+              <p class="font-semibold">{{ t().bookForm.lookup.offlineModeTitle }}</p>
+              <p class="mt-0.5 leading-relaxed">{{ t().bookForm.lookup.offlineModeDescription }}</p>
+            </div>
+            <a
+              routerLink="/settings"
+              [queryParams]="{ tab: 'privacy' }"
+              class="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-lg border border-amber-500/40 bg-surface px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            >
+              {{ t().bookForm.lookup.offlineModeSettingsLink }}
+            </a>
+          </div>
+        }
+
+        <!-- Unified ISBN / Title / Author Search Form -->
+        <form (submit)="onSearchSubmit($event)" class="flex flex-col gap-2 sm:flex-row">
+          <label for="metadata-search-input" class="sr-only">
+            {{ t().bookForm.lookup.searchPlaceholder }}
+          </label>
+          <input
+            id="metadata-search-input"
+            type="search"
+            [disabled]="offlineMode()"
+            [value]="searchQuery()"
+            (input)="onSearchInput($event)"
+            [placeholder]="t().bookForm.lookup.searchPlaceholder"
+            class="field-input min-h-[44px] w-full flex-1 disabled:cursor-not-allowed disabled:opacity-60"
+          />
+          <button
+            type="submit"
+            [disabled]="offlineMode() || isSearching()"
+            class="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          >
+            @if (isSearching()) {
+              <svg
+                [lucideIcon]="LoaderIcon"
+                size="15"
+                class="animate-spin"
+                aria-hidden="true"
+              ></svg>
+            } @else {
+              <svg [lucideIcon]="SearchIcon" size="15" aria-hidden="true"></svg>
             }
-          }
-        } @else {
-          <!-- Unified ISBN / Title / Author Search Form -->
-          <form (submit)="onSearchSubmit($event)" class="flex flex-col gap-2 sm:flex-row">
-            <label for="metadata-search-input" class="sr-only">
-              {{ t().bookForm.lookup.searchPlaceholder }}
-            </label>
-            <input
-              id="metadata-search-input"
-              type="search"
-              [value]="searchQuery()"
-              (input)="onSearchInput($event)"
-              [placeholder]="t().bookForm.lookup.searchPlaceholder"
-              class="field-input min-h-[44px] w-full flex-1"
-            />
-            <button
-              type="submit"
-              [disabled]="isSearching()"
-              class="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:opacity-60 sm:w-auto"
-            >
-              @if (isSearching()) {
-                <svg
-                  [lucideIcon]="LoaderIcon"
-                  size="15"
-                  class="animate-spin"
-                  aria-hidden="true"
-                ></svg>
-              } @else {
-                <svg [lucideIcon]="SearchIcon" size="15" aria-hidden="true"></svg>
-              }
-              <span>{{ t().bookForm.lookup.searchButton }}</span>
-            </button>
-          </form>
+            <span>{{ t().bookForm.lookup.searchButton }}</span>
+          </button>
+        </form>
 
-          @if (mode() === 'edit') {
-            <p class="mt-2 text-xs text-ink-muted">
-              {{ t().bookForm.lookup.editProtectionHint }}
-            </p>
-          }
-
-          <p class="mt-2 text-[11px] leading-relaxed text-ink-muted">
-            {{ t().bookForm.lookup.externalLookupNotice }}
+        @if (mode() === 'edit') {
+          <p class="mt-2 text-xs text-ink-muted">
+            {{ t().bookForm.lookup.editProtectionHint }}
           </p>
+        }
 
-          <!-- Status Messages -->
-          @if (isSearching()) {
-            <div
-              role="status"
-              class="mt-3 flex items-center gap-2 rounded-xl border border-subtle bg-surface px-3 py-2.5 text-xs text-ink-secondary"
-            >
+        <p class="mt-2 text-[11px] leading-relaxed text-ink-muted">
+          {{ t().bookForm.lookup.externalLookupNotice }}
+        </p>
+
+        <!-- Status Messages -->
+        @if (isSearching()) {
+          <div
+            role="status"
+            class="mt-3 flex items-center gap-2 rounded-xl border border-subtle bg-surface px-3 py-2.5 text-xs text-ink-secondary"
+          >
+            <svg
+              [lucideIcon]="LoaderIcon"
+              size="15"
+              class="animate-spin text-accent"
+              aria-hidden="true"
+            ></svg>
+            <span>{{ t().bookForm.lookup.searchingMetadata }}</span>
+          </div>
+        }
+
+        @if (isOptimizingCover()) {
+          <div
+            role="status"
+            class="mt-2 flex items-center gap-2 rounded-xl border border-subtle bg-surface px-3 py-2 text-xs text-ink-secondary"
+          >
+            <svg
+              [lucideIcon]="LoaderIcon"
+              size="14"
+              class="animate-spin text-accent"
+              aria-hidden="true"
+            ></svg>
+            <span>{{ t().bookForm.lookup.optimizingCover }}</span>
+          </div>
+        }
+
+        @if (errorMessage(); as error) {
+          <div
+            role="alert"
+            class="mt-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
+          >
+            <svg [lucideIcon]="AlertCircleIcon" size="15" class="shrink-0" aria-hidden="true"></svg>
+            <span>{{ error }}</span>
+          </div>
+        }
+
+        @if (appliedCandidate(); as applied) {
+          <div
+            role="status"
+            class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
+          >
+            <div class="flex items-center gap-2">
               <svg
-                [lucideIcon]="LoaderIcon"
+                [lucideIcon]="CheckCircleIcon"
                 size="15"
-                class="animate-spin text-accent"
+                class="shrink-0 text-emerald-600 dark:text-emerald-400"
                 aria-hidden="true"
               ></svg>
-              <span>{{ t().bookForm.lookup.searchingMetadata }}</span>
+              <span class="font-medium">{{ t().bookForm.lookup.appliedFeedback }}</span>
             </div>
-          }
-
-          @if (isOptimizingCover()) {
-            <div
-              role="status"
-              class="mt-2 flex items-center gap-2 rounded-xl border border-subtle bg-surface px-3 py-2 text-xs text-ink-secondary"
+            <span
+              class="rounded-full bg-emerald-200/70 px-2 py-0.5 text-[11px] font-medium text-emerald-900 dark:bg-emerald-900/70 dark:text-emerald-200"
             >
-              <svg
-                [lucideIcon]="LoaderIcon"
-                size="14"
-                class="animate-spin text-accent"
-                aria-hidden="true"
-              ></svg>
-              <span>{{ t().bookForm.lookup.optimizingCover }}</span>
-            </div>
-          }
+              {{ getSourceLabel(applied.source) }}
+            </span>
+          </div>
+        }
 
-          @if (errorMessage(); as error) {
-            <div
-              role="alert"
-              class="mt-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
-            >
-              <svg
-                [lucideIcon]="AlertCircleIcon"
-                size="15"
-                class="shrink-0"
-                aria-hidden="true"
-              ></svg>
-              <span>{{ error }}</span>
-            </div>
-          }
+        <!-- Search Results -->
+        @if (!isSearching() && hasSearched() && results().length === 0 && !errorMessage()) {
+          <p
+            class="mt-3 rounded-xl border border-subtle bg-surface px-3 py-3 text-center text-xs text-ink-muted"
+          >
+            {{ t().bookForm.lookup.noResults }}
+          </p>
+        }
 
-          @if (appliedCandidate(); as applied) {
-            <div
-              role="status"
-              class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
-            >
-              <div class="flex items-center gap-2">
-                <svg
-                  [lucideIcon]="CheckCircleIcon"
-                  size="15"
-                  class="shrink-0 text-emerald-600 dark:text-emerald-400"
-                  aria-hidden="true"
-                ></svg>
-                <span class="font-medium">{{ t().bookForm.lookup.appliedFeedback }}</span>
-              </div>
-              <span
-                class="rounded-full bg-emerald-200/70 px-2 py-0.5 text-[11px] font-medium text-emerald-900 dark:bg-emerald-900/70 dark:text-emerald-200"
-              >
-                {{ getSourceLabel(applied.source) }}
-              </span>
-            </div>
-          }
-
-          <!-- Search Results -->
-          @if (!isSearching() && hasSearched() && results().length === 0 && !errorMessage()) {
-            <p
-              class="mt-3 rounded-xl border border-subtle bg-surface px-3 py-3 text-center text-xs text-ink-muted"
-            >
-              {{ t().bookForm.lookup.noResults }}
+        @if (results().length > 0) {
+          <div class="mt-3 space-y-2">
+            <p class="text-xs font-semibold tracking-wide text-ink-muted uppercase">
+              {{ t().bookForm.lookup.resultsTitle }} ({{ results().length }})
             </p>
-          }
 
-          @if (results().length > 0) {
-            <div class="mt-3 space-y-2">
-              <p class="text-xs font-semibold tracking-wide text-ink-muted uppercase">
-                {{ t().bookForm.lookup.resultsTitle }} ({{ results().length }})
-              </p>
+            @for (candidate of results(); track candidate.id) {
+              <article
+                class="flex flex-col gap-3 rounded-xl border border-subtle bg-surface p-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div class="flex min-w-0 items-start gap-3">
+                  @if (candidate.coverUrl) {
+                    <img
+                      [src]="candidate.coverUrl"
+                      [alt]="candidate.title"
+                      loading="lazy"
+                      decoding="async"
+                      class="h-16 w-11 shrink-0 rounded border border-subtle object-cover"
+                    />
+                  } @else {
+                    <div
+                      class="flex h-16 w-11 shrink-0 items-center justify-center rounded border border-subtle bg-surface-subtle text-ink-muted"
+                    >
+                      <svg [lucideIcon]="BookOpenIcon" size="18" aria-hidden="true"></svg>
+                    </div>
+                  }
 
-              @for (candidate of results(); track candidate.id) {
-                <article
-                  class="flex flex-col gap-3 rounded-xl border border-subtle bg-surface p-3 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div class="flex min-w-0 items-start gap-3">
-                    @if (candidate.coverUrl) {
-                      <img
-                        [src]="candidate.coverUrl"
-                        [alt]="candidate.title"
-                        loading="lazy"
-                        decoding="async"
-                        class="h-16 w-11 shrink-0 rounded border border-subtle object-cover"
-                      />
-                    } @else {
-                      <div
-                        class="flex h-16 w-11 shrink-0 items-center justify-center rounded border border-subtle bg-surface-subtle text-ink-muted"
+                  <div class="min-w-0 flex-1">
+                    <h4 class="truncate text-sm font-semibold text-ink">
+                      {{ candidate.title }}
+                    </h4>
+                    <p class="truncate text-xs text-ink-secondary">
+                      {{ candidate.author }}
+                    </p>
+
+                    <div
+                      class="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-ink-muted"
+                    >
+                      <span
+                        class="rounded-full bg-surface-subtle px-2 py-0.5 font-medium text-ink-secondary"
                       >
-                        <svg [lucideIcon]="BookOpenIcon" size="18" aria-hidden="true"></svg>
-                      </div>
-                    }
+                        {{ getCandidateSourceDisplay(candidate) }}
+                      </span>
 
-                    <div class="min-w-0 flex-1">
-                      <h4 class="truncate text-sm font-semibold text-ink">
-                        {{ candidate.title }}
-                      </h4>
-                      <p class="truncate text-xs text-ink-secondary">
-                        {{ candidate.author }}
-                      </p>
-
-                      <div
-                        class="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] text-ink-muted"
-                      >
-                        <span
-                          class="rounded-full bg-surface-subtle px-2 py-0.5 font-medium text-ink-secondary"
-                        >
-                          {{ getCandidateSourceDisplay(candidate) }}
+                      @if (candidate.publisher) {
+                        <span>{{ candidate.publisher }}</span>
+                      }
+                      @if (candidate.publicationYear) {
+                        <span>· {{ candidate.publicationYear }}</span>
+                      }
+                      @if (candidate.totalPages) {
+                        <span class="rounded bg-surface-subtle px-1.5 py-0.5 text-ink-secondary">
+                          {{ candidate.totalPages }} {{ t().bookForm.lookup.pagesUnit }}
                         </span>
-
-                        @if (candidate.publisher) {
-                          <span>{{ candidate.publisher }}</span>
-                        }
-                        @if (candidate.publicationYear) {
-                          <span>· {{ candidate.publicationYear }}</span>
-                        }
-                        @if (candidate.totalPages) {
-                          <span class="rounded bg-surface-subtle px-1.5 py-0.5 text-ink-secondary">
-                            {{ candidate.totalPages }} {{ t().bookForm.lookup.pagesUnit }}
-                          </span>
-                        }
-                        @if (candidate.isbn) {
-                          <span
-                            class="rounded bg-surface-subtle px-1.5 py-0.5 font-mono text-ink-secondary"
-                          >
-                            {{ candidate.isbn }}
-                          </span>
-                        }
-                      </div>
+                      }
+                      @if (candidate.isbn) {
+                        <span
+                          class="rounded bg-surface-subtle px-1.5 py-0.5 font-mono text-ink-secondary"
+                        >
+                          {{ candidate.isbn }}
+                        </span>
+                      }
                     </div>
                   </div>
+                </div>
 
-                  <div
-                    class="grid grid-cols-1 gap-2 sm:flex sm:shrink-0 sm:flex-wrap sm:items-center"
-                  >
-                    @if (mode() === 'create') {
-                      <button
-                        type="button"
-                        (click)="applyCandidate(candidate, 'overwrite-public')"
-                        class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-accent px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-auto"
-                      >
-                        {{ t().bookForm.lookup.useEditionButton }}
-                      </button>
-                    } @else {
-                      <button
-                        type="button"
-                        (click)="applyCandidate(candidate, 'fill-empty')"
-                        class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-accent px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-auto"
-                      >
-                        {{ t().bookForm.lookup.applyFillEmpty }}
-                      </button>
-                      <button
-                        type="button"
-                        (click)="applyCandidate(candidate, 'overwrite-public')"
-                        class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-strong bg-surface-elevated px-3 py-1.5 text-xs font-medium text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-auto"
-                      >
-                        {{ t().bookForm.lookup.applyOverwritePublic }}
-                      </button>
-                    }
-                  </div>
-                </article>
-              }
-            </div>
-          }
+                <div
+                  class="grid grid-cols-1 gap-2 sm:flex sm:shrink-0 sm:flex-wrap sm:items-center"
+                >
+                  @if (mode() === 'create') {
+                    <button
+                      type="button"
+                      (click)="applyCandidate(candidate, 'overwrite-public')"
+                      class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-accent px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-auto"
+                    >
+                      {{ t().bookForm.lookup.useEditionButton }}
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      (click)="applyCandidate(candidate, 'fill-empty')"
+                      class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-accent px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-auto"
+                    >
+                      {{ t().bookForm.lookup.applyFillEmpty }}
+                    </button>
+                    <button
+                      type="button"
+                      (click)="applyCandidate(candidate, 'overwrite-public')"
+                      class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-strong bg-surface-elevated px-3 py-1.5 text-xs font-medium text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:w-auto"
+                    >
+                      {{ t().bookForm.lookup.applyOverwritePublic }}
+                    </button>
+                  }
+                </div>
+              </article>
+            }
+          </div>
         }
       </div>
     </div>

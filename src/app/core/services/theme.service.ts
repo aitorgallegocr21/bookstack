@@ -1,4 +1,6 @@
 import { DOCUMENT, DestroyRef, Injectable, computed, effect, inject, signal } from '@angular/core';
+import { ReducedMotionPreference } from '../models/app-preferences.model';
+import { AppPreferencesService } from './app-preferences.service';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type ResolvedTheme = 'light' | 'dark';
@@ -22,6 +24,7 @@ const VALID_ACCENTS = new Set<string>(ACCENT_PALETTES);
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly preferences = inject(AppPreferencesService);
 
   private readonly _themeMode = signal<ThemeMode>('system');
   private readonly _systemPrefersDark = signal<boolean>(false);
@@ -88,6 +91,10 @@ export class ThemeService {
       this.applyAccentAttribute(currentAccent);
       this.persistValue(ACCENT_STORAGE_KEY, currentAccent, 'accent');
     });
+
+    effect(() => {
+      this.applyReducedMotionAttribute(this.preferences.reducedMotion());
+    });
   }
 
   toggleTheme(): void {
@@ -123,6 +130,15 @@ export class ThemeService {
 
   private applyAccentAttribute(accent: AccentPalette): void {
     this.document.documentElement.setAttribute('data-accent', accent);
+  }
+
+  private applyReducedMotionAttribute(mode: ReducedMotionPreference): void {
+    const htmlElement = this.document.documentElement;
+    if (mode === 'reduce') {
+      htmlElement.setAttribute('data-reduced-motion', 'reduce');
+    } else {
+      htmlElement.removeAttribute('data-reduced-motion');
+    }
   }
 
   private persistValue(key: string, value: string, label: string): void {

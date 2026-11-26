@@ -1,6 +1,6 @@
-# BookStack Product & Architecture Roadmap (Phases 16–20)
+# BookStack Product & Architecture Roadmap (Phases 16–22)
 
-> **Single Source of Truth for Upcoming Milestones:** This document captures the strategic product vision, architectural boundaries, and functional requirements for **Phases 16 through 20**. For the active sprint index and completed phase archive, see [`docs/TASKS.md`](TASKS.md).
+> **Single Source of Truth for Upcoming Milestones:** This document captures the strategic product vision, architectural boundaries, and functional requirements for **Phases 16 through 22**. For the active sprint index and completed phase archive, see [`docs/TASKS.md`](TASKS.md).
 >
 > **Pre-Phase Protocol:** Before breaking down any phase below into atomic `docs/tasks/phase-XX-<name>/task-X.Y-*.md` specifications, run a focused `/grill-me` alignment pass with the user to incorporate any new details or visual adjustments for that specific phase.
 
@@ -11,16 +11,20 @@
 ```mermaid
 flowchart LR
   P16["Phase 16: Data Health, Year Fix & Confirm Dialogs"] --> P17["Phase 17: Major Visual Overhaul & @theme Design System"]
-  P17 --> P18["Phase 18: Extended Settings, Advanced Mode & Privacy/Crypto"]
-  P18 --> P19["Phase 19: Expanded Analytics, Adaptive Time & Tags/Genres"]
-  P19 --> P20["Phase 20: Integrated eBook Reader & Binary Metadata Engine"]
+  P17 --> P18["Phase 18: Modern Native ISBN Scanner Engine"]
+  P18 --> P19["Phase 19: Extended Settings, Advanced Mode & Privacy/Crypto"]
+  P19 --> P20["Phase 20: Expanded Analytics, Adaptive Time & Tags/Genres"]
+  P20 --> P21["Phase 21: Integrated eBook Reader & Binary Metadata Engine"]
+  P21 --> P22["Phase 22: Final Hardening, Bundle Budget & Ongoing Backlog"]
 ```
 
 1. **Why Foundation & Data Hygiene First (`Phase 16`):** Fixes the anomalous year filter defect (`2925`) in `/stats`, enforces temporal sanity bounds across schemas/forms/importers, replaces all native browser `window.confirm()` alerts with an accessible in-app confirmation modal (`ConfirmDialogService` + `<app-confirm-dialog>`), and introduces a Library Data Health Auditor before visual or schema expansions.
-2. **Why the Design System Overhaul Second (`Phase 17`):** Centralizing semantic design tokens (`@theme` in Tailwind CSS v4) and executing the site-wide visual modernization _before_ building multi-tab Extended Settings (`Phase 18`), new Analytics visualizations (`Phase 19`), or the eBook Reader (`Phase 20`) ensures all upcoming views are built directly on the new visual language rather than styled twice.
-3. **Why Extended Settings & Privacy Third (`Phase 18`):** Consolidates user-configurable preferences (including theme/accent tokens from Phase 17, confirmation dialog toggles from Phase 16, strict 100% Offline Mode, metadata provider toggles, `navigator.storage.persist()`, and `AES-GCM` encrypted backups) into a structured, categorized `/settings` hub with an **Advanced Mode**.
-4. **Why Expanded Analytics & Adaptive Time Fourth (`Phase 19`):** Leverages the new design tokens and user preferences to make time/velocity metrics adaptive (hiding `pp/h` and time tabs when no timed sessions exist), introduces book genres/tags (`tags`), annual activity heatmaps, longevity/pacing metrics, and period-over-period comparisons.
-5. **Why the Integrated eBook Reader Fifth (`Phase 20`):** Serves as the flagship long-term evolution. By storing `.epub`/`.pdf` binaries in a dedicated IndexedDB `ObjectStore` (`ebookFiles`), extracting embedded metadata/covers natively in the browser, and auto-logging timed reading sessions from `/reader/:id`, it organically feeds the adaptive time/velocity analytics created in Phase 19 without manual stopwatch friction.
+2. **Why the Design System Overhaul Second (`Phase 17`):** Centralizing semantic design tokens (`@theme` in Tailwind CSS v4) and executing the site-wide visual modernization _before_ building multi-tab Extended Settings (`Phase 19`), new Analytics visualizations (`Phase 20`), or the eBook Reader (`Phase 21`) ensures all upcoming views are built directly on the new visual language rather than styled twice.
+3. **Why Modernizing the Native ISBN Scanner Third (`Phase 18`):** Replaces the unmaintained `html5-qrcode` wrapper with a fast, 100% Local-First native `getUserMedia()` + `BarcodeDetector` / local ZXing-C++ WASM engine, resolving Android multi-lens Camera2 startup delays, cutting bundle weight, and adding flashlight (torch) control before expanding settings and analytics.
+4. **Why Extended Settings & Privacy Fourth (`Phase 19`):** Consolidates user-configurable preferences (including theme/accent tokens from Phase 17, confirmation dialog toggles from Phase 16, strict 100% Offline Mode, metadata provider toggles, `navigator.storage.persist()`, and `AES-GCM` encrypted backups) into a structured, categorized `/settings` hub with an **Advanced Mode**.
+5. **Why Expanded Analytics & Adaptive Time Fifth (`Phase 20`):** Leverages the new design tokens and user preferences to make time/velocity metrics adaptive (hiding `pp/h` and time tabs when no timed sessions exist), introduces book genres/tags (`tags`), annual activity heatmaps, longevity/pacing metrics, and period-over-period comparisons.
+6. **Why the Integrated eBook Reader Sixth (`Phase 21`):** Serves as the flagship long-term evolution. By storing `.epub`/`.pdf` binaries in a dedicated IndexedDB `ObjectStore` (`ebookFiles`), extracting embedded metadata/covers natively in the browser, and auto-logging timed reading sessions from `/reader/:id`, it organically feeds the adaptive time/velocity analytics created in Phase 20 without manual stopwatch friction.
+7. **Why Final Hardening & Ongoing Backlog Last (`Phase 22`):** Acts as the living consolidation and stabilization milestone after major feature arcs—capturing non-blocking performance/security improvements identified during pre-release audits (initial bundle budget tuning, ZIP decompression byte caps) alongside incremental polish ideas collected along the way.
 
 ---
 
@@ -50,8 +54,7 @@ flowchart LR
 
 ### Phase 17: Major Visual Overhaul & Tailwind CSS v4 `@theme` Design System Modernization
 
-- **Status:** Roadmapped
-- **Pre-Phase Note:** _This phase represents a major site-wide aesthetic evolution. Conduct a dedicated interactive specification pass with the user before task breakdown to incorporate all additional custom styling rules and per-page visual refinements._
+- **Status:** Completed ([`docs/tasks/phase-17-visual-overhaul-and-dock-shell/index.md`](tasks/phase-17-visual-overhaul-and-dock-shell/index.md), plus follow-ups 17B–17D)
 - **Primary Goal:** Elevate BookStack's entire UI to a modern, editorial-grade aesthetic while preserving its fast Local-First ergonomics, asymmetric responsive shell, and `320px` mobile parity.
 - **Core Deliverables:**
   1. **Semantic Tailwind CSS v4 `@theme` Token Architecture (`src/styles.css`):**
@@ -68,28 +71,42 @@ flowchart LR
 
 ---
 
-### Phase 18: Extended Categorized Settings (`/settings`), Advanced Mode & Privacy/Crypto Hardening
+### Phase 18: Modern Native ISBN Scanner Engine (`getUserMedia` + `BarcodeDetector` & Local ZXing-WASM)
 
-- **Status:** Roadmapped
-- **Pre-Phase Note:** _Review with the user at phase start to include any additional fine-grained user preferences discovered during Phase 16 and Phase 17._
-- **Primary Goal:** Transform `/settings` into a comprehensive, well-organized control center separated into thematic sections and an **Advanced Mode**, while hardening local data persistence, network privacy, and backup security.
+- **Status:** Completed (`v2.4.0`, [`docs/tasks/phase-18-native-isbn-scanner-engine/index.md`](tasks/phase-18-native-isbn-scanner-engine/index.md))
+- **Primary Goal:** Replace the unmaintained, heavyweight `html5-qrcode` wrapper with a fast, 100% Local-First, offline-capable native camera and barcode scanning engine that opens primary rear lenses in `<500 ms` across multi-camera Android, iOS Safari, Firefox, and desktop browsers.
 - **Core Deliverables:**
-  1. **Categorized Settings Architecture:**
-     - Organize `/settings` into clear navigable sections/tabs: **General & Appearance**, **Catalog & Reading Defaults**, **Data & Backups**, **Privacy & Security**, and **Advanced / System**.
-  2. **Catalog, Reading & Confirmation Preferences:**
-     - User-configurable defaults for new books (default format, initial status), card action button visibility, compact density toggles, and granular control over minor confirmation prompts (e.g., re-enabling suppressed warnings from Phase 16).
-  3. **Strict Network Privacy & Metadata Provider Controls:**
-     - Master **"100% Offline Mode"** toggle that blocks all outbound requests to external metadata/cover providers.
-     - Granular provider selector allowing the user to enable, disable, or reorder the 5 public metadata sources (Open Library, Google Books, Wikidata, Apple Books ES, Internet Archive / Crossref) and manage camera/scanner consent.
-  4. **Storage Resilience & Password-Encrypted Backups (`AES-GCM`):**
-     - 1-click **Persistent Storage Request** (`navigator.storage.persist()`) with live browser eviction-protection status and IndexedDB health diagnostics.
-     - Zero-dependency password-encrypted `.JSON` and `.ZIP` backups using browser-native Web Crypto API (`PBKDF2` key derivation + `AES-GCM` authenticated encryption) for safe cloud storage.
-  5. **Advanced System Controls:**
-     - Configurable cover compression parameters (max pixel dimension and WebP/JPEG quality factor), metadata search quota tuning, selective partial resets (e.g., clear only reading session logs, clear only optimized cover cache, or reset preferences without losing books), and diagnostic summary export.
+  1. **Hybrid Native `BarcodeDetector` + Local ZXing-C++ WASM Ponyfill (`BarcodeDecoderService`):**
+     - Use hardware-accelerated browser-native `window.BarcodeDetector` (`ean_13`, `ean_8`) on Chrome/Brave/Edge with zero extra JS overhead, and lazy-load `barcode-detector/ponyfill` backed by a locally bundled `assets/wasm/zxing_reader.wasm` (zero CDN dependencies, CSP `'wasm-unsafe-eval'`, offline Service Worker cache) on Safari/Firefox.
+  2. **Native Camera Controller & Device Memory (`CameraStreamService`):**
+     - Own `navigator.mediaDevices.getUserMedia()`, passive `enumerateDevices()`, Camera2 primary-sensor index ranking (`camera 0` / `camera 1`), `localStorage` preferred rear `deviceId` memory for instant repeat startup, short dead-sensor timeouts, progressive continuous autofocus/HD enhancement, and guaranteed `MediaStreamTrack.stop()` cleanup.
+  3. **Modernized `<app-isbn-scanner>` Viewfinder & Flashlight (Torch) Control:**
+     - Native `<video playsinline muted autoplay>` with a sleek Tailwind v4 viewfinder overlay, throttled live scan loop, conditional `>= 44×44px` flashlight/torch toggle button, 1-tap front/rear flip or cleaned desktop `<select>`, and unified static photo upload decoding—removing `html5-qrcode` completely.
 
 ---
 
-### Phase 19: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy
+### Phase 19: Extended Categorized Settings (`/settings`), Privacy/Offline Controls & Web Crypto Backups
+
+- **Status:** Completed (`v2.5.0`, [`docs/tasks/phase-19-extended-settings-privacy-crypto/index.md`](tasks/phase-19-extended-settings-privacy-crypto/index.md))
+- **Primary Goal:** Transform `/settings` into a comprehensive, well-organized **Master-Detail Control Center** separated into 5 thematic categories with URL `?tab=` sync and instant search, while hardening local data persistence, network privacy, scanner defaults, and backup security.
+- **Core Deliverables:**
+  1. **Master-Detail Categorized Settings Architecture & Live Search:**
+     - Organize `/settings` into 5 navigable categories (sticky vertical sidebar on desktop + horizontally scrollable pill tabs on mobile): **General & Appearance**, **Catalog & Reading**, **Data & Backups**, **Privacy & Scanner**, and **Advanced & System** (always visible with `"Expert"` badge), backed by `?tab=` URL sync, bilingual instant settings search with jump-and-highlight, and a passive 30-day backup reminder banner.
+  2. **Unified `AppPreferencesService`, Appearance & Catalog/Reading Defaults:**
+     - Add Adaptive Cover Tinting (`--book-tint`) toggle and manual Reduced Motion override; move & expand Catalog/Reading controls (default view & sort, new book default format/status, card quick-actions & progress bar visibility, Dashboard quick-page increment step, reading time tracking toggle, and granular per-action confirmation dialog switches).
+  3. **Strict Network Privacy, 5-Provider Controls & Scanner Privacy:**
+     - Master **"100% Offline Mode"** toggle blocking all outbound requests to external metadata/cover providers.
+     - Granular provider controls allowing the user to enable, disable, or reorder the 5 public metadata sources (Google Books, Open Library, Apple Books ES, Wikidata, Internet Archive / Crossref), plus camera consent management, remembered rear camera `deviceId` reset, and scanner defaults (Photo Mode / Auto-Torch).
+  4. **Storage Resilience, Preferences Sync & Password-Encrypted Backups (`AES-GCM-256`):**
+     - 1-click **Persistent Storage Request** (`navigator.storage.persist()`) with live browser eviction-protection status and IndexedDB health diagnostics.
+     - Optional inclusion/restoration of app preferences in full `.JSON` and `.ZIP` backups.
+     - Zero-dependency password-encrypted `.JSON` and `.ZIP` backups using browser-native Web Crypto API (`PBKDF2` + `AES-GCM-256`) with transparent password-prompted import.
+  5. **Advanced System Controls, Selective Resets & Diagnostics:**
+     - Configurable cover compression parameters (max pixel dimension and WebP/JPEG quality factor), metadata search quota tuning (`4`/`8`/`12`), selective partial resets (clear cover color cache, clear reading logs only, or reset preferences without losing books), strictly anonymous technical diagnostic JSON export, and relocated Danger Zone (`#danger-zone`) with a quick-jump link from Data & Backups.
+
+---
+
+### Phase 20: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy
 
 - **Status:** Roadmapped
 - **Pre-Phase Note:** _Review with the user at phase start to incorporate any additional custom charts or reading habit metrics._
@@ -98,7 +115,7 @@ flowchart LR
   1. **Adaptive Time & Reading Speed (`pp/h`) Disclosure:**
      - When the active period contains zero timed reading sessions (`totalTimeMinutes === 0`)—or when the user disables time tracking in `/settings`—automatically hide reading speed (`pp/h`) and the "Time" velocity chart tab.
      - Dynamically promote high-value non-timed KPIs into the 4-card executive grid (such as **Average Book Rating**, **Average Pages per Completed Book**, or **Active Reading Days**).
-     - Seamlessly reveal time and velocity metrics whenever timed sessions are logged (or automatically recorded by the Phase 20 eBook Reader).
+     - Seamlessly reveal time and velocity metrics whenever timed sessions are logged (or automatically recorded by the Phase 21 eBook Reader).
   2. **Genres & Custom Tags Taxonomy (`Book.tags` / `genres`):**
      - Extend `Book` and `BookSchema` with normalized genres/tags, autocomplete tag chips in Create/Edit modals, catalog filtering by tag, and automatic genre enrichment from the 5 metadata providers.
      - Add a **Genre / Thematic Distribution** visualization and dual Top Authors ranking (by completed books and by total pages read) in `/stats`.
@@ -111,7 +128,7 @@ flowchart LR
 
 ---
 
-### Phase 20 (Long-Term Milestone): Integrated eBook Reader (`/reader/:id`) & Binary Metadata Extractor
+### Phase 21 (Long-Term Milestone): Integrated eBook Reader (`/reader/:id`) & Binary Metadata Extractor
 
 - **Status:** Long-Term Roadmap Milestone
 - **Primary Goal:** Allow users to upload, inspect, and read `.EPUB` (and optional `.PDF`) files directly inside BookStack with 100% client-side metadata extraction, isolated binary storage, and automatic reading progress & session time synchronization.
@@ -129,3 +146,19 @@ flowchart LR
      - Automatically track active reading duration while `/reader/:id` is focused and log/merge `ReadingLog` entries with accurate `pagesRead` and `timeSpentMinutes`—effortlessly powering the adaptive reading speed (`pp/h`) analytics in `/stats`.
   5. **eBook Storage Inspector & Portability Controls (`/settings`):**
      - Per-book binary size inspector in `/settings`, ability to delete only the heavy eBook file while retaining the book metadata and reading history, and optional inclusion of eBook files in full `.ZIP` archive exports.
+
+---
+
+### Phase 22 (Final Hardening & Ongoing Backlog): Bundle Budget Optimization, ZIP Security Bounds & Accumulated Polish
+
+- **Status:** Living Hardening Backlog (Append incremental ideas discovered along the way)
+- **Primary Goal:** Consolidate non-blocking performance, security, and DX/UX refinements accumulated across Phases 19–21 into a final stabilization and hardening pass (aligned with `.agents/skills/periodic-project-hardening/SKILL.md`).
+- **Core Deliverables:**
+  1. **Initial Bundle Size Reduction & Angular Budget Alignment:**
+     - Audit the initial production bundle (`~1.22 MB` raw / `214 kB` transfer as of `v2.5.1`, which triggers a non-blocking warning against the `1.10 MB` raw budget in `angular.json`).
+     - Evaluate lazy-loading heavy non-critical startup modules (e.g., deferring secondary services/icons or trimming shared chunk imports) and recalibrate `angular.json` budgets so `ng build --configuration production` finishes with zero warnings.
+  2. **ZIP Decompression Safety Bounds (`zip-archive.utils.ts`):**
+     - Enforce explicit per-entry and total uncompressed byte ceilings inside `inflateRawBytes()` (`src/app/features/settings/utils/zip-archive.utils.ts`) to guard client-side memory against malformed or excessively compressed `.ZIP` archives (and future `.EPUB` packages in Phase 21).
+     - Add dedicated unit/regression tests verifying oversized compressed streams abort cleanly with a typed error.
+  3. **Accumulated Polish & Ideas Backlog (Rolling):**
+     - Dedicated slot to capture additional micro-improvements, accessibility refinements, performance tweaks, and security checks surfaced during Phases 20–21 before executing the final hardening sweep.

@@ -330,8 +330,8 @@ test.describe('Sagas, Series & Collections (/series)', () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await seedSeriesLibrary(page, books, [], metadata);
 
-    // Export JSON backup from /settings
-    await page.goto('/settings');
+    // Export JSON backup from /settings?tab=data
+    await page.goto('/settings?tab=data');
     const [download] = await Promise.all([
       page.waitForEvent('download'),
       page.getByTestId('export-json-btn').click(),
@@ -344,11 +344,13 @@ test.describe('Sagas, Series & Collections (/series)', () => {
     expect(parsed.seriesMetadata?.[0]?.expectedVolumes).toBe(14);
 
     // Factory reset
+    await page.getByTestId('settings-tab-advanced').click();
     await page.getByTestId('factory-reset-btn').click();
     await page.getByTestId('confirm-danger-reset-btn').click();
     await expect(page.getByTestId('danger-zone-status-banner')).toBeVisible();
 
     // Re-import the exported JSON backup
+    await page.getByTestId('settings-tab-data').click();
     await page.getByTestId('import-file-input').setInputFiles({
       name: 'bookstack-series-backup.json',
       mimeType: 'application/json',

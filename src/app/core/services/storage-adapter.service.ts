@@ -8,6 +8,8 @@ import {
   isCatalogViewMode,
 } from '../models/catalog-preferences.model';
 import { ConfirmSuppressionKey, isConfirmSuppressionKey } from '../models/confirm-dialog.model';
+import { AppPreferences } from '../models/app-preferences.model';
+import { parseAppPreferences } from '../schemas/app-preferences.schema';
 
 @Injectable({
   providedIn: 'root',
@@ -20,6 +22,15 @@ export class StorageAdapterService {
   readonly catalogViewModeKey = 'bookstack_catalog_view_mode';
   readonly catalogSortKey = 'bookstack_catalog_sort';
   readonly suppressedConfirmsKey = 'bookstack_suppressed_confirms_v1';
+  readonly appPreferencesKey = 'bookstack_app_preferences_v1';
+
+  getDatabaseDiagnostics(): { dbName: string; version: number; objectStoresCount: number } {
+    return {
+      dbName: this.dbName,
+      version: this.dbVersion,
+      objectStoresCount: 3,
+    };
+  }
 
   private isIndexedDbAvailable(): boolean {
     return typeof indexedDB !== 'undefined';
@@ -403,6 +414,24 @@ export class StorageAdapterService {
       localStorage.removeItem(this.suppressedConfirmsKey);
     } catch (error) {
       console.warn('[StorageAdapter] Failed to reset suppressed confirms:', error);
+    }
+  }
+
+  loadAppPreferences(): AppPreferences {
+    const raw = this.getItem<unknown>(this.appPreferencesKey);
+    return parseAppPreferences(raw);
+  }
+
+  saveAppPreferences(preferences: AppPreferences): boolean {
+    const normalized = parseAppPreferences(preferences);
+    return this.setItem(this.appPreferencesKey, normalized);
+  }
+
+  clearAppPreferences(): void {
+    try {
+      localStorage.removeItem(this.appPreferencesKey);
+    } catch (error) {
+      console.warn('[StorageAdapter] Failed to clear app preferences:', error);
     }
   }
 

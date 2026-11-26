@@ -1,4 +1,6 @@
 import { Injectable, inject } from '@angular/core';
+import { ConfigurableMetadataProvider } from '../../../core/models/app-preferences.model';
+import { AppPreferencesService } from '../../../core/services/app-preferences.service';
 import {
   BookMetadataCandidate,
   DuplicateLibraryMatch,
@@ -19,7 +21,7 @@ import { areIsbnsEquivalent, isValidIsbn, normalizeIsbn } from '../utils/isbn.ut
 import { BooksService } from './books.service';
 import { ImageOptimizerService } from './image-optimizer.service';
 
-export type BookMetadataErrorCode = 'INVALID_ISBN' | 'LOOKUP_FAILED';
+export type BookMetadataErrorCode = 'INVALID_ISBN' | 'LOOKUP_FAILED' | 'OFFLINE_MODE';
 
 export class BookMetadataError extends Error {
   constructor(
@@ -212,7 +214,8 @@ function scoreCandidateCompleteness(candidate: BookMetadataCandidate): number {
 
 function rankBalancedCandidates(
   candidates: readonly BookMetadataCandidate[],
-  limit = MAX_SEARCH_RESULTS
+  limit = MAX_SEARCH_RESULTS,
+  providerOrder: readonly MetadataProviderSource[] = PROVIDER_QUOTA_ORDER
 ): BookMetadataCandidate[] {
   const sorted = [...candidates].sort(
     (a, b) => scoreCandidateCompleteness(b) - scoreCandidateCompleteness(a)
@@ -226,7 +229,7 @@ function rankBalancedCandidates(
     selectedIds.add(bestMerged.id);
   }
 
-  for (const provider of PROVIDER_QUOTA_ORDER) {
+  for (const provider of providerOrder) {
     if (selected.length >= limit) {
       break;
     }
@@ -313,11 +316,42 @@ LIMIT 3`.trim();
 
 @Injectable({ providedIn: 'root' })
 export class BookMetadataService {
+  private readonly appPreferences = inject(AppPreferencesService);
   private readonly booksService = inject(BooksService);
   private readonly imageOptimizer = inject(ImageOptimizerService);
 
   private readonly isbnCache = new Map<string, BookMetadataCandidate>();
   private readonly queryCache = new Map<string, BookMetadataCandidate[]>();
+
+  private assertOnline(): void {
+    if (this.appPreferences.offlineMode()) {
+      throw new BookMetadataError(
+        'OFFLINE_MODE',
+        '100% Offline Mode is active. Outbound metadata requests are blocked.'
+      );
+    }
+  }
+
+  private getEnabledOrderedProviders(): ConfigurableMetadataProvider[] {
+    return this.appPreferences
+      .metadataProviders()
+      .filter((provider) => provider.enabled)
+      .map((provider) => provider.id);
+  }
+
+  private expandProviderQuotaOrder(
+    enabledProviders: readonly ConfigurableMetadataProvider[]
+  ): MetadataProviderSource[] {
+    const expanded: MetadataProviderSource[] = [];
+    for (const id of enabledProviders) {
+      if (id === 'archive') {
+        expanded.push('archive', 'crossref');
+      } else {
+        expanded.push(id);
+      }
+    }
+    return expanded;
+  }
 
   clearSessionCache(): void {
     this.isbnCache.clear();
@@ -325,12 +359,21 @@ export class BookMetadataService {
   }
 
   async lookupByIsbn(rawIsbn: string): Promise<BookMetadataCandidate | null> {
+    this.assertOnline();
+
     const normalizedIsbn = normalizeIsbn(rawIsbn);
     if (!normalizedIsbn) {
       throw new BookMetadataError('INVALID_ISBN', 'Invalid ISBN checksum or format.');
     }
 
-    const cached = this.getFromCache(this.isbnCache, normalizedIsbn);
+    const enabledProviders = this.getEnabledOrderedProviders();
+    if (enabledProviders.length === 0) {
+      return null;
+    }
+
+    const enabledSet = new Set(enabledProviders);
+    const cacheKey = `${normalizedIsbn}|${enabledProviders.join(',')}`;
+    const cached = this.getFromCache(this.isbnCache, cacheKey);
     if (cached) {
       return cached;
     }
@@ -338,44 +381,66 @@ export class BookMetadataService {
     const olUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${normalizedIsbn}&format=json&jscmd=data`;
     const gbUrl = `https://www.googleapis.com/books/v1/volumes?q=isbn:${normalizedIsbn}&maxResults=3`;
 
-    const [olResult, gbResult] = await Promise.allSettled([
-      this.fetchJsonWithTimeout(olUrl).then((payload) =>
-        parseOpenLibraryBibkeyResponse(payload, normalizedIsbn)
-      ),
-      this.fetchJsonWithTimeout(gbUrl).then((payload) => {
-        const gbCandidates = parseGoogleBooksVolumesResponse(payload);
-        return (
-          gbCandidates.find((item) => areIsbnsEquivalent(item.isbn, normalizedIsbn)) ??
-          gbCandidates[0] ??
-          null
-        );
-      }),
-    ]);
+    const primaryTasks: Array<{
+      provider: 'openlibrary' | 'googlebooks';
+      promise: Promise<BookMetadataCandidate | null>;
+    }> = [];
 
-    if (olResult.status === 'rejected' && gbResult.status === 'rejected') {
-      throw new BookMetadataError(
-        'LOOKUP_FAILED',
-        'Both metadata providers failed during ISBN lookup.'
-      );
+    if (enabledSet.has('openlibrary')) {
+      primaryTasks.push({
+        provider: 'openlibrary',
+        promise: this.fetchJsonWithTimeout(olUrl).then((payload) =>
+          parseOpenLibraryBibkeyResponse(payload, normalizedIsbn)
+        ),
+      });
+    }
+    if (enabledSet.has('googlebooks')) {
+      primaryTasks.push({
+        provider: 'googlebooks',
+        promise: this.fetchJsonWithTimeout(gbUrl).then((payload) => {
+          const gbCandidates = parseGoogleBooksVolumesResponse(payload);
+          return (
+            gbCandidates.find((item) => areIsbnsEquivalent(item.isbn, normalizedIsbn)) ??
+            gbCandidates[0] ??
+            null
+          );
+        }),
+      });
     }
 
-    const olCandidate = olResult.status === 'fulfilled' ? olResult.value : null;
-    const gbCandidate = gbResult.status === 'fulfilled' ? gbResult.value : null;
-
     let resolved: BookMetadataCandidate | null = null;
-    if (olCandidate && gbCandidate) {
-      resolved = mergeCandidates(olCandidate, gbCandidate);
-    } else {
-      resolved = olCandidate ?? gbCandidate;
+    if (primaryTasks.length > 0) {
+      const settled = await Promise.allSettled(primaryTasks.map((task) => task.promise));
+      if (settled.every((item) => item.status === 'rejected')) {
+        throw new BookMetadataError(
+          'LOOKUP_FAILED',
+          'Enabled metadata providers failed during ISBN lookup.'
+        );
+      }
+
+      const candidatesInMergeOrder = [0, 1]
+        .map((index) => settled[index])
+        .filter((item): item is PromiseFulfilledResult<BookMetadataCandidate | null> =>
+          Boolean(item && item.status === 'fulfilled')
+        )
+        .map((item) => item.value)
+        .filter((candidate): candidate is BookMetadataCandidate => candidate !== null);
+
+      for (const candidate of candidatesInMergeOrder) {
+        resolved = resolved ? mergeCandidates(resolved, candidate) : candidate;
+      }
     }
 
     if (!resolved || !hasAllKeyFields(resolved)) {
-      const secondaryRequests: Promise<BookMetadataCandidate[]>[] = [
-        this.fetchWikidataIsbnCandidates(normalizedIsbn),
-        this.fetchCrossrefIsbnCandidates(normalizedIsbn),
-      ];
+      const secondaryRequests: Promise<BookMetadataCandidate[]>[] = [];
 
-      if (resolved?.workKey) {
+      if (enabledSet.has('wikidata')) {
+        secondaryRequests.push(this.fetchWikidataIsbnCandidates(normalizedIsbn));
+      }
+      if (enabledSet.has('archive')) {
+        secondaryRequests.push(this.fetchCrossrefIsbnCandidates(normalizedIsbn));
+      }
+      if (enabledSet.has('openlibrary') && resolved?.workKey) {
         secondaryRequests.push(
           this.fetchOpenLibraryWorkEditions(resolved.workKey, {
             title: resolved.title,
@@ -395,7 +460,7 @@ export class BookMetadataService {
       }
     }
 
-    if (resolved && !resolved.coverUrl) {
+    if (resolved && !resolved.coverUrl && enabledSet.has('openlibrary')) {
       const probedCover = await this.probeOpenLibraryIsbnCover(normalizedIsbn);
       if (probedCover) {
         resolved = { ...resolved, coverUrl: probedCover };
@@ -403,7 +468,7 @@ export class BookMetadataService {
     }
 
     if (resolved) {
-      this.setInCache(this.isbnCache, normalizedIsbn, resolved);
+      this.setInCache(this.isbnCache, cacheKey, resolved);
     }
 
     return resolved;
@@ -417,7 +482,16 @@ export class BookMetadataService {
   async lookupBatchByIsbns(
     rawIsbns: readonly string[]
   ): Promise<Map<string, BookMetadataCandidate>> {
+    this.assertOnline();
+
+    const enabledProviders = this.getEnabledOrderedProviders();
+    const enabledSet = new Set(enabledProviders);
     const result = new Map<string, BookMetadataCandidate>();
+    if (enabledProviders.length === 0) {
+      return result;
+    }
+
+    const providerSignature = enabledProviders.join(',');
     const uncachedIsbns: string[] = [];
     const seen = new Set<string>();
 
@@ -428,7 +502,7 @@ export class BookMetadataService {
       }
       seen.add(normalized);
 
-      const cached = this.getFromCache(this.isbnCache, normalized);
+      const cached = this.getFromCache(this.isbnCache, `${normalized}|${providerSignature}`);
       if (cached) {
         result.set(normalized, cached);
       } else {
@@ -438,20 +512,23 @@ export class BookMetadataService {
 
     for (let i = 0; i < uncachedIsbns.length; i += MAX_OPEN_LIBRARY_BATCH_SIZE) {
       const chunk = uncachedIsbns.slice(i, i + MAX_OPEN_LIBRARY_BATCH_SIZE);
-      const bibkeys = chunk.map((isbn) => `ISBN:${isbn}`).join(',');
-      const olUrl = `https://openlibrary.org/api/books?bibkeys=${bibkeys}&format=json&jscmd=data`;
 
-      try {
-        const payload = await this.fetchJsonWithTimeout(olUrl);
-        const parsedMap = parseOpenLibraryBibkeyBatchResponse(payload, chunk);
-        for (const [isbn, candidate] of parsedMap.entries()) {
-          result.set(isbn, candidate);
-          if (candidate.coverUrl && candidate.totalPages) {
-            this.setInCache(this.isbnCache, isbn, candidate);
+      if (enabledSet.has('openlibrary')) {
+        const bibkeys = chunk.map((isbn) => `ISBN:${isbn}`).join(',');
+        const olUrl = `https://openlibrary.org/api/books?bibkeys=${bibkeys}&format=json&jscmd=data`;
+
+        try {
+          const payload = await this.fetchJsonWithTimeout(olUrl);
+          const parsedMap = parseOpenLibraryBibkeyBatchResponse(payload, chunk);
+          for (const [isbn, candidate] of parsedMap.entries()) {
+            result.set(isbn, candidate);
+            if (candidate.coverUrl && candidate.totalPages) {
+              this.setInCache(this.isbnCache, `${isbn}|${providerSignature}`, candidate);
+            }
           }
+        } catch {
+          // Ignore transient batch chunk failures so per-ISBN fallback can recover
         }
-      } catch {
-        // Ignore transient batch chunk failures so per-ISBN fallback can recover
       }
 
       const incompleteInChunk = chunk.filter((isbn) => {
@@ -474,7 +551,7 @@ export class BookMetadataService {
           const { isbn, candidate } = settled.value;
           const existing = result.get(isbn);
           const merged = existing ? mergeCandidates(existing, candidate) : candidate;
-          this.setInCache(this.isbnCache, isbn, merged);
+          this.setInCache(this.isbnCache, `${isbn}|${providerSignature}`, merged);
           result.set(isbn, merged);
         }
       }
@@ -547,6 +624,8 @@ export class BookMetadataService {
     rawQuery: string,
     hints?: SearchQueryHints
   ): Promise<BookMetadataCandidate[]> {
+    this.assertOnline();
+
     const parsedHint = parseStructuredSearchHint(rawQuery, hints);
     const { query } = parsedHint;
     if (query.length < 2) {
@@ -558,22 +637,46 @@ export class BookMetadataService {
       return match ? [match] : [];
     }
 
-    const cacheKey =
+    const enabledProviders = this.getEnabledOrderedProviders();
+    if (enabledProviders.length === 0) {
+      return [];
+    }
+
+    const quotaLimit = this.appPreferences.metadataSearchQuota();
+    const baseKey =
       hints?.title || hints?.author
         ? `${query.toLowerCase()}|t:${parsedHint.title?.toLowerCase() ?? ''}|a:${parsedHint.author?.toLowerCase() ?? ''}`
         : query.toLowerCase();
+    const cacheKey = `${baseKey}|p:${enabledProviders.join(',')}|q:${quotaLimit}`;
     const cached = this.getFromCache(this.queryCache, cacheKey);
     if (cached) {
       return cached;
     }
 
-    const settled = await Promise.allSettled([
-      this.fetchOpenLibrarySearchCandidates(parsedHint),
-      this.fetchGoogleBooksSearchCandidates(parsedHint),
-      this.fetchAppleBooksSearchCandidates(query),
-      this.fetchWikidataSearchCandidates(query),
-      this.fetchArchiveAndCrossrefCandidates(query),
-    ]);
+    const providerRequests: Record<
+      ConfigurableMetadataProvider,
+      () => Promise<BookMetadataCandidate[]>
+    > = {
+      openlibrary: () => this.fetchOpenLibrarySearchCandidates(parsedHint),
+      googlebooks: () => this.fetchGoogleBooksSearchCandidates(parsedHint),
+      applebooks: () => this.fetchAppleBooksSearchCandidates(query),
+      wikidata: () => this.fetchWikidataSearchCandidates(query),
+      archive: () => this.fetchArchiveAndCrossrefCandidates(query),
+    };
+
+    const fetchOrder: readonly ConfigurableMetadataProvider[] = [
+      'openlibrary',
+      'googlebooks',
+      'applebooks',
+      'wikidata',
+      'archive',
+    ];
+    const enabledSet = new Set(enabledProviders);
+    const providersToQuery = fetchOrder.filter((provider) => enabledSet.has(provider));
+
+    const settled = await Promise.allSettled(
+      providersToQuery.map((provider) => providerRequests[provider]())
+    );
 
     if (settled.every((result) => result.status === 'rejected')) {
       throw new BookMetadataError('LOOKUP_FAILED', 'All metadata providers failed during search.');
@@ -584,7 +687,11 @@ export class BookMetadataService {
     );
 
     const fused = this.fuseEquivalentCandidates(combined);
-    const ranked = rankBalancedCandidates(fused, MAX_SEARCH_RESULTS);
+    const ranked = rankBalancedCandidates(
+      fused,
+      quotaLimit,
+      this.expandProviderQuotaOrder(enabledProviders)
+    );
 
     this.setInCache(this.queryCache, cacheKey, ranked);
     return ranked;
@@ -831,6 +938,8 @@ export class BookMetadataService {
   }
 
   async resolveLocalCover(coverUrl?: string): Promise<string | undefined> {
+    this.assertOnline();
+
     const trimmed = coverUrl?.trim();
     if (!trimmed) {
       return undefined;

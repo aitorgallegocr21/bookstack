@@ -10,6 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { Book, BOOK_STATUS_CONFIG, BookFormat } from '../../../books/models/book.model';
 import { translateBookFormat } from '../../../books/utils/book-form.utils';
@@ -26,6 +27,8 @@ import { translateBookFormat } from '../../../books/utils/book-form.utils';
 export class CurrentlyReadingHeroComponent implements OnDestroy {
   protected readonly i18n = inject(I18nService);
   private readonly uiState = inject(UiStateService);
+  private readonly appPreferences = inject(AppPreferencesService);
+  protected readonly quickPageStep = this.appPreferences.quickPageStep;
   protected readonly BOOK_STATUS_CONFIG = BOOK_STATUS_CONFIG;
 
   readonly activeBook = input<Book | null>(null);
@@ -122,6 +125,24 @@ export class CurrentlyReadingHeroComponent implements OnDestroy {
     }
 
     this.pageUpdated.emit({ bookId: book.id, newPage: val });
+  }
+
+  protected quickIncrementPage(): void {
+    const book = this.activeBook();
+    if (!book || book.currentPage >= book.totalPages) {
+      return;
+    }
+
+    const nextPage = Math.min(book.totalPages, book.currentPage + this.quickPageStep());
+    this.pageInputValue.set(nextPage);
+
+    if (nextPage >= book.totalPages) {
+      this.uiState.acquireScrollLock();
+      this.isCompletionModalOpen.set(true);
+      return;
+    }
+
+    this.pageUpdated.emit({ bookId: book.id, newPage: nextPage });
   }
 
   protected confirmCompletion(): void {

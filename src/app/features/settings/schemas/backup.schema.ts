@@ -8,13 +8,17 @@ import {
   suggestCorrectedYear,
 } from '../../books/utils/temporal-bounds.utils';
 import { ReadingGoalsSchema } from '../../books/schemas/reading-goals.schema';
+import { AppPreferencesSchema } from '../../../core/schemas/app-preferences.schema';
 import { SeriesMetadata } from '../../series/models/series.model';
 import { SeriesMetadataSchema } from '../../series/schemas/series.schema';
 import { BackupPreferences } from '../models/data-portability.model';
 
 export const BackupPreferencesSchema = z.object({
   locale: z.enum(['es', 'en']).optional(),
-  theme: z.enum(['light', 'dark']).optional(),
+  theme: z.enum(['light', 'dark', 'system']).optional(),
+  accent: z.enum(['blue', 'indigo', 'emerald', 'amber', 'rose']).optional(),
+  desktopDockPosition: z.enum(['left', 'right', 'top', 'bottom']).optional(),
+  mobileDockPosition: z.enum(['top', 'bottom']).optional(),
   catalogViewMode: z.enum(['grid', 'detailed', 'compact']).optional(),
   catalogSort: z
     .enum([
@@ -27,7 +31,35 @@ export const BackupPreferencesSchema = z.object({
       'pages-desc',
     ])
     .optional(),
+  appPreferences: AppPreferencesSchema.partial().optional(),
 });
+
+export const ENCRYPTED_BACKUP_MIN_ITERATIONS = 100_000;
+export const ENCRYPTED_BACKUP_MAX_ITERATIONS = 2_000_000;
+
+export const EncryptedBackupEnvelopeSchema = z.object({
+  format: z.literal('bookstack-encrypted-backup'),
+  version: z.literal(1),
+  payloadType: z.enum(['json', 'zip']),
+  kdf: z.literal('PBKDF2-SHA256'),
+  iterations: z
+    .number()
+    .int()
+    .min(ENCRYPTED_BACKUP_MIN_ITERATIONS)
+    .max(ENCRYPTED_BACKUP_MAX_ITERATIONS),
+  cipher: z.literal('AES-GCM-256'),
+  salt: z.string().min(1).max(256),
+  iv: z.string().min(1).max(256),
+  ciphertext: z.string().min(1),
+  exportedAt: z.string().min(1).max(64),
+});
+
+export function isEncryptedBackupPayload(raw: unknown): boolean {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    return false;
+  }
+  return (raw as Record<string, unknown>)['format'] === 'bookstack-encrypted-backup';
+}
 
 const MAX_BACKUP_RECORDS = 25_000;
 

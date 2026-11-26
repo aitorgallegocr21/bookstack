@@ -86,7 +86,7 @@ export class SagaBentoCardComponent {
     return this.saga().books.slice(0, 2);
   });
 
-  protected readonly sagaTint = computed<string>(() => {
+  protected readonly sagaTint = computed<string | null>(() => {
     const firstBook = this.saga().books[0];
     if (firstBook) {
       return this.coverColorService.getTint(firstBook);

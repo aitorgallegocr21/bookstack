@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import { ReadingLog } from '../../models/book.model';
 import { ReadingLogService } from '../../services/reading-log.service';
 import { ReadingLogEditorComponent } from './reading-log-editor';
@@ -95,5 +96,26 @@ describe('ReadingLogEditorComponent', () => {
     expect(updateMock).toHaveBeenCalledTimes(1);
     expect(addMock).not.toHaveBeenCalled();
     expect(savedSpy).toHaveBeenCalledWith(expect.objectContaining({ id: 'existing-log-1' }));
+  });
+
+  it('should hide timeSpentMinutes input and submit undefined when trackReadingTime is false', async () => {
+    const appPreferences = TestBed.inject(AppPreferencesService);
+    appPreferences.updatePreferences({ trackReadingTime: false });
+
+    const fixture = TestBed.createComponent(ReadingLogEditorComponent);
+    fixture.componentRef.setInput('bookId', 'book-1');
+    const savedSpy = vi.fn<(log: ReadingLog) => void>();
+    fixture.componentInstance.saved.subscribe(savedSpy);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('[data-testid="reading-log-time-field"]')).toBeNull();
+
+    const form = root.querySelector('form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+
+    expect(addMock).toHaveBeenCalledTimes(1);
+    expect(savedSpy.mock.calls[0][0].timeSpentMinutes).toBeUndefined();
   });
 });

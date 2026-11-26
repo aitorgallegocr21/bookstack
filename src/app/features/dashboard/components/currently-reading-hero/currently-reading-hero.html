@@ -289,6 +289,15 @@
               </svg>
               {{ i18n.t().dashboard.updatePageAction }}
             </button>
+            <button
+              type="button"
+              data-testid="quick-page-increment-btn"
+              (click)="quickIncrementPage()"
+              [disabled]="currentBook.currentPage >= currentBook.totalPages"
+              class="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-strong bg-surface-elevated px-3.5 py-2 text-xs font-bold text-ink tabular-nums shadow-xs transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              +{{ quickPageStep() }} {{ i18n.t().books.pagesUnit }}
+            </button>
             @if (pageInputTouched() && pageInputValue() <= currentBook.currentPage) {
               <span class="w-full text-xs font-medium text-amber-600 dark:text-amber-400">
                 {{ i18n.t().dashboard.pageInputMustBeGreater }} ({{ currentBook.currentPage }})

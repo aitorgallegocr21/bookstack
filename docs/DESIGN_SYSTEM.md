@@ -53,15 +53,26 @@ Defined centrally in `src/app/features/books/models/book.model.ts`:
 - **Focus Ring:** Interactive buttons and links enforce `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500`.
 - **Touch Targets:** Minimum clickable area of `44x44px` across mobile controls.
 - **In-App Confirmation Dialog (`<app-confirm-dialog>`):** Mounted once in the root shell (`App`) at `z-[70]` with `role="alertdialog"`, `aria-modal="true"`, severity badges (`danger`, `warning`, `info`), optional contextual entity preview cards (`coverUrl`, `title`, `subtitle`, `badge`), optional minor-action suppression checkbox, and focus management (`Cancel`/`Confirm`). Zero native `window.confirm()` calls are permitted.
-- **Data Health Auditor (`<app-data-health-section>`):** Embedded in `/settings` with a reactive health score badge (`100% Saludable` emerald / amber / rose), 4-category summary cards, expandable issue accordions, and 1-click auto-fix controls.
+- **Data Health Auditor (`<app-data-health-section>`):** Embedded in `/settings?tab=data` with a reactive health score badge (`100% Saludable` emerald / amber / rose), 4-category summary cards, expandable issue accordions, and 1-click auto-fix controls.
+- **Master-Detail Categorized `/settings` Shell:** Uses a `lg:grid-cols-[240px_minmax(0,1fr)]` sticky vertical category sidebar on desktop (`>= 1024px`) and a zero-scroll Adaptive Bento 2-column category grid (`grid-cols-2`, with the 5th `Avanzado y sistema` card spanning `col-span-2`) on mobile/tablet (`< 1024px`, preventing double-sidebar compression alongside the global shell sidebar at `768px`), paired with semantic rose styling for `Avanzado y sistema` (without inflating container height), bilingual instant settings search with a single clear action + `Escape`, and `?tab=` deep-link synchronization.
 
 ---
 
 ## 4. Rendering Performance Rules
 
 - **No `transition-all`:** Use discrete property transitions (`transition-colors`, `transition-opacity`, `transition-[width]`, `transition-[margin]`, `transition-transform`, `transition-[height]`, `transition-[height,background-color]`, `transition-[transform,background-color,box-shadow]`).
-- **Editorial Route Transitions & Hover Craft:** `withViewTransitions({ skipInitialTransition: true })` pins desktop/mobile docks via `view-transition-name` while cross-fading route content; pointer hover elevations (`@media (hover: hover)`) and tactile button/card helpers (`.editorial-hover-card`, `.btn-tactile`, `.book-tint-card:hover`, `.book-tint-row:hover`) are neutralized under `@media (prefers-reduced-motion: reduce)`.
+- **Editorial Route Transitions & Hover Craft:** `withViewTransitions({ skipInitialTransition: true })` pins desktop/mobile docks via `view-transition-name` while cross-fading route content; pointer hover elevations (`@media (hover: hover)`) and tactile button/card helpers (`.editorial-hover-card`, `.btn-tactile`, `.book-tint-card[data-book-tint-active='true']:hover`, `.book-tint-row[data-book-tint-active='true']:hover`) intensify `--book-tint` with zero runtime JS overhead while falling back to neutral hover surfaces when `adaptiveCoverTint` is disabled, and are neutralized under both `@media (prefers-reduced-motion: reduce)` and manual `html[data-reduced-motion="reduce"]` override.
 - **Native SVG & CSS Visualizations:** Analytics charts (velocity bars, format donut, status stacked bar, rating histogram, weekday pace) use pure reactive SVG/CSS with zero external chart libraries and wrapping pill controls for `320px` overflow safety.
-- **List Containment:** Catalog cards apply `contain: layout style paint; content-visibility: auto;`.
+- **List Containment & Paint Margin:** Catalog cards apply `contain: layout style paint; content-visibility: auto;` with an expanded paint box (`padding: 6px 4px 10px; margin: -6px -4px -10px;`) on `.catalog-card-contain` so `-3px` hover lift borders and shadows never clip against the containment boundary.
 - **Deferred Heavy Modals:** Secondary modals (`BookDetailModal`, `BookEditModal`, `ReadingLogEditor`, `SagaDetailModal`, `BookCreateModal`) load lazily via `@defer (when ...)` to keep initial route bundles lean.
 - **Image Optimization:** Cover uploads compress to WebP/JPEG (`<= 400px`, `0.75` quality) via `ImageOptimizerService`, while bulk cover enrichment enforces an anti-placeholder dimension guard (`>= 80x120px`); cover `<img>` tags include `loading="lazy"` and `decoding="async"`.
+
+---
+
+## 5. New Feature Governance Checklist
+
+Before merging any new UI feature, micro-interaction, or background capability (see `AGENTS.md` Rule 11):
+
+1. **Settings Relevance:** Decide whether the capability belongs in `/settings` (`AppPreferencesService` + Zod schema + `SETTINGS_SEARCH_ENTRIES` + `es`/`en` i18n).
+2. **Reduced-Motion Compliance:** Verify that animations, transforms, and intense hover color shifts are neutralized under both `html[data-reduced-motion='reduce']` and `@media (prefers-reduced-motion: reduce)`.
+3. **Preference Fallbacks:** Verify clean neutral styling when `adaptiveCoverTint` is off and zero external requests when `offlineMode` is on.

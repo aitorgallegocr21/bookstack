@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
+import { AppPreferencesService } from '../../../core/services/app-preferences.service';
 import { ImageOptimizerService } from './image-optimizer.service';
 
 describe('ImageOptimizerService', () => {
@@ -84,6 +85,53 @@ describe('ImageOptimizerService', () => {
     expect(drawImage).toHaveBeenCalledTimes(1);
     expect(toDataURL).toHaveBeenCalledWith('image/webp', 0.7);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-cover');
+  });
+
+  it('should dynamically apply updated coverMaxDimension and coverQuality preferences', async () => {
+    const appPreferences = TestBed.inject(AppPreferencesService);
+    appPreferences.updatePreferences({ coverMaxDimension: 600, coverQuality: 0.9 });
+
+    URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-dynamic');
+    URL.revokeObjectURL = vi.fn();
+
+    class MockImage {
+      naturalWidth = 1000;
+      naturalHeight = 2000;
+      width = 1000;
+      height = 2000;
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+
+      set src(_value: string) {
+        queueMicrotask(() => this.onload?.());
+      }
+    }
+
+    globalThis.Image = MockImage as unknown as typeof Image;
+
+    const drawImage = vi.fn();
+    const toDataURL = vi.fn().mockReturnValue('data:image/webp;base64,highres');
+    const mockCanvas = {
+      width: 0,
+      height: 0,
+      getContext: vi.fn().mockReturnValue({ drawImage }),
+      toDataURL,
+    } as unknown as HTMLCanvasElement;
+
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName === 'canvas') {
+        return mockCanvas;
+      }
+      return document.createElement(tagName);
+    });
+
+    const pngFile = new File(['png-bytes'], 'cover.png', { type: 'image/png' });
+    const result = await service.optimize(pngFile);
+
+    expect(result).toBe('data:image/webp;base64,highres');
+    expect(mockCanvas.width).toBe(300);
+    expect(mockCanvas.height).toBe(600);
+    expect(toDataURL).toHaveBeenCalledWith('image/webp', 0.9);
   });
 
   describe('optimizeRemoteUrl', () => {

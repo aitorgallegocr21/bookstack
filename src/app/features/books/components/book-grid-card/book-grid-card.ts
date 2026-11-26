@@ -8,6 +8,7 @@ import {
   LucideTrash2,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import { CoverColorService } from '../../../../core/services/cover-color.service';
 import { getStatusBadgeClass } from '../../../../shared/utils/book-display.utils';
 import { BOOK_STATUS_CONFIG, Book } from '../../models/book.model';
@@ -25,6 +26,7 @@ import { translateBookFormat } from '../../utils/book-form.utils';
 })
 export class BookGridCardComponent {
   protected readonly i18n = inject(I18nService);
+  protected readonly appPreferences = inject(AppPreferencesService);
   private readonly coverColorService = inject(CoverColorService);
 
   readonly book = input.required<Book>();

@@ -1,5 +1,6 @@
 <article
   [style.--book-tint]="bookTint()"
+  [attr.data-book-tint-active]="bookTint() ? 'true' : null"
   class="book-card-item book-tint-card card-lift @container flex h-full min-w-0 gap-3.5 rounded-2xl border p-3 shadow-xs hover:-translate-y-0.5 hover:shadow-md max-[359px]:flex-col max-[359px]:gap-3"
 >
   <!-- Book Cover on the Left -->
@@ -102,51 +103,54 @@
     </div>
 
     <!-- Actions Row -->
-    <div
-      class="flex items-center justify-between gap-2 border-t border-subtle pt-2 max-[359px]:gap-1.5"
-    >
-      <button
-        type="button"
-        (click)="logReading.emit(book().id)"
-        class="inline-flex min-h-[36px] min-w-0 flex-1 items-center justify-center gap-1 rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-medium whitespace-nowrap text-accent-soft-text transition-colors hover:brightness-95 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-        [attr.aria-label]="i18n.t().books.logReadingAria + ' ' + book().title"
-        [title]="i18n.t().books.logAction"
+    @if (appPreferences.showCardQuickActions()) {
+      <div
+        data-testid="detailed-card-quick-actions"
+        class="flex items-center justify-between gap-2 border-t border-subtle pt-2 max-[359px]:gap-1.5"
       >
-        <svg [lucideIcon]="Plus" size="14" stroke-width="2.5"></svg>
-        <span class="hidden @[290px]:inline">{{ i18n.t().books.logAction }}</span>
-      </button>
-
-      <div class="flex shrink-0 items-center gap-1">
         <button
           type="button"
-          (click)="viewDetails.emit(book().id)"
-          class="rounded-lg p-1.5 text-accent transition-colors hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-          [attr.aria-label]="i18n.t().books.viewDetails + ': ' + book().title"
-          [title]="i18n.t().books.viewDetails"
+          (click)="logReading.emit(book().id)"
+          class="inline-flex min-h-[36px] min-w-0 flex-1 items-center justify-center gap-1 rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-medium whitespace-nowrap text-accent-soft-text transition-colors hover:brightness-95 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          [attr.aria-label]="i18n.t().books.logReadingAria + ' ' + book().title"
+          [title]="i18n.t().books.logAction"
         >
-          <svg [lucideIcon]="Eye" size="18" stroke-width="2"></svg>
+          <svg [lucideIcon]="Plus" size="14" stroke-width="2.5"></svg>
+          <span class="hidden @[290px]:inline">{{ i18n.t().books.logAction }}</span>
         </button>
 
-        <button
-          type="button"
-          (click)="editBook.emit(book().id)"
-          class="rounded-lg p-1.5 text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-          [attr.aria-label]="i18n.t().books.edit + ' ' + book().title"
-          [title]="i18n.t().books.edit"
-        >
-          <svg [lucideIcon]="Edit2" size="18" stroke-width="2"></svg>
-        </button>
+        <div class="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            (click)="viewDetails.emit(book().id)"
+            class="rounded-lg p-1.5 text-accent transition-colors hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            [attr.aria-label]="i18n.t().books.viewDetails + ': ' + book().title"
+            [title]="i18n.t().books.viewDetails"
+          >
+            <svg [lucideIcon]="Eye" size="18" stroke-width="2"></svg>
+          </button>
 
-        <button
-          type="button"
-          (click)="deleteBook.emit(book().id)"
-          class="rounded-lg p-1.5 text-rose-600 transition-colors hover:bg-rose-50 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none dark:text-rose-400 dark:hover:bg-rose-950/20"
-          [attr.aria-label]="i18n.t().books.delete + ' ' + book().title"
-          [title]="i18n.t().books.delete"
-        >
-          <svg [lucideIcon]="Trash2" size="18" stroke-width="2"></svg>
-        </button>
+          <button
+            type="button"
+            (click)="editBook.emit(book().id)"
+            class="rounded-lg p-1.5 text-ink-secondary transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            [attr.aria-label]="i18n.t().books.edit + ' ' + book().title"
+            [title]="i18n.t().books.edit"
+          >
+            <svg [lucideIcon]="Edit2" size="18" stroke-width="2"></svg>
+          </button>
+
+          <button
+            type="button"
+            (click)="deleteBook.emit(book().id)"
+            class="rounded-lg p-1.5 text-rose-600 transition-colors hover:bg-rose-50 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none dark:text-rose-400 dark:hover:bg-rose-950/20"
+            [attr.aria-label]="i18n.t().books.delete + ' ' + book().title"
+            [title]="i18n.t().books.delete"
+          >
+            <svg [lucideIcon]="Trash2" size="18" stroke-width="2"></svg>
+          </button>
+        </div>
       </div>
-    </div>
+    }
   </div>
 </article>

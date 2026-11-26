@@ -436,19 +436,27 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
     expect(hasHorizontalOverflow).toBe(false);
   });
 
-  test('should gate camera initialization behind explicit user consent in IsbnScannerComponent', async ({
+  test('should start rear camera immediately upon clicking Escanear código with zero pre-click getUserMedia calls', async ({
     page,
   }) => {
     await page.addInitScript(() => {
       let getUserMediaCalls = 0;
-      (window as unknown as { __getUserMediaCalls: () => number }).__getUserMediaCalls = () =>
-        getUserMediaCalls;
+      let lastVideoConstraints: unknown = null;
+      (
+        window as unknown as {
+          __getCameraSpy: () => { calls: number; lastVideoConstraints: unknown };
+        }
+      ).__getCameraSpy = () => ({
+        calls: getUserMediaCalls,
+        lastVideoConstraints,
+      });
       Object.defineProperty(navigator, 'mediaDevices', {
         configurable: true,
         value: {
-          getUserMedia: () => {
+          getUserMedia: (constraints?: MediaStreamConstraints) => {
             getUserMediaCalls += 1;
-            return Promise.reject(new Error('NotAllowedError'));
+            lastVideoConstraints = constraints?.video ?? null;
+            return Promise.reject(new DOMException('Permission denied', 'NotAllowedError'));
           },
           enumerateDevices: () => Promise.resolve([]),
         },
@@ -461,21 +469,136 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
     await page.getByRole('button', { name: 'Crear nuevo libro' }).click();
     await expect(page.locator('#create-modal-title')).toBeVisible();
 
+    const spyBeforeClick = await page.evaluate(() =>
+      (
+        window as unknown as {
+          __getCameraSpy: () => { calls: number; lastVideoConstraints: unknown };
+        }
+      ).__getCameraSpy()
+    );
+    expect(spyBeforeClick.calls).toBe(0);
+
     const lookupPanel = page.locator('app-book-metadata-lookup');
     await lookupPanel.getByRole('button', { name: 'Escanear código' }).click();
 
-    const consentButton = page.getByTestId('enable-camera-consent-btn');
-    await expect(consentButton).toBeVisible();
+    await expect(page.getByTestId('enable-camera-consent-btn')).toHaveCount(0);
+    await expect(page.getByTestId('isbn-scanner-modal')).toBeVisible();
+    await expect(page.locator('[data-testid="isbn-scanner-viewport"] video')).toBeAttached();
     await expect(
-      lookupPanel.getByText(
-        'La cámara se procesa únicamente en tu navegador para leer códigos ISBN. No se graban ni envían imágenes.'
-      )
+      page
+        .getByTestId('isbn-scanner-modal')
+        .getByText(
+          'La cámara se procesa únicamente en tu navegador para leer códigos ISBN. No se graban ni envían imágenes.'
+        )
     ).toBeVisible();
 
-    const callsBeforeConsent = await page.evaluate(() =>
-      (window as unknown as { __getUserMediaCalls: () => number }).__getUserMediaCalls()
+    await expect
+      .poll(async () => {
+        const spy = await page.evaluate(() =>
+          (
+            window as unknown as {
+              __getCameraSpy: () => { calls: number; lastVideoConstraints: unknown };
+            }
+          ).__getCameraSpy()
+        );
+        return spy.calls;
+      })
+      .toBeGreaterThanOrEqual(1);
+
+    const spyAfterClick = await page.evaluate(() =>
+      (
+        window as unknown as {
+          __getCameraSpy: () => { calls: number; lastVideoConstraints: unknown };
+        }
+      ).__getCameraSpy()
     );
-    expect(callsBeforeConsent).toBe(0);
+    expect(spyAfterClick.lastVideoConstraints).toEqual({
+      facingMode: { ideal: 'environment' },
+    });
+  });
+
+  test('should decode ISBN via native BarcodeDetector and release camera tracks on detection', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      let stoppedTracks = 0;
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = 480;
+      const ctx = canvas.getContext('2d');
+      ctx?.fillRect(0, 0, 640, 480);
+
+      (
+        window as unknown as {
+          __getStoppedTracks: () => number;
+        }
+      ).__getStoppedTracks = () => stoppedTracks;
+
+      const realStream = canvas.captureStream(10);
+      const realTrack = realStream.getVideoTracks()[0];
+      const originalStop = realTrack.stop.bind(realTrack);
+      realTrack.stop = () => {
+        stoppedTracks += 1;
+        originalStop();
+      };
+      realTrack.getSettings = () => ({ deviceId: 'cam-rear-0', facingMode: 'environment' });
+      realTrack.getCapabilities = () => ({ torch: true, focusMode: ['continuous'] });
+      realTrack.applyConstraints = () => Promise.resolve();
+
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: {
+          getUserMedia: () => Promise.resolve(realStream),
+          enumerateDevices: () =>
+            Promise.resolve([
+              { kind: 'videoinput', deviceId: 'cam-rear-0', label: 'camera 0, facing back' },
+              { kind: 'videoinput', deviceId: 'cam-front-1', label: 'camera 1, facing front' },
+            ]),
+        },
+      });
+
+      Object.defineProperty(HTMLVideoElement.prototype, 'videoWidth', {
+        configurable: true,
+        get: () => 640,
+      });
+      Object.defineProperty(HTMLVideoElement.prototype, 'videoHeight', {
+        configurable: true,
+        get: () => 480,
+      });
+      Object.defineProperty(HTMLVideoElement.prototype, 'readyState', {
+        configurable: true,
+        get: () => 4,
+      });
+      HTMLVideoElement.prototype.play = () => Promise.resolve();
+
+      class MockBarcodeDetector {
+        static getSupportedFormats(): Promise<string[]> {
+          return Promise.resolve(['ean_13', 'ean_8']);
+        }
+        detect(): Promise<Array<{ rawValue: string; format: string }>> {
+          return Promise.resolve([{ rawValue: '9780141036144', format: 'ean_13' }]);
+        }
+      }
+      (window as unknown as { BarcodeDetector: unknown }).BarcodeDetector = MockBarcodeDetector;
+    });
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/books');
+
+    await page.getByRole('button', { name: 'Crear nuevo libro' }).click();
+    await expect(page.locator('#create-modal-title')).toBeVisible();
+
+    const lookupPanel = page.locator('app-book-metadata-lookup');
+    await lookupPanel.getByRole('button', { name: 'Escanear código' }).click();
+
+    await expect(page.locator('#create-book-isbn')).toHaveValue('9780141036144');
+    await expect(lookupPanel.getByText('Ediciones encontradas')).toBeVisible();
+    await expect(page.locator('app-isbn-scanner')).toHaveCount(0);
+
+    const stopped = await page.evaluate(() =>
+      (window as unknown as { __getStoppedTracks: () => number }).__getStoppedTracks()
+    );
+    expect(stopped).toBeGreaterThanOrEqual(1);
   });
 
   test('should fuse 5-provider search results and populate totalPages, publicationYear, publisher, isbn, and coverUrl on selection', async ({
@@ -513,8 +636,49 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
   test('should render metadata lookup and ISBN scanner controls without overlap or horizontal overflow at 320px and 375px', async ({
     page,
   }) => {
-    for (const width of [320, 375]) {
-      await page.setViewportSize({ width, height: 740 });
+    await page.addInitScript(() => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = 480;
+      canvas.getContext('2d')?.fillRect(0, 0, 640, 480);
+
+      const realStream = canvas.captureStream(10);
+      const realTrack = realStream.getVideoTracks()[0];
+      realTrack.getSettings = () => ({ deviceId: 'cam-rear-0', facingMode: 'environment' });
+      realTrack.getCapabilities = () => ({ torch: true, focusMode: ['continuous'] });
+      realTrack.applyConstraints = () => Promise.resolve();
+
+      Object.defineProperty(navigator, 'mediaDevices', {
+        configurable: true,
+        value: {
+          getUserMedia: () => Promise.resolve(realStream),
+          enumerateDevices: () =>
+            Promise.resolve([
+              { kind: 'videoinput', deviceId: 'cam-rear-0', label: 'camera 0, facing back' },
+              { kind: 'videoinput', deviceId: 'cam-front-1', label: 'camera 1, facing front' },
+            ]),
+        },
+      });
+      Object.defineProperty(HTMLVideoElement.prototype, 'videoWidth', {
+        configurable: true,
+        get: () => 640,
+      });
+      Object.defineProperty(HTMLVideoElement.prototype, 'videoHeight', {
+        configurable: true,
+        get: () => 480,
+      });
+      Object.defineProperty(HTMLVideoElement.prototype, 'readyState', {
+        configurable: true,
+        get: () => 4,
+      });
+      HTMLVideoElement.prototype.play = () => Promise.resolve();
+    });
+
+    for (const [width, height] of [
+      [320, 568],
+      [375, 740],
+    ] as const) {
+      await page.setViewportSize({ width, height });
       await page.goto('/books');
 
       await page.getByRole('button', { name: 'Crear nuevo libro' }).click();
@@ -562,19 +726,46 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
         .evaluate((el) => el.scrollWidth > el.clientWidth);
       expect(modalSearchOverflow).toBe(false);
 
-      // Switch to scanner tab and verify zero horizontal overflow inside lookup panel & modal
+      // Open full-viewport locked scanner modal and verify all controls fit without scrolling
       await scanBtn.click();
-      await expect(lookupPanel.locator('app-isbn-scanner')).toBeVisible();
+      const scannerModal = page.getByTestId('isbn-scanner-modal');
+      await expect(scannerModal).toBeVisible();
+      await expect(page.getByTestId('close-isbn-scanner-btn')).toBeVisible();
+      await expect(page.getByTestId('toggle-camera-facing-btn')).toBeVisible();
+      await expect(page.getByTestId('toggle-torch-btn')).toBeVisible();
+      await expect(page.getByTestId('upload-barcode-photo-btn')).toBeVisible();
 
-      const lookupScannerOverflow = await lookupPanel.evaluate(
-        (el) => el.scrollWidth > el.clientWidth
+      const bodyLocked = await page.evaluate(() =>
+        document.body.classList.contains('overflow-hidden')
       );
-      expect(lookupScannerOverflow).toBe(false);
+      expect(bodyLocked).toBe(true);
 
-      const modalScannerOverflow = await page
-        .locator('app-book-create-modal .modal-panel')
-        .evaluate((el) => el.scrollWidth > el.clientWidth);
-      expect(modalScannerOverflow).toBe(false);
+      const scannerBounds = await scannerModal.evaluate((el) => ({
+        scrollWidth: el.scrollWidth,
+        clientWidth: el.clientWidth,
+        scrollHeight: el.scrollHeight,
+        clientHeight: el.clientHeight,
+      }));
+      expect(scannerBounds.scrollWidth).toBeLessThanOrEqual(scannerBounds.clientWidth);
+      expect(scannerBounds.scrollHeight).toBeLessThanOrEqual(scannerBounds.clientHeight);
+
+      for (const testId of [
+        'close-isbn-scanner-btn',
+        'toggle-camera-facing-btn',
+        'toggle-torch-btn',
+        'upload-barcode-photo-btn',
+      ]) {
+        const box = await page.getByTestId(testId).boundingBox();
+        expect(box).not.toBeNull();
+        expect(box!.height).toBeGreaterThanOrEqual(44);
+        expect(box!.y).toBeGreaterThanOrEqual(0);
+        expect(box!.y + box!.height).toBeLessThanOrEqual(height + 1);
+      }
+
+      // Pressing Escape closes only the scanner modal while keeping Create Book modal open
+      await page.keyboard.press('Escape');
+      await expect(scannerModal).toHaveCount(0);
+      await expect(page.locator('#create-modal-title')).toBeVisible();
     }
   });
 });

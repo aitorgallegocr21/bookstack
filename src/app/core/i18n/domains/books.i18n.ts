@@ -146,6 +146,8 @@ export interface BooksI18n {
       collapseAria: string;
       scanTab: string;
       searchTab: string;
+      scannerModalTitle: string;
+      closeScannerAria: string;
       searchPlaceholder: string;
       searchButton: string;
       searchEmptyHint: string;
@@ -153,9 +155,17 @@ export interface BooksI18n {
       isbnLookupAria: string;
       startCamera: string;
       enableCamera: string;
+      loadingCamera: string;
       cameraConsentHint: string;
       stopCamera: string;
+      toggleTorchOn: string;
+      toggleTorchOff: string;
       switchCamera: string;
+      switchToFrontCamera: string;
+      switchToRearCamera: string;
+      rearCamera: string;
+      frontCamera: string;
+      genericCameraPrefix: string;
       uploadPhoto: string;
       scanningHint: string;
       externalLookupNotice: string;
@@ -186,6 +196,10 @@ export interface BooksI18n {
       applyOverwritePublic: string;
       appliedFeedback: string;
       editProtectionHint: string;
+      offlineModeTitle: string;
+      offlineModeDescription: string;
+      offlineModeSettingsLink: string;
+      offlineModeBlockedError: string;
     };
   };
   bookDetail: {
@@ -381,6 +395,8 @@ export const ES_BOOKS: BooksI18n = {
       collapseAria: 'Contraer panel de búsqueda y escáner ISBN',
       scanTab: 'Escanear código',
       searchTab: 'Buscar libro',
+      scannerModalTitle: 'Escanear código ISBN',
+      closeScannerAria: 'Cerrar escáner ISBN',
       searchPlaceholder: 'Título, autor o ISBN...',
       searchButton: 'Buscar',
       searchEmptyHint: 'Introduce un título, autor o ISBN para buscar ediciones públicas.',
@@ -388,10 +404,18 @@ export const ES_BOOKS: BooksI18n = {
       isbnLookupAria: 'Buscar metadatos para este ISBN',
       startCamera: 'Iniciar cámara',
       enableCamera: 'Activar cámara',
+      loadingCamera: 'Iniciando cámara...',
       cameraConsentHint:
         'La cámara se procesa únicamente en tu navegador para leer códigos ISBN. No se graban ni envían imágenes.',
       stopCamera: 'Detener cámara',
+      toggleTorchOn: 'Encender linterna',
+      toggleTorchOff: 'Apagar linterna',
       switchCamera: 'Cambiar cámara',
+      switchToFrontCamera: 'Cambiar a cámara frontal',
+      switchToRearCamera: 'Cambiar a cámara trasera',
+      rearCamera: 'Cámara trasera',
+      frontCamera: 'Cámara frontal',
+      genericCameraPrefix: 'Cámara',
       uploadPhoto: 'Subir foto del código',
       scanningHint: 'Apunta la cámara al código de barras ISBN (978/979) del libro.',
       externalLookupNotice:
@@ -424,6 +448,11 @@ export const ES_BOOKS: BooksI18n = {
       appliedFeedback: 'Datos aplicados al formulario',
       editProtectionHint:
         'Tu progreso, valoración, fechas, notas y saga personales nunca se sobrescriben.',
+      offlineModeTitle: 'Modo Offline 100% activo',
+      offlineModeDescription:
+        'Las búsquedas en catálogos externos están bloqueadas. El escáner ISBN y las portadas locales siguen funcionando.',
+      offlineModeSettingsLink: 'Configurar en Privacidad',
+      offlineModeBlockedError: 'Modo Offline 100% activo: se han bloqueado las consultas externas.',
     },
   },
   bookDetail: {
@@ -618,6 +647,8 @@ export const EN_BOOKS: BooksI18n = {
       collapseAria: 'Collapse ISBN scanner and lookup panel',
       scanTab: 'Scan barcode',
       searchTab: 'Search book',
+      scannerModalTitle: 'Scan ISBN barcode',
+      closeScannerAria: 'Close ISBN scanner',
       searchPlaceholder: 'Title, author, or ISBN...',
       searchButton: 'Search',
       searchEmptyHint: 'Enter a title, author, or ISBN to search public editions.',
@@ -625,10 +656,18 @@ export const EN_BOOKS: BooksI18n = {
       isbnLookupAria: 'Lookup metadata for this ISBN',
       startCamera: 'Start camera',
       enableCamera: 'Enable camera',
+      loadingCamera: 'Starting camera...',
       cameraConsentHint:
         'Your camera is processed locally in your browser to read ISBN barcodes. No video is recorded or sent.',
       stopCamera: 'Stop camera',
+      toggleTorchOn: 'Turn on flashlight',
+      toggleTorchOff: 'Turn off flashlight',
       switchCamera: 'Switch camera',
+      switchToFrontCamera: 'Switch to front camera',
+      switchToRearCamera: 'Switch to rear camera',
+      rearCamera: 'Rear camera',
+      frontCamera: 'Front camera',
+      genericCameraPrefix: 'Camera',
       uploadPhoto: 'Upload barcode photo',
       scanningHint: 'Point the camera at the book ISBN barcode (978/979).',
       externalLookupNotice:
@@ -661,6 +700,11 @@ export const EN_BOOKS: BooksI18n = {
       appliedFeedback: 'Metadata applied to form',
       editProtectionHint:
         'Your personal progress, rating, dates, notes, and series are never overwritten.',
+      offlineModeTitle: '100% Offline Mode active',
+      offlineModeDescription:
+        'External catalog lookups are blocked. Local ISBN barcode scanning and manual/local covers remain active.',
+      offlineModeSettingsLink: 'Manage in Privacy',
+      offlineModeBlockedError: '100% Offline Mode is active: external lookups are blocked.',
     },
   },
   bookDetail: {

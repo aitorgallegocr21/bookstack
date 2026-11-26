@@ -50,6 +50,7 @@
           [currentIsbn]="createForm.controls.isbn.value || ''"
           [currentTitle]="createForm.controls.title.value || ''"
           [currentAuthor]="createForm.controls.author.value || ''"
+          (scanRequested)="openScanner()"
           (candidateApplied)="onMetadataCandidateApplied($event)"
         />
 
@@ -485,3 +486,9 @@
     </form>
   </div>
 </div>
+
+@defer (when isScannerOpen()) {
+  @if (isScannerOpen()) {
+    <app-isbn-scanner (isbnDetected)="onScannerIsbnDetected($event)" (closed)="closeScanner()" />
+  }
+}

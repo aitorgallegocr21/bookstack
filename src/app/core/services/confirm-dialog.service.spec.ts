@@ -125,4 +125,16 @@ describe('ConfirmDialogService', () => {
     expect(localStorage.getItem(storage.suppressedConfirmsKey)).toBeNull();
     expect(uiState).toBeTruthy();
   });
+
+  it('updates suppressedKeys signal via setSuppressed and resetSuppressed', () => {
+    expect(service.suppressedKeys()).toEqual([]);
+
+    service.setSuppressed('unlinkSagaBook', true);
+    expect(service.isSuppressed('unlinkSagaBook')).toBe(true);
+    expect(service.suppressedKeys()).toEqual(['unlinkSagaBook']);
+
+    service.setSuppressed('unlinkSagaBook', false);
+    expect(service.isSuppressed('unlinkSagaBook')).toBe(false);
+    expect(service.suppressedKeys()).toEqual([]);
+  });
 });

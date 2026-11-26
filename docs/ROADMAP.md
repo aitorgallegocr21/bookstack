@@ -1,6 +1,6 @@
-# BookStack Product & Architecture Roadmap (Phases 16–21)
+# BookStack Product & Architecture Roadmap (Phases 16–22)
 
-> **Single Source of Truth for Upcoming Milestones:** This document captures the strategic product vision, architectural boundaries, and functional requirements for **Phases 16 through 21**. For the active sprint index and completed phase archive, see [`docs/TASKS.md`](TASKS.md).
+> **Single Source of Truth for Upcoming Milestones:** This document captures the strategic product vision, architectural boundaries, and functional requirements for **Phases 16 through 22**. For the active sprint index and completed phase archive, see [`docs/TASKS.md`](TASKS.md).
 >
 > **Pre-Phase Protocol:** Before breaking down any phase below into atomic `docs/tasks/phase-XX-<name>/task-X.Y-*.md` specifications, run a focused `/grill-me` alignment pass with the user to incorporate any new details or visual adjustments for that specific phase.
 
@@ -15,6 +15,7 @@ flowchart LR
   P18 --> P19["Phase 19: Extended Settings, Advanced Mode & Privacy/Crypto"]
   P19 --> P20["Phase 20: Expanded Analytics, Adaptive Time & Tags/Genres"]
   P20 --> P21["Phase 21: Integrated eBook Reader & Binary Metadata Engine"]
+  P21 --> P22["Phase 22: Final Hardening, Bundle Budget & Ongoing Backlog"]
 ```
 
 1. **Why Foundation & Data Hygiene First (`Phase 16`):** Fixes the anomalous year filter defect (`2925`) in `/stats`, enforces temporal sanity bounds across schemas/forms/importers, replaces all native browser `window.confirm()` alerts with an accessible in-app confirmation modal (`ConfirmDialogService` + `<app-confirm-dialog>`), and introduces a Library Data Health Auditor before visual or schema expansions.
@@ -23,6 +24,7 @@ flowchart LR
 4. **Why Extended Settings & Privacy Fourth (`Phase 19`):** Consolidates user-configurable preferences (including theme/accent tokens from Phase 17, confirmation dialog toggles from Phase 16, strict 100% Offline Mode, metadata provider toggles, `navigator.storage.persist()`, and `AES-GCM` encrypted backups) into a structured, categorized `/settings` hub with an **Advanced Mode**.
 5. **Why Expanded Analytics & Adaptive Time Fifth (`Phase 20`):** Leverages the new design tokens and user preferences to make time/velocity metrics adaptive (hiding `pp/h` and time tabs when no timed sessions exist), introduces book genres/tags (`tags`), annual activity heatmaps, longevity/pacing metrics, and period-over-period comparisons.
 6. **Why the Integrated eBook Reader Sixth (`Phase 21`):** Serves as the flagship long-term evolution. By storing `.epub`/`.pdf` binaries in a dedicated IndexedDB `ObjectStore` (`ebookFiles`), extracting embedded metadata/covers natively in the browser, and auto-logging timed reading sessions from `/reader/:id`, it organically feeds the adaptive time/velocity analytics created in Phase 20 without manual stopwatch friction.
+7. **Why Final Hardening & Ongoing Backlog Last (`Phase 22`):** Acts as the living consolidation and stabilization milestone after major feature arcs—capturing non-blocking performance/security improvements identified during pre-release audits (initial bundle budget tuning, ZIP decompression byte caps) alongside incremental polish ideas collected along the way.
 
 ---
 
@@ -144,3 +146,19 @@ flowchart LR
      - Automatically track active reading duration while `/reader/:id` is focused and log/merge `ReadingLog` entries with accurate `pagesRead` and `timeSpentMinutes`—effortlessly powering the adaptive reading speed (`pp/h`) analytics in `/stats`.
   5. **eBook Storage Inspector & Portability Controls (`/settings`):**
      - Per-book binary size inspector in `/settings`, ability to delete only the heavy eBook file while retaining the book metadata and reading history, and optional inclusion of eBook files in full `.ZIP` archive exports.
+
+---
+
+### Phase 22 (Final Hardening & Ongoing Backlog): Bundle Budget Optimization, ZIP Security Bounds & Accumulated Polish
+
+- **Status:** Living Hardening Backlog (Append incremental ideas discovered along the way)
+- **Primary Goal:** Consolidate non-blocking performance, security, and DX/UX refinements accumulated across Phases 19–21 into a final stabilization and hardening pass (aligned with `.agents/skills/periodic-project-hardening/SKILL.md`).
+- **Core Deliverables:**
+  1. **Initial Bundle Size Reduction & Angular Budget Alignment:**
+     - Audit the initial production bundle (`~1.22 MB` raw / `214 kB` transfer as of `v2.5.1`, which triggers a non-blocking warning against the `1.10 MB` raw budget in `angular.json`).
+     - Evaluate lazy-loading heavy non-critical startup modules (e.g., deferring secondary services/icons or trimming shared chunk imports) and recalibrate `angular.json` budgets so `ng build --configuration production` finishes with zero warnings.
+  2. **ZIP Decompression Safety Bounds (`zip-archive.utils.ts`):**
+     - Enforce explicit per-entry and total uncompressed byte ceilings inside `inflateRawBytes()` (`src/app/features/settings/utils/zip-archive.utils.ts`) to guard client-side memory against malformed or excessively compressed `.ZIP` archives (and future `.EPUB` packages in Phase 21).
+     - Add dedicated unit/regression tests verifying oversized compressed streams abort cleanly with a typed error.
+  3. **Accumulated Polish & Ideas Backlog (Rolling):**
+     - Dedicated slot to capture additional micro-improvements, accessibility refinements, performance tweaks, and security checks surfaced during Phases 20–21 before executing the final hardening sweep.

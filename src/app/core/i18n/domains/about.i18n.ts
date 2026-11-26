@@ -125,7 +125,7 @@ export const ES_ABOUT: AboutI18n = {
         'Solo se ejecutan al lanzar manualmente una búsqueda por ISBN o título. Envían únicamente tu consulta y las cabeceras HTTP estándar (dirección IP) a Open Library (Internet Archive) y Google Books API con credentials: "omit" y referrerPolicy: "no-referrer".',
       cameraAccessTitle: 'Acceso a la cámara (opcional):',
       cameraAccessText:
-        'Se utiliza exclusivamente en tu navegador mediante html5-qrcode para decodificar códigos de barras ISBN en local. Ningún fotograma de vídeo se almacena ni se transmite.',
+        'Se utiliza exclusivamente en tu navegador mediante BarcodeDetector nativo o ZXing-WASM local para decodificar códigos de barras ISBN en local. Ningún fotograma de vídeo se almacena ni se transmite.',
     },
     legalTitle: 'Aviso Legal, Licencia y Atribuciones',
     licenseHeading: 'Licencia MIT — Copyright © 2026 Aitor Gallego-Casilda Romero',
@@ -135,7 +135,7 @@ export const ES_ABOUT: AboutI18n = {
       'El software se proporciona «tal cual» (as is), sin garantías de ningún tipo. Recuerda exportar copias de seguridad periódicas en formato JSON desde Ajustes.',
     attributionsHeading: 'APIs de terceros y stack de código abierto',
     attributionsText:
-      'Metadatos opcionales proporcionados por Open Library (Internet Archive) y Google Books API. Construido con Angular, Tailwind CSS, Lucide Icons, Zod y html5-qrcode.',
+      'Metadatos opcionales proporcionados por Open Library (Internet Archive) y Google Books API. Construido con Angular, Tailwind CSS, Lucide Icons, Zod y barcode-detector (ZXing-WASM).',
     footerTagline: 'Construido con dedicación. Propiedad tuya. Siempre.',
   },
 };
@@ -201,7 +201,7 @@ export const EN_ABOUT: AboutI18n = {
         'Triggered only when you manually run an ISBN or title search. Sends only your search query and standard HTTP request headers (IP address) to Open Library (Internet Archive) and Google Books API with credentials: "omit" and referrerPolicy: "no-referrer".',
       cameraAccessTitle: 'Camera Access (Opt-In):',
       cameraAccessText:
-        'Used exclusively in-browser via html5-qrcode to decode ISBN barcodes locally. Video frames are never transmitted or stored.',
+        'Used exclusively in-browser via native BarcodeDetector or local ZXing-WASM to decode ISBN barcodes locally. Video frames are never transmitted or stored.',
     },
     legalTitle: 'Legal Notice, License & Attributions',
     licenseHeading: 'MIT License — Copyright © 2026 Aitor Gallego-Casilda Romero',
@@ -211,7 +211,7 @@ export const EN_ABOUT: AboutI18n = {
       'The software is provided "as is", without warranty of any kind. Remember to export periodic JSON backups from Settings.',
     attributionsHeading: 'Third-Party APIs & Open-Source Stack',
     attributionsText:
-      'Optional metadata provided by Open Library (Internet Archive) and Google Books API. Built with Angular, Tailwind CSS, Lucide Icons, Zod, and html5-qrcode.',
+      'Optional metadata provided by Open Library (Internet Archive) and Google Books API. Built with Angular, Tailwind CSS, Lucide Icons, Zod, and barcode-detector (ZXing-WASM).',
     footerTagline: 'Built with care. Yours forever.',
   },
 };

@@ -1,7 +1,7 @@
 # Task 18.4: Playwright E2E Verification, Bundle Audit & Tier 2 Docs Sync (`v2.4.0`)
 
 - **Phase:** [Phase 18: Modern Native ISBN Scanner Engine](index.md)
-- **Status:** Pending
+- **Status:** Completed (`2026-11`)
 - **Estimated Scope:** Playwright E2E suite update, bundle/asset audit, semantic version bump (`2.4.0`), Tier 2 documentation sync & branch hygiene.
 
 ---
@@ -43,7 +43,7 @@ Verify the modernized native ISBN scanner end-to-end across desktop and mobile v
 
 ## 4. Verification & Acceptance Criteria
 
-- [ ] `npm run verify:quiet` passes all 5 gates (`check`, `lint`, `format`, `test`, `build`).
-- [ ] `npm run test:e2e` passes across all desktop & mobile scenarios with zero horizontal overflow at `320px`/`375px`.
-- [ ] `dist/bookstack/browser/assets/wasm/zxing_reader.wasm` is emitted locally and `html5-qrcode` is completely gone.
-- [ ] Version bumped to `2.4.0` and all Tier 2 docs synced in English (plus `README.es.md`).
+- [x] `npm run verify:quiet` passes all 5 gates (`check`, `lint`, `format`, `test`, `build`).
+- [x] `npm run test:e2e` passes across all desktop & mobile scenarios with zero horizontal overflow at `320px`/`375px`.
+- [x] `dist/bookstack/browser/assets/wasm/zxing_reader.wasm` is emitted locally and `html5-qrcode` is completely gone.
+- [x] Version bumped to `2.4.0` and all Tier 2 docs synced in English (plus `README.es.md`).

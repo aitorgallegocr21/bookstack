@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-- [ ] **[Phase 18: Modern Native ISBN Scanner Engine (`getUserMedia` + `BarcodeDetector` & Local ZXing-WASM)](tasks/phase-18-native-isbn-scanner-engine/index.md)** — _Active / Ready for Implementation_ (Replace unmaintained `html5-qrcode` with native `CameraStreamService` + `BarcodeDecoderService` using hardware `BarcodeDetector` and lazy local `zxing_reader.wasm` ponyfill, `localStorage` preferred rear `deviceId` memory for `<500 ms` startup, progressive continuous autofocus, flashlight/torch control, and offline PWA + CSP `'wasm-unsafe-eval'` compliance).
+_None — Phase 18 completed (`v2.4.0`). Ready to plan Phase 19._
 
 ---
 
@@ -23,6 +23,8 @@
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 18: Modern Native ISBN Scanner Engine (`getUserMedia` + `BarcodeDetector` & Local ZXing-WASM) (`v2.4.0`)](tasks/phase-18-native-isbn-scanner-engine/index.md)** — _Completed 2026-11_ (Removed `html5-qrcode` completely, introduced native `CameraStreamService` with `localStorage` preferred rear `deviceId` memory, Camera2 primary-sensor index ranking, progressive continuous autofocus/HD constraints, and torch control, plus `BarcodeDecoderService` using hardware `BarcodeDetector` with lazy local `assets/wasm/zxing_reader.wasm` ponyfill, `'wasm-unsafe-eval'` CSP, offline PWA caching, and rewritten `<app-isbn-scanner>` UI).
 
 - [x] **[Phase 17D: ISBN Scanner Smart Camera Selection, HD Quality & UX Simplification (`v2.3.3`)](tasks/phase-17d-isbn-scanner-camera-fix/index.md)** — _Completed 2026-11_ (Eliminated pre-start `Html5Qrcode.getCameras()` double-stream race, added 1-tap direct rear HD camera startup with `OverconstrainedError` fallback ladder and continuous autofocus, filtered auxiliary Android `camera2` lenses via `camera-selection.utils.ts`, collapsed mobile switchers into a 1-tap front/rear toggle button while hiding single-camera controls, and displayed the local-only privacy notice inline).
 

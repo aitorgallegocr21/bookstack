@@ -71,7 +71,7 @@ flowchart LR
 
 ### Phase 18: Modern Native ISBN Scanner Engine (`getUserMedia` + `BarcodeDetector` & Local ZXing-WASM)
 
-- **Status:** Active / Ready for Implementation ([`docs/tasks/phase-18-native-isbn-scanner-engine/index.md`](tasks/phase-18-native-isbn-scanner-engine/index.md))
+- **Status:** Completed (`v2.4.0`, [`docs/tasks/phase-18-native-isbn-scanner-engine/index.md`](tasks/phase-18-native-isbn-scanner-engine/index.md))
 - **Primary Goal:** Replace the unmaintained, heavyweight `html5-qrcode` wrapper with a fast, 100% Local-First, offline-capable native camera and barcode scanning engine that opens primary rear lenses in `<500 ms` across multi-camera Android, iOS Safari, Firefox, and desktop browsers.
 - **Core Deliverables:**
   1. **Hybrid Native `BarcodeDetector` + Local ZXing-C++ WASM Ponyfill (`BarcodeDecoderService`):**

@@ -153,8 +153,11 @@ export interface BooksI18n {
       isbnLookupAria: string;
       startCamera: string;
       enableCamera: string;
+      loadingCamera: string;
       cameraConsentHint: string;
       stopCamera: string;
+      toggleTorchOn: string;
+      toggleTorchOff: string;
       switchCamera: string;
       switchToFrontCamera: string;
       switchToRearCamera: string;
@@ -393,9 +396,12 @@ export const ES_BOOKS: BooksI18n = {
       isbnLookupAria: 'Buscar metadatos para este ISBN',
       startCamera: 'Iniciar cámara',
       enableCamera: 'Activar cámara',
+      loadingCamera: 'Iniciando cámara...',
       cameraConsentHint:
         'La cámara se procesa únicamente en tu navegador para leer códigos ISBN. No se graban ni envían imágenes.',
       stopCamera: 'Detener cámara',
+      toggleTorchOn: 'Encender linterna',
+      toggleTorchOff: 'Apagar linterna',
       switchCamera: 'Cambiar cámara',
       switchToFrontCamera: 'Cambiar a cámara frontal',
       switchToRearCamera: 'Cambiar a cámara trasera',
@@ -635,9 +641,12 @@ export const EN_BOOKS: BooksI18n = {
       isbnLookupAria: 'Lookup metadata for this ISBN',
       startCamera: 'Start camera',
       enableCamera: 'Enable camera',
+      loadingCamera: 'Starting camera...',
       cameraConsentHint:
         'Your camera is processed locally in your browser to read ISBN barcodes. No video is recorded or sent.',
       stopCamera: 'Stop camera',
+      toggleTorchOn: 'Turn on flashlight',
+      toggleTorchOff: 'Turn off flashlight',
       switchCamera: 'Switch camera',
       switchToFrontCamera: 'Switch to front camera',
       switchToRearCamera: 'Switch to rear camera',

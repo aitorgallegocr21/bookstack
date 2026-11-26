@@ -1,584 +1,373 @@
+import { signal, type WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import {
+  BarcodeDecoderService,
+  type BarcodeDetectionResult,
+  type ImageFileDecodeResult,
+} from '../../services/barcode-decoder.service';
+import {
+  CameraStreamError,
+  CameraStreamService,
+  type ActiveCameraTrackSettings,
+  type StartCameraStreamOptions,
+} from '../../services/camera-stream.service';
+import type { RawCameraDevice } from '../../utils/camera-selection.utils';
 import { IsbnScannerComponent } from './isbn-scanner';
 
-interface MockHtml5QrcodeInstance {
-  start: ReturnType<typeof vi.fn>;
-  stop: ReturnType<typeof vi.fn>;
-  clear: ReturnType<typeof vi.fn>;
-  scanFile: ReturnType<typeof vi.fn>;
-  getRunningTrackSettings: ReturnType<typeof vi.fn>;
-  getRunningTrackCapabilities: ReturnType<typeof vi.fn>;
-  applyVideoConstraints: ReturnType<typeof vi.fn>;
-}
-
-const flushMicrotasks = async (): Promise<void> => {
+const flushAsync = async (): Promise<void> => {
+  await new Promise<void>((resolve) => setTimeout(resolve, 0));
   await new Promise<void>((resolve) => setTimeout(resolve, 0));
 };
 
-describe('IsbnScannerComponent', () => {
-  let capturedSuccessCallback: ((decodedText: string) => void) | null = null;
-  let mockMediaDevicesList: Array<{ deviceId: string; kind: string; label: string }>;
-  let createdInstancesCount = 0;
-  let getCamerasMock: ReturnType<typeof vi.fn>;
-  let enumerateDevicesMock: ReturnType<typeof vi.fn>;
-  let startMock: ReturnType<typeof vi.fn>;
-  let stopMock: ReturnType<typeof vi.fn>;
-  let clearMock: ReturnType<typeof vi.fn>;
-  let scanFileMock: ReturnType<typeof vi.fn>;
-  let getRunningTrackSettingsMock: ReturnType<typeof vi.fn>;
-  let getRunningTrackCapabilitiesMock: ReturnType<typeof vi.fn>;
-  let applyVideoConstraintsMock: ReturnType<typeof vi.fn>;
-  let mockLibrary: typeof import('html5-qrcode');
-  let originalMediaDevices: MediaDevices | undefined;
+function createMockVideoStream(deviceId = 'cam-back'): MediaStream {
+  const track = {
+    stop: vi.fn(),
+    getSettings: () => ({ deviceId }),
+  } as unknown as MediaStreamTrack;
+  return {
+    getTracks: () => [track],
+    getVideoTracks: () => [track],
+  } as unknown as MediaStream;
+}
 
-  const createFixture = (options?: {
-    mockReleaseDelay?: boolean;
-  }): ComponentFixture<IsbnScannerComponent> => {
-    const fixture = TestBed.createComponent(IsbnScannerComponent);
-    const instance = fixture.componentInstance as unknown as {
-      loadScannerLibrary: () => Promise<typeof import('html5-qrcode')>;
-      waitForCameraRelease: () => Promise<void>;
-    };
-    vi.spyOn(instance, 'loadScannerLibrary').mockResolvedValue(mockLibrary);
-    if (options?.mockReleaseDelay !== false) {
-      vi.spyOn(instance, 'waitForCameraRelease').mockResolvedValue(undefined);
-    }
-    return fixture;
-  };
+function stubVideoElementPlayback(video: HTMLVideoElement): ReturnType<typeof vi.fn> {
+  Object.defineProperty(video, 'readyState', {
+    configurable: true,
+    value: HTMLMediaElement.HAVE_ENOUGH_DATA,
+  });
+  Object.defineProperty(video, 'videoWidth', { configurable: true, value: 1280 });
+  Object.defineProperty(video, 'videoHeight', { configurable: true, value: 720 });
+  const playSpy = vi.fn().mockResolvedValue(undefined);
+  video.play = playSpy;
+  return playSpy;
+}
+
+describe('IsbnScannerComponent', () => {
+  let activeStreamSig: WritableSignal<MediaStream | null>;
+  let activeTrackSettingsSig: WritableSignal<ActiveCameraTrackSettings | null>;
+  let availableDevicesSig: WritableSignal<RawCameraDevice[]>;
+  let torchSupportedSig: WritableSignal<boolean>;
+  let torchEnabledSig: WritableSignal<boolean>;
+
+  let startStreamMock: ReturnType<
+    typeof vi.fn<(options?: StartCameraStreamOptions) => Promise<MediaStream>>
+  >;
+  let enhanceActiveTrackMock: ReturnType<typeof vi.fn<(track: MediaStreamTrack) => Promise<void>>>;
+  let toggleTorchMock: ReturnType<typeof vi.fn<() => Promise<boolean>>>;
+  let stopStreamMock: ReturnType<typeof vi.fn<() => void>>;
+  let decodeFromVideoMock: ReturnType<
+    typeof vi.fn<(video: HTMLVideoElement) => Promise<BarcodeDetectionResult | null>>
+  >;
+  let decodeFromImageFileMock: ReturnType<
+    typeof vi.fn<(file: File) => Promise<ImageFileDecodeResult>>
+  >;
 
   beforeEach(async () => {
-    localStorage.clear();
-    capturedSuccessCallback = null;
-    createdInstancesCount = 0;
-    mockMediaDevicesList = [
+    activeStreamSig = signal<MediaStream | null>(null);
+    activeTrackSettingsSig = signal<ActiveCameraTrackSettings | null>({
+      deviceId: 'cam-back',
+      facingMode: 'environment',
+      width: 1280,
+      height: 720,
+    });
+    availableDevicesSig = signal<RawCameraDevice[]>([
       { deviceId: 'cam-front', kind: 'videoinput', label: 'camera2 1, facing front' },
       { deviceId: 'cam-back', kind: 'videoinput', label: 'camera2 0, facing back' },
-    ];
+    ]);
+    torchSupportedSig = signal(false);
+    torchEnabledSig = signal(false);
 
-    originalMediaDevices = navigator.mediaDevices;
-    enumerateDevicesMock = vi.fn(async () => mockMediaDevicesList);
-    Object.defineProperty(navigator, 'mediaDevices', {
-      configurable: true,
-      value: {
-        enumerateDevices: enumerateDevicesMock,
-      },
+    startStreamMock = vi.fn(async (options?: StartCameraStreamOptions) => {
+      const deviceId =
+        options?.deviceId ?? (options?.facingMode === 'user' ? 'cam-front' : 'cam-back');
+      const facingMode = options?.facingMode ?? (deviceId === 'cam-front' ? 'user' : 'environment');
+      const stream = createMockVideoStream(deviceId);
+      activeStreamSig.set(stream);
+      activeTrackSettingsSig.set({ deviceId, facingMode, width: 1280, height: 720 });
+      return stream;
+    });
+    enhanceActiveTrackMock = vi.fn(async () => undefined);
+    toggleTorchMock = vi.fn(async () => {
+      const next = !torchEnabledSig();
+      torchEnabledSig.set(next);
+      return next;
+    });
+    stopStreamMock = vi.fn(() => {
+      activeStreamSig.set(null);
+      torchSupportedSig.set(false);
+      torchEnabledSig.set(false);
     });
 
-    startMock = vi.fn(
-      async (
-        _cameraIdOrConfig: string | MediaTrackConstraints,
-        _config: unknown,
-        onSuccess: (decodedText: string) => void
-      ) => {
-        capturedSuccessCallback = onSuccess;
-        return null;
-      }
-    );
-    stopMock = vi.fn(async () => undefined);
-    clearMock = vi.fn(() => undefined);
-    scanFileMock = vi.fn(async () => '9780441172719');
-    getRunningTrackSettingsMock = vi.fn(() => ({ deviceId: 'cam-back' }));
-    getRunningTrackCapabilitiesMock = vi.fn(() => ({}));
-    applyVideoConstraintsMock = vi.fn(async () => undefined);
-    getCamerasMock = vi.fn(async () => []);
-
-    class MockHtml5Qrcode implements MockHtml5QrcodeInstance {
-      static getCameras = getCamerasMock;
-      start = startMock;
-      stop = stopMock;
-      clear = clearMock;
-      scanFile = scanFileMock;
-      getRunningTrackSettings = getRunningTrackSettingsMock;
-      getRunningTrackCapabilities = getRunningTrackCapabilitiesMock;
-      applyVideoConstraints = applyVideoConstraintsMock;
-
-      constructor() {
-        createdInstancesCount++;
-      }
-    }
-
-    mockLibrary = {
-      Html5Qrcode: MockHtml5Qrcode as unknown as typeof import('html5-qrcode').Html5Qrcode,
-      Html5QrcodeSupportedFormats: {
-        EAN_13: 9,
-        EAN_8: 10,
-        UPC_A: 14,
-        CODE_128: 5,
-      },
-    } as unknown as typeof import('html5-qrcode');
+    decodeFromVideoMock = vi.fn(async () => null);
+    decodeFromImageFileMock = vi.fn(async () => ({
+      status: 'isbn',
+      isbn: '9780441172719',
+    }));
 
     await TestBed.configureTestingModule({
       imports: [IsbnScannerComponent],
-    }).compileComponents();
-  });
-
-  afterEach(() => {
-    localStorage.clear();
-    Object.defineProperty(navigator, 'mediaDevices', {
-      configurable: true,
-      value: originalMediaDevices,
-    });
-    vi.restoreAllMocks();
-  });
-
-  it('auto-starts ranked primary rear camera directly when labels are available and shows inline privacy hint', async () => {
-    const fixture = createFixture();
-    fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
-
-    expect(getCamerasMock).not.toHaveBeenCalled();
-    expect(enumerateDevicesMock).toHaveBeenCalledTimes(2);
-    expect(startMock).toHaveBeenCalledTimes(1);
-    expect(startMock).toHaveBeenCalledWith(
-      'cam-back',
-      {
-        fps: 10,
-        qrbox: expect.any(Function),
-        videoConstraints: {
-          deviceId: { exact: 'cam-back' },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+      providers: [
+        {
+          provide: CameraStreamService,
+          useValue: {
+            activeStream: activeStreamSig.asReadonly(),
+            activeTrackSettings: activeTrackSettingsSig.asReadonly(),
+            availableDevices: availableDevicesSig.asReadonly(),
+            torchSupported: torchSupportedSig.asReadonly(),
+            torchEnabled: torchEnabledSig.asReadonly(),
+            startStream: startStreamMock,
+            enhanceActiveTrack: enhanceActiveTrackMock,
+            toggleTorch: toggleTorchMock,
+            stopStream: stopStreamMock,
+          },
         },
-      },
-      expect.any(Function),
-      expect.any(Function)
-    );
+        {
+          provide: BarcodeDecoderService,
+          useValue: {
+            decodeFromVideo: decodeFromVideoMock,
+            decodeFromImageFile: decodeFromImageFileMock,
+          },
+        },
+      ],
+    }).compileComponents();
+
+    TestBed.inject(I18nService).setLocale('en');
+  });
+
+  const mountScanner = async (): Promise<{
+    fixture: ComponentFixture<IsbnScannerComponent>;
+    video: HTMLVideoElement;
+    playSpy: ReturnType<typeof vi.fn>;
+  }> => {
+    const fixture = TestBed.createComponent(IsbnScannerComponent);
+    fixture.detectChanges();
+    const video = fixture.nativeElement.querySelector('video') as HTMLVideoElement;
+    const playSpy = stubVideoElementPlayback(video);
+    await flushAsync();
+    fixture.detectChanges();
+    return { fixture, video, playSpy };
+  };
+
+  it('starts the camera on mount, attaches MediaStream to <video>, and enhances the active track', async () => {
+    const { fixture, video, playSpy } = await mountScanner();
+
+    expect(startStreamMock).toHaveBeenCalledTimes(1);
+    expect(video.srcObject).not.toBeNull();
+    expect(playSpy).toHaveBeenCalledTimes(1);
+    expect(enhanceActiveTrackMock).toHaveBeenCalledTimes(1);
 
     const root = fixture.nativeElement as HTMLElement;
-    const i18n = TestBed.inject(I18nService);
-    expect(root.querySelector('[data-testid="enable-camera-consent-btn"]')).toBeNull();
-    expect(root.textContent).toContain(i18n.t().bookForm.lookup.cameraConsentHint);
-    expect(root.textContent).toContain(i18n.t().bookForm.lookup.stopCamera);
+    expect(root.querySelector('[data-testid="isbn-scanner-viewport"]')).toBeTruthy();
+
+    fixture.destroy();
   });
 
-  it('applies continuous autofocus when running track capabilities support it', async () => {
-    getRunningTrackCapabilitiesMock.mockReturnValue({
-      focusMode: ['manual', 'continuous'],
+  it('emits normalized ISBN from live decode loop and stops camera tracks', async () => {
+    decodeFromVideoMock.mockResolvedValueOnce(null).mockResolvedValueOnce({
+      rawValue: '978-0-441-17271-9',
+      normalizedIsbn: '9780441172719',
+      format: 'ean_13',
     });
 
-    const fixture = createFixture();
-    fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
+    const { fixture, video } = await mountScanner();
+    const emitted: string[] = [];
+    fixture.componentInstance.isbnDetected.subscribe((isbn) => emitted.push(isbn));
 
-    expect(applyVideoConstraintsMock).toHaveBeenCalledWith({
-      advanced: [{ focusMode: 'continuous' }],
+    await vi.waitFor(() => {
+      expect(emitted).toEqual(['9780441172719']);
     });
+
+    expect(stopStreamMock).toHaveBeenCalled();
+    expect(video.srcObject).toBeNull();
+
+    fixture.destroy();
   });
 
-  it('falls back through exact environment, bare exact environment, soft environment, and front camera with fresh instances when labels are not yet unlocked', async () => {
-    mockMediaDevicesList = [{ deviceId: '', kind: 'videoinput', label: '' }];
-    startMock
-      .mockRejectedValueOnce(new DOMException('Overconstrained', 'OverconstrainedError'))
-      .mockRejectedValueOnce(new DOMException('Overconstrained', 'OverconstrainedError'))
-      .mockRejectedValueOnce(new DOMException('NotFound', 'NotFoundError'))
-      .mockImplementationOnce(
-        async (
-          _cameraIdOrConfig: string | MediaTrackConstraints,
-          _config: unknown,
-          onSuccess: (decodedText: string) => void
-        ) => {
-          capturedSuccessCallback = onSuccess;
-          return null;
-        }
-      );
-
-    const fixture = createFixture();
-    fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
-
-    expect(startMock).toHaveBeenCalledTimes(4);
-    expect(createdInstancesCount).toBe(4);
-    expect(startMock.mock.calls[0]?.[0]).toEqual({ facingMode: { exact: 'environment' } });
-    expect(startMock.mock.calls[1]?.[0]).toEqual({ facingMode: { exact: 'environment' } });
-    expect(startMock.mock.calls[1]?.[1]).not.toHaveProperty('videoConstraints');
-    expect(startMock.mock.calls[2]?.[0]).toEqual({ facingMode: 'environment' });
-    expect(startMock.mock.calls[3]?.[0]).toEqual({ facingMode: 'user' });
-  });
-
-  it('auto-upgrades to primary rear camera (camera 0) once first-time user camera unlocks Android labels', async () => {
-    // Simulate first visit before permission: labels are empty until getUserMedia resolves.
-    mockMediaDevicesList = [{ deviceId: '', kind: 'videoinput', label: '' }];
-    startMock
-      .mockRejectedValueOnce(new Error('Camera start timed out'))
-      .mockRejectedValueOnce(new Error('Camera start timed out'))
-      .mockRejectedValueOnce(new Error('Camera start timed out'))
-      .mockImplementationOnce(async () => {
-        // Permission granted via front camera -> Android now reveals all 7 lenses
-        mockMediaDevicesList = [
-          { deviceId: 'cam-5', kind: 'videoinput', label: 'camera 5, facing back' },
-          { deviceId: 'cam-0', kind: 'videoinput', label: 'camera 0, facing back' },
-          { deviceId: 'cam-1', kind: 'videoinput', label: 'camera 1, facing front' },
-        ];
-        getRunningTrackSettingsMock.mockReturnValue({
-          deviceId: 'cam-1',
-          facingMode: 'user',
-        });
-        return null;
-      })
-      .mockImplementationOnce(async () => {
-        getRunningTrackSettingsMock.mockReturnValue({
-          deviceId: 'cam-0',
-          facingMode: 'environment',
-        });
-        return null;
-      });
-
-    const fixture = createFixture();
-    fixture.detectChanges();
-    await flushMicrotasks();
-    await flushMicrotasks();
-    fixture.detectChanges();
-
-    expect(startMock).toHaveBeenCalledTimes(5);
-    expect(startMock.mock.calls[3]?.[0]).toEqual({ facingMode: 'user' });
-    expect(startMock.mock.calls[4]?.[0]).toBe('cam-0');
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      TestBed.inject(I18nService).t().bookForm.lookup.switchToFrontCamera
-    );
-  });
-
-  it('does not fall back when permission is denied (NotAllowedError)', async () => {
-    startMock.mockRejectedValueOnce(new DOMException('Permission denied', 'NotAllowedError'));
-
-    const fixture = createFixture();
-    fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
-
-    expect(startMock).toHaveBeenCalledTimes(1);
-    const root = fixture.nativeElement as HTMLElement;
-    expect(root.textContent).toContain(
-      TestBed.inject(I18nService).t().bookForm.lookup.permissionError
-    );
-  });
-
-  it('shows 1-tap facing toggle on mobile and switches between ranked primary rear (camera 0) and front (camera 1)', async () => {
-    mockMediaDevicesList = [
-      { deviceId: 'cam-back-aux', kind: 'videoinput', label: 'camera2 5, facing back' },
+  it('collapses Android multi-lens cameras to 1-tap toggle-camera-facing-btn and switches facing mode', async () => {
+    availableDevicesSig.set([
       { deviceId: 'cam-back-main', kind: 'videoinput', label: 'camera2 0, facing back' },
-      { deviceId: 'cam-depth', kind: 'videoinput', label: 'camera2 3, facing back (depth)' },
-      { deviceId: 'cam-macro', kind: 'videoinput', label: 'camera2 4, macro' },
-      { deviceId: 'cam-front-aux', kind: 'videoinput', label: 'camera2 6, facing front' },
+      {
+        deviceId: 'cam-back-wide',
+        kind: 'videoinput',
+        label: 'camera2 2, facing back, ultra wide',
+      },
       { deviceId: 'cam-front', kind: 'videoinput', label: 'camera2 1, facing front' },
-    ];
-    getRunningTrackSettingsMock.mockReturnValue({
+    ]);
+    activeTrackSettingsSig.set({
       deviceId: 'cam-back-main',
       facingMode: 'environment',
+      width: 1280,
+      height: 720,
     });
 
-    const fixture = createFixture();
-    const waitSpy = vi.spyOn(
-      fixture.componentInstance as unknown as { waitForCameraRelease: () => Promise<void> },
-      'waitForCameraRelease'
-    );
-    fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
-
-    // Initial mount picked ranked primary rear camera (camera 0, never camera 5)
-    expect(startMock.mock.calls[0]?.[0]).toBe('cam-back-main');
-
+    const { fixture } = await mountScanner();
     const root = fixture.nativeElement as HTMLElement;
+
     const toggleBtn = root.querySelector(
       '[data-testid="toggle-camera-facing-btn"]'
     ) as HTMLButtonElement | null;
-    expect(toggleBtn).not.toBeNull();
+    expect(toggleBtn).toBeTruthy();
     expect(root.querySelector('[data-testid="camera-device-select"]')).toBeNull();
-    expect(toggleBtn!.textContent).toContain(
-      TestBed.inject(I18nService).t().bookForm.lookup.switchToFrontCamera
-    );
 
-    // Switch to primary front camera (camera 1, never camera 6)
-    getRunningTrackSettingsMock.mockReturnValue({
-      deviceId: 'cam-front',
-      facingMode: 'user',
-    });
-    toggleBtn!.click();
-    await flushMicrotasks();
+    toggleBtn?.click();
+    await flushAsync();
     fixture.detectChanges();
 
-    expect(stopMock).toHaveBeenCalledTimes(1);
-    expect(waitSpy).toHaveBeenCalledTimes(1);
-    expect(startMock).toHaveBeenLastCalledWith(
-      'cam-front',
-      {
-        fps: 10,
-        qrbox: expect.any(Function),
-        videoConstraints: {
-          deviceId: { exact: 'cam-front' },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      },
-      expect.any(Function),
-      expect.any(Function)
-    );
-    expect(toggleBtn!.textContent).toContain(
-      TestBed.inject(I18nService).t().bookForm.lookup.switchToRearCamera
-    );
-
-    // Switch back to primary rear camera (camera 0, never camera 5)
-    getRunningTrackSettingsMock.mockReturnValue({
-      deviceId: 'cam-back-main',
-      facingMode: 'environment',
-    });
-    toggleBtn!.click();
-    await flushMicrotasks();
-    fixture.detectChanges();
-
-    expect(startMock).toHaveBeenLastCalledWith(
-      'cam-back-main',
-      {
-        fps: 10,
-        qrbox: expect.any(Function),
-        videoConstraints: {
-          deviceId: { exact: 'cam-back-main' },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      },
-      expect.any(Function),
-      expect.any(Function)
-    );
+    expect(startStreamMock).toHaveBeenLastCalledWith({ facingMode: 'user' });
+    fixture.destroy();
   });
 
-  it('recovers from a hung camera start attempt using a fresh instance, falls back, and tears down late-resolving stream', async () => {
-    let resolveHungStart: (() => void) | null = null;
-    startMock
-      .mockImplementationOnce(
-        () =>
-          new Promise<null>((resolve) => {
-            resolveHungStart = () => resolve(null);
-          })
-      )
-      .mockResolvedValueOnce(null);
-
-    const fixture = createFixture();
-    Object.defineProperty(fixture.componentInstance, 'cameraStartTimeoutMs', {
-      value: 20,
-      configurable: true,
+  it('renders camera-device-select on desktop multi-webcam setups and switches by deviceId', async () => {
+    availableDevicesSig.set([
+      { deviceId: 'usb-logi', kind: 'videoinput', label: 'Logitech C920 HD Pro' },
+      { deviceId: 'usb-elgato', kind: 'videoinput', label: 'Elgato Facecam' },
+    ]);
+    activeTrackSettingsSig.set({
+      deviceId: 'usb-logi',
+      facingMode: null,
+      width: 1280,
+      height: 720,
     });
 
-    fixture.detectChanges();
-    await new Promise<void>((resolve) => setTimeout(resolve, 60));
-    fixture.detectChanges();
+    const { fixture } = await mountScanner();
+    const root = fixture.nativeElement as HTMLElement;
 
-    // First attempt timed out and fell back on a brand-new Html5Qrcode instance
-    expect(startMock).toHaveBeenCalledTimes(2);
-    expect(createdInstancesCount).toBe(2);
-    expect(startMock.mock.calls[1]?.[0]).toBe('cam-back');
-    expect(startMock.mock.calls[1]?.[1]).not.toHaveProperty('videoConstraints');
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      TestBed.inject(I18nService).t().bookForm.lookup.stopCamera
-    );
-
-    // Late resolution of the timed-out start must immediately stop/clear to avoid leaking hardware
-    resolveHungStart!();
-    await flushMicrotasks();
-    expect(stopMock).toHaveBeenCalledTimes(1);
-    expect(clearMock).toHaveBeenCalled();
-  });
-
-  it('hides switcher for a single webcam and shows select dropdown for multiple desktop webcams', async () => {
-    mockMediaDevicesList = [
-      { deviceId: 'usb-1', kind: 'videoinput', label: 'Logitech HD Webcam (046d:082d)' },
-    ];
-    getRunningTrackSettingsMock.mockReturnValue({ deviceId: 'usb-1' });
-
-    const singleFixture = createFixture();
-    singleFixture.detectChanges();
-    await flushMicrotasks();
-    singleFixture.detectChanges();
-
-    const singleRoot = singleFixture.nativeElement as HTMLElement;
-    expect(singleRoot.querySelector('[data-testid="toggle-camera-facing-btn"]')).toBeNull();
-    expect(singleRoot.querySelector('[data-testid="camera-device-select"]')).toBeNull();
-    singleFixture.destroy();
-
-    mockMediaDevicesList = [
-      { deviceId: 'usb-1', kind: 'videoinput', label: 'Logitech C920 (046d:082d)' },
-      { deviceId: 'usb-2', kind: 'videoinput', label: 'Elgato Facecam (0fd9:0078)' },
-    ];
-    const multiFixture = createFixture();
-    multiFixture.detectChanges();
-    await flushMicrotasks();
-    multiFixture.detectChanges();
-
-    const multiRoot = multiFixture.nativeElement as HTMLElement;
-    const selectEl = multiRoot.querySelector(
+    const select = root.querySelector(
       '[data-testid="camera-device-select"]'
     ) as HTMLSelectElement | null;
-    expect(selectEl).not.toBeNull();
-    expect(selectEl!.options[1]?.textContent).toBe('Logitech C920');
-    expect(selectEl!.options[2]?.textContent).toBe('Elgato Facecam');
+    expect(select).toBeTruthy();
+    expect(root.querySelector('[data-testid="toggle-camera-facing-btn"]')).toBeNull();
 
-    selectEl!.value = 'usb-2';
-    selectEl!.dispatchEvent(new Event('change'));
-    await flushMicrotasks();
-    multiFixture.detectChanges();
+    if (select) {
+      select.value = 'usb-elgato';
+      select.dispatchEvent(new Event('change'));
+    }
+    await flushAsync();
+    fixture.detectChanges();
 
-    expect(startMock).toHaveBeenLastCalledWith(
-      'usb-2',
-      expect.objectContaining({
-        videoConstraints: {
-          deviceId: { exact: 'usb-2' },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      }),
-      expect.any(Function),
-      expect.any(Function)
-    );
+    expect(startStreamMock).toHaveBeenLastCalledWith({ deviceId: 'usb-elgato' });
+    fixture.destroy();
   });
 
-  it('ignores non-ISBN barcodes without stopping camera and emits normalized ISBN-13 on valid scan', async () => {
-    const fixture = createFixture();
-    const emitted: string[] = [];
-    fixture.componentInstance.isbnDetected.subscribe((isbn) => emitted.push(isbn));
+  it('hides camera switcher controls when only a single camera is available', async () => {
+    availableDevicesSig.set([
+      { deviceId: 'single-cam', kind: 'videoinput', label: 'Integrated Webcam' },
+    ]);
 
-    fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
+    const { fixture } = await mountScanner();
+    const root = fixture.nativeElement as HTMLElement;
 
-    expect(capturedSuccessCallback).not.toBeNull();
-
-    // 5-digit price add-on barcode or invalid EAN should be ignored
-    capturedSuccessCallback!('51999');
-    await flushMicrotasks();
-    fixture.detectChanges();
-
-    expect(emitted).toEqual([]);
-    expect(stopMock).not.toHaveBeenCalled();
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      TestBed.inject(I18nService).t().bookForm.lookup.invalidBarcodeError
-    );
-
-    // Valid ISBN-10 (Dune: 0-441-17271-7) normalizes to 9780441172719 and stops camera
-    capturedSuccessCallback!('0441172717');
-    await flushMicrotasks();
-    fixture.detectChanges();
-
-    expect(stopMock).toHaveBeenCalledTimes(1);
-    expect(clearMock).toHaveBeenCalledTimes(1);
-    expect(emitted).toEqual(['9780441172719']);
-  });
-
-  it('guarantees camera stream teardown on ngOnDestroy', async () => {
-    const fixture = createFixture();
-    fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
+    expect(root.querySelector('[data-testid="toggle-camera-facing-btn"]')).toBeNull();
+    expect(root.querySelector('[data-testid="camera-device-select"]')).toBeNull();
 
     fixture.destroy();
-    await flushMicrotasks();
-
-    expect(stopMock).toHaveBeenCalledTimes(1);
-    expect(clearMock).toHaveBeenCalledTimes(1);
   });
 
-  it('shows cameraUnavailableError when no camera device is found', async () => {
-    mockMediaDevicesList = [];
-    startMock.mockRejectedValue(new DOMException('Requested device not found', 'NotFoundError'));
-
-    const fixture = createFixture();
-    fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
-
+  it('renders toggle-torch-btn only when torchSupported is true and toggles aria-pressed', async () => {
+    const { fixture } = await mountScanner();
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.textContent).toContain(
-      TestBed.inject(I18nService).t().bookForm.lookup.cameraUnavailableError
-    );
+
+    expect(root.querySelector('[data-testid="toggle-torch-btn"]')).toBeNull();
+
+    torchSupportedSig.set(true);
+    fixture.detectChanges();
+
+    const torchBtn = root.querySelector(
+      '[data-testid="toggle-torch-btn"]'
+    ) as HTMLButtonElement | null;
+    expect(torchBtn).toBeTruthy();
+    expect(torchBtn?.getAttribute('aria-pressed')).toBe('false');
+
+    torchBtn?.click();
+    await flushAsync();
+    fixture.detectChanges();
+
+    expect(toggleTorchMock).toHaveBeenCalledTimes(1);
+    expect(torchBtn?.getAttribute('aria-pressed')).toBe('true');
+
+    fixture.destroy();
   });
 
-  it('scans uploaded image file, stops live camera, and emits normalized ISBN-13', async () => {
-    const fixture = createFixture();
+  it('handles photo upload isbn, invalid-barcode, and no-barcode outcomes', async () => {
+    const { fixture } = await mountScanner();
+    const root = fixture.nativeElement as HTMLElement;
     const emitted: string[] = [];
     fixture.componentInstance.isbnDetected.subscribe((isbn) => emitted.push(isbn));
 
-    fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
-
-    const root = fixture.nativeElement as HTMLElement;
     const fileInput = root.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['barcode'], 'barcode.png', { type: 'image/png' });
-    Object.defineProperty(fileInput, 'files', { value: [file], configurable: true });
+    const uploadFile = async (name: string) => {
+      const file = new File(['mock'], name, { type: 'image/png' });
+      Object.defineProperty(fileInput, 'files', { configurable: true, value: [file] });
+      fileInput.dispatchEvent(new Event('change'));
+      await flushAsync();
+      fixture.detectChanges();
+    };
 
-    scanFileMock.mockResolvedValueOnce('978-0-441-17271-9');
-    fileInput.dispatchEvent(new Event('change'));
-    await flushMicrotasks();
-    fixture.detectChanges();
-
-    expect(stopMock).toHaveBeenCalledTimes(1);
-    expect(scanFileMock).toHaveBeenCalledWith(file, false);
+    decodeFromImageFileMock.mockResolvedValueOnce({ status: 'isbn', isbn: '9780441172719' });
+    await uploadFile('valid.png');
     expect(emitted).toEqual(['9780441172719']);
+
+    decodeFromImageFileMock.mockResolvedValueOnce({
+      status: 'invalid-barcode',
+      rawValue: '12345',
+    });
+    await uploadFile('invalid.png');
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain(
+      'The scanned barcode is not a valid ISBN.'
+    );
+
+    decodeFromImageFileMock.mockResolvedValueOnce({ status: 'no-barcode' });
+    await uploadFile('empty.png');
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain(
+      'No ISBN barcode was found in the selected image.'
+    );
+
+    fixture.destroy();
   });
 
-  it('shows invalidBarcodeError when uploaded image contains a non-ISBN barcode', async () => {
-    const fixture = createFixture();
-    fixture.detectChanges();
-    await flushMicrotasks();
+  it('shows permission error on NotAllowedError and cleans up tracks on destroy', async () => {
+    const permissionError = Object.assign(new Error('Permission denied'), {
+      name: 'NotAllowedError',
+    });
+    startStreamMock.mockRejectedValueOnce(permissionError);
 
+    const { fixture, video } = await mountScanner();
     const root = fixture.nativeElement as HTMLElement;
-    const fileInput = root.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['barcode'], 'product.png', { type: 'image/png' });
-    Object.defineProperty(fileInput, 'files', { value: [file], configurable: true });
 
-    scanFileMock.mockResolvedValueOnce('4006381333931');
-    fileInput.dispatchEvent(new Event('change'));
-    await flushMicrotasks();
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain(
+      'Camera permission denied.'
+    );
+    expect(video.srcObject).toBeNull();
+
+    // Now test destroy cleanup after successful start
+    startStreamMock.mockImplementationOnce(async () => createMockVideoStream('cam-back'));
+    const startBtn = root.querySelector('button') as HTMLButtonElement;
+    startBtn.click();
+    await flushAsync();
     fixture.detectChanges();
 
-    expect(root.textContent).toContain(
-      TestBed.inject(I18nService).t().bookForm.lookup.invalidBarcodeError
-    );
+    expect(video.srcObject).not.toBeNull();
+    stopStreamMock.mockClear();
+
+    fixture.destroy();
+    expect(stopStreamMock).toHaveBeenCalledTimes(1);
+    expect(video.srcObject).toBeNull();
   });
 
-  it('shows noBarcodeInImageError when uploaded image cannot be decoded', async () => {
-    const fixture = createFixture();
-    fixture.detectChanges();
-    await flushMicrotasks();
-
-    const root = fixture.nativeElement as HTMLElement;
-    const fileInput = root.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['blank'], 'blank.png', { type: 'image/png' });
-    Object.defineProperty(fileInput, 'files', { value: [file], configurable: true });
-
-    scanFileMock.mockRejectedValueOnce(
-      new Error('No MultiFormat Readers were able to detect the code')
+  it('shows camera unavailable error when CameraStreamError is thrown', async () => {
+    startStreamMock.mockRejectedValueOnce(
+      new CameraStreamError('unavailable', 'No camera devices available')
     );
-    fileInput.dispatchEvent(new Event('change'));
-    await flushMicrotasks();
-    fixture.detectChanges();
 
-    expect(root.textContent).toContain(
-      TestBed.inject(I18nService).t().bookForm.lookup.noBarcodeInImageError
-    );
-  });
-
-  it('stacks scanner control buttons full-width on mobile with 44px touch targets', async () => {
-    const fixture = createFixture();
-    fixture.detectChanges();
-    await flushMicrotasks();
-    fixture.detectChanges();
-
+    const { fixture } = await mountScanner();
     const root = fixture.nativeElement as HTMLElement;
-    const controlsBar = root.querySelector('div.mt-3.grid') as HTMLElement;
-    expect(controlsBar).toBeTruthy();
-    expect(controlsBar.className).toContain('grid-cols-1');
-    expect(controlsBar.className).toContain('sm:flex');
 
-    const buttons = Array.from(controlsBar.querySelectorAll('button'));
-    expect(buttons.length).toBeGreaterThanOrEqual(2);
-    for (const button of buttons) {
-      expect(button.className).toContain('min-h-[44px]');
-      expect(button.className).toContain('w-full');
-    }
+    expect(root.querySelector('[role="alert"]')?.textContent).toContain(
+      'No available camera was detected on this device.'
+    );
+
+    fixture.destroy();
   });
 });

@@ -7,6 +7,7 @@ import { ReadingLogService } from '../../../books/services/reading-log.service';
 import { ImportPreviewSummary } from '../../models/data-portability.model';
 import { CoverEnrichmentService } from '../../services/cover-enrichment.service';
 import { DataPortabilityService } from '../../services/data-portability.service';
+import { BackupCryptoError } from '../../utils/backup-crypto.utils';
 import { DataPortabilitySectionComponent } from './data-portability-section';
 
 function buildPreview(overrides: Partial<ImportPreviewSummary> = {}): ImportPreviewSummary {
@@ -42,6 +43,7 @@ function buildPreview(overrides: Partial<ImportPreviewSummary> = {}): ImportPrev
       targetPages: 6000,
     },
     preferences: null,
+    hasPreferences: false,
     invalidBooksCount: 1,
     invalidLogsCount: 0,
     invalidSeriesMetadataCount: 0,
@@ -60,7 +62,11 @@ describe('DataPortabilitySectionComponent', () => {
     downloadZipBundle: vi.fn().mockResolvedValue(undefined),
     downloadJsonBackup: vi.fn().mockResolvedValue(undefined),
     downloadLightweightJsonBackup: vi.fn().mockResolvedValue(undefined),
+    downloadEncryptedZipBackup: vi.fn().mockResolvedValue(undefined),
+    downloadEncryptedJsonBackup: vi.fn().mockResolvedValue(undefined),
     downloadCsvCatalog: vi.fn(),
+    detectEncryptedBackup: vi.fn().mockReturnValue(false),
+    decryptBackupFile: vi.fn(),
     analyzeImportFile: vi.fn(),
     analyzeImportZipFile: vi.fn(),
     executeImport: vi.fn(),
@@ -285,7 +291,9 @@ describe('DataPortabilitySectionComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(mockPortabilityService.executeImport).toHaveBeenCalledWith(preview, 'overwrite');
+    expect(mockPortabilityService.executeImport).toHaveBeenCalledWith(preview, 'overwrite', {
+      applyPreferences: true,
+    });
     expect(emitSpy).toHaveBeenCalledTimes(1);
     expect(component.previewSummary()).toBeNull();
     expect(
@@ -466,6 +474,166 @@ describe('DataPortabilitySectionComponent', () => {
     const confirmedPromise = component.confirmImport();
     confirmDialogService.accept();
     await confirmedPromise;
-    expect(mockPortabilityService.executeImport).toHaveBeenCalledWith(preview, 'overwrite');
+    expect(mockPortabilityService.executeImport).toHaveBeenCalledWith(preview, 'overwrite', {
+      applyPreferences: true,
+    });
+  });
+
+  it('toggles includePreferencesInBackup, shows last backup indicator, and allows opting out of preference restore', async () => {
+    const lastBackupEl = fixture.nativeElement.querySelector(
+      '[data-testid="last-backup-indicator"]'
+    ) as HTMLElement;
+    expect(lastBackupEl.textContent).toContain('Sin copias registradas');
+
+    const toggleBtn = fixture.nativeElement.querySelector(
+      '[data-testid="include-preferences-toggle"]'
+    ) as HTMLButtonElement;
+    expect(toggleBtn.getAttribute('aria-checked')).toBe('true');
+    toggleBtn.click();
+    fixture.detectChanges();
+    expect(toggleBtn.getAttribute('aria-checked')).toBe('false');
+
+    const previewWithPrefs = buildPreview({
+      hasPreferences: true,
+      preferences: { locale: 'en', theme: 'dark' },
+    });
+    component.previewSummary.set(previewWithPrefs);
+    fixture.detectChanges();
+
+    const restoreCheckbox = fixture.nativeElement.querySelector(
+      '[data-testid="import-restore-preferences-checkbox"]'
+    ) as HTMLInputElement;
+    expect(restoreCheckbox).not.toBeNull();
+    expect(restoreCheckbox.checked).toBe(true);
+
+    restoreCheckbox.click();
+    fixture.detectChanges();
+    expect(restoreCheckbox.checked).toBe(false);
+
+    mockPortabilityService.executeImport.mockResolvedValue({
+      mode: 'merge',
+      format: 'json',
+      booksImported: 1,
+      logsImported: 1,
+      seriesMetadataImported: 0,
+      skippedRecords: 0,
+      goalsRestored: false,
+      preferencesRestored: false,
+      missingCoversCount: 0,
+      missingCoversWithIsbnCount: 0,
+      incompleteMetadataCount: 0,
+    });
+
+    await component.confirmImport();
+    expect(mockPortabilityService.executeImport).toHaveBeenCalledWith(previewWithPrefs, 'merge', {
+      applyPreferences: false,
+    });
+  });
+
+  it('encrypts JSON/ZIP exports when password encryption is enabled and clears password state', async () => {
+    const toggle = fixture.nativeElement.querySelector(
+      '[data-testid="pref-backup-encryption"]'
+    ) as HTMLButtonElement;
+    toggle.click();
+    fixture.detectChanges();
+
+    const jsonBtn = fixture.nativeElement.querySelector(
+      '[data-testid="export-json-btn"]'
+    ) as HTMLButtonElement;
+    expect(jsonBtn.disabled).toBe(true);
+
+    const passwordInput = fixture.nativeElement.querySelector(
+      '[data-testid="export-encryption-password"]'
+    ) as HTMLInputElement;
+    const confirmInput = fixture.nativeElement.querySelector(
+      '[data-testid="export-encryption-confirm-password"]'
+    ) as HTMLInputElement;
+
+    passwordInput.value = 'Str0ngPass!1';
+    passwordInput.dispatchEvent(new Event('input'));
+    confirmInput.value = 'DifferentPass!1';
+    confirmInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="password-mismatch-hint"]')
+    ).not.toBeNull();
+    expect(jsonBtn.disabled).toBe(true);
+
+    confirmInput.value = 'Str0ngPass!1';
+    confirmInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(jsonBtn.disabled).toBe(false);
+    await component.onExportJson();
+    fixture.detectChanges();
+
+    expect(mockPortabilityService.downloadEncryptedJsonBackup).toHaveBeenCalledWith(
+      'Str0ngPass!1',
+      {
+        includeCovers: true,
+      }
+    );
+    expect(component.exportPassword()).toBe('');
+    expect(component.exportConfirmPassword()).toBe('');
+
+    passwordInput.value = 'ZipSecret!123';
+    passwordInput.dispatchEvent(new Event('input'));
+    confirmInput.value = 'ZipSecret!123';
+    confirmInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    await component.onExportZip();
+    fixture.detectChanges();
+
+    expect(mockPortabilityService.downloadEncryptedZipBackup).toHaveBeenCalledWith('ZipSecret!123');
+    expect(component.exportPassword()).toBe('');
+  });
+
+  it('prompts inline password for encrypted backup files and handles wrong password retry', async () => {
+    const encryptedContent = JSON.stringify({ format: 'bookstack-encrypted-backup' });
+    mockPortabilityService.detectEncryptedBackup.mockReturnValue(true);
+
+    const file = new File([encryptedContent], 'backup.enc.json', { type: 'application/json' });
+    await component.onFileSelected({
+      target: { files: [file], value: '' },
+    } as unknown as Event);
+    fixture.detectChanges();
+
+    expect(component.pendingEncryptedBackup()).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="encrypted-backup-prompt"]')
+    ).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('[data-testid="portability-error-banner"]')
+    ).toBeNull();
+
+    mockPortabilityService.decryptBackupFile.mockRejectedValueOnce(
+      new BackupCryptoError('INVALID_PASSWORD_OR_CORRUPTED', 'Wrong password')
+    );
+
+    const decryptInput = fixture.nativeElement.querySelector(
+      '[data-testid="decrypt-backup-password"]'
+    ) as HTMLInputElement;
+    decryptInput.value = 'WrongPass';
+    decryptInput.dispatchEvent(new Event('input'));
+    await component.unlockEncryptedBackup();
+    fixture.detectChanges();
+
+    expect(component.pendingEncryptedBackup()).not.toBeNull();
+    expect(component.errorMessage()).toBe(
+      i18n.t().settings.portability.decryptErrorInvalidPassword
+    );
+
+    const expectedPreview = buildPreview({ fileName: 'backup.enc.json' });
+    mockPortabilityService.decryptBackupFile.mockResolvedValueOnce(expectedPreview);
+    decryptInput.value = 'CorrectPass1!';
+    decryptInput.dispatchEvent(new Event('input'));
+    await component.unlockEncryptedBackup();
+    fixture.detectChanges();
+
+    expect(component.pendingEncryptedBackup()).toBeNull();
+    expect(component.decryptPassword()).toBe('');
+    expect(component.previewSummary()).toEqual(expectedPreview);
   });
 });

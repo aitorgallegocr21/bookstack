@@ -2,6 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import { Book } from '../../models/book.model';
 import { BookMetadataCandidate } from '../../models/book-metadata.model';
 import { BookMetadataService } from '../../services/book-metadata.service';
@@ -307,5 +308,19 @@ describe('BookCreateModalComponent', () => {
     await confirmSavePromise;
     expect(addMock).toHaveBeenCalledTimes(1);
     expect(savedSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should initialize format and status from AppPreferencesService defaults', () => {
+    const appPreferences = TestBed.inject(AppPreferencesService);
+    appPreferences.updatePreferences({
+      defaultBookFormat: 'audiobook',
+      defaultBookStatus: 'reading',
+    });
+
+    const fixture = TestBed.createComponent(BookCreateModalComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['createForm'].get('format')?.value).toBe('Audiolibro');
+    expect(fixture.componentInstance['createForm'].get('status')?.value).toBe('reading');
   });
 });

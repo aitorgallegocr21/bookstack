@@ -352,4 +352,30 @@ test.describe('Catalog Filtering, Omni-Search & View Modes', () => {
     }));
     expect(compactOverflow.scrollWidth).toBeLessThanOrEqual(compactOverflow.innerWidth);
   });
+
+  test('should preserve unclipped hover paint box on catalog cards and respect reduced-motion', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/books');
+    await page.waitForSelector('app-book-detailed-card');
+
+    const cardHost = page.locator('app-book-detailed-card').first();
+    const article = cardHost.locator('article').first();
+    await expect(article).toHaveAttribute('data-book-tint-active', 'true');
+
+    // Paint-box padding prevents top border/shadow clipping when card lifts on hover
+    const hostPaddingTop = await cardHost.evaluate((el) =>
+      parseFloat(getComputedStyle(el).paddingTop)
+    );
+    expect(hostPaddingTop).toBeGreaterThanOrEqual(6);
+
+    // Enabling reduced-motion disables hover transform on cards
+    await page.evaluate(() => {
+      document.documentElement.setAttribute('data-reduced-motion', 'reduce');
+    });
+    await article.hover();
+    const reducedTransform = await article.evaluate((el) => getComputedStyle(el).transform);
+    expect(reducedTransform).toBe('none');
+  });
 });

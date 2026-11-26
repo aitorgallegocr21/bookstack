@@ -104,6 +104,26 @@
   >
     <div class="min-w-0 overflow-hidden">
       <div class="mt-3 border-t border-subtle pt-3">
+        @if (offlineMode()) {
+          <div
+            role="status"
+            data-testid="lookup-offline-banner"
+            class="mb-3 flex flex-col gap-2 rounded-xl border border-amber-500/35 bg-amber-500/12 px-3 py-2.5 text-xs text-amber-900 sm:flex-row sm:items-center sm:justify-between dark:text-amber-200"
+          >
+            <div>
+              <p class="font-semibold">{{ t().bookForm.lookup.offlineModeTitle }}</p>
+              <p class="mt-0.5 leading-relaxed">{{ t().bookForm.lookup.offlineModeDescription }}</p>
+            </div>
+            <a
+              routerLink="/settings"
+              [queryParams]="{ tab: 'privacy' }"
+              class="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-lg border border-amber-500/40 bg-surface px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            >
+              {{ t().bookForm.lookup.offlineModeSettingsLink }}
+            </a>
+          </div>
+        }
+
         <!-- Unified ISBN / Title / Author Search Form -->
         <form (submit)="onSearchSubmit($event)" class="flex flex-col gap-2 sm:flex-row">
           <label for="metadata-search-input" class="sr-only">
@@ -112,15 +132,16 @@
           <input
             id="metadata-search-input"
             type="search"
+            [disabled]="offlineMode()"
             [value]="searchQuery()"
             (input)="onSearchInput($event)"
             [placeholder]="t().bookForm.lookup.searchPlaceholder"
-            class="field-input min-h-[44px] w-full flex-1"
+            class="field-input min-h-[44px] w-full flex-1 disabled:cursor-not-allowed disabled:opacity-60"
           />
           <button
             type="submit"
-            [disabled]="isSearching()"
-            class="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:opacity-60 sm:w-auto"
+            [disabled]="offlineMode() || isSearching()"
+            class="inline-flex min-h-[44px] w-full shrink-0 items-center justify-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             @if (isSearching()) {
               <svg

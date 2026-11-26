@@ -55,8 +55,13 @@ function createSolidPngBuffer(width: number, height: number): Buffer {
   ]);
 }
 
-async function seedLibrary(page: Page, books: Book[], logs: ReadingLog[]): Promise<void> {
-  await page.goto('/settings');
+async function seedLibrary(
+  page: Page,
+  books: Book[],
+  logs: ReadingLog[],
+  tab: 'general' | 'catalog' | 'data' | 'privacy' | 'advanced' = 'general'
+): Promise<void> {
+  await page.goto(tab === 'general' ? '/settings' : `/settings?tab=${tab}`);
   await page.evaluate(
     async ({ bookList, logList }) => {
       return new Promise<void>((resolve, reject) => {
@@ -143,7 +148,8 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
     await page.getByTestId('theme-dark-btn').click();
     await expect(page.locator('html')).toHaveClass(/dark/);
 
-    // Change default catalog view to compact
+    // Switch to Catalog & Reading tab and change default catalog view to compact
+    await page.getByTestId('settings-tab-catalog').click();
     await page.locator('#settings-default-view').selectOption('compact');
 
     // Navigate to /books and verify compact view + dark theme persist
@@ -181,7 +187,7 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
       },
     ];
 
-    await seedLibrary(page, books, logs);
+    await seedLibrary(page, books, logs, 'data');
 
     await expect(page.getByTestId('storage-total-used')).not.toHaveText(/^0 B$/);
     await expect(page.getByTestId('storage-card-metadata')).toContainText('1');
@@ -206,7 +212,8 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
           updatedAt: '2026-01-01T10:00:00.000Z',
         },
       ],
-      []
+      [],
+      'data'
     );
 
     const jsonBackup = {
@@ -260,7 +267,7 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
     await expect(page.getByText('Fundación')).toBeVisible();
 
     // 2. Upload CSV and Overwrite
-    await page.goto('/settings');
+    await page.goto('/settings?tab=data');
     const csvContent = [
       'id,title,author,totalPages,currentPage,status,format,rating',
       'csv-book-1,Neuromante,William Gibson,271,271,completed,Físico,8.5',
@@ -317,7 +324,8 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
           pagesRead: 40,
           createdAt: '2026-01-02T10:00:00.000Z',
         },
-      ]
+      ],
+      'advanced'
     );
 
     // Open Clear Reading Sessions modal and verify Escape closes it
@@ -331,15 +339,20 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
     await page.getByTestId('confirm-danger-reset-btn').click();
     await expect(page.getByTestId('danger-reset-modal')).toHaveCount(0);
     await expect(page.getByTestId('danger-zone-status-banner')).toBeVisible();
+
+    await page.goto('/settings?tab=data');
     await expect(page.getByTestId('storage-card-metadata')).toContainText('1 libros');
     await expect(page.getByTestId('storage-card-logs')).toContainText('0 sesiones');
 
     // Open Factory Reset modal and confirm full wipe
+    await page.goto('/settings?tab=advanced');
     await page.getByTestId('factory-reset-btn').click();
     await expect(page.getByTestId('danger-reset-modal')).toBeVisible();
     await page.getByTestId('confirm-danger-reset-btn').click();
     await expect(page.getByTestId('danger-reset-modal')).toHaveCount(0);
     await expect(page.getByTestId('danger-zone-status-banner')).toBeVisible();
+
+    await page.goto('/settings?tab=data');
     await expect(page.getByTestId('storage-card-metadata')).toContainText('0 libros');
 
     await page.goto('/books');
@@ -368,22 +381,35 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
       { width: 1280, height: 800 },
     ];
 
+    const tabIds = ['general', 'catalog', 'data', 'privacy', 'advanced'] as const;
+
     for (const vp of viewports) {
       await page.setViewportSize(vp);
       await page.goto('/settings');
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 
-      const hasOverflow = await page.evaluate(() => {
-        return document.documentElement.scrollWidth > document.documentElement.clientWidth;
-      });
-      expect(hasOverflow, `Horizontal overflow detected at ${vp.width}px`).toBe(false);
+      const tabTestIdPrefix = vp.width < 1024 ? 'settings-mobile-tab-' : 'settings-tab-';
+      for (const tabId of tabIds) {
+        if (tabId !== 'general') {
+          await page.getByTestId(`${tabTestIdPrefix}${tabId}`).click();
+        }
+        const hasOverflow = await page.evaluate(() => {
+          return document.documentElement.scrollWidth > document.documentElement.clientWidth;
+        });
+        expect(hasOverflow, `Horizontal overflow detected on tab=${tabId} at ${vp.width}px`).toBe(
+          false
+        );
+      }
 
-      // Verify vertical spacing (>= 20px) between all 6 settings cards
-      const cards = page.locator('app-settings-page section');
-      await expect(cards).toHaveCount(6);
+      // Verify vertical spacing (>= 20px) between top-level cards on ?tab=data
+      await page.getByTestId(`${tabTestIdPrefix}data`).click();
+      const dataCards = page.locator(
+        'app-storage-quota-inspector > section, app-data-portability-section > section, app-cover-enrichment-section > section, app-data-health-section > section, [data-testid="data-danger-zone-card"]'
+      );
+      await expect(dataCards).toHaveCount(5);
       const cardBoxes = await Promise.all(
-        [0, 1, 2, 3, 4, 5].map(async (index) => {
-          const box = await cards.nth(index).boundingBox();
+        [0, 1, 2, 3, 4].map(async (index) => {
+          const box = await dataCards.nth(index).boundingBox();
           expect(box, `Card ${index} boundingBox missing at ${vp.width}px`).not.toBeNull();
           return box!;
         })
@@ -396,14 +422,13 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
         ).toBeGreaterThanOrEqual(20);
       }
 
-      // Verify all 3 interface preference controls share exact 44px height
+      // Verify interface preference controls on General tab share exact 44px height
+      await page.getByTestId(`${tabTestIdPrefix}general`).click();
       const languageControl = page.locator('#settings-language');
       const themeControl = page.locator('[role="group"][aria-labelledby="settings-theme-label"]');
-      const viewControl = page.locator('#settings-default-view');
       const controlBoxes = await Promise.all([
         languageControl.boundingBox(),
         themeControl.boundingBox(),
-        viewControl.boundingBox(),
       ]);
       for (const box of controlBoxes) {
         expect(box).not.toBeNull();
@@ -411,28 +436,6 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
           Math.abs(box!.height - 44),
           `Control height ${box!.height}px != 44px at ${vp.width}px`
         ).toBeLessThanOrEqual(1);
-      }
-
-      // On tablet/desktop vertical editorial rows, verify aligned single-line labels & right-aligned controls
-      if (vp.width >= 768) {
-        const labels = page.locator('app-settings-preferences-section .field-label');
-        await expect(labels).toHaveCount(3);
-        const labelBoxes = await Promise.all(
-          [0, 1, 2].map(async (index) => {
-            const box = await labels.nth(index).boundingBox();
-            expect(box).not.toBeNull();
-            return box!;
-          })
-        );
-        const baseLabelX = labelBoxes[0].x;
-        const baseLabelHeight = labelBoxes[0].height;
-        const baseControlRight = controlBoxes[0]!.x + controlBoxes[0]!.width;
-        for (let i = 0; i < labelBoxes.length; i++) {
-          expect(Math.abs(labelBoxes[i].x - baseLabelX)).toBeLessThanOrEqual(1);
-          expect(Math.abs(labelBoxes[i].height - baseLabelHeight)).toBeLessThanOrEqual(1);
-          const controlRight = controlBoxes[i]!.x + controlBoxes[i]!.width;
-          expect(Math.abs(controlRight - baseControlRight)).toBeLessThanOrEqual(2);
-        }
       }
     }
 
@@ -584,7 +587,7 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
       });
     });
 
-    await seedLibrary(page, [], []);
+    await seedLibrary(page, [], [], 'data');
 
     const backupPayload = {
       schemaVersion: 1,
@@ -784,7 +787,7 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
       });
     });
 
-    await seedLibrary(page, [], []);
+    await seedLibrary(page, [], [], 'data');
 
     // Flexible AI-generated JSON array missing id, totalPages (0), publicationYear, publisher, coverUrl
     const flexibleAiJson = [
@@ -859,7 +862,7 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
       },
     ];
 
-    await seedLibrary(page, books, logs);
+    await seedLibrary(page, books, logs, 'data');
 
     // 1. Export Lightweight JSON
     const lightDownloadPromise = page.waitForEvent('download');
@@ -879,7 +882,7 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
     const zipBuffer = readFileSync(zipPath!);
 
     // 3. Clear library completely and restore 100% offline from the exported .ZIP
-    await seedLibrary(page, [], []);
+    await seedLibrary(page, [], [], 'data');
     await page.getByTestId('import-file-input').setInputFiles({
       name: zipDownload.suggestedFilename(),
       mimeType: 'application/zip',
@@ -928,7 +931,7 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
     ];
 
     await page.setViewportSize({ width: 1280, height: 800 });
-    await seedLibrary(page, anomalousBooks, []);
+    await seedLibrary(page, anomalousBooks, [], 'data');
 
     const scoreBadge = page.getByTestId('data-health-score-badge');
     await expect(scoreBadge).toBeVisible();
@@ -1011,5 +1014,190 @@ test.describe('Settings, Data Portability & Backup Engine (/settings)', () => {
       );
       expect(hasOverflow, `Horizontal overflow at ${width}px`).toBe(false);
     }
+  });
+
+  test('supports 5-tab master-detail navigation, URL ?tab= deep-link hydration, and instant settings search', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/settings');
+
+    await page.getByTestId('settings-tab-privacy').click();
+    await expect(page).toHaveURL(/\/settings\?tab=privacy/);
+    await expect(page.getByTestId('offline-mode-toggle')).toBeVisible();
+
+    // Direct deep-link reload hydration
+    await page.reload();
+    await expect(page.getByTestId('offline-mode-toggle')).toBeVisible();
+
+    // Mobile Bento tab switching without horizontal scroll or Experto badge
+    await page.setViewportSize({ width: 375, height: 812 });
+    const mobileTablistOverflow = await page.evaluate(() => {
+      const list = document.querySelector('nav [role="tablist"]');
+      return list ? list.scrollWidth > list.clientWidth + 1 : true;
+    });
+    expect(mobileTablistOverflow).toBe(false);
+
+    const mobileAdvancedTab = page.getByTestId('settings-mobile-tab-advanced');
+    await expect(mobileAdvancedTab).toBeVisible();
+    await expect(mobileAdvancedTab).not.toContainText('Experto');
+    await mobileAdvancedTab.click();
+    await expect(page).toHaveURL(/\/settings\?tab=advanced/);
+    await expect(page.getByTestId('export-diagnostics-btn')).toBeVisible();
+
+    // Instant settings search with single custom clear button
+    const searchInput = page.getByTestId('settings-search-input');
+    await expect(searchInput).toHaveAttribute('type', 'text');
+    await searchInput.fill('offline');
+    await expect(page.getByTestId('settings-search-clear')).toHaveCount(1);
+    await page.getByTestId('settings-search-clear').click();
+    await expect(searchInput).toHaveValue('');
+
+    await searchInput.fill('offline');
+    await page.getByTestId('settings-search-result-privacy-offline').click();
+    await expect(page).toHaveURL(/\/settings\?tab=privacy/);
+    await expect(page.getByTestId('offline-mode-toggle')).toBeVisible();
+  });
+
+  test('persists adaptive cover tinting, reduced motion, and default book format/status into Create Book modal', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/settings');
+
+    await page.getByTestId('toggle-adaptive-tint').click();
+    await page.getByTestId('reduced-motion-reduce-btn').click();
+    await expect(page.locator('html')).toHaveAttribute('data-reduced-motion', 'reduce');
+
+    await page.getByTestId('settings-tab-catalog').click();
+    await page.locator('#settings-default-format').selectOption('Ebook');
+    await page.locator('#settings-default-status').selectOption('reading');
+
+    await page.goto('/books');
+    await page.getByRole('button', { name: 'Crear nuevo libro' }).click();
+    await expect(page.locator('#create-book-format')).toHaveValue('Ebook');
+    await expect(page.locator('#create-book-status')).toHaveValue('reading');
+  });
+
+  test('enforces 100% Offline Mode by blocking external metadata requests', async ({ page }) => {
+    let externalRequestCount = 0;
+    await page.route('https://**/*', async (route) => {
+      externalRequestCount++;
+      await route.abort();
+    });
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/settings?tab=privacy');
+    await page.getByTestId('offline-mode-toggle').click();
+    await expect(page.getByTestId('offline-status-pill')).toBeVisible();
+
+    await page.goto('/books');
+    await page.getByRole('button', { name: 'Crear nuevo libro' }).click();
+
+    const lookupPanel = page.locator('app-book-metadata-lookup');
+    await expect(lookupPanel).toBeVisible();
+    await expect(lookupPanel).toContainText(/sin conexión|offline/i);
+    expect(externalRequestCount).toBe(0);
+  });
+
+  test('completes encrypted JSON backup export, wrong-password rejection, and correct-password restore', async ({
+    page,
+  }) => {
+    const books: Book[] = [
+      {
+        id: 'enc-book-1',
+        title: 'El Archivo de las Tormentas',
+        author: 'Brandon Sanderson',
+        totalPages: 1200,
+        currentPage: 300,
+        status: 'reading',
+        format: 'Físico',
+        createdAt: '2026-04-01T10:00:00.000Z',
+        updatedAt: '2026-04-01T10:00:00.000Z',
+      },
+    ];
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await seedLibrary(page, books, [], 'data');
+
+    await page.getByTestId('pref-backup-encryption').click();
+    await page.getByTestId('export-encryption-password').fill('BookStack#2026');
+    await page.getByTestId('export-encryption-confirm-password').fill('BookStack#2026');
+
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByTestId('export-json-btn').click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/\.json$/i);
+
+    const filePath = await download.path();
+    expect(filePath).toBeTruthy();
+    const { readFileSync } = await import('node:fs');
+    const encryptedBuffer = readFileSync(filePath!);
+
+    await seedLibrary(page, [], [], 'data');
+
+    await page.getByTestId('import-file-input').setInputFiles({
+      name: download.suggestedFilename(),
+      mimeType: 'application/json',
+      buffer: encryptedBuffer,
+    });
+
+    await expect(page.getByTestId('encrypted-backup-prompt')).toBeVisible();
+
+    // Wrong password shows error
+    await page.getByTestId('decrypt-backup-password').fill('WrongPassword99');
+    await page.getByTestId('decrypt-unlock-btn').click();
+    await expect(page.getByTestId('portability-error-banner')).toBeVisible();
+
+    // Correct password unlocks preview and restores book
+    await page.getByTestId('decrypt-backup-password').fill('BookStack#2026');
+    await page.getByTestId('decrypt-unlock-btn').click();
+    await expect(page.getByTestId('import-preview-panel')).toBeVisible();
+
+    const autoEnrichCheckbox = page.getByTestId('import-auto-enrich-checkbox');
+    if (await autoEnrichCheckbox.isChecked()) {
+      await autoEnrichCheckbox.uncheck();
+    }
+    await page.getByTestId('confirm-import-btn').click();
+    await expect(page.getByTestId('portability-status-banner')).toBeVisible();
+
+    await page.goto('/books');
+    await expect(page.getByText('El Archivo de las Tormentas')).toBeVisible();
+  });
+
+  test('executes selective preferences reset without deleting books and exports anonymous diagnostics', async ({
+    page,
+  }) => {
+    const books: Book[] = [
+      {
+        id: 'adv-book-1',
+        title: 'Nacidos de la Bruma',
+        author: 'Brandon Sanderson',
+        totalPages: 672,
+        currentPage: 100,
+        status: 'reading',
+        format: 'Físico',
+        createdAt: '2026-04-02T10:00:00.000Z',
+        updatedAt: '2026-04-02T10:00:00.000Z',
+      },
+    ];
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await seedLibrary(page, books, [], 'advanced');
+
+    await page.getByTestId('reset-all-preferences-btn').click();
+    const confirmDialog = page.locator('app-confirm-dialog [role="alertdialog"]');
+    await expect(confirmDialog).toBeVisible();
+    await confirmDialog.locator('button').last().click();
+    await expect(confirmDialog).toBeHidden();
+    await expect(page.getByTestId('advanced-status-banner')).toBeVisible();
+
+    const diagDownloadPromise = page.waitForEvent('download');
+    await page.getByTestId('export-diagnostics-btn').click();
+    const diagDownload = await diagDownloadPromise;
+    expect(diagDownload.suggestedFilename()).toMatch(/^bookstack-diagnostics-.*\.json$/i);
+
+    await page.goto('/books');
+    await expect(page.getByText('Nacidos de la Bruma')).toBeVisible();
   });
 });

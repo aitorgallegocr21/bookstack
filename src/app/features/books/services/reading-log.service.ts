@@ -95,4 +95,8 @@ export class ReadingLogService {
     await this.storage.clearStore(this.storeName);
     this.readingLogs.set([]);
   }
+
+  async clearAllLogs(): Promise<void> {
+    return this.clearAll();
+  }
 }

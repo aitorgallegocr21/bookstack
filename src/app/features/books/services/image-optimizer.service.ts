@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { AppPreferencesService } from '../../../core/services/app-preferences.service';
 
 export type OptimizedImageMimeType = 'image/webp' | 'image/jpeg';
 
@@ -10,9 +11,8 @@ export interface RemoteCoverOptimizationOptions {
 
 @Injectable({ providedIn: 'root' })
 export class ImageOptimizerService {
+  private readonly appPreferences = inject(AppPreferencesService);
   private readonly maxInputSizeBytes = 10 * 1024 * 1024;
-  private readonly maxDimension = 360;
-  private readonly quality = 0.7;
   private readonly allowedMimeTypes = new Set([
     'image/jpeg',
     'image/png',
@@ -51,10 +51,11 @@ export class ImageOptimizerService {
 
     context.drawImage(image, 0, 0, width, height);
 
-    const dataUrl = canvas.toDataURL(targetFormat, this.quality);
+    const quality = this.appPreferences.coverQuality();
+    const dataUrl = canvas.toDataURL(targetFormat, quality);
     if (!dataUrl || dataUrl === 'data:,') {
       const fallbackFormat: OptimizedImageMimeType = 'image/jpeg';
-      return canvas.toDataURL(fallbackFormat, this.quality);
+      return canvas.toDataURL(fallbackFormat, quality);
     }
 
     return dataUrl;
@@ -159,7 +160,8 @@ export class ImageOptimizerService {
     width: number,
     height: number
   ): { width: number; height: number } {
-    const scale = Math.min(1, this.maxDimension / Math.max(width, height));
+    const maxDimension = this.appPreferences.coverMaxDimension();
+    const scale = Math.min(1, maxDimension / Math.max(width, height));
 
     return {
       width: Math.max(1, Math.round(width * scale)),

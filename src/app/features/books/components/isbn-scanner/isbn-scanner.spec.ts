@@ -2,6 +2,7 @@ import { signal, type WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import {
   BarcodeDecoderService,
   type BarcodeDetectionResult,
@@ -50,6 +51,8 @@ describe('IsbnScannerComponent', () => {
   let availableDevicesSig: WritableSignal<RawCameraDevice[]>;
   let torchSupportedSig: WritableSignal<boolean>;
   let torchEnabledSig: WritableSignal<boolean>;
+  let scannerPreferPhotoModeSig: WritableSignal<boolean>;
+  let scannerAutoTorchSig: WritableSignal<boolean>;
 
   let startStreamMock: ReturnType<
     typeof vi.fn<(options?: StartCameraStreamOptions) => Promise<MediaStream>>
@@ -78,6 +81,8 @@ describe('IsbnScannerComponent', () => {
     ]);
     torchSupportedSig = signal(false);
     torchEnabledSig = signal(false);
+    scannerPreferPhotoModeSig = signal(false);
+    scannerAutoTorchSig = signal(false);
 
     startStreamMock = vi.fn(async (options?: StartCameraStreamOptions) => {
       const deviceId =
@@ -121,6 +126,7 @@ describe('IsbnScannerComponent', () => {
             enhanceActiveTrack: enhanceActiveTrackMock,
             toggleTorch: toggleTorchMock,
             stopStream: stopStreamMock,
+            grantCameraConsent: vi.fn(),
           },
         },
         {
@@ -128,6 +134,13 @@ describe('IsbnScannerComponent', () => {
           useValue: {
             decodeFromVideo: decodeFromVideoMock,
             decodeFromImageFile: decodeFromImageFileMock,
+          },
+        },
+        {
+          provide: AppPreferencesService,
+          useValue: {
+            scannerPreferPhotoMode: scannerPreferPhotoModeSig.asReadonly(),
+            scannerAutoTorch: scannerAutoTorchSig.asReadonly(),
           },
         },
       ],
@@ -400,6 +413,25 @@ describe('IsbnScannerComponent', () => {
       'No available camera was detected on this device.'
     );
 
+    fixture.destroy();
+  });
+
+  it('skips auto-starting live camera when scannerPreferPhotoMode is enabled', async () => {
+    scannerPreferPhotoModeSig.set(true);
+    const { fixture } = await mountScanner();
+
+    expect(startStreamMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('auto-enables torch when scannerAutoTorch is enabled and rear camera supports torch', async () => {
+    scannerAutoTorchSig.set(true);
+    torchSupportedSig.set(true);
+
+    const { fixture } = await mountScanner();
+    await flushAsync();
+
+    expect(toggleTorchMock).toHaveBeenCalledTimes(1);
     fixture.destroy();
   });
 });

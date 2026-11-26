@@ -1,4 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { AppPreferencesService } from '../../../core/services/app-preferences.service';
 import { Book } from '../../books/models/book.model';
 import { BookMetadataCandidate } from '../../books/models/book-metadata.model';
 import { BookMetadataService, mergeCandidates } from '../../books/services/book-metadata.service';
@@ -122,6 +123,7 @@ export function bookNeedsMoreFields(book: Book, candidate: BookMetadataCandidate
   providedIn: 'root',
 })
 export class CoverEnrichmentService {
+  private readonly appPreferences = inject(AppPreferencesService);
   private readonly booksService = inject(BooksService);
   private readonly bookMetadataService = inject(BookMetadataService);
   private readonly imageOptimizer = inject(ImageOptimizerService);
@@ -211,7 +213,7 @@ export class CoverEnrichmentService {
    * Runs strict ISBN-based bulk enrichment on all books missing covers that have a valid ISBN.
    */
   async runStrictIsbnEnrichment(): Promise<void> {
-    if (this.isQueueActive()) {
+    if (this.appPreferences.offlineMode() || this.isQueueActive()) {
       return;
     }
 
@@ -259,7 +261,7 @@ export class CoverEnrichmentService {
    * Runs strict Title + Author enrichment for all books still missing covers.
    */
   async runStrictTitleAuthorEnrichment(): Promise<void> {
-    if (this.isQueueActive()) {
+    if (this.appPreferences.offlineMode() || this.isQueueActive()) {
       return;
     }
 
@@ -295,7 +297,7 @@ export class CoverEnrichmentService {
    * automatic ISBN -> strict Title+Author cascade and non-destructive field backfilling.
    */
   async runIntegralEnrichment(targetBooks?: readonly Book[]): Promise<void> {
-    if (this.isQueueActive()) {
+    if (this.appPreferences.offlineMode() || this.isQueueActive()) {
       return;
     }
 
@@ -396,6 +398,9 @@ export class CoverEnrichmentService {
    * covers are collected into `assistantNotFoundBooks` without requiring manual skipping.
    */
   async startVisualAssistant(books?: readonly Book[]): Promise<void> {
+    if (this.appPreferences.offlineMode()) {
+      return;
+    }
     const queue = (books ?? this.booksService.books()).filter((book) => !book.coverUrl?.trim());
     this.assistantQueue.set(queue);
     this.assistantCurrentIndex.set(0);

@@ -1,6 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { StorageBreakdownSummary } from '../../models/data-portability.model';
+import { DataPortabilityService } from '../../services/data-portability.service';
 
 export interface StorageCategoryItem {
   id: 'metadata' | 'covers' | 'logs' | 'preferences';
@@ -24,9 +33,76 @@ export interface StorageCategoryItem {
 })
 export class StorageQuotaInspectorComponent {
   protected readonly i18n = inject(I18nService);
+  private readonly dataPortabilityService = inject(DataPortabilityService);
 
   readonly breakdown = input.required<StorageBreakdownSummary>();
   readonly refreshRequested = output<void>();
+
+  readonly isRequestingPersistence = signal(false);
+  readonly persistenceFeedback = signal<{ message: string; isPositive: boolean } | null>(null);
+
+  protected readonly persistenceLabel = computed(() => {
+    const t = this.i18n.t().settings.storage;
+    switch (this.breakdown().persistenceStatus) {
+      case 'persisted':
+        return t.persistencePersisted;
+      case 'best-effort':
+        return t.persistenceBestEffort;
+      default:
+        return t.persistenceUnsupported;
+    }
+  });
+
+  protected readonly persistenceBadgeClass = computed(() => {
+    switch (this.breakdown().persistenceStatus) {
+      case 'persisted':
+        return 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300';
+      case 'best-effort':
+        return 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300';
+      default:
+        return 'border-subtle bg-surface-elevated text-ink-secondary';
+    }
+  });
+
+  protected readonly indexedDbDiagnosticsText = computed(() => {
+    const summary = this.breakdown();
+    const t = this.i18n.t().settings.storage;
+    const info = summary.indexedDbInfo;
+    return `${info.dbName} · ${t.diagnosticsVersionPrefix}${info.version} · ${info.objectStoresCount} ${t.diagnosticsStoresLabel} · ${summary.booksCount} ${t.booksCountLabel.toLowerCase()} · ${summary.readingLogsCount} ${t.logsCountLabel.toLowerCase()}`;
+  });
+
+  async requestPersistentStorage(): Promise<void> {
+    if (this.isRequestingPersistence()) {
+      return;
+    }
+
+    this.isRequestingPersistence.set(true);
+    this.persistenceFeedback.set(null);
+    const t = this.i18n.t().settings.storage;
+
+    try {
+      const result = await this.dataPortabilityService.requestPersistentStorage();
+      if (result === 'persisted') {
+        this.persistenceFeedback.set({
+          message: t.requestPersistentGranted,
+          isPositive: true,
+        });
+      } else if (result === 'denied') {
+        this.persistenceFeedback.set({
+          message: t.requestPersistentDenied,
+          isPositive: false,
+        });
+      } else {
+        this.persistenceFeedback.set({
+          message: t.requestPersistentUnsupported,
+          isPositive: false,
+        });
+      }
+      this.refreshRequested.emit();
+    } finally {
+      this.isRequestingPersistence.set(false);
+    }
+  }
 
   protected readonly engineLabel = computed(() => {
     const t = this.i18n.t().settings.storage;

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import {
   LucideCheck,
   LucideDynamicIcon,
@@ -12,13 +12,11 @@ import {
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
 import { SupportedLocale } from '../../../../core/i18n/i18n.types';
-import { CONFIRM_SUPPRESSION_KEYS } from '../../../../core/models/confirm-dialog.model';
-import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
+import { ReducedMotionPreference } from '../../../../core/models/app-preferences.model';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import { DockPositionService } from '../../../../core/services/dock-position.service';
 import { AccentPalette, ThemeMode, ThemeService } from '../../../../core/services/theme.service';
 import { DockPosition, MobileDockPosition } from '../../../../core/utils/dock-snap.utils';
-import { CatalogViewMode } from '../../../books/models/catalog-filter.model';
-import { CatalogFilterService } from '../../../books/services/catalog-filter.service';
 
 interface AccentSwatchOption {
   readonly id: AccentPalette;
@@ -73,8 +71,7 @@ export class SettingsPreferencesSectionComponent {
   protected readonly i18n = inject(I18nService);
   protected readonly themeService = inject(ThemeService);
   protected readonly dockPositionService = inject(DockPositionService);
-  protected readonly catalogFilter = inject(CatalogFilterService);
-  private readonly confirmDialogService = inject(ConfirmDialogService);
+  protected readonly appPreferences = inject(AppPreferencesService);
 
   protected readonly Check = LucideCheck;
   protected readonly themeOptions = THEME_MODE_OPTIONS;
@@ -87,9 +84,10 @@ export class SettingsPreferencesSectionComponent {
     'bottom',
   ];
   protected readonly mobileDockPositions: readonly MobileDockPosition[] = ['bottom', 'top'];
-
-  protected readonly hasSuppressedConfirms = signal<boolean>(this.checkHasSuppressedConfirms());
-  protected readonly confirmsResetDone = signal<boolean>(false);
+  protected readonly reducedMotionOptions: readonly ReducedMotionPreference[] = [
+    'system',
+    'reduce',
+  ];
 
   protected onLocaleChange(event: Event): void {
     const target = event.target as HTMLSelectElement | null;
@@ -119,6 +117,21 @@ export class SettingsPreferencesSectionComponent {
     return this.i18n.t().settings.preferences.accents[accent];
   }
 
+  protected toggleAdaptiveCoverTint(): void {
+    this.appPreferences.updatePreferences({
+      adaptiveCoverTint: !this.appPreferences.adaptiveCoverTint(),
+    });
+  }
+
+  protected setReducedMotion(mode: ReducedMotionPreference): void {
+    this.appPreferences.updatePreferences({ reducedMotion: mode });
+  }
+
+  protected getReducedMotionLabel(mode: ReducedMotionPreference): string {
+    const prefs = this.i18n.t().settings.preferences;
+    return mode === 'reduce' ? prefs.reducedMotionReduce : prefs.reducedMotionSystem;
+  }
+
   protected setDesktopDock(position: DockPosition): void {
     this.dockPositionService.setDesktopPosition(position);
   }
@@ -136,23 +149,5 @@ export class SettingsPreferencesSectionComponent {
       bottom: nav.dockBottom,
     };
     return labels[position];
-  }
-
-  protected onViewModeChange(event: Event): void {
-    const target = event.target as HTMLSelectElement | null;
-    const rawValue = target?.value;
-    const nextMode: CatalogViewMode =
-      rawValue === 'detailed' || rawValue === 'compact' ? rawValue : 'grid';
-    this.catalogFilter.setViewMode(nextMode);
-  }
-
-  protected resetSuppressedConfirms(): void {
-    this.confirmDialogService.resetSuppressed();
-    this.hasSuppressedConfirms.set(false);
-    this.confirmsResetDone.set(true);
-  }
-
-  private checkHasSuppressedConfirms(): boolean {
-    return CONFIRM_SUPPRESSION_KEYS.some((key) => this.confirmDialogService.isSuppressed(key));
   }
 }

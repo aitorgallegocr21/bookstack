@@ -14,13 +14,14 @@
   <div class="divide-y divide-subtle border-t border-subtle">
     <!-- Row 1: Active Language -->
     <div
+      data-setting-id="pref-language"
       class="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
       data-testid="pref-row-language"
     >
       <label for="settings-language" class="field-label mb-0 truncate">
         {{ i18n.t().settings.languageLabel }}
       </label>
-      <div class="select-wrap w-full sm:w-72 sm:shrink-0">
+      <div class="select-wrap w-full sm:w-60 sm:shrink-0 lg:w-72">
         <select
           id="settings-language"
           class="field-select h-11 w-full py-0"
@@ -35,16 +36,17 @@
 
     <!-- Row 2: Visual Theme (Light / Dark / System) -->
     <div
+      data-setting-id="pref-theme"
       class="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
       data-testid="pref-row-theme"
     >
-      <span id="settings-theme-label" class="field-label mb-0 truncate">
+      <span id="settings-theme-label" class="field-label mb-0 min-w-0 truncate">
         {{ i18n.t().settings.preferences.themeLabel }}
       </span>
       <div
         role="group"
         aria-labelledby="settings-theme-label"
-        class="grid h-11 w-full grid-cols-3 gap-1 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1 sm:w-80 sm:shrink-0"
+        class="grid h-11 w-full grid-cols-3 gap-1 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1 sm:w-64 sm:shrink-0 lg:w-80"
       >
         @for (opt of themeOptions; track opt.mode) {
           <button
@@ -72,30 +74,8 @@
       </div>
     </div>
 
-    <!-- Row 3: Default Catalog View -->
-    <div
-      class="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
-      data-testid="pref-row-default-view"
-    >
-      <label for="settings-default-view" class="field-label mb-0 truncate">
-        {{ i18n.t().settings.preferences.defaultViewLabel }}
-      </label>
-      <div class="select-wrap w-full sm:w-72 sm:shrink-0">
-        <select
-          id="settings-default-view"
-          class="field-select h-11 w-full py-0"
-          [value]="catalogFilter.viewMode()"
-          (change)="onViewModeChange($event)"
-        >
-          <option value="grid">{{ i18n.t().settings.preferences.viewGrid }}</option>
-          <option value="detailed">{{ i18n.t().settings.preferences.viewDetailed }}</option>
-          <option value="compact">{{ i18n.t().settings.preferences.viewCompact }}</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Row 4: Accent Color (Ordered 5-Column Chromatic Grid) -->
-    <div class="space-y-3 py-4" data-testid="pref-row-accent">
+    <!-- Row 3: Accent Color (Ordered 5-Column Chromatic Grid) -->
+    <div data-setting-id="pref-accent" class="space-y-3 py-4" data-testid="pref-row-accent">
       <span
         id="settings-accent-label"
         class="block text-[0.7rem] font-bold tracking-[0.12em] text-ink-secondary uppercase"
@@ -105,7 +85,7 @@
       <div
         role="group"
         aria-labelledby="settings-accent-label"
-        class="grid grid-cols-2 gap-2.5 sm:grid-cols-5"
+        class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5"
       >
         @for (swatch of accentSwatches; track swatch.id) {
           <button
@@ -142,8 +122,90 @@
       </div>
     </div>
 
-    <!-- Row 5: Dock Position (Desktop 4-Edge & Mobile 2-Edge) -->
-    <div class="grid grid-cols-1 gap-4 pt-4 lg:grid-cols-12" data-testid="pref-row-dock">
+    <!-- Row 4: Adaptive Cover Tinting -->
+    <div
+      data-setting-id="pref-adaptive-tint"
+      data-testid="pref-row-adaptive-tint"
+      class="flex items-center justify-between gap-4 py-4"
+    >
+      <div class="min-w-0 space-y-0.5">
+        <span id="settings-adaptive-tint-label" class="block text-sm font-semibold text-ink">
+          {{ i18n.t().settings.preferences.adaptiveTintLabel }}
+        </span>
+        <p class="text-xs text-ink-secondary">
+          {{ i18n.t().settings.preferences.adaptiveTintDescription }}
+        </p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        data-testid="toggle-adaptive-tint"
+        aria-labelledby="settings-adaptive-tint-label"
+        [attr.aria-checked]="appPreferences.adaptiveCoverTint()"
+        (click)="toggleAdaptiveCoverTint()"
+        [class]="
+          appPreferences.adaptiveCoverTint()
+            ? 'border-accent bg-accent'
+            : 'border-strong bg-surface-subtle'
+        "
+        class="relative inline-flex h-7 w-12 min-w-[48px] shrink-0 cursor-pointer items-center rounded-full border p-0.5 transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+      >
+        <span class="sr-only">{{ i18n.t().settings.preferences.adaptiveTintLabel }}</span>
+        <span
+          [class]="
+            appPreferences.adaptiveCoverTint()
+              ? 'translate-x-5 bg-white'
+              : 'translate-x-0 bg-ink-muted'
+          "
+          class="pointer-events-none inline-block h-5 w-5 rounded-full shadow-xs transition-transform"
+        ></span>
+      </button>
+    </div>
+
+    <!-- Row 5: Reduced Motion Override -->
+    <div
+      data-setting-id="pref-reduced-motion"
+      data-testid="pref-row-reduced-motion"
+      class="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+    >
+      <div class="min-w-0 space-y-0.5">
+        <span id="settings-reduced-motion-label" class="block text-sm font-semibold text-ink">
+          {{ i18n.t().settings.preferences.reducedMotionLabel }}
+        </span>
+        <p class="text-xs text-ink-secondary">
+          {{ i18n.t().settings.preferences.reducedMotionDescription }}
+        </p>
+      </div>
+      <div
+        role="group"
+        aria-labelledby="settings-reduced-motion-label"
+        class="grid h-11 w-full grid-cols-2 gap-1 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1 sm:w-60 sm:shrink-0 lg:w-72"
+      >
+        @for (mode of reducedMotionOptions; track mode) {
+          <button
+            type="button"
+            [attr.data-testid]="'reduced-motion-' + mode + '-btn'"
+            [attr.aria-pressed]="appPreferences.reducedMotion() === mode"
+            (click)="setReducedMotion(mode)"
+            [class]="
+              appPreferences.reducedMotion() === mode
+                ? 'bg-surface-elevated text-ink shadow-sm'
+                : 'text-ink-secondary hover:text-ink'
+            "
+            class="inline-flex h-full min-w-0 flex-1 items-center justify-center rounded-[0.625rem] px-2 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none sm:text-sm"
+          >
+            <span class="truncate">{{ getReducedMotionLabel(mode) }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Row 6: Dock Position (Desktop 4-Edge & Mobile 2-Edge) -->
+    <div
+      data-setting-id="pref-dock"
+      class="grid grid-cols-1 gap-4 pt-4 lg:grid-cols-12"
+      data-testid="pref-row-dock"
+    >
       <div class="flex flex-col gap-2 lg:col-span-8">
         <span
           id="settings-desktop-dock-label"
@@ -154,7 +216,7 @@
         <div
           role="group"
           aria-labelledby="settings-desktop-dock-label"
-          class="grid grid-cols-2 gap-1.5 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1.5 sm:grid-cols-4"
+          class="grid grid-cols-2 gap-1.5 rounded-[0.875rem] border border-subtle bg-surface-subtle p-1.5 lg:grid-cols-4"
         >
           @for (pos of desktopDockPositions; track pos) {
             <button
@@ -176,7 +238,7 @@
                 class="shrink-0"
                 aria-hidden="true"
               ></svg>
-              <span>{{ getDockPositionLabel(pos) }}</span>
+              <span class="truncate">{{ getDockPositionLabel(pos) }}</span>
             </button>
           }
         </div>
@@ -214,33 +276,11 @@
                 class="shrink-0"
                 aria-hidden="true"
               ></svg>
-              <span>{{ getDockPositionLabel(pos) }}</span>
+              <span class="truncate">{{ getDockPositionLabel(pos) }}</span>
             </button>
           }
         </div>
       </div>
     </div>
   </div>
-
-  @if (hasSuppressedConfirms() || confirmsResetDone()) {
-    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-subtle pt-4">
-      <span class="text-sm font-medium text-ink-secondary">
-        {{
-          confirmsResetDone()
-            ? i18n.t().settings.preferences.suppressedConfirmsResetDone
-            : i18n.t().settings.preferences.suppressedConfirmsLabel
-        }}
-      </span>
-      @if (hasSuppressedConfirms()) {
-        <button
-          type="button"
-          data-testid="reset-suppressed-confirms-btn"
-          (click)="resetSuppressedConfirms()"
-          class="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-strong bg-surface-elevated px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-        >
-          {{ i18n.t().settings.preferences.suppressedConfirmsReset }}
-        </button>
-      }
-    </div>
-  }
 </section>

@@ -13,6 +13,8 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { DefaultBookFormat } from '../../../../core/models/app-preferences.model';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { ExistingSeriesOption, SeriesService } from '../../../series/services/series.service';
@@ -58,6 +60,7 @@ import { IsbnScannerComponent } from '../isbn-scanner/isbn-scanner';
 export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
   private readonly uiState = inject(UiStateService);
   protected readonly i18n = inject(I18nService);
+  private readonly appPreferences = inject(AppPreferencesService);
   private readonly booksService = inject(BooksService);
   private readonly seriesService = inject(SeriesService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
@@ -100,8 +103,8 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
     totalCharacters: [0, [Validators.min(0)]],
     totalChapters: [0, [Validators.min(0)]],
     currentChapter: [0, [Validators.min(0)]],
-    format: ['Físico'],
-    status: ['pending' as BookStatus, [Validators.required]],
+    format: [this.mapDefaultBookFormat(this.appPreferences.defaultBookFormat())],
+    status: [this.appPreferences.defaultBookStatus() as BookStatus, [Validators.required]],
     coverUrl: [''],
     startDate: [''],
     endDate: [''],
@@ -159,6 +162,15 @@ export class BookCreateModalComponent implements AfterViewInit, OnDestroy {
       return;
     }
     this.cancel();
+  }
+
+  private mapDefaultBookFormat(format: DefaultBookFormat): string {
+    const map: Record<DefaultBookFormat, string> = {
+      physical: 'Físico',
+      ebook: 'Ebook',
+      audiobook: 'Audiolibro',
+    };
+    return map[format];
   }
 
   protected onSeriesNameInput(rawName: string): void {

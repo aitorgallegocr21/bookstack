@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { ACCENT_PALETTES, ThemeService } from './theme.service';
+import { AppPreferencesService } from './app-preferences.service';
 
 const THEME_STORAGE_KEY = 'bookstack_theme_v1';
 const ACCENT_STORAGE_KEY = 'bookstack_accent_v1';
@@ -160,5 +161,20 @@ describe('ThemeService', () => {
     expect(service.themeMode()).toBe('system');
     expect(service.accent()).toBe('blue');
     expect(document.documentElement.getAttribute('data-accent')).toBe('blue');
+  });
+
+  it('should sync data-reduced-motion attribute with AppPreferencesService.reducedMotion()', () => {
+    const prefs = TestBed.inject(AppPreferencesService);
+    TestBed.inject(ThemeService);
+    TestBed.flushEffects();
+    expect(document.documentElement.getAttribute('data-reduced-motion')).toBeNull();
+
+    prefs.setPreference('reducedMotion', 'reduce');
+    TestBed.flushEffects();
+    expect(document.documentElement.getAttribute('data-reduced-motion')).toBe('reduce');
+
+    prefs.setPreference('reducedMotion', 'system');
+    TestBed.flushEffects();
+    expect(document.documentElement.getAttribute('data-reduced-motion')).toBeNull();
   });
 });

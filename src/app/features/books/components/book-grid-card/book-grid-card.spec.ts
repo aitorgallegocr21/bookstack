@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import { Book } from '../../models/book.model';
 import { BookGridCardComponent } from './book-grid-card';
 
@@ -131,5 +132,34 @@ describe('BookGridCardComponent', () => {
     expect(labelSpan).toBeTruthy();
     expect(labelSpan.nativeElement.classList.contains('hidden')).toBe(true);
     expect(labelSpan.nativeElement.classList.contains('@[205px]:inline')).toBe(true);
+  });
+
+  it('should hide quick actions and progress bar when disabled in AppPreferencesService', () => {
+    const appPreferences = TestBed.inject(AppPreferencesService);
+    expect(
+      fixture.debugElement.query(By.css('[data-testid="grid-card-quick-actions"]'))
+    ).not.toBeNull();
+    expect(
+      fixture.debugElement.query(By.css('[data-testid="grid-card-progress-bar"]'))
+    ).not.toBeNull();
+
+    appPreferences.updatePreferences({ showCardQuickActions: false, showCardProgressBar: false });
+    fixture.detectChanges();
+
+    expect(
+      fixture.debugElement.query(By.css('[data-testid="grid-card-quick-actions"]'))
+    ).toBeNull();
+    expect(fixture.debugElement.query(By.css('[data-testid="grid-card-progress-bar"]'))).toBeNull();
+  });
+
+  it('should toggle data-book-tint-active based on adaptiveCoverTint preference', () => {
+    const appPreferences = TestBed.inject(AppPreferencesService);
+    const article = fixture.debugElement.query(By.css('article')).nativeElement as HTMLElement;
+
+    expect(article.getAttribute('data-book-tint-active')).toBe('true');
+
+    appPreferences.updatePreferences({ adaptiveCoverTint: false });
+    fixture.detectChanges();
+    expect(article.getAttribute('data-book-tint-active')).toBeNull();
   });
 });

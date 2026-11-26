@@ -16,6 +16,10 @@ export class ConfirmDialogService {
 
   readonly activeDialog = signal<ConfirmDialogState | null>(null);
   readonly dontAskAgainChecked = signal<boolean>(false);
+  private readonly _suppressedKeys = signal<ConfirmSuppressionKey[]>(
+    this.storage.getSuppressedConfirms()
+  );
+  readonly suppressedKeys = this._suppressedKeys.asReadonly();
 
   private pendingResolver: ((confirmed: boolean) => void) | null = null;
   private nextDialogId = 1;
@@ -60,6 +64,7 @@ export class ConfirmDialogService {
 
     if (this.dontAskAgainChecked() && current.suppressibleKey) {
       this.storage.setConfirmSuppressed(current.suppressibleKey, true);
+      this._suppressedKeys.set(this.storage.getSuppressedConfirms());
     }
 
     this.resolveActive(true);
@@ -74,11 +79,17 @@ export class ConfirmDialogService {
   }
 
   isSuppressed(key: ConfirmSuppressionKey): boolean {
-    return this.storage.isConfirmSuppressed(key);
+    return this._suppressedKeys().includes(key);
+  }
+
+  setSuppressed(key: ConfirmSuppressionKey, suppressed: boolean): void {
+    this.storage.setConfirmSuppressed(key, suppressed);
+    this._suppressedKeys.set(this.storage.getSuppressedConfirms());
   }
 
   resetSuppressed(): void {
     this.storage.resetSuppressedConfirms();
+    this._suppressedKeys.set([]);
   }
 
   private resolveActive(confirmed: boolean): void {

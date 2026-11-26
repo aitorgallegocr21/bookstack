@@ -2,6 +2,7 @@ import { computed } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CoverColorService } from './cover-color.service';
+import { AppPreferencesService } from './app-preferences.service';
 
 describe('CoverColorService', () => {
   let service: CoverColorService;
@@ -380,5 +381,23 @@ describe('CoverColorService', () => {
     // Debounce has not elapsed yet if we check immediately, or once 500ms elapses it writes once.
     await vi.advanceTimersByTimeAsync(500);
     expect(setItemSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns null when adaptiveCoverTint is disabled without clearing cached entries, and clears via clearCache()', () => {
+    const prefs = TestBed.inject(AppPreferencesService);
+    const book = { id: 'cache-test-1', title: 'Dune', author: 'Frank Herbert' };
+
+    const tintBefore = service.getTint(book);
+    expect(tintBefore).toBeTruthy();
+
+    prefs.setPreference('adaptiveCoverTint', false);
+    expect(service.getTint(book)).toBeNull();
+
+    prefs.setPreference('adaptiveCoverTint', true);
+    expect(service.getTint(book)).toBe(tintBefore);
+
+    localStorage.setItem('bookstack_cover_tints_v1', JSON.stringify([['1|a|b', '#4c5b7a']]));
+    service.clearCache();
+    expect(localStorage.getItem('bookstack_cover_tints_v1')).toBeNull();
   });
 });

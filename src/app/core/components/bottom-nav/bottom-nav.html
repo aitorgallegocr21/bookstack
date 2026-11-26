@@ -15,6 +15,7 @@
 >
   @if (isMenuOpen()) {
     <div
+      data-mobile-menu-root
       role="menu"
       [attr.aria-label]="i18n.t().nav.moreMenuAria"
       [class]="popoverAnimationClass()"
@@ -219,6 +220,7 @@
       <!-- Brand logo / overflow popover trigger -->
       <button
         type="button"
+        data-mobile-menu-root
         (click)="toggleMenu($event)"
         class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl transition-colors hover:bg-accent-soft/65 focus-visible:ring-2 focus-visible:ring-accent-ring focus-visible:outline-none"
         [class.bg-accent-soft]="isMenuOpen()"

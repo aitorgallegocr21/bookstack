@@ -196,6 +196,10 @@ export interface BooksI18n {
       applyOverwritePublic: string;
       appliedFeedback: string;
       editProtectionHint: string;
+      offlineModeTitle: string;
+      offlineModeDescription: string;
+      offlineModeSettingsLink: string;
+      offlineModeBlockedError: string;
     };
   };
   bookDetail: {
@@ -444,6 +448,11 @@ export const ES_BOOKS: BooksI18n = {
       appliedFeedback: 'Datos aplicados al formulario',
       editProtectionHint:
         'Tu progreso, valoración, fechas, notas y saga personales nunca se sobrescriben.',
+      offlineModeTitle: 'Modo Offline 100% activo',
+      offlineModeDescription:
+        'Las búsquedas en catálogos externos están bloqueadas. El escáner ISBN y las portadas locales siguen funcionando.',
+      offlineModeSettingsLink: 'Configurar en Privacidad',
+      offlineModeBlockedError: 'Modo Offline 100% activo: se han bloqueado las consultas externas.',
     },
   },
   bookDetail: {
@@ -691,6 +700,11 @@ export const EN_BOOKS: BooksI18n = {
       appliedFeedback: 'Metadata applied to form',
       editProtectionHint:
         'Your personal progress, rating, dates, notes, and series are never overwritten.',
+      offlineModeTitle: '100% Offline Mode active',
+      offlineModeDescription:
+        'External catalog lookups are blocked. Local ISBN barcode scanning and manual/local covers remain active.',
+      offlineModeSettingsLink: 'Manage in Privacy',
+      offlineModeBlockedError: '100% Offline Mode is active: external lookups are blocked.',
     },
   },
   bookDetail: {

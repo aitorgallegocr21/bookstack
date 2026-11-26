@@ -1,14 +1,15 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   OnDestroy,
   computed,
   inject,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationStart, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs';
 import {
   LucideBarChart2,
   LucideBook,
@@ -50,7 +51,7 @@ import { BrandLogoComponent } from '../brand-logo/brand-logo';
   },
 })
 export class SidebarComponent implements OnDestroy {
-  private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private readonly router = inject(Router);
   protected readonly uiState = inject(UiStateService);
   protected readonly themeService = inject(ThemeService);
   protected readonly dockPosition = inject(DockPositionService);
@@ -123,6 +124,17 @@ export class SidebarComponent implements OnDestroy {
   private activePointerMove: ((event: PointerEvent) => void) | null = null;
   private activePointerUp: ((event: PointerEvent) => void) | null = null;
 
+  constructor() {
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationStart => event instanceof NavigationStart),
+        takeUntilDestroyed()
+      )
+      .subscribe(() => {
+        this.closeDockMenu();
+      });
+  }
+
   ngOnDestroy(): void {
     this.cleanupDragListeners();
     if (this.dockPosition.isDragging()) {
@@ -131,14 +143,17 @@ export class SidebarComponent implements OnDestroy {
   }
 
   protected toggleSidebar(): void {
+    this.closeDockMenu();
     this.uiState.toggleSidebar();
   }
 
   protected openCreate(): void {
+    this.closeDockMenu();
     this.uiState.openCreateModal();
   }
 
   protected toggleTheme(): void {
+    this.closeDockMenu();
     this.themeService.toggleTheme();
   }
 
@@ -160,8 +175,8 @@ export class SidebarComponent implements OnDestroy {
     if (!this.isDockMenuOpen()) {
       return;
     }
-    const target = event.target as Node | null;
-    if (target && !this.elementRef.nativeElement.contains(target)) {
+    const target = event.target;
+    if (!(target instanceof Element) || !target.closest('[data-dock-menu-root]')) {
       this.isDockMenuOpen.set(false);
     }
   }
@@ -206,6 +221,7 @@ export class SidebarComponent implements OnDestroy {
   }
 
   protected openGitHub(): void {
+    this.closeDockMenu();
     window.open(
       'https://github.com/aitorgallegocr21/bookstack.git',
       '_blank',

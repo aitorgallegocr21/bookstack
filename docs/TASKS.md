@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-_None — Phase 18 completed (`v2.4.0`). Ready to plan Phase 19._
+_None — Ready for Phase 20 planning._
 
 ---
 
@@ -16,13 +16,16 @@ _None — Phase 18 completed (`v2.4.0`). Ready to plan Phase 19._
 
 > Full architectural and product specifications for upcoming phases live in [`docs/ROADMAP.md`](ROADMAP.md).
 
-- [ ] **[Phase 19: Extended Categorized Settings (`/settings`), Advanced Mode & Privacy/Crypto Hardening](ROADMAP.md#phase-19-extended-categorized-settings-settings-advanced-mode--privacycrypto-hardening)** — _Roadmapped_ (Categorized `/settings` navigation [General, Catalog & Reading Defaults, Data & Backups, Privacy & Security, Advanced], master 100% Offline Mode toggle, granular 5-provider metadata controls, `navigator.storage.persist()` safeguard, Web Crypto `AES-GCM` password-encrypted backups, and advanced compression/reset tuning).
 - [ ] **[Phase 20: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy](ROADMAP.md#phase-20-expanded-analytics-stats-adaptive-timevelocity-engine--tagsgenres-taxonomy)** — _Roadmapped_ (Adaptive time/velocity disclosure hiding `pp/h` and Time tabs when no timed sessions exist, `Book.tags` / genres taxonomy with thematic distribution charts, 365-day reading activity heatmap calendar, book longevity & length distribution metrics, period-over-period deltas, and personal all-time records).
 - [ ] **[Phase 21: Integrated eBook Reader (`/reader/:id`) & Binary Metadata Extractor](ROADMAP.md#phase-21-long-term-milestone-integrated-ebook-reader-readerid--binary-metadata-extractor)** — _Long-Term Milestone_ (Isolated IndexedDB `ebookFiles` binary store for `.EPUB`/`.PDF` uploads, 100% browser-native metadata/cover/TOC extraction, lazy-loaded `/reader/:id` view with customizable typography/themes/bookmarks, automatic `currentPage` & timed `ReadingLog` session tracking, and eBook quota manager in `/settings`).
 
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 19B: Settings UX Polish, Dock Popover Auto-Close, Book Hover Refinement & Feature Governance (`v2.5.1`)](tasks/phase-19b-settings-ux-dock-hover-polish/index.md)** — _Completed 2026-11_ (Semantic rose Advanced tab without Expert badge, zero-scroll mobile/tablet 2-column Adaptive Bento settings tabs, single settings search clear button + Escape, clean label spacing in Advanced & System, desktop/mobile dock popover auto-close on dock nav/outside click/router navigation, unclipped `.catalog-card-contain` hover borders with zero-cost pure-CSS `--book-tint` hover intensification, strict `reducedMotion` & neutral `adaptiveCoverTint` compliance, and permanent Rule 11 feature governance in `AGENTS.md` & `docs/DESIGN_SYSTEM.md`).
+
+- [x] **[Phase 19: Extended Categorized Settings (`/settings`), Privacy/Offline Controls & Web Crypto Backups (`v2.5.0`)](tasks/phase-19-extended-settings-privacy-crypto/index.md)** — _Completed 2026-11_ (5-category Master-Detail `/settings` hub with `?tab=` URL sync & instant search, unified `AppPreferencesService`, adaptive cover tint & reduced motion toggles, catalog/reading defaults & granular confirmations, master 100% Offline Mode, 5-provider enable/reorder & scanner privacy controls, `navigator.storage.persist()`, zero-dependency Web Crypto `PBKDF2` + `AES-GCM-256` encrypted JSON/ZIP backups, cover compression tuning, selective resets, and anonymous diagnostics).
 
 - [x] **[Phase 18: Modern Native ISBN Scanner Engine (`getUserMedia` + `BarcodeDetector` & Local ZXing-WASM) (`v2.4.0`)](tasks/phase-18-native-isbn-scanner-engine/index.md)** — _Completed 2026-11_ (Removed `html5-qrcode` completely, introduced native `CameraStreamService` with `localStorage` preferred rear `deviceId` memory, Camera2 primary-sensor index ranking, progressive continuous autofocus/HD constraints, and torch control, plus `BarcodeDecoderService` using hardware `BarcodeDetector` with lazy local `assets/wasm/zxing_reader.wasm` ponyfill, `'wasm-unsafe-eval'` CSP, offline PWA caching, and rewritten `<app-isbn-scanner>` UI).
 

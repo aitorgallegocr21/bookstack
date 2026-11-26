@@ -88,16 +88,18 @@
         </label>
       </div>
 
-      <label class="block">
-        <span class="field-label">{{ i18n.t().readingLog.timeMinutes }}</span>
-        <input
-          type="number"
-          min="0"
-          [(ngModel)]="draft.timeSpentMinutes"
-          name="timeSpentMinutes"
-          class="field-input"
-        />
-      </label>
+      @if (appPreferences.trackReadingTime()) {
+        <label class="block" data-testid="reading-log-time-field">
+          <span class="field-label">{{ i18n.t().readingLog.timeMinutes }}</span>
+          <input
+            type="number"
+            min="0"
+            [(ngModel)]="draft.timeSpentMinutes"
+            name="timeSpentMinutes"
+            class="field-input"
+          />
+        </label>
+      }
 
       <label class="block">
         <span class="field-label">{{ i18n.t().readingLog.notes }}</span>

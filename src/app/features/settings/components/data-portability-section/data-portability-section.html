@@ -2,13 +2,202 @@
   class="rounded-2xl border border-subtle bg-surface p-5 shadow-sm"
   aria-labelledby="portability-section-title"
 >
-  <div class="mb-5">
-    <h2 id="portability-section-title" class="font-editorial text-lg font-bold text-ink">
-      {{ i18n.t().settings.portability.sectionTitle }}
-    </h2>
-    <p class="mt-1 text-sm text-ink-secondary">
-      {{ i18n.t().settings.portability.sectionDescription }}
-    </p>
+  <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h2 id="portability-section-title" class="font-editorial text-lg font-bold text-ink">
+        {{ i18n.t().settings.portability.sectionTitle }}
+      </h2>
+      <p class="mt-1 text-sm text-ink-secondary">
+        {{ i18n.t().settings.portability.sectionDescription }}
+      </p>
+    </div>
+
+    <span
+      data-testid="last-backup-indicator"
+      class="inline-flex items-center rounded-full border border-subtle bg-surface-subtle px-3 py-1 text-xs font-medium text-ink-secondary"
+    >
+      {{ i18n.t().settings.portability.lastBackupLabel }}: {{ formattedLastBackupDate() }}
+    </span>
+  </div>
+
+  <!-- Include Preferences in Backup Toggle -->
+  <div
+    class="mb-5 flex min-h-[44px] items-center justify-between gap-4 rounded-xl border border-subtle bg-surface-subtle/60 p-3.5"
+  >
+    <div class="min-w-0">
+      <p class="text-sm font-semibold text-ink">
+        {{ i18n.t().settings.portability.includePreferencesLabel }}
+      </p>
+      <p class="mt-0.5 text-xs text-ink-secondary">
+        {{ i18n.t().settings.portability.includePreferencesDescription }}
+      </p>
+    </div>
+    <button
+      type="button"
+      role="switch"
+      data-testid="include-preferences-toggle"
+      [attr.aria-checked]="appPreferences.includePreferencesInBackup()"
+      [attr.aria-label]="i18n.t().settings.portability.includePreferencesLabel"
+      (click)="toggleIncludePreferencesInBackup()"
+      [class]="
+        appPreferences.includePreferencesInBackup()
+          ? 'relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full bg-accent p-1 transition-colors'
+          : 'relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full bg-surface-elevated p-1 ring-1 ring-strong transition-colors'
+      "
+    >
+      <span
+        aria-hidden="true"
+        class="h-5 w-5 rounded-full bg-white shadow transition-transform"
+        [class]="appPreferences.includePreferencesInBackup() ? 'translate-x-5' : 'translate-x-0'"
+      ></span>
+    </button>
+  </div>
+
+  <!-- Password Encryption Toggle & Fields (Task 19.6) -->
+  <div class="mb-5 rounded-xl border border-subtle bg-surface-subtle/60 p-3.5">
+    <div class="flex min-h-[44px] items-center justify-between gap-4">
+      <div class="min-w-0">
+        <p class="text-sm font-semibold text-ink">
+          {{ i18n.t().settings.portability.encryptionToggleLabel }}
+        </p>
+        <p class="mt-0.5 text-xs text-ink-secondary">
+          {{ i18n.t().settings.portability.encryptionToggleDescription }}
+        </p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        data-testid="pref-backup-encryption"
+        [attr.aria-checked]="encryptionEnabled()"
+        [attr.aria-label]="i18n.t().settings.portability.encryptionToggleLabel"
+        (click)="toggleEncryptionEnabled()"
+        [class]="
+          encryptionEnabled()
+            ? 'relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full bg-accent p-1 transition-colors'
+            : 'relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full bg-surface-elevated p-1 ring-1 ring-strong transition-colors'
+        "
+      >
+        <span
+          aria-hidden="true"
+          class="h-5 w-5 rounded-full bg-white shadow transition-transform"
+          [class]="encryptionEnabled() ? 'translate-x-5' : 'translate-x-0'"
+        ></span>
+      </button>
+    </div>
+
+    @if (encryptionEnabled()) {
+      <div
+        data-testid="encryption-password-panel"
+        class="mt-4 space-y-3 border-t border-subtle pt-4"
+      >
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label for="export-encryption-password" class="block text-xs font-semibold text-ink">
+              {{ i18n.t().settings.portability.encryptionPasswordLabel }}
+            </label>
+            <div class="relative mt-1.5 flex items-center">
+              <input
+                id="export-encryption-password"
+                data-testid="export-encryption-password"
+                [type]="showExportPassword() ? 'text' : 'password'"
+                [value]="exportPassword()"
+                (input)="onExportPasswordInput($event)"
+                [placeholder]="i18n.t().settings.portability.encryptionPasswordPlaceholder"
+                autocomplete="new-password"
+                class="min-h-[44px] w-full rounded-xl border border-strong bg-surface px-3 pr-12 text-sm text-ink placeholder:text-ink-muted focus:border-accent focus:outline-none"
+              />
+              <button
+                type="button"
+                data-testid="toggle-export-password-visibility"
+                (click)="toggleShowExportPassword()"
+                [attr.aria-label]="
+                  showExportPassword()
+                    ? i18n.t().settings.portability.encryptionHidePasswordLabel
+                    : i18n.t().settings.portability.encryptionShowPasswordLabel
+                "
+                class="absolute right-0 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-r-xl text-xs font-semibold text-ink-secondary hover:text-ink"
+              >
+                <span aria-hidden="true">{{ showExportPassword() ? '🙈' : '👁' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label
+              for="export-encryption-confirm-password"
+              class="block text-xs font-semibold text-ink"
+            >
+              {{ i18n.t().settings.portability.encryptionConfirmPasswordLabel }}
+            </label>
+            <div class="relative mt-1.5 flex items-center">
+              <input
+                id="export-encryption-confirm-password"
+                data-testid="export-encryption-confirm-password"
+                [type]="showExportConfirmPassword() ? 'text' : 'password'"
+                [value]="exportConfirmPassword()"
+                (input)="onExportConfirmPasswordInput($event)"
+                [placeholder]="i18n.t().settings.portability.encryptionConfirmPasswordPlaceholder"
+                autocomplete="new-password"
+                class="min-h-[44px] w-full rounded-xl border border-strong bg-surface px-3 pr-12 text-sm text-ink placeholder:text-ink-muted focus:border-accent focus:outline-none"
+              />
+              <button
+                type="button"
+                data-testid="toggle-export-confirm-password-visibility"
+                (click)="toggleShowExportConfirmPassword()"
+                [attr.aria-label]="
+                  showExportConfirmPassword()
+                    ? i18n.t().settings.portability.encryptionHidePasswordLabel
+                    : i18n.t().settings.portability.encryptionShowPasswordLabel
+                "
+                class="absolute right-0 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-r-xl text-xs font-semibold text-ink-secondary hover:text-ink"
+              >
+                <span aria-hidden="true">{{ showExportConfirmPassword() ? '🙈' : '👁' }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        @if (exportPassword().length > 0) {
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span class="font-medium text-ink-secondary" data-testid="password-strength-label">
+              {{ i18n.t().settings.portability.encryptionStrengthLabel }}:
+              @switch (passwordStrength()) {
+                @case ('strong') {
+                  <strong class="text-emerald-600 dark:text-emerald-400">
+                    {{ i18n.t().settings.portability.encryptionStrengthStrong }}
+                  </strong>
+                }
+                @case ('fair') {
+                  <strong class="text-amber-600 dark:text-amber-400">
+                    {{ i18n.t().settings.portability.encryptionStrengthFair }}
+                  </strong>
+                }
+                @default {
+                  <strong class="text-rose-600 dark:text-rose-400">
+                    {{ i18n.t().settings.portability.encryptionStrengthWeak }}
+                  </strong>
+                }
+              }
+            </span>
+            @if (exportPassword().length < minPasswordLength) {
+              <span class="text-rose-600 dark:text-rose-400">
+                {{ i18n.t().settings.portability.encryptionMinLengthHint }}
+              </span>
+            } @else if (passwordsMismatch()) {
+              <span class="text-rose-600 dark:text-rose-400" data-testid="password-mismatch-hint">
+                {{ i18n.t().settings.portability.encryptionMismatchError }}
+              </span>
+            }
+          </div>
+        }
+
+        <p
+          class="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-200"
+        >
+          {{ i18n.t().settings.portability.encryptionUnrecoverableWarning }}
+        </p>
+      </div>
+    }
   </div>
 
   <!-- Feedback Banners -->
@@ -104,8 +293,9 @@
         <button
           type="button"
           data-testid="export-zip-btn"
+          [disabled]="isExporting() || !isExportPasswordValid()"
           (click)="onExportZip()"
-          class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+          class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {{ i18n.t().settings.portability.exportZipAction }}
         </button>
@@ -126,8 +316,9 @@
         <button
           type="button"
           data-testid="export-json-btn"
+          [disabled]="isExporting() || !isExportPasswordValid()"
           (click)="onExportJson()"
-          class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-canvas transition-colors hover:opacity-90"
+          class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-canvas transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {{ i18n.t().settings.portability.exportJsonAction }}
         </button>
@@ -148,8 +339,9 @@
         <button
           type="button"
           data-testid="export-json-light-btn"
+          [disabled]="isExporting() || !isExportPasswordValid()"
           (click)="onExportLightJson()"
-          class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-strong bg-surface-elevated px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle"
+          class="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-strong bg-surface-elevated px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle disabled:cursor-not-allowed disabled:opacity-50"
         >
           {{ i18n.t().settings.portability.exportLightJsonAction }}
         </button>
@@ -204,7 +396,7 @@
       <input
         #fileInput
         type="file"
-        accept=".zip,.json,.csv,application/zip,application/json,text/csv"
+        accept=".zip,.json,.enc.json,.csv,application/zip,application/json,text/csv"
         data-testid="import-file-input"
         class="sr-only"
         (change)="onFileSelected($event)"
@@ -219,6 +411,86 @@
         {{ i18n.t().settings.portability.importSelectFileAction }}
       </button>
     </div>
+
+    <!-- Step 1.5: Inline Encrypted Backup Password Prompt -->
+    @if (pendingEncryptedBackup(); as encryptedFile) {
+      <div
+        data-testid="encrypted-backup-prompt"
+        class="mt-5 space-y-4 rounded-xl border border-accent-border bg-accent-soft/40 p-4"
+      >
+        <div>
+          <h4 class="text-sm font-bold text-ink">
+            {{ i18n.t().settings.portability.decryptCardTitle }}
+          </h4>
+          <p class="mt-1 text-xs text-ink-secondary">
+            {{
+              i18n
+                .t()
+                .settings.portability.decryptCardDescription.replace(
+                  '{file}',
+                  encryptedFile.fileName
+                )
+            }}
+          </p>
+        </div>
+
+        <div>
+          <label for="decrypt-backup-password" class="block text-xs font-semibold text-ink">
+            {{ i18n.t().settings.portability.decryptPasswordLabel }}
+          </label>
+          <div class="relative mt-1.5 flex items-center">
+            <input
+              id="decrypt-backup-password"
+              data-testid="decrypt-backup-password"
+              [type]="showDecryptPassword() ? 'text' : 'password'"
+              [value]="decryptPassword()"
+              (input)="onDecryptPasswordInput($event)"
+              (keydown.enter)="unlockEncryptedBackup()"
+              autocomplete="current-password"
+              class="min-h-[44px] w-full rounded-xl border border-strong bg-surface px-3 pr-12 text-sm text-ink focus:border-accent focus:outline-none"
+            />
+            <button
+              type="button"
+              data-testid="toggle-decrypt-password-visibility"
+              (click)="toggleShowDecryptPassword()"
+              [attr.aria-label]="
+                showDecryptPassword()
+                  ? i18n.t().settings.portability.encryptionHidePasswordLabel
+                  : i18n.t().settings.portability.encryptionShowPasswordLabel
+              "
+              class="absolute right-0 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-r-xl text-xs font-semibold text-ink-secondary hover:text-ink"
+            >
+              <span aria-hidden="true">{{ showDecryptPassword() ? '🙈' : '👁' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            data-testid="decrypt-cancel-btn"
+            [disabled]="isDecrypting()"
+            (click)="cancelEncryptedPrompt()"
+            class="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-strong bg-surface-elevated px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle disabled:opacity-50"
+          >
+            {{ i18n.t().settings.portability.cancelImportAction }}
+          </button>
+          <button
+            type="button"
+            data-testid="decrypt-unlock-btn"
+            [disabled]="isDecrypting() || decryptPassword().length === 0"
+            (click)="unlockEncryptedBackup()"
+            class="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-accent px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {{
+              isDecrypting()
+                ? i18n.t().settings.portability.decryptingAction
+                : i18n.t().settings.portability.decryptAction
+            }}
+          </button>
+        </div>
+      </div>
+    }
 
     <!-- Step 2: Validation Preview & Mode Selector -->
     @if (previewSummary(); as preview) {
@@ -359,6 +631,29 @@
             </div>
           }
         </div>
+
+        <!-- Restore Preferences Checkbox -->
+        @if (preview.hasPreferences) {
+          <label
+            class="flex min-h-[44px] cursor-pointer items-start gap-3 rounded-xl border border-subtle bg-surface-elevated p-3.5"
+          >
+            <input
+              type="checkbox"
+              data-testid="import-restore-preferences-checkbox"
+              [checked]="restorePreferences()"
+              (change)="onRestorePreferencesChange($event)"
+              class="mt-0.5 h-5 w-5 shrink-0 rounded border-strong accent-accent focus:ring-accent"
+            />
+            <span class="min-w-0 flex-1">
+              <span class="block text-sm font-semibold text-ink">
+                {{ i18n.t().settings.portability.restorePreferencesLabel }}
+              </span>
+              <span class="mt-0.5 block text-xs text-ink-secondary">
+                {{ i18n.t().settings.portability.restorePreferencesDescription }}
+              </span>
+            </span>
+          </label>
+        }
 
         <!-- Post-Import Auto-Enrichment Toggle -->
         @if (previewHasIncompleteOrMissing()) {

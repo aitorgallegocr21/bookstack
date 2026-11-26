@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import { Book } from '../../../books/models/book.model';
 import { CurrentlyReadingHeroComponent } from './currently-reading-hero';
 
@@ -239,7 +240,9 @@ describe('CurrentlyReadingHeroComponent', () => {
     expect(root.textContent).toContain('Otras lecturas en curso (1)');
     expect(root.textContent).toContain('Deep Work');
 
-    const parallelBtn = root.querySelectorAll('button')[2] as HTMLButtonElement;
+    const parallelBtn = root.querySelector(
+      '.grid.grid-cols-1.gap-3.pt-1.sm\\:grid-cols-2 button'
+    ) as HTMLButtonElement;
     parallelBtn.click();
 
     expect(selectSpy).toHaveBeenCalledWith(parallelBook);
@@ -272,5 +275,39 @@ describe('CurrentlyReadingHeroComponent', () => {
     expect(cards.length).toBe(2);
     expect(cards[0].className).toContain('w-full');
     expect(cards[0].className).toContain('min-w-0');
+  });
+
+  it('should increment page using AppPreferencesService.quickPageStep and cap at totalPages', () => {
+    const appPreferences = TestBed.inject(AppPreferencesService);
+    appPreferences.updatePreferences({ quickPageStep: 25 });
+
+    const pageUpdatedSpy = vi.fn();
+    component.pageUpdated.subscribe(pageUpdatedSpy);
+
+    fixture.componentRef.setInput('totalBooksCount', 1);
+    fixture.componentRef.setInput('activeBook', sampleBook);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const quickBtn = root.querySelector(
+      '[data-testid="quick-page-increment-btn"]'
+    ) as HTMLButtonElement;
+    expect(quickBtn).not.toBeNull();
+    expect(quickBtn.textContent).toContain('+25');
+
+    quickBtn.click();
+    expect(pageUpdatedSpy).toHaveBeenCalledWith({ bookId: 'book-1', newPage: 185 });
+
+    // Near completion: caps at totalPages and opens completion modal instead of emitting directly
+    fixture.componentRef.setInput('activeBook', {
+      ...sampleBook,
+      currentPage: 310,
+      totalPages: 320,
+    });
+    fixture.detectChanges();
+    quickBtn.click();
+    fixture.detectChanges();
+    expect(pageUpdatedSpy).toHaveBeenCalledTimes(1);
+    expect(root.querySelector('[role="dialog"]')).not.toBeNull();
   });
 });

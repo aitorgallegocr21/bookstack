@@ -1,28 +1,343 @@
-<div class="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-  <header>
-    <h1 class="font-editorial text-2xl font-bold tracking-tight text-ink sm:text-3xl">
-      {{ i18n.t().settings.title }}
-    </h1>
-    <p class="mt-1 text-sm text-ink-secondary">
-      {{ i18n.t().settings.subtitle }}
-    </p>
+<div class="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+  <header
+    class="flex flex-col gap-4 border-b border-subtle pb-5 sm:flex-row sm:items-end sm:justify-between"
+  >
+    <div>
+      <h1 class="font-editorial text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+        {{ i18n.t().settings.title }}
+      </h1>
+      <p class="mt-1 text-sm text-ink-secondary">
+        {{ i18n.t().settings.subtitle }}
+      </p>
+    </div>
+
+    <div class="relative w-full sm:max-w-sm">
+      <div class="relative flex items-center">
+        <svg
+          [lucideIcon]="SearchIcon"
+          [size]="16"
+          aria-hidden="true"
+          class="pointer-events-none absolute left-3.5 text-ink-muted"
+        ></svg>
+        <input
+          type="text"
+          inputmode="search"
+          enterkeyhint="search"
+          autocomplete="off"
+          role="searchbox"
+          data-testid="settings-search-input"
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+          (keydown.escape)="clearSearch()"
+          [placeholder]="i18n.t().settings.search.placeholder"
+          [attr.aria-label]="i18n.t().settings.search.ariaLabel"
+          class="min-h-[44px] w-full rounded-xl border border-subtle bg-surface py-2 pr-11 pl-10 text-sm text-ink placeholder:text-ink-muted focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none"
+        />
+        @if (isSearchActive()) {
+          <button
+            type="button"
+            data-testid="settings-search-clear"
+            (click)="clearSearch()"
+            [attr.aria-label]="i18n.t().settings.search.clearLabel"
+            class="hover:bg-surface-hover absolute right-1 inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg text-ink-muted transition-colors hover:text-ink"
+          >
+            <svg [lucideIcon]="ClearIcon" [size]="16" aria-hidden="true"></svg>
+          </button>
+        }
+      </div>
+
+      @if (isSearchActive()) {
+        <div
+          data-testid="settings-search-results"
+          role="region"
+          [attr.aria-label]="i18n.t().settings.search.resultsLabel"
+          class="mt-2 rounded-2xl border border-subtle bg-surface p-2 shadow-lg sm:absolute sm:right-0 sm:left-0 sm:z-30"
+        >
+          @if (searchResults().length > 0) {
+            <ul class="flex max-h-80 flex-col gap-1 overflow-y-auto">
+              @for (entry of searchResults(); track entry.id) {
+                <li>
+                  <button
+                    type="button"
+                    [attr.data-testid]="'settings-search-result-' + entry.id"
+                    (click)="selectSearchResult(entry)"
+                    class="hover:bg-surface-hover flex min-h-[44px] w-full items-start justify-between gap-3 rounded-xl px-3 py-2.5 text-left transition-colors"
+                  >
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm font-medium text-ink">
+                        {{ getSearchEntryTitle(entry) }}
+                      </p>
+                      <p class="mt-0.5 line-clamp-2 text-xs text-ink-secondary">
+                        {{ getSearchEntryDescription(entry) }}
+                      </p>
+                    </div>
+                    <span
+                      class="shrink-0 rounded-full border border-subtle bg-canvas px-2.5 py-0.5 text-[11px] font-medium text-ink-secondary"
+                    >
+                      {{ getTabLabel(entry.tab) }}
+                    </span>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div data-testid="settings-search-empty" class="px-3 py-4 text-center">
+              <p class="text-sm font-medium text-ink">
+                {{ i18n.t().settings.search.emptyTitle }}
+              </p>
+              <p class="mt-1 text-xs text-ink-secondary">
+                {{ i18n.t().settings.search.emptyDescription }}
+              </p>
+            </div>
+          }
+        </div>
+      }
+    </div>
   </header>
 
-  <app-settings-preferences-section />
+  @if (showBackupReminder()) {
+    <aside
+      data-testid="settings-backup-reminder"
+      role="status"
+      class="flex flex-col gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-950 sm:flex-row sm:items-center sm:justify-between dark:text-amber-100"
+    >
+      <div class="flex min-w-0 items-start gap-3">
+        <div
+          class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-300"
+        >
+          <svg [lucideIcon]="BellIcon" [size]="18" aria-hidden="true"></svg>
+        </div>
+        <div class="min-w-0">
+          <p class="text-sm font-semibold">
+            {{ i18n.t().settings.backupReminder.title }}
+          </p>
+          <p class="mt-0.5 text-xs text-amber-900/80 dark:text-amber-200/85">
+            {{ i18n.t().settings.backupReminder.description }}
+          </p>
+        </div>
+      </div>
 
-  <app-storage-quota-inspector
-    [breakdown]="storageBreakdown()"
-    (refreshRequested)="refreshStorageBreakdown()"
-  />
+      <div class="flex shrink-0 items-center gap-2 self-end sm:self-center">
+        <button
+          type="button"
+          data-testid="settings-backup-reminder-export"
+          (click)="navigateToSection('data', 'data-portability')"
+          class="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-amber-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-amber-700 dark:bg-amber-500 dark:text-stone-950 dark:hover:bg-amber-400"
+        >
+          <svg [lucideIcon]="DownloadIcon" [size]="15" aria-hidden="true"></svg>
+          <span>{{ i18n.t().settings.backupReminder.exportAction }}</span>
+        </button>
 
-  <app-data-health-section />
+        <button
+          type="button"
+          data-testid="settings-backup-reminder-dismiss"
+          (click)="dismissBackupReminder()"
+          [attr.aria-label]="i18n.t().settings.backupReminder.dismissAction"
+          class="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-amber-900/75 transition-colors hover:bg-amber-500/15 hover:text-amber-950 dark:text-amber-200 dark:hover:text-amber-50"
+        >
+          <svg [lucideIcon]="ClearIcon" [size]="16" aria-hidden="true"></svg>
+        </button>
+      </div>
+    </aside>
+  }
 
-  <app-data-portability-section
-    (dataChanged)="refreshStorageBreakdown()"
-    (requestCoverEnrichment)="scrollToCoverEnrichment()"
-  />
+  <!-- Mobile & Tablet Adaptive Bento Category Grid -->
+  <nav class="lg:hidden" [attr.aria-label]="i18n.t().settings.tabs.navAriaLabel">
+    <div
+      role="tablist"
+      aria-orientation="horizontal"
+      class="grid grid-cols-2 gap-1.5 rounded-2xl border border-subtle bg-surface p-1.5 shadow-2xs"
+    >
+      @for (tab of tabs; track tab.id) {
+        <button
+          type="button"
+          role="tab"
+          [id]="'settings-mobile-tab-' + tab.id"
+          [attr.data-testid]="'settings-mobile-tab-' + tab.id"
+          [attr.aria-selected]="activeTab() === tab.id"
+          [class]="
+            (tab.isDangerTone ? 'col-span-2 ' : '') +
+            (tab.isDangerTone
+              ? activeTab() === tab.id
+                ? 'inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-rose-500/35 bg-rose-500/12 px-3 py-2 text-xs font-semibold text-rose-700 transition-colors sm:text-sm dark:text-rose-300'
+                : 'inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/5 px-3 py-2 text-xs font-medium text-rose-700 transition-colors hover:bg-rose-500/10 sm:text-sm dark:text-rose-300'
+              : activeTab() === tab.id
+                ? 'inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-accent/25 bg-accent-soft px-3 py-2 text-xs font-semibold text-accent-soft-text transition-colors sm:text-sm'
+                : 'hover:bg-surface-hover inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-transparent bg-canvas/60 px-3 py-2 text-xs font-medium text-ink-secondary transition-colors hover:text-ink sm:text-sm')
+          "
+          (click)="selectTab(tab.id)"
+        >
+          <svg
+            [lucideIcon]="tabIcons[tab.icon]"
+            [size]="16"
+            aria-hidden="true"
+            class="shrink-0"
+          ></svg>
+          <span class="truncate">{{ getTabLabel(tab.id) }}</span>
+        </button>
+      }
+    </div>
+  </nav>
 
-  <app-cover-enrichment-section #coverEnrichmentSection />
+  <!-- Desktop Master-Detail Grid -->
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
+    <aside
+      class="hidden lg:sticky lg:top-6 lg:block"
+      [attr.aria-label]="i18n.t().settings.tabs.navAriaLabel"
+    >
+      <div
+        role="tablist"
+        aria-orientation="vertical"
+        class="flex flex-col gap-1.5 rounded-2xl border border-subtle bg-surface p-2 shadow-sm"
+      >
+        @for (tab of tabs; track tab.id) {
+          <button
+            type="button"
+            role="tab"
+            [id]="'settings-tab-' + tab.id"
+            [attr.data-testid]="'settings-tab-' + tab.id"
+            [attr.aria-selected]="activeTab() === tab.id"
+            [class]="
+              tab.isDangerTone
+                ? activeTab() === tab.id
+                  ? 'flex min-h-[44px] w-full items-center gap-2.5 rounded-xl border border-rose-500/30 bg-rose-500/12 px-3 py-2.5 text-left text-sm font-semibold text-rose-700 transition-colors dark:text-rose-300'
+                  : 'flex min-h-[44px] w-full items-center gap-2.5 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm font-medium text-rose-700 transition-colors hover:bg-rose-500/10 dark:text-rose-300'
+                : activeTab() === tab.id
+                  ? 'flex min-h-[44px] w-full items-center gap-2.5 rounded-xl border border-accent/20 bg-accent-soft px-3 py-2.5 text-left text-sm font-semibold text-accent-soft-text transition-colors'
+                  : 'hover:bg-surface-hover flex min-h-[44px] w-full items-center gap-2.5 rounded-xl border border-transparent px-3 py-2.5 text-left text-sm font-medium text-ink-secondary transition-colors hover:text-ink'
+            "
+            (click)="selectTab(tab.id)"
+          >
+            <svg
+              [lucideIcon]="tabIcons[tab.icon]"
+              [size]="17"
+              aria-hidden="true"
+              class="shrink-0"
+            ></svg>
+            <span class="truncate">{{ getTabLabel(tab.id) }}</span>
+          </button>
+        }
+      </div>
+    </aside>
 
-  <app-danger-zone-section (dataReset)="refreshStorageBreakdown()" />
+    <div
+      role="tabpanel"
+      [attr.aria-labelledby]="'settings-tab-' + activeTab()"
+      class="flex min-w-0 flex-col gap-6"
+    >
+      @switch (activeTab()) {
+        @case ('general') {
+          <div
+            data-setting-id="preferences"
+            [class.ring-2]="highlightedSettingId() === 'preferences'"
+            [class.ring-accent]="highlightedSettingId() === 'preferences'"
+            class="rounded-2xl transition-shadow"
+          >
+            <app-settings-preferences-section />
+          </div>
+        }
+
+        @case ('catalog') {
+          <div
+            data-setting-id="catalog-reading"
+            [class.ring-2]="highlightedSettingId() === 'catalog-reading'"
+            [class.ring-accent]="highlightedSettingId() === 'catalog-reading'"
+            class="rounded-2xl transition-shadow"
+          >
+            <app-settings-catalog-reading-section />
+          </div>
+        }
+
+        @case ('data') {
+          <div
+            data-setting-id="storage-quota"
+            [class.ring-2]="highlightedSettingId() === 'storage-quota'"
+            [class.ring-accent]="highlightedSettingId() === 'storage-quota'"
+            class="rounded-2xl transition-shadow"
+          >
+            <app-storage-quota-inspector
+              [breakdown]="storageBreakdown()"
+              (refreshRequested)="refreshStorageBreakdown()"
+            />
+          </div>
+
+          <div
+            data-setting-id="data-health"
+            [class.ring-2]="highlightedSettingId() === 'data-health'"
+            [class.ring-accent]="highlightedSettingId() === 'data-health'"
+            class="rounded-2xl transition-shadow"
+          >
+            <app-data-health-section />
+          </div>
+
+          <div
+            data-setting-id="data-portability"
+            [class.ring-2]="highlightedSettingId() === 'data-portability'"
+            [class.ring-accent]="highlightedSettingId() === 'data-portability'"
+            class="rounded-2xl transition-shadow"
+          >
+            <app-data-portability-section
+              (dataChanged)="refreshStorageBreakdown()"
+              (requestCoverEnrichment)="scrollToCoverEnrichment()"
+            />
+          </div>
+
+          <div
+            data-setting-id="cover-enrichment"
+            [class.ring-2]="highlightedSettingId() === 'cover-enrichment'"
+            [class.ring-accent]="highlightedSettingId() === 'cover-enrichment'"
+            class="rounded-2xl transition-shadow"
+          >
+            <app-cover-enrichment-section #coverEnrichmentSection />
+          </div>
+
+          <aside
+            data-testid="data-danger-zone-card"
+            class="flex flex-col gap-3 rounded-2xl border border-subtle bg-surface p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-ink">
+                {{ i18n.t().settings.portability.dangerZoneShortcutTitle }}
+              </p>
+              <p class="mt-0.5 text-xs text-ink-secondary">
+                {{ i18n.t().settings.portability.dangerZoneShortcutDescription }}
+              </p>
+            </div>
+            <button
+              type="button"
+              data-testid="data-danger-zone-shortcut"
+              (click)="navigateToSection('advanced', 'danger-zone')"
+              class="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-500/20 dark:text-rose-300"
+            >
+              {{ i18n.t().settings.portability.dangerZoneShortcutAction }}
+            </button>
+          </aside>
+        }
+
+        @case ('privacy') {
+          <app-settings-privacy-scanner-section />
+        }
+
+        @case ('advanced') {
+          <div
+            data-setting-id="advanced-system"
+            [class.ring-2]="highlightedSettingId() === 'advanced-system'"
+            [class.ring-accent]="highlightedSettingId() === 'advanced-system'"
+            class="rounded-2xl transition-shadow"
+          >
+            <app-settings-advanced-section (dataReset)="refreshStorageBreakdown()" />
+          </div>
+
+          <div
+            data-setting-id="danger-zone"
+            [class.ring-2]="highlightedSettingId() === 'danger-zone'"
+            [class.ring-accent]="highlightedSettingId() === 'danger-zone'"
+            class="rounded-2xl transition-shadow"
+          >
+            <app-danger-zone-section (dataReset)="refreshStorageBreakdown()" />
+          </div>
+        }
+      }
+    </div>
+  </div>
 </div>

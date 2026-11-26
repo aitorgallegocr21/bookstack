@@ -524,6 +524,8 @@ html.dark[data-accent='rose'] {
   contain: layout style paint;
   content-visibility: auto;
   contain-intrinsic-size: auto 220px;
+  padding: 6px 4px 10px;
+  margin: -6px -4px -10px;
 }
 
 .catalog-row-contain {
@@ -534,43 +536,55 @@ html.dark[data-accent='rose'] {
 
 .book-tint-card {
   background-color: var(--surface-card);
-  background-image: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--book-tint, var(--accent-primary)) 10%, transparent) 0%,
-    transparent 62%
-  );
+  background-image: none;
   border-color: var(--border-subtle);
 }
 
-.dark .book-tint-card {
+.book-tint-card[data-book-tint-active='true'] {
   background-image: linear-gradient(
     145deg,
-    color-mix(in srgb, var(--book-tint, var(--accent-primary)) 17%, transparent) 0%,
+    color-mix(in srgb, var(--book-tint) 10%, transparent) 0%,
+    transparent 62%
+  );
+}
+
+.dark .book-tint-card[data-book-tint-active='true'] {
+  background-image: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--book-tint) 17%, transparent) 0%,
     transparent 65%
   );
 }
 
 @media (hover: hover) {
   .book-tint-card:hover {
-    border-color: color-mix(
-      in srgb,
-      var(--book-tint, var(--accent-primary)) 44%,
-      var(--border-strong)
-    );
+    border-color: var(--border-strong);
     box-shadow:
-      0 8px 20px -6px color-mix(in srgb, var(--book-tint, var(--accent-primary)) 18%, transparent),
-      0 2px 6px -1px rgba(28, 25, 23, 0.06);
+      0 6px 16px -6px rgba(28, 25, 23, 0.08),
+      0 2px 6px -1px rgba(28, 25, 23, 0.05);
   }
 
   .dark .book-tint-card:hover {
-    border-color: color-mix(
-      in srgb,
-      var(--book-tint, var(--accent-primary)) 50%,
-      var(--border-strong)
-    );
+    border-color: var(--border-strong);
     box-shadow:
-      0 10px 24px -6px color-mix(in srgb, var(--book-tint, var(--accent-primary)) 24%, transparent),
-      0 2px 8px -1px rgba(0, 0, 0, 0.35);
+      0 8px 20px -6px rgba(0, 0, 0, 0.36),
+      0 2px 8px -1px rgba(0, 0, 0, 0.28);
+  }
+
+  .book-tint-card[data-book-tint-active='true']:hover {
+    background-color: color-mix(in srgb, var(--book-tint) 9%, var(--surface-card));
+    border-color: color-mix(in srgb, var(--book-tint) 58%, var(--border-strong));
+    box-shadow:
+      0 10px 24px -6px color-mix(in srgb, var(--book-tint) 26%, transparent),
+      0 2px 6px -1px rgba(28, 25, 23, 0.06);
+  }
+
+  .dark .book-tint-card[data-book-tint-active='true']:hover {
+    background-color: color-mix(in srgb, var(--book-tint) 16%, var(--surface-card));
+    border-color: color-mix(in srgb, var(--book-tint) 66%, var(--border-strong));
+    box-shadow:
+      0 12px 28px -6px color-mix(in srgb, var(--book-tint) 34%, transparent),
+      0 2px 8px -1px rgba(0, 0, 0, 0.38);
   }
 }
 
@@ -583,21 +597,18 @@ html.dark[data-accent='rose'] {
 
 @media (hover: hover) {
   .book-tint-row:hover {
-    border-left-color: color-mix(in srgb, var(--book-tint, var(--accent-primary)) 65%, transparent);
-    background-color: color-mix(
-      in srgb,
-      var(--book-tint, var(--accent-primary)) 8%,
-      var(--surface-subtle)
-    );
+    border-left-color: var(--border-strong);
+    background-color: var(--surface-subtle);
   }
 
-  .dark .book-tint-row:hover {
-    border-left-color: color-mix(in srgb, var(--book-tint, var(--accent-primary)) 75%, transparent);
-    background-color: color-mix(
-      in srgb,
-      var(--book-tint, var(--accent-primary)) 14%,
-      var(--surface-subtle)
-    );
+  .book-tint-row[data-book-tint-active='true']:hover {
+    border-left-color: color-mix(in srgb, var(--book-tint) 80%, transparent);
+    background-color: color-mix(in srgb, var(--book-tint) 12%, var(--surface-subtle));
+  }
+
+  .dark .book-tint-row[data-book-tint-active='true']:hover {
+    border-left-color: color-mix(in srgb, var(--book-tint) 88%, transparent);
+    background-color: color-mix(in srgb, var(--book-tint) 18%, var(--surface-subtle));
   }
 }
 
@@ -758,4 +769,66 @@ html.dark[data-accent='rose'] {
   .series-fields {
     transition: none !important;
   }
+
+  .card-lift:hover,
+  .editorial-hover-card:hover,
+  .book-tint-card:hover img,
+  .book-cover-frame:hover,
+  .book-tint-row:hover .book-cover-frame {
+    transform: none !important;
+  }
+
+  .book-tint-card[data-book-tint-active='true']:hover,
+  .dark .book-tint-card[data-book-tint-active='true']:hover {
+    background-color: var(--surface-card);
+    border-color: var(--border-strong);
+    box-shadow: none;
+  }
+
+  .book-tint-row[data-book-tint-active='true']:hover,
+  .dark .book-tint-row[data-book-tint-active='true']:hover {
+    background-color: var(--surface-subtle);
+  }
+}
+
+[data-reduced-motion='reduce']::view-transition-old(*),
+[data-reduced-motion='reduce']::view-transition-new(*),
+[data-reduced-motion='reduce'] .page-enter,
+[data-reduced-motion='reduce'] .dock-popover-top,
+[data-reduced-motion='reduce'] .dock-popover-bottom,
+[data-reduced-motion='reduce'] .dock-popover-left,
+[data-reduced-motion='reduce'] .dock-popover-right,
+[data-reduced-motion='reduce'] .modal-backdrop,
+[data-reduced-motion='reduce'] .modal-backdrop--closing,
+[data-reduced-motion='reduce'] .modal-panel,
+[data-reduced-motion='reduce'] .modal-backdrop--closing .modal-panel {
+  animation: none !important;
+}
+
+[data-reduced-motion='reduce'] .card-lift,
+[data-reduced-motion='reduce'] .editorial-hover-card,
+[data-reduced-motion='reduce'] .btn-tactile,
+[data-reduced-motion='reduce'] .book-tint-row,
+[data-reduced-motion='reduce'] .series-fields {
+  transition: none !important;
+}
+
+[data-reduced-motion='reduce'] .card-lift:hover,
+[data-reduced-motion='reduce'] .editorial-hover-card:hover,
+[data-reduced-motion='reduce'] .book-tint-card:hover img,
+[data-reduced-motion='reduce'] .book-cover-frame:hover,
+[data-reduced-motion='reduce'] .book-tint-row:hover .book-cover-frame {
+  transform: none !important;
+}
+
+[data-reduced-motion='reduce'] .book-tint-card[data-book-tint-active='true']:hover,
+[data-reduced-motion='reduce'].dark .book-tint-card[data-book-tint-active='true']:hover {
+  background-color: var(--surface-card);
+  border-color: var(--border-strong);
+  box-shadow: none;
+}
+
+[data-reduced-motion='reduce'] .book-tint-row[data-book-tint-active='true']:hover,
+[data-reduced-motion='reduce'].dark .book-tint-row[data-book-tint-active='true']:hover {
+  background-color: var(--surface-subtle);
 }

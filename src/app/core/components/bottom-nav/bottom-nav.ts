@@ -1,14 +1,15 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   OnDestroy,
   computed,
   inject,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationStart, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs';
 import {
   LucideArrowDown,
   LucideArrowUp,
@@ -45,7 +46,7 @@ import { BrandLogoComponent } from '../brand-logo/brand-logo';
   },
 })
 export class BottomNavComponent implements OnDestroy {
-  private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private readonly router = inject(Router);
   protected readonly i18n = inject(I18nService);
   protected readonly uiState = inject(UiStateService);
   protected readonly themeService = inject(ThemeService);
@@ -74,6 +75,17 @@ export class BottomNavComponent implements OnDestroy {
 
   private activePointerMove: ((event: PointerEvent) => void) | null = null;
   private activePointerUp: ((event: PointerEvent) => void) | null = null;
+
+  constructor() {
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationStart => event instanceof NavigationStart),
+        takeUntilDestroyed()
+      )
+      .subscribe(() => {
+        this.closeMenu();
+      });
+  }
 
   ngOnDestroy(): void {
     this.cleanupDragListeners();
@@ -118,8 +130,8 @@ export class BottomNavComponent implements OnDestroy {
     if (!this.isMenuOpen()) {
       return;
     }
-    const target = event.target as Node | null;
-    if (target && !this.elementRef.nativeElement.contains(target)) {
+    const target = event.target;
+    if (!(target instanceof Element) || !target.closest('[data-mobile-menu-root]')) {
       this.isMenuOpen.set(false);
     }
   }

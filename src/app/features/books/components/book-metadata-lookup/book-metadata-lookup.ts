@@ -7,6 +7,7 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import {
   LucideAlertCircle,
   LucideBookOpen,
@@ -19,6 +20,7 @@ import {
   LucideSparkles,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import {
   BookMetadataApplyMode,
   BookMetadataCandidate,
@@ -30,7 +32,7 @@ import { BookMetadataError, BookMetadataService } from '../../services/book-meta
 
 @Component({
   selector: 'app-book-metadata-lookup',
-  imports: [LucideDynamicIcon],
+  imports: [LucideDynamicIcon, RouterLink],
   templateUrl: './book-metadata-lookup.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -39,7 +41,10 @@ import { BookMetadataError, BookMetadataService } from '../../services/book-meta
 })
 export class BookMetadataLookupComponent {
   private readonly i18n = inject(I18nService);
+  private readonly appPreferences = inject(AppPreferencesService);
   private readonly bookMetadataService = inject(BookMetadataService);
+
+  readonly offlineMode = this.appPreferences.offlineMode;
 
   readonly mode = input<'create' | 'edit'>('create');
   readonly currentBookId = input<string | undefined>(undefined);
@@ -125,6 +130,10 @@ export class BookMetadataLookupComponent {
 
   async onSearchSubmit(event?: Event): Promise<void> {
     event?.preventDefault();
+    if (this.offlineMode()) {
+      this.errorMessage.set(this.t().bookForm.lookup.offlineModeBlockedError);
+      return;
+    }
     const query = this.searchQuery().trim();
     if (query.length < 2) {
       this.errorMessage.set(this.t().bookForm.lookup.searchEmptyHint);
@@ -197,6 +206,11 @@ export class BookMetadataLookupComponent {
     this.errorMessage.set(null);
     this.appliedCandidate.set(null);
 
+    if (this.offlineMode()) {
+      this.errorMessage.set(this.t().bookForm.lookup.offlineModeBlockedError);
+      return;
+    }
+
     if (!trimmed) {
       this.errorMessage.set(this.t().bookForm.lookup.searchEmptyHint);
       return;
@@ -255,6 +269,9 @@ export class BookMetadataLookupComponent {
   }
 
   private resolveLookupErrorMessage(error: unknown): string {
+    if (error instanceof BookMetadataError && error.code === 'OFFLINE_MODE') {
+      return this.t().bookForm.lookup.offlineModeBlockedError;
+    }
     if (error instanceof BookMetadataError && error.code === 'INVALID_ISBN') {
       return this.t().bookForm.lookup.invalidBarcodeError;
     }

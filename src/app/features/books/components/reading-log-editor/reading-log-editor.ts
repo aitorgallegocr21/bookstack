@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import { ConfirmDialogService } from '../../../../core/services/confirm-dialog.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import {
@@ -42,6 +43,7 @@ import {
 export class ReadingLogEditorComponent implements AfterViewInit, OnDestroy {
   private readonly uiState = inject(UiStateService);
   protected readonly i18n = inject(I18nService);
+  protected readonly appPreferences = inject(AppPreferencesService);
   private readonly readingLogService = inject(ReadingLogService);
   private readonly confirmDialogService = inject(ConfirmDialogService);
 
@@ -121,7 +123,9 @@ export class ReadingLogEditorComponent implements AfterViewInit, OnDestroy {
       ...this.draft,
       bookId: this.bookId() || this.draft.bookId,
       pagesRead: Number(this.draft.pagesRead) || 0,
-      timeSpentMinutes: Number(this.draft.timeSpentMinutes) || 0,
+      timeSpentMinutes: this.appPreferences.trackReadingTime()
+        ? Number(this.draft.timeSpentMinutes) || 0
+        : undefined,
       date: this.draft.date || getCurrentLocalDateTime(),
       createdAt: this.draft.createdAt || now,
     };

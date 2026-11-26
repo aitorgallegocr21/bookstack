@@ -291,4 +291,19 @@ describe('CameraStreamService', () => {
     expect(service.torchSupported()).toBe(false);
     expect(service.torchEnabled()).toBe(false);
   });
+
+  it('manages preferred rear device ID and local camera consent storage helpers', () => {
+    expect(service.getPreferredRearDeviceId()).toBeNull();
+    localStorage.setItem('bookstack.scanner.preferredRearDeviceId', 'rear-cam-99');
+    expect(service.getPreferredRearDeviceId()).toBe('rear-cam-99');
+
+    service.clearPreferredRearDeviceId();
+    expect(service.getPreferredRearDeviceId()).toBeNull();
+
+    expect(service.hasCameraConsent()).toBe(false);
+    service.grantCameraConsent();
+    expect(service.hasCameraConsent()).toBe(true);
+    service.clearCameraConsent();
+    expect(service.hasCameraConsent()).toBe(false);
+  });
 });

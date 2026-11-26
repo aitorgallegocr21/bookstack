@@ -8,6 +8,7 @@ import {
 } from '../utils/camera-selection.utils';
 
 export const PREFERRED_REAR_DEVICE_KEY = 'bookstack.scanner.preferredRearDeviceId';
+export const CAMERA_CONSENT_STORAGE_KEY = 'bookstack.scanner.cameraConsentAcknowledged';
 export const CAMERA_ATTEMPT_TIMEOUT_MS = 2500;
 
 export interface ActiveCameraTrackSettings {
@@ -90,6 +91,42 @@ export class CameraStreamService implements OnDestroy {
 
   ngOnDestroy(): void {
     this.stopStream();
+  }
+
+  getPreferredRearDeviceId(): string | null {
+    return this.readPreferredRearDeviceId();
+  }
+
+  clearPreferredRearDeviceId(): void {
+    try {
+      globalThis.localStorage?.removeItem(PREFERRED_REAR_DEVICE_KEY);
+    } catch {
+      // Ignore storage errors in private browsing.
+    }
+  }
+
+  hasCameraConsent(): boolean {
+    try {
+      return globalThis.localStorage?.getItem(CAMERA_CONSENT_STORAGE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  grantCameraConsent(): void {
+    try {
+      globalThis.localStorage?.setItem(CAMERA_CONSENT_STORAGE_KEY, 'true');
+    } catch {
+      // Ignore storage errors in private browsing.
+    }
+  }
+
+  clearCameraConsent(): void {
+    try {
+      globalThis.localStorage?.removeItem(CAMERA_CONSENT_STORAGE_KEY);
+    } catch {
+      // Ignore storage errors in private browsing.
+    }
   }
 
   /**

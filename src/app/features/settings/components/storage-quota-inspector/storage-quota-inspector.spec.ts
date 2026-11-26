@@ -1,10 +1,18 @@
 import { TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { StorageBreakdownSummary } from '../../models/data-portability.model';
+import { DataPortabilityService } from '../../services/data-portability.service';
 import { StorageQuotaInspectorComponent } from './storage-quota-inspector';
 
 function makeSummary(overrides: Partial<StorageBreakdownSummary> = {}): StorageBreakdownSummary {
   return {
     engine: 'indexeddb',
+    persistenceStatus: 'best-effort',
+    indexedDbInfo: {
+      dbName: 'bookstackDB',
+      version: 2,
+      objectStoresCount: 3,
+    },
     totalBookstackBytes: 1000,
     booksMetadataBytes: 400,
     coversBase64Bytes: 300,
@@ -135,5 +143,53 @@ describe('StorageQuotaInspectorComponent', () => {
     ) as HTMLButtonElement;
     refreshBtn.click();
     expect(refreshCount).toBe(1);
+  });
+
+  it('should render persistence badge, IndexedDB diagnostics, and handle persistent storage request', async () => {
+    const portabilityService = TestBed.inject(DataPortabilityService);
+    const persistSpy = vi
+      .spyOn(portabilityService, 'requestPersistentStorage')
+      .mockResolvedValue('persisted');
+
+    const fixture = TestBed.createComponent(StorageQuotaInspectorComponent);
+    fixture.componentRef.setInput('breakdown', makeSummary({ persistenceStatus: 'best-effort' }));
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const badge = root.querySelector('[data-testid="storage-persistence-badge"]') as HTMLElement;
+    expect(badge.textContent).toContain('Mejor esfuerzo');
+
+    const diagnostics = root.querySelector(
+      '[data-testid="storage-indexeddb-diagnostics"]'
+    ) as HTMLElement;
+    expect(diagnostics.textContent).toContain('bookstackDB');
+    expect(diagnostics.textContent).toContain('v2');
+    expect(diagnostics.textContent).toContain('3 almacenes');
+
+    let refreshCount = 0;
+    fixture.componentInstance.refreshRequested.subscribe(() => {
+      refreshCount++;
+    });
+
+    const persistBtn = root.querySelector(
+      '[data-testid="request-persistent-storage-btn"]'
+    ) as HTMLButtonElement;
+    expect(persistBtn).not.toBeNull();
+    persistBtn.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(persistSpy).toHaveBeenCalledTimes(1);
+    expect(refreshCount).toBe(1);
+
+    const feedback = root.querySelector(
+      '[data-testid="storage-persistence-feedback"]'
+    ) as HTMLElement;
+    expect(feedback.textContent).toContain('Almacenamiento protegido');
+
+    fixture.componentRef.setInput('breakdown', makeSummary({ persistenceStatus: 'persisted' }));
+    fixture.detectChanges();
+    expect(root.querySelector('[data-testid="request-persistent-storage-btn"]')).toBeNull();
+    expect(badge.textContent).toContain('Protegido contra borrado');
   });
 });

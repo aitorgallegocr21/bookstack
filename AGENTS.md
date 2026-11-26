@@ -43,6 +43,13 @@ Build and maintain **BookStack**, a minimalist, visual, private, high-performanc
 
 - Every completed phase, feature, or user-facing fix/patch MUST bump the semantic version in `package.json` and `package-lock.json` (e.g., `npm version <patch|minor|major> --no-git-tag-version`) before the final commit so the About page (`/about`, which reads `packageJson.version`) always displays the up-to-date release version.
 
+11. **Settings Integration & Reduced-Motion Governance (Mandatory for Every New Feature):**
+
+- **Settings Relevance Gate:** Before implementing any new user-facing feature, interaction, visual effect, or background capability, explicitly evaluate whether it warrants a user-facing toggle or configuration control in `/settings`. If yes, persist it via `AppPreferencesService` + Zod schema, expose it in the appropriate category tab (`general`, `catalog`, `data`, `privacy`, or `advanced`), register it in `SETTINGS_SEARCH_ENTRIES`, and translate it in both `es` and `en` i18n dictionaries.
+- **Reduced-Motion & Preference Compliance Gate:** Every new animation, transition, hover lift/scale transform, color-intensification hover effect, or visual micro-interaction MUST explicitly honor:
+  - `html[data-reduced-motion='reduce']` and `@media (prefers-reduced-motion: reduce)` (neutralizing both `animation`/`transition` durations AND jarring `transform` or intense visual hover effects).
+  - `adaptiveCoverTint` (falling back to a clean neutral surface when disabled) and `offlineMode` (blocking external network calls when enabled), whenever applicable.
+
 ---
 
 ## 3. Dynamic Model Routing, Subagent Delegation & Quota Optimization

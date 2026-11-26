@@ -1,6 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { AppPreferencesService } from '../../../core/services/app-preferences.service';
 import { Book } from '../models/book.model';
 import { BookMetadataError, BookMetadataService } from './book-metadata.service';
 import { BooksService } from './books.service';
@@ -868,6 +869,74 @@ describe('BookMetadataService', () => {
         coverUrl: 'https://books.google.com/books/content?id=1984&zoom=1',
         source: 'merged',
       });
+    });
+  });
+
+  describe('100% Offline Mode & Granular 5-Provider Privacy Controls', () => {
+    it('issues zero fetch() calls and throws OFFLINE_MODE across all lookup methods when offlineMode is true', async () => {
+      const prefs = TestBed.inject(AppPreferencesService);
+      prefs.updatePreferences({ offlineMode: true });
+
+      await expect(service.lookupByIsbn('9780141036144')).rejects.toMatchObject({
+        code: 'OFFLINE_MODE',
+      });
+      await expect(service.searchByQuery('Dune')).rejects.toMatchObject({
+        code: 'OFFLINE_MODE',
+      });
+      await expect(service.lookupBatchByIsbns(['9780141036144'])).rejects.toMatchObject({
+        code: 'OFFLINE_MODE',
+      });
+      await expect(
+        service.resolveLocalCover('https://example.com/cover.jpg')
+      ).rejects.toMatchObject({
+        code: 'OFFLINE_MODE',
+      });
+
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(optimizeRemoteUrlSpy).not.toHaveBeenCalled();
+    });
+
+    it('never queries disabled providers and respects priority order & metadataSearchQuota', async () => {
+      const prefs = TestBed.inject(AppPreferencesService);
+      prefs.updatePreferences({
+        offlineMode: false,
+        metadataSearchQuota: 4,
+        metadataProviders: [
+          { id: 'googlebooks', enabled: false },
+          { id: 'openlibrary', enabled: true },
+          { id: 'applebooks', enabled: false },
+          { id: 'wikidata', enabled: false },
+          { id: 'archive', enabled: false },
+        ],
+      });
+
+      fetchSpy.mockImplementation(async (input: string | URL | Request) => {
+        const url = String(input);
+        if (url.includes('openlibrary.org/search.json')) {
+          return jsonResponse({
+            docs: [
+              { key: '/works/OL1W', title: 'Dune 1', author_name: ['Frank Herbert'], cover_i: 1 },
+              { key: '/works/OL2W', title: 'Dune 2', author_name: ['Frank Herbert'], cover_i: 2 },
+              { key: '/works/OL3W', title: 'Dune 3', author_name: ['Frank Herbert'], cover_i: 3 },
+              { key: '/works/OL4W', title: 'Dune 4', author_name: ['Frank Herbert'], cover_i: 4 },
+              { key: '/works/OL5W', title: 'Dune 5', author_name: ['Frank Herbert'], cover_i: 5 },
+            ],
+          });
+        }
+        return jsonResponse({});
+      });
+
+      const results = await service.searchByQuery('Dune');
+
+      expect(results.length).toBeLessThanOrEqual(4);
+      const calledUrls = fetchSpy.mock.calls.map((call: unknown[]) => String(call[0]));
+      expect(calledUrls.some((url: string) => url.includes('googleapis.com'))).toBe(false);
+      expect(calledUrls.some((url: string) => url.includes('itunes.apple.com'))).toBe(false);
+      expect(calledUrls.some((url: string) => url.includes('wikidata.org'))).toBe(false);
+      expect(calledUrls.some((url: string) => url.includes('archive.org'))).toBe(false);
+      expect(calledUrls.some((url: string) => url.includes('openlibrary.org/search.json'))).toBe(
+        true
+      );
     });
   });
 });

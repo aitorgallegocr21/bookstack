@@ -294,4 +294,29 @@ test.describe('Navigation and Theme persistence', () => {
 
     expect(errors).toEqual([]);
   });
+
+  test('should auto-close desktop dock position popover when clicking another dock nav item or outside', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+
+    const aside = page.locator('app-sidebar aside');
+    const quickDockBtn = aside.getByRole('button', { name: 'Cambiar posición del dock' });
+    const dockMenu = aside.getByRole('menu');
+
+    // Open popover and click another dock link
+    await quickDockBtn.click();
+    await expect(dockMenu).toBeVisible();
+
+    await aside.getByRole('link', { name: 'Libros' }).click();
+    await expect(page).toHaveURL(/\/books$/);
+    await expect(dockMenu).toBeHidden();
+
+    // Reopen popover and click outside on main content
+    await quickDockBtn.click();
+    await expect(dockMenu).toBeVisible();
+    await page.locator('main').click({ position: { x: 40, y: 40 } });
+    await expect(dockMenu).toBeHidden();
+  });
 });

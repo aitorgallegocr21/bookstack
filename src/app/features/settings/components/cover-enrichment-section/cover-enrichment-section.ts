@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import {
   BookMetadataCandidate,
   MetadataProviderSource,
@@ -10,6 +12,7 @@ import { CoverEnrichmentService } from '../../services/cover-enrichment.service'
 @Component({
   selector: 'app-cover-enrichment-section',
   standalone: true,
+  imports: [RouterLink],
   templateUrl: './cover-enrichment-section.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -18,8 +21,11 @@ import { CoverEnrichmentService } from '../../services/cover-enrichment.service'
   },
 })
 export class CoverEnrichmentSectionComponent {
+  protected readonly appPreferences = inject(AppPreferencesService);
   protected readonly coverEnrichmentService = inject(CoverEnrichmentService);
   protected readonly i18n = inject(I18nService);
+
+  readonly offlineMode = this.appPreferences.offlineMode;
 
   readonly showStrictTitleWarning = signal<boolean>(false);
   readonly reportExpanded = signal<boolean>(false);

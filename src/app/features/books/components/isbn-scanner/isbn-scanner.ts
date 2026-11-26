@@ -23,6 +23,7 @@ import {
   LucideX,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { AppPreferencesService } from '../../../../core/services/app-preferences.service';
 import { UiStateService } from '../../../../core/services/ui-state.service';
 import { BarcodeDecoderService } from '../../services/barcode-decoder.service';
 import {
@@ -66,6 +67,7 @@ function isPermissionDeniedError(error: unknown): boolean {
 })
 export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
   protected readonly i18n = inject(I18nService);
+  private readonly appPreferences = inject(AppPreferencesService);
   private readonly uiState = inject(UiStateService);
   private readonly cameraStream = inject(CameraStreamService);
   private readonly barcodeDecoder = inject(BarcodeDecoderService);
@@ -143,7 +145,9 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     queueMicrotask(() => this.closeBtn()?.nativeElement.focus({ preventScroll: true }));
-    void this.startCamera();
+    if (!this.appPreferences.scannerPreferPhotoMode()) {
+      void this.startCamera();
+    }
   }
 
   ngOnDestroy(): void {
@@ -195,11 +199,21 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
       const trackSettings = this.cameraStream.activeTrackSettings();
       const resolvedDeviceId = trackSettings?.deviceId ?? '';
       this.selectedCameraId.set(resolvedDeviceId);
-      this.activeFacing.set(this.resolveCurrentFacing(options?.facingMode, resolvedDeviceId));
+      const currentFacing = this.resolveCurrentFacing(options?.facingMode, resolvedDeviceId);
+      this.activeFacing.set(currentFacing);
+      this.cameraStream.grantCameraConsent();
 
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
-        void this.cameraStream.enhanceActiveTrack(videoTrack);
+        await this.cameraStream.enhanceActiveTrack(videoTrack);
+        if (
+          this.appPreferences.scannerAutoTorch() &&
+          currentFacing !== 'front' &&
+          this.cameraStream.torchSupported() &&
+          !this.cameraStream.torchEnabled()
+        ) {
+          void this.cameraStream.toggleTorch();
+        }
       }
 
       this.scannerState.set('scanning');

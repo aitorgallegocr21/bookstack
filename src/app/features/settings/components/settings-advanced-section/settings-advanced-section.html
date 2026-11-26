@@ -1,0 +1,293 @@
+<!-- Card 1: Image Compression Tuning -->
+<section
+  data-setting-id="pref-cover-compression"
+  class="space-y-5 rounded-2xl border border-subtle bg-surface p-5 shadow-sm sm:p-6"
+  aria-labelledby="settings-compression-heading"
+>
+  <div class="flex items-start gap-3">
+    <div
+      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent"
+      aria-hidden="true"
+    >
+      <svg [lucideIcon]="ImageIcon" [size]="20"></svg>
+    </div>
+    <div class="min-w-0 space-y-1">
+      <h2
+        id="settings-compression-heading"
+        class="font-editorial text-xl leading-snug font-bold text-ink"
+      >
+        {{ i18n.t().settings.advanced.compressionTitle }}
+      </h2>
+      <p class="max-w-2xl text-sm text-ink-secondary">
+        {{ i18n.t().settings.advanced.compressionDescription }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Max Cover Resolution -->
+  <div class="flex flex-col gap-3 pt-1">
+    <span id="cover-dimension-label" class="field-label mb-0 block">
+      {{ i18n.t().settings.advanced.maxDimensionLabel }}
+    </span>
+    <div
+      role="group"
+      aria-labelledby="cover-dimension-label"
+      class="grid grid-cols-2 gap-2 sm:grid-cols-4"
+    >
+      @for (dimension of dimensionOptions; track dimension) {
+        <button
+          type="button"
+          [attr.data-testid]="'cover-dimension-' + dimension"
+          [attr.aria-pressed]="appPreferences.coverMaxDimension() === dimension"
+          (click)="setCoverMaxDimension(dimension)"
+          class="inline-flex min-h-[44px] items-center justify-center rounded-xl border px-3 py-2 text-sm font-medium tabular-nums transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          [class]="
+            appPreferences.coverMaxDimension() === dimension
+              ? 'border-accent bg-accent/10 font-semibold text-accent'
+              : 'hover:bg-surface-hover border-subtle bg-canvas text-ink-secondary'
+          "
+        >
+          {{ dimension }} {{ i18n.t().settings.advanced.maxDimensionUnit }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Compression Quality Slider -->
+  <div class="space-y-2 rounded-xl border border-subtle bg-surface-subtle/60 p-4">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <label for="cover-quality-range" class="field-label mb-0">
+        {{ i18n.t().settings.advanced.qualityLabel }}
+      </label>
+      <span
+        data-testid="cover-quality-value"
+        class="inline-flex items-center gap-1.5 rounded-full border border-subtle bg-surface px-2.5 py-0.5 text-xs font-semibold text-ink tabular-nums"
+      >
+        {{ qualityPercentage() }}% ({{ qualityDecimalLabel() }})
+      </span>
+    </div>
+    <input
+      id="cover-quality-range"
+      data-testid="cover-quality-slider"
+      type="range"
+      min="0.5"
+      max="0.95"
+      step="0.05"
+      [value]="appPreferences.coverQuality()"
+      (input)="onQualityInput($event)"
+      class="h-2 w-full cursor-pointer accent-accent"
+    />
+    <p class="text-xs leading-relaxed text-ink-secondary">
+      {{ i18n.t().settings.advanced.compressionHint }}
+    </p>
+  </div>
+</section>
+
+<!-- Card 2: Metadata Search Quota -->
+<section
+  data-setting-id="pref-metadata-quota"
+  class="space-y-4 rounded-2xl border border-subtle bg-surface p-5 shadow-sm sm:p-6"
+  aria-labelledby="settings-quota-heading"
+>
+  <div class="flex items-start gap-3">
+    <div
+      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent"
+      aria-hidden="true"
+    >
+      <svg [lucideIcon]="SearchIcon" [size]="20"></svg>
+    </div>
+    <div class="min-w-0 space-y-1">
+      <h2
+        id="settings-quota-heading"
+        class="font-editorial text-xl leading-snug font-bold text-ink"
+      >
+        {{ i18n.t().settings.advanced.quotaTitle }}
+      </h2>
+      <p class="max-w-2xl text-sm text-ink-secondary">
+        {{ i18n.t().settings.advanced.quotaDescription }}
+      </p>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-3 pt-1">
+    <span id="metadata-quota-label" class="field-label mb-0 block">
+      {{ i18n.t().settings.advanced.quotaLabel }}
+    </span>
+    <div role="group" aria-labelledby="metadata-quota-label" class="grid grid-cols-3 gap-2">
+      @for (quota of quotaOptions; track quota) {
+        <button
+          type="button"
+          [attr.data-testid]="'metadata-quota-' + quota"
+          [attr.aria-pressed]="appPreferences.metadataSearchQuota() === quota"
+          (click)="setMetadataSearchQuota(quota)"
+          class="inline-flex min-h-[44px] items-center justify-center rounded-xl border px-3 py-2 text-sm font-medium tabular-nums transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          [class]="
+            appPreferences.metadataSearchQuota() === quota
+              ? 'border-accent bg-accent/10 font-semibold text-accent'
+              : 'hover:bg-surface-hover border-subtle bg-canvas text-ink-secondary'
+          "
+        >
+          {{ quota }} {{ i18n.t().settings.advanced.quotaOptionSuffix }}
+        </button>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Card 3: Selective Partial Resets -->
+<section
+  data-setting-id="pref-selective-resets"
+  class="space-y-4 rounded-2xl border border-subtle bg-surface p-5 shadow-sm sm:p-6"
+  aria-labelledby="settings-resets-heading"
+>
+  <div class="flex items-start gap-3">
+    <div
+      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300"
+      aria-hidden="true"
+    >
+      <svg [lucideIcon]="RotateCcwIcon" [size]="20"></svg>
+    </div>
+    <div class="min-w-0 space-y-1">
+      <h2
+        id="settings-resets-heading"
+        class="font-editorial text-xl leading-snug font-bold text-ink"
+      >
+        {{ i18n.t().settings.advanced.resetsTitle }}
+      </h2>
+      <p class="max-w-2xl text-sm text-ink-secondary">
+        {{ i18n.t().settings.advanced.resetsDescription }}
+      </p>
+    </div>
+  </div>
+
+  @if (statusMessage(); as message) {
+    <div
+      data-testid="advanced-status-banner"
+      role="status"
+      class="flex items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-900 dark:text-emerald-100"
+    >
+      <div class="flex min-w-0 items-center gap-2">
+        <svg [lucideIcon]="CheckIcon" [size]="16" class="shrink-0" aria-hidden="true"></svg>
+        <span class="font-medium">{{ message }}</span>
+      </div>
+      <button
+        type="button"
+        data-testid="advanced-status-dismiss"
+        (click)="dismissStatus()"
+        [attr.aria-label]="i18n.t().settings.advanced.dismissStatusLabel"
+        class="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg text-emerald-800 transition-colors hover:bg-emerald-500/20 dark:text-emerald-200"
+      >
+        <svg [lucideIcon]="CloseIcon" [size]="16" aria-hidden="true"></svg>
+      </button>
+    </div>
+  }
+
+  <div class="divide-y divide-subtle overflow-hidden rounded-xl border border-subtle bg-canvas/50">
+    <!-- Reset 1: Cover Color Cache -->
+    <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0 space-y-0.5">
+        <p class="text-sm font-semibold text-ink">
+          {{ i18n.t().settings.advanced.clearColorCacheTitle }}
+        </p>
+        <p class="text-xs leading-relaxed text-ink-secondary">
+          {{ i18n.t().settings.advanced.clearColorCacheDescription }}
+        </p>
+      </div>
+      <button
+        type="button"
+        data-testid="reset-color-cache-btn"
+        (click)="clearCoverColorCache()"
+        class="hover:bg-surface-hover inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-xl border border-subtle bg-surface px-4 py-2 text-sm font-semibold text-ink transition-colors"
+      >
+        <svg [lucideIcon]="Trash2Icon" [size]="16" aria-hidden="true"></svg>
+        {{ i18n.t().settings.advanced.clearColorCacheAction }}
+      </button>
+    </div>
+
+    <!-- Reset 2: Reading Logs Only -->
+    <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0 space-y-0.5">
+        <p class="text-sm font-semibold text-ink">
+          {{ i18n.t().settings.advanced.clearLogsTitle }}
+        </p>
+        <p class="text-xs leading-relaxed text-ink-secondary">
+          {{ i18n.t().settings.advanced.clearLogsDescription }}
+        </p>
+      </div>
+      <button
+        type="button"
+        data-testid="reset-reading-logs-btn"
+        (click)="clearReadingLogs()"
+        class="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-500/20 dark:text-rose-300"
+      >
+        <svg [lucideIcon]="Trash2Icon" [size]="16" aria-hidden="true"></svg>
+        {{ i18n.t().settings.advanced.clearLogsAction }}
+      </button>
+    </div>
+
+    <!-- Reset 3: All Preferences -->
+    <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0 space-y-0.5">
+        <p class="text-sm font-semibold text-ink">
+          {{ i18n.t().settings.advanced.resetPrefsTitle }}
+        </p>
+        <p class="text-xs leading-relaxed text-ink-secondary">
+          {{ i18n.t().settings.advanced.resetPrefsDescription }}
+        </p>
+      </div>
+      <button
+        type="button"
+        data-testid="reset-all-preferences-btn"
+        (click)="resetAllPreferences()"
+        class="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-800 transition-colors hover:bg-amber-500/20 dark:text-amber-200"
+      >
+        <svg [lucideIcon]="RotateCcwIcon" [size]="16" aria-hidden="true"></svg>
+        {{ i18n.t().settings.advanced.resetPrefsAction }}
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Card 4: Anonymous Technical Diagnostic Export -->
+<section
+  data-setting-id="pref-diagnostics"
+  class="space-y-4 rounded-2xl border border-subtle bg-surface p-5 shadow-sm sm:p-6"
+  aria-labelledby="settings-diagnostics-heading"
+>
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="min-w-0 space-y-1.5">
+      <h2
+        id="settings-diagnostics-heading"
+        class="font-editorial text-xl leading-snug font-bold text-ink"
+      >
+        {{ i18n.t().settings.advanced.diagnosticsTitle }}
+      </h2>
+      <p class="max-w-2xl text-sm text-ink-secondary">
+        {{ i18n.t().settings.advanced.diagnosticsDescription }}
+      </p>
+      <p
+        class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300"
+      >
+        <svg [lucideIcon]="ShieldCheckIcon" [size]="14" class="shrink-0" aria-hidden="true"></svg>
+        <span>{{ i18n.t().settings.advanced.diagnosticsPrivacyNote }}</span>
+      </p>
+    </div>
+
+    <button
+      type="button"
+      data-testid="export-diagnostics-btn"
+      [disabled]="isExportingDiagnostics()"
+      (click)="exportDiagnosticReport()"
+      class="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      <svg [lucideIcon]="DownloadIcon" [size]="16" aria-hidden="true"></svg>
+      <span>
+        {{
+          isExportingDiagnostics()
+            ? i18n.t().settings.advanced.diagnosticsExporting
+            : i18n.t().settings.advanced.diagnosticsAction
+        }}
+      </span>
+    </button>
+  </div>
+</section>

@@ -83,24 +83,24 @@ flowchart LR
 
 ---
 
-### Phase 19: Extended Categorized Settings (`/settings`), Advanced Mode & Privacy/Crypto Hardening
+### Phase 19: Extended Categorized Settings (`/settings`), Privacy/Offline Controls & Web Crypto Backups
 
-- **Status:** Roadmapped
-- **Pre-Phase Note:** _Review with the user at phase start to include any additional fine-grained user preferences discovered during Phases 16–18._
-- **Primary Goal:** Transform `/settings` into a comprehensive, well-organized control center separated into thematic sections and an **Advanced Mode**, while hardening local data persistence, network privacy, and backup security.
+- **Status:** Completed (`v2.5.0`, [`docs/tasks/phase-19-extended-settings-privacy-crypto/index.md`](tasks/phase-19-extended-settings-privacy-crypto/index.md))
+- **Primary Goal:** Transform `/settings` into a comprehensive, well-organized **Master-Detail Control Center** separated into 5 thematic categories with URL `?tab=` sync and instant search, while hardening local data persistence, network privacy, scanner defaults, and backup security.
 - **Core Deliverables:**
-  1. **Categorized Settings Architecture:**
-     - Organize `/settings` into clear navigable sections/tabs: **General & Appearance**, **Catalog & Reading Defaults**, **Data & Backups**, **Privacy & Security**, and **Advanced / System**.
-  2. **Catalog, Reading & Confirmation Preferences:**
-     - User-configurable defaults for new books (default format, initial status), card action button visibility, compact density toggles, and granular control over minor confirmation prompts (e.g., re-enabling suppressed warnings from Phase 16).
-  3. **Strict Network Privacy & Metadata Provider Controls:**
-     - Master **"100% Offline Mode"** toggle that blocks all outbound requests to external metadata/cover providers.
-     - Granular provider selector allowing the user to enable, disable, or reorder the 5 public metadata sources (Open Library, Google Books, Wikidata, Apple Books ES, Internet Archive / Crossref) and manage camera/scanner consent.
-  4. **Storage Resilience & Password-Encrypted Backups (`AES-GCM`):**
+  1. **Master-Detail Categorized Settings Architecture & Live Search:**
+     - Organize `/settings` into 5 navigable categories (sticky vertical sidebar on desktop + horizontally scrollable pill tabs on mobile): **General & Appearance**, **Catalog & Reading**, **Data & Backups**, **Privacy & Scanner**, and **Advanced & System** (always visible with `"Expert"` badge), backed by `?tab=` URL sync, bilingual instant settings search with jump-and-highlight, and a passive 30-day backup reminder banner.
+  2. **Unified `AppPreferencesService`, Appearance & Catalog/Reading Defaults:**
+     - Add Adaptive Cover Tinting (`--book-tint`) toggle and manual Reduced Motion override; move & expand Catalog/Reading controls (default view & sort, new book default format/status, card quick-actions & progress bar visibility, Dashboard quick-page increment step, reading time tracking toggle, and granular per-action confirmation dialog switches).
+  3. **Strict Network Privacy, 5-Provider Controls & Scanner Privacy:**
+     - Master **"100% Offline Mode"** toggle blocking all outbound requests to external metadata/cover providers.
+     - Granular provider controls allowing the user to enable, disable, or reorder the 5 public metadata sources (Google Books, Open Library, Apple Books ES, Wikidata, Internet Archive / Crossref), plus camera consent management, remembered rear camera `deviceId` reset, and scanner defaults (Photo Mode / Auto-Torch).
+  4. **Storage Resilience, Preferences Sync & Password-Encrypted Backups (`AES-GCM-256`):**
      - 1-click **Persistent Storage Request** (`navigator.storage.persist()`) with live browser eviction-protection status and IndexedDB health diagnostics.
-     - Zero-dependency password-encrypted `.JSON` and `.ZIP` backups using browser-native Web Crypto API (`PBKDF2` key derivation + `AES-GCM` authenticated encryption) for safe cloud storage.
-  5. **Advanced System Controls:**
-     - Configurable cover compression parameters (max pixel dimension and WebP/JPEG quality factor), metadata search quota tuning, selective partial resets (e.g., clear only reading session logs, clear only optimized cover cache, or reset preferences without losing books), and diagnostic summary export.
+     - Optional inclusion/restoration of app preferences in full `.JSON` and `.ZIP` backups.
+     - Zero-dependency password-encrypted `.JSON` and `.ZIP` backups using browser-native Web Crypto API (`PBKDF2` + `AES-GCM-256`) with transparent password-prompted import.
+  5. **Advanced System Controls, Selective Resets & Diagnostics:**
+     - Configurable cover compression parameters (max pixel dimension and WebP/JPEG quality factor), metadata search quota tuning (`4`/`8`/`12`), selective partial resets (clear cover color cache, clear reading logs only, or reset preferences without losing books), strictly anonymous technical diagnostic JSON export, and relocated Danger Zone (`#danger-zone`) with a quick-jump link from Data & Backups.
 
 ---
 

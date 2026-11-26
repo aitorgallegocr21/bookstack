@@ -20,8 +20,10 @@ import {
   LucideImagePlus,
   LucideRefreshCw,
   LucideSwitchCamera,
+  LucideX,
 } from '@lucide/angular';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { UiStateService } from '../../../../core/services/ui-state.service';
 import { BarcodeDecoderService } from '../../services/barcode-decoder.service';
 import {
   CameraStreamError,
@@ -58,11 +60,13 @@ function isPermissionDeniedError(error: unknown): boolean {
   templateUrl: './isbn-scanner.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'block space-y-3',
+    class: 'block',
+    '(document:keydown.escape)': 'closeScanner()',
   },
 })
 export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
   protected readonly i18n = inject(I18nService);
+  private readonly uiState = inject(UiStateService);
   private readonly cameraStream = inject(CameraStreamService);
   private readonly barcodeDecoder = inject(BarcodeDecoderService);
 
@@ -74,8 +78,10 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
   protected readonly FlashlightOff = LucideFlashlightOff;
   protected readonly ImagePlus = LucideImagePlus;
   protected readonly AlertCircle = LucideAlertCircle;
+  protected readonly CloseIcon = LucideX;
 
   protected readonly videoEl = viewChild<ElementRef<HTMLVideoElement>>('videoEl');
+  protected readonly closeBtn = viewChild<ElementRef<HTMLButtonElement>>('closeBtn');
 
   readonly isbnDetected = output<string>();
   readonly closed = output<void>();
@@ -131,7 +137,12 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
   private decodeTimerId: ReturnType<typeof setTimeout> | null = null;
   private hasEmittedCurrentSession = false;
 
+  constructor() {
+    this.uiState.acquireScrollLock();
+  }
+
   ngAfterViewInit(): void {
+    queueMicrotask(() => this.closeBtn()?.nativeElement.focus({ preventScroll: true }));
     void this.startCamera();
   }
 
@@ -141,6 +152,7 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
     this.stopDecodeLoop();
     this.detachVideoElement();
     this.cameraStream.stopStream();
+    this.uiState.releaseScrollLock();
   }
 
   /** Starts or restarts the live camera stream, attaches it to `<video>`, and begins decoding. */
@@ -212,6 +224,18 @@ export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
           ? this.i18n.t().bookForm.lookup.cameraUnavailableError
           : this.i18n.t().bookForm.lookup.cameraUnavailableError
       );
+    }
+  }
+
+  /** Stops the camera and closes the scanner modal. */
+  closeScanner(): void {
+    this.stopCamera();
+    this.closed.emit();
+  }
+
+  protected onBackdropClick(event: Event): void {
+    if (event.target === event.currentTarget) {
+      this.closeScanner();
     }
   }
 

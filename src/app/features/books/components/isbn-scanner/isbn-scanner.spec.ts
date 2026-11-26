@@ -136,6 +136,10 @@ describe('IsbnScannerComponent', () => {
     TestBed.inject(I18nService).setLocale('en');
   });
 
+  afterEach(() => {
+    document.body.classList.remove('overflow-hidden');
+  });
+
   const mountScanner = async (): Promise<{
     fixture: ComponentFixture<IsbnScannerComponent>;
     video: HTMLVideoElement;
@@ -343,7 +347,7 @@ describe('IsbnScannerComponent', () => {
 
     // Now test destroy cleanup after successful start
     startStreamMock.mockImplementationOnce(async () => createMockVideoStream('cam-back'));
-    const startBtn = root.querySelector('button') as HTMLButtonElement;
+    const startBtn = root.querySelector('footer button') as HTMLButtonElement;
     startBtn.click();
     await flushAsync();
     fixture.detectChanges();
@@ -354,6 +358,34 @@ describe('IsbnScannerComponent', () => {
     fixture.destroy();
     expect(stopStreamMock).toHaveBeenCalledTimes(1);
     expect(video.srcObject).toBeNull();
+  });
+
+  it('acquires body scroll lock on mount, releases on destroy, and closes on Escape or backdrop click', async () => {
+    const { fixture } = await mountScanner();
+    const closedSpy = vi.fn();
+    fixture.componentInstance.closed.subscribe(closedSpy);
+
+    expect(document.body.classList.contains('overflow-hidden')).toBe(true);
+
+    // Clicking inside the dialog panel should not close
+    const root = fixture.nativeElement as HTMLElement;
+    const viewport = root.querySelector('[data-testid="isbn-scanner-viewport"]') as HTMLElement;
+    viewport.click();
+    expect(closedSpy).not.toHaveBeenCalled();
+
+    // Clicking the backdrop itself closes the scanner
+    const modalBackdrop = root.querySelector('[data-testid="isbn-scanner-modal"]') as HTMLElement;
+    modalBackdrop.click();
+    expect(closedSpy).toHaveBeenCalledTimes(1);
+
+    // Pressing Escape also closes and stops camera
+    stopStreamMock.mockClear();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(closedSpy).toHaveBeenCalledTimes(2);
+    expect(stopStreamMock).toHaveBeenCalled();
+
+    fixture.destroy();
+    expect(document.body.classList.contains('overflow-hidden')).toBe(false);
   });
 
   it('shows camera unavailable error when CameraStreamError is thrown', async () => {

@@ -39,11 +39,18 @@ import {
 } from '../../utils/temporal-bounds.utils';
 import { BookMetadataLookupComponent } from '../book-metadata-lookup/book-metadata-lookup';
 import { CoverPickerComponent } from '../cover-picker/cover-picker';
+import { IsbnScannerComponent } from '../isbn-scanner/isbn-scanner';
 
 @Component({
   selector: 'app-book-edit-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CoverPickerComponent, BookMetadataLookupComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    CoverPickerComponent,
+    BookMetadataLookupComponent,
+    IsbnScannerComponent,
+  ],
   templateUrl: './book-edit-modal.html',
   styleUrl: './book-edit-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -76,6 +83,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
 
   protected readonly isSaving = signal<boolean>(false);
   protected readonly isClosing = signal<boolean>(false);
+  protected readonly isScannerOpen = signal<boolean>(false);
   protected readonly statusValues = BOOK_STATUS_VALUES;
   protected readonly existingSeriesOptions = this.seriesService.existingSeriesOptions;
   protected readonly quickPickSeriesOptions = computed(() =>
@@ -228,6 +236,19 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
 
   protected triggerInlineIsbnLookup(): void {
     void this.metadataLookup()?.triggerIsbnLookup(this.editForm.controls.isbn.value || '');
+  }
+
+  protected openScanner(): void {
+    this.isScannerOpen.set(true);
+  }
+
+  protected closeScanner(): void {
+    this.isScannerOpen.set(false);
+  }
+
+  protected onScannerIsbnDetected(isbn: string): void {
+    this.isScannerOpen.set(false);
+    void this.metadataLookup()?.onIsbnScanned(isbn);
   }
 
   protected onMetadataCandidateApplied(event: {
@@ -392,7 +413,7 @@ export class BookEditModalComponent implements AfterViewInit, OnDestroy {
   }
 
   protected handleEscape(): void {
-    if (this.confirmDialogService.activeDialog() !== null) {
+    if (this.confirmDialogService.activeDialog() !== null || this.isScannerOpen()) {
       return;
     }
     this.cancel();

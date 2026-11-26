@@ -482,11 +482,14 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
     await lookupPanel.getByRole('button', { name: 'Escanear código' }).click();
 
     await expect(page.getByTestId('enable-camera-consent-btn')).toHaveCount(0);
+    await expect(page.getByTestId('isbn-scanner-modal')).toBeVisible();
     await expect(page.locator('[data-testid="isbn-scanner-viewport"] video')).toBeAttached();
     await expect(
-      lookupPanel.getByText(
-        'La cámara se procesa únicamente en tu navegador para leer códigos ISBN. No se graban ni envían imágenes.'
-      )
+      page
+        .getByTestId('isbn-scanner-modal')
+        .getByText(
+          'La cámara se procesa únicamente en tu navegador para leer códigos ISBN. No se graban ni envían imágenes.'
+        )
     ).toBeVisible();
 
     await expect
@@ -590,7 +593,7 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
 
     await expect(page.locator('#create-book-isbn')).toHaveValue('9780141036144');
     await expect(lookupPanel.getByText('Ediciones encontradas')).toBeVisible();
-    await expect(lookupPanel.locator('app-isbn-scanner')).toHaveCount(0);
+    await expect(page.locator('app-isbn-scanner')).toHaveCount(0);
 
     const stopped = await page.evaluate(() =>
       (window as unknown as { __getStoppedTracks: () => number }).__getStoppedTracks()
@@ -671,8 +674,11 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
       HTMLVideoElement.prototype.play = () => Promise.resolve();
     });
 
-    for (const width of [320, 375]) {
-      await page.setViewportSize({ width, height: 740 });
+    for (const [width, height] of [
+      [320, 568],
+      [375, 740],
+    ] as const) {
+      await page.setViewportSize({ width, height });
       await page.goto('/books');
 
       await page.getByRole('button', { name: 'Crear nuevo libro' }).click();
@@ -720,22 +726,46 @@ test.describe('Phase 10: ISBN Lookup & Metadata Auto-Fill Flows', () => {
         .evaluate((el) => el.scrollWidth > el.clientWidth);
       expect(modalSearchOverflow).toBe(false);
 
-      // Switch to scanner tab and verify controls + zero horizontal overflow inside lookup panel & modal
+      // Open full-viewport locked scanner modal and verify all controls fit without scrolling
       await scanBtn.click();
-      await expect(lookupPanel.locator('app-isbn-scanner')).toBeVisible();
-      await expect(lookupPanel.getByTestId('toggle-camera-facing-btn')).toBeVisible();
-      await expect(lookupPanel.getByTestId('toggle-torch-btn')).toBeVisible();
-      await expect(lookupPanel.getByTestId('upload-barcode-photo-btn')).toBeVisible();
+      const scannerModal = page.getByTestId('isbn-scanner-modal');
+      await expect(scannerModal).toBeVisible();
+      await expect(page.getByTestId('close-isbn-scanner-btn')).toBeVisible();
+      await expect(page.getByTestId('toggle-camera-facing-btn')).toBeVisible();
+      await expect(page.getByTestId('toggle-torch-btn')).toBeVisible();
+      await expect(page.getByTestId('upload-barcode-photo-btn')).toBeVisible();
 
-      const lookupScannerOverflow = await lookupPanel.evaluate(
-        (el) => el.scrollWidth > el.clientWidth
+      const bodyLocked = await page.evaluate(() =>
+        document.body.classList.contains('overflow-hidden')
       );
-      expect(lookupScannerOverflow).toBe(false);
+      expect(bodyLocked).toBe(true);
 
-      const modalScannerOverflow = await page
-        .locator('app-book-create-modal .modal-panel')
-        .evaluate((el) => el.scrollWidth > el.clientWidth);
-      expect(modalScannerOverflow).toBe(false);
+      const scannerBounds = await scannerModal.evaluate((el) => ({
+        scrollWidth: el.scrollWidth,
+        clientWidth: el.clientWidth,
+        scrollHeight: el.scrollHeight,
+        clientHeight: el.clientHeight,
+      }));
+      expect(scannerBounds.scrollWidth).toBeLessThanOrEqual(scannerBounds.clientWidth);
+      expect(scannerBounds.scrollHeight).toBeLessThanOrEqual(scannerBounds.clientHeight);
+
+      for (const testId of [
+        'close-isbn-scanner-btn',
+        'toggle-camera-facing-btn',
+        'toggle-torch-btn',
+        'upload-barcode-photo-btn',
+      ]) {
+        const box = await page.getByTestId(testId).boundingBox();
+        expect(box).not.toBeNull();
+        expect(box!.height).toBeGreaterThanOrEqual(44);
+        expect(box!.y).toBeGreaterThanOrEqual(0);
+        expect(box!.y + box!.height).toBeLessThanOrEqual(height + 1);
+      }
+
+      // Pressing Escape closes only the scanner modal while keeping Create Book modal open
+      await page.keyboard.press('Escape');
+      await expect(scannerModal).toHaveCount(0);
+      await expect(page.locator('#create-modal-title')).toBeVisible();
     }
   });
 });

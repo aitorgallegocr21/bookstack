@@ -146,6 +146,8 @@ export interface BooksI18n {
       collapseAria: string;
       scanTab: string;
       searchTab: string;
+      scannerModalTitle: string;
+      closeScannerAria: string;
       searchPlaceholder: string;
       searchButton: string;
       searchEmptyHint: string;
@@ -389,6 +391,8 @@ export const ES_BOOKS: BooksI18n = {
       collapseAria: 'Contraer panel de búsqueda y escáner ISBN',
       scanTab: 'Escanear código',
       searchTab: 'Buscar libro',
+      scannerModalTitle: 'Escanear código ISBN',
+      closeScannerAria: 'Cerrar escáner ISBN',
       searchPlaceholder: 'Título, autor o ISBN...',
       searchButton: 'Buscar',
       searchEmptyHint: 'Introduce un título, autor o ISBN para buscar ediciones públicas.',
@@ -634,6 +638,8 @@ export const EN_BOOKS: BooksI18n = {
       collapseAria: 'Collapse ISBN scanner and lookup panel',
       scanTab: 'Scan barcode',
       searchTab: 'Search book',
+      scannerModalTitle: 'Scan ISBN barcode',
+      closeScannerAria: 'Close ISBN scanner',
       searchPlaceholder: 'Title, author, or ISBN...',
       searchButton: 'Search',
       searchEmptyHint: 'Enter a title, author, or ISBN to search public editions.',

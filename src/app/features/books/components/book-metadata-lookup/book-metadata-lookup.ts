@@ -27,11 +27,10 @@ import {
   MetadataProviderSource,
 } from '../../models/book-metadata.model';
 import { BookMetadataError, BookMetadataService } from '../../services/book-metadata.service';
-import { IsbnScannerComponent } from '../isbn-scanner/isbn-scanner';
 
 @Component({
   selector: 'app-book-metadata-lookup',
-  imports: [IsbnScannerComponent, LucideDynamicIcon],
+  imports: [LucideDynamicIcon],
   templateUrl: './book-metadata-lookup.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -48,6 +47,7 @@ export class BookMetadataLookupComponent {
   readonly currentTitle = input<string>('');
   readonly currentAuthor = input<string>('');
 
+  readonly scanRequested = output<void>();
   readonly candidateApplied = output<{
     candidate: BookMetadataCandidate;
     applyMode: BookMetadataApplyMode;
@@ -91,6 +91,11 @@ export class BookMetadataLookupComponent {
   });
 
   openTab(tab: MetadataLookupMode): void {
+    if (tab === 'scan') {
+      this.errorMessage.set(null);
+      this.scanRequested.emit();
+      return;
+    }
     if (this.isExpanded() && this.activeTab() === tab) {
       this.isExpanded.set(false);
       return;

@@ -6,6 +6,7 @@ import {
   filterAndNormalizeCameras,
   formatCameraLabel,
   isAuxiliaryCameraLabel,
+  pickPrimaryDeviceId,
   type CameraLabelTranslations,
 } from './camera-selection.utils';
 
@@ -128,5 +129,40 @@ describe('camera-selection.utils', () => {
 
     expect(plan.mode).toBe('select');
     expect(plan.cameras).toHaveLength(2);
+  });
+
+  describe('pickPrimaryDeviceId', () => {
+    const pocoDevices = [
+      { deviceId: 'cam-5', kind: 'videoinput', label: 'camera 5, facing back' },
+      { deviceId: 'cam-macro', kind: 'videoinput', label: 'camera 3, facing back (macro)' },
+      { deviceId: 'cam-0', kind: 'videoinput', label: 'camera 0, facing back' },
+      { deviceId: 'cam-2', kind: 'videoinput', label: 'camera 2, facing back' },
+      { deviceId: 'cam-6', kind: 'videoinput', label: 'camera 6, facing front' },
+      { deviceId: 'cam-1', kind: 'videoinput', label: 'camera 1, facing front' },
+    ];
+
+    it('returns preferredId immediately when present and not an auxiliary lens', () => {
+      expect(pickPrimaryDeviceId(pocoDevices, 'environment', 'cam-2')).toBe('cam-2');
+    });
+
+    it('ignores preferredId if missing or classified as an auxiliary lens', () => {
+      expect(pickPrimaryDeviceId(pocoDevices, 'environment', 'cam-missing')).toBe('cam-0');
+      expect(pickPrimaryDeviceId(pocoDevices, 'environment', 'cam-macro')).toBe('cam-0');
+    });
+
+    it('picks lowest-indexed Camera2 primary sensor for rear and front facing', () => {
+      expect(pickPrimaryDeviceId(pocoDevices, 'environment')).toBe('cam-0');
+      expect(pickPrimaryDeviceId(pocoDevices, 'user')).toBe('cam-1');
+    });
+
+    it('returns null when no usable device matches the requested facing', () => {
+      expect(pickPrimaryDeviceId([], 'environment')).toBeNull();
+      expect(
+        pickPrimaryDeviceId(
+          [{ deviceId: 'usb-1', kind: 'videoinput', label: 'Logitech C920' }],
+          'environment'
+        )
+      ).toBeNull();
+    });
   });
 });

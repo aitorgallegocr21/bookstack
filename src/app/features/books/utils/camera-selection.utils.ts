@@ -25,6 +25,14 @@ export interface VideoDeviceLike {
   label: string;
 }
 
+export type RawCameraDevice = VideoDeviceLike;
+
+const DEFAULT_CAMERA_LABEL_TRANSLATIONS: CameraLabelTranslations = {
+  rearCamera: 'Rear camera',
+  frontCamera: 'Front camera',
+  genericCameraPrefix: 'Camera',
+};
+
 const AUXILIARY_LENS_REGEX =
   /\b(depth|tof|time[- ]of[- ]flight|ir|infrared|macro|telephoto|tele|ultra[- ]?wide|ultrawide|bokeh|monochrome|mono|spatial)\b/i;
 
@@ -49,6 +57,9 @@ export function isAuxiliaryCameraLabel(label: string): boolean {
   return AUXILIARY_LENS_REGEX.test(label);
 }
 
+/** Alias for `isAuxiliaryCameraLabel` matching scanner engine naming. */
+export const isAuxiliaryLensLabel = isAuxiliaryCameraLabel;
+
 /** Classifies a camera device label as rear, front, or unknown. */
 export function classifyCameraFacing(label: string): CameraFacing {
   if (REAR_FACING_REGEX.test(label)) {
@@ -59,6 +70,9 @@ export function classifyCameraFacing(label: string): CameraFacing {
   }
   return 'unknown';
 }
+
+/** Alias for `classifyCameraFacing` matching scanner engine naming. */
+export const detectCameraFacing = classifyCameraFacing;
 
 /** Formats a raw MediaDeviceInfo label into a clean, user-friendly camera name. */
 export function formatCameraLabel(
@@ -85,7 +99,7 @@ export function formatCameraLabel(
 /** Filters non-video/auxiliary devices and normalizes camera metadata for the UI. */
 export function filterAndNormalizeCameras(
   devices: readonly VideoDeviceLike[],
-  translations: CameraLabelTranslations
+  translations: CameraLabelTranslations = DEFAULT_CAMERA_LABEL_TRANSLATIONS
 ): ScannerCameraDevice[] {
   const seenIds = new Set<string>();
   const normalized: Array<{
@@ -188,4 +202,33 @@ export function buildCameraSwitchPlan(
     frontCamera: activeFront,
     cameras: [...cameras],
   };
+}
+
+/**
+ * Picks the primary camera device ID for the requested facing direction.
+ * Honors `preferredId` immediately when it is still present and not an auxiliary lens;
+ * otherwise selects the lowest-indexed Camera2 sensor matching `facing`.
+ */
+export function pickPrimaryDeviceId(
+  devices: readonly RawCameraDevice[],
+  facing: 'environment' | 'user',
+  preferredId?: string | null
+): string | null {
+  const trimmedPreferredId = preferredId?.trim() ?? '';
+  if (trimmedPreferredId.length > 0) {
+    const preferredDevice = devices.find(
+      (device) =>
+        device.kind === 'videoinput' &&
+        device.deviceId.trim() === trimmedPreferredId &&
+        !isAuxiliaryCameraLabel(device.label)
+    );
+    if (preferredDevice) {
+      return preferredDevice.deviceId.trim();
+    }
+  }
+
+  const targetFacing: CameraFacing = facing === 'environment' ? 'rear' : 'front';
+  const normalized = filterAndNormalizeCameras(devices);
+  const match = normalized.find((camera) => camera.facing === targetFacing);
+  return match?.id ?? null;
 }

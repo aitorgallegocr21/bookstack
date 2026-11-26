@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-_None — Phase 17D completed (`v2.3.3`). Next up: Phase 18._
+_None — Phase 18 completed (`v2.4.0`). Ready to plan Phase 19._
 
 ---
 
@@ -16,13 +16,15 @@ _None — Phase 17D completed (`v2.3.3`). Next up: Phase 18._
 
 > Full architectural and product specifications for upcoming phases live in [`docs/ROADMAP.md`](ROADMAP.md).
 
-- [ ] **[Phase 18: Extended Categorized Settings (`/settings`), Advanced Mode & Privacy/Crypto Hardening](ROADMAP.md#phase-18-extended-categorized-settings-settings-advanced-mode--privacycrypto-hardening)** — _Roadmapped_ (Categorized `/settings` navigation [General, Catalog & Reading Defaults, Data & Backups, Privacy & Security, Advanced], master 100% Offline Mode toggle, granular 5-provider metadata controls, `navigator.storage.persist()` safeguard, Web Crypto `AES-GCM` password-encrypted backups, and advanced compression/reset tuning).
-- [ ] **[Phase 19: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy](ROADMAP.md#phase-19-expanded-analytics-stats-adaptive-timevelocity-engine--tagsgenres-taxonomy)** — _Roadmapped_ (Adaptive time/velocity disclosure hiding `pp/h` and Time tabs when no timed sessions exist, `Book.tags` / genres taxonomy with thematic distribution charts, 365-day reading activity heatmap calendar, book longevity & length distribution metrics, period-over-period deltas, and personal all-time records).
-- [ ] **[Phase 20: Integrated eBook Reader (`/reader/:id`) & Binary Metadata Extractor](ROADMAP.md#phase-20-long-term-milestone-integrated-ebook-reader-readerid--binary-metadata-extractor)** — _Long-Term Milestone_ (Isolated IndexedDB `ebookFiles` binary store for `.EPUB`/`.PDF` uploads, 100% browser-native metadata/cover/TOC extraction, lazy-loaded `/reader/:id` view with customizable typography/themes/bookmarks, automatic `currentPage` & timed `ReadingLog` session tracking, and eBook quota manager in `/settings`).
+- [ ] **[Phase 19: Extended Categorized Settings (`/settings`), Advanced Mode & Privacy/Crypto Hardening](ROADMAP.md#phase-19-extended-categorized-settings-settings-advanced-mode--privacycrypto-hardening)** — _Roadmapped_ (Categorized `/settings` navigation [General, Catalog & Reading Defaults, Data & Backups, Privacy & Security, Advanced], master 100% Offline Mode toggle, granular 5-provider metadata controls, `navigator.storage.persist()` safeguard, Web Crypto `AES-GCM` password-encrypted backups, and advanced compression/reset tuning).
+- [ ] **[Phase 20: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy](ROADMAP.md#phase-20-expanded-analytics-stats-adaptive-timevelocity-engine--tagsgenres-taxonomy)** — _Roadmapped_ (Adaptive time/velocity disclosure hiding `pp/h` and Time tabs when no timed sessions exist, `Book.tags` / genres taxonomy with thematic distribution charts, 365-day reading activity heatmap calendar, book longevity & length distribution metrics, period-over-period deltas, and personal all-time records).
+- [ ] **[Phase 21: Integrated eBook Reader (`/reader/:id`) & Binary Metadata Extractor](ROADMAP.md#phase-21-long-term-milestone-integrated-ebook-reader-readerid--binary-metadata-extractor)** — _Long-Term Milestone_ (Isolated IndexedDB `ebookFiles` binary store for `.EPUB`/`.PDF` uploads, 100% browser-native metadata/cover/TOC extraction, lazy-loaded `/reader/:id` view with customizable typography/themes/bookmarks, automatic `currentPage` & timed `ReadingLog` session tracking, and eBook quota manager in `/settings`).
 
 ---
 
 ## Completed Phases (Archive & Changelog)
+
+- [x] **[Phase 18: Modern Native ISBN Scanner Engine (`getUserMedia` + `BarcodeDetector` & Local ZXing-WASM) (`v2.4.0`)](tasks/phase-18-native-isbn-scanner-engine/index.md)** — _Completed 2026-11_ (Removed `html5-qrcode` completely, introduced native `CameraStreamService` with `localStorage` preferred rear `deviceId` memory, Camera2 primary-sensor index ranking, progressive continuous autofocus/HD constraints, and torch control, plus `BarcodeDecoderService` using hardware `BarcodeDetector` with lazy local `assets/wasm/zxing_reader.wasm` ponyfill, `'wasm-unsafe-eval'` CSP, offline PWA caching, and rewritten `<app-isbn-scanner>` UI).
 
 - [x] **[Phase 17D: ISBN Scanner Smart Camera Selection, HD Quality & UX Simplification (`v2.3.3`)](tasks/phase-17d-isbn-scanner-camera-fix/index.md)** — _Completed 2026-11_ (Eliminated pre-start `Html5Qrcode.getCameras()` double-stream race, added 1-tap direct rear HD camera startup with `OverconstrainedError` fallback ladder and continuous autofocus, filtered auxiliary Android `camera2` lenses via `camera-selection.utils.ts`, collapsed mobile switchers into a 1-tap front/rear toggle button while hiding single-camera controls, and displayed the local-only privacy notice inline).
 

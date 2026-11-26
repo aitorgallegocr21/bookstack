@@ -2,34 +2,54 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   OnDestroy,
   computed,
   inject,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import {
   LucideAlertCircle,
   LucideCamera,
   LucideCameraOff,
   LucideDynamicIcon,
+  LucideFlashlight,
+  LucideFlashlightOff,
   LucideImagePlus,
   LucideRefreshCw,
   LucideSwitchCamera,
 } from '@lucide/angular';
-import type { Html5Qrcode } from 'html5-qrcode';
 import { I18nService } from '../../../../core/i18n/i18n.service';
+import { BarcodeDecoderService } from '../../services/barcode-decoder.service';
+import {
+  CameraStreamError,
+  CameraStreamService,
+  type StartCameraStreamOptions,
+} from '../../services/camera-stream.service';
 import {
   buildCameraSwitchPlan,
   filterAndNormalizeCameras,
+  type CameraSwitchPlan,
   type ScannerCameraDevice,
 } from '../../utils/camera-selection.utils';
-import { isValidIsbn, normalizeIsbn } from '../../utils/isbn.utils';
 
 export type { ScannerCameraDevice };
 
 export type IsbnScannerState =
   'idle' | 'starting' | 'scanning' | 'processing-file' | 'error' | 'permission-denied';
+
+const LIVE_DECODE_INTERVAL_MS = 120;
+const VIDEO_READY_TIMEOUT_MS = 1500;
+
+function isPermissionDeniedError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null || !('name' in error)) {
+    return false;
+  }
+  const name = (error as { name?: unknown }).name;
+  return name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError';
+}
 
 @Component({
   selector: 'app-isbn-scanner',
@@ -42,438 +62,381 @@ export type IsbnScannerState =
   },
 })
 export class IsbnScannerComponent implements AfterViewInit, OnDestroy {
-  private static nextElementId = 0;
-
   protected readonly i18n = inject(I18nService);
+  private readonly cameraStream = inject(CameraStreamService);
+  private readonly barcodeDecoder = inject(BarcodeDecoderService);
+
   protected readonly Camera = LucideCamera;
   protected readonly CameraOff = LucideCameraOff;
   protected readonly RefreshCw = LucideRefreshCw;
   protected readonly SwitchCamera = LucideSwitchCamera;
+  protected readonly Flashlight = LucideFlashlight;
+  protected readonly FlashlightOff = LucideFlashlightOff;
   protected readonly ImagePlus = LucideImagePlus;
   protected readonly AlertCircle = LucideAlertCircle;
 
-  protected readonly scannerElementId = `bookstack-isbn-scanner-${++IsbnScannerComponent.nextElementId}`;
+  protected readonly videoEl = viewChild<ElementRef<HTMLVideoElement>>('videoEl');
 
   readonly isbnDetected = output<string>();
   readonly closed = output<void>();
 
   protected readonly scannerState = signal<IsbnScannerState>('idle');
-  protected readonly availableCameras = signal<ScannerCameraDevice[]>([]);
-  protected readonly selectedCameraId = signal<string | null>(null);
   protected readonly errorMessage = signal<string | null>(null);
-  protected readonly ignoredNonIsbnHint = signal<boolean>(false);
+  protected readonly selectedCameraId = signal<string>('');
+  protected readonly activeFacing = signal<'rear' | 'front' | null>(null);
 
-  protected readonly cameraSwitchPlan = computed(() =>
-    buildCameraSwitchPlan(this.availableCameras(), this.selectedCameraId())
+  protected readonly torchSupported = computed(() => this.cameraStream.torchSupported());
+  protected readonly torchEnabled = computed(() => this.cameraStream.torchEnabled());
+
+  protected readonly availableCameras = computed<ScannerCameraDevice[]>(() => {
+    const lookup = this.i18n.t().bookForm.lookup;
+    return filterAndNormalizeCameras(this.cameraStream.availableDevices(), {
+      rearCamera: lookup.rearCamera,
+      frontCamera: lookup.frontCamera,
+      genericCameraPrefix: lookup.genericCameraPrefix,
+    });
+  });
+
+  protected readonly cameraSwitchPlan = computed<CameraSwitchPlan>(() =>
+    buildCameraSwitchPlan(this.availableCameras(), this.selectedCameraId() || null)
   );
 
-  protected readonly nextToggleCamera = computed<ScannerCameraDevice | null>(() => {
+  protected readonly nextToggleFacing = computed<'rear' | 'front' | null>(() => {
     const plan = this.cameraSwitchPlan();
     if (plan.mode !== 'facing-toggle' || !plan.rearCamera || !plan.frontCamera) {
       return null;
     }
-    return this.selectedCameraId() === plan.frontCamera.id ? plan.rearCamera : plan.frontCamera;
+
+    const currentFacing = this.activeFacing();
+    if (currentFacing === 'front') {
+      return 'rear';
+    }
+    if (currentFacing === 'rear') {
+      return 'front';
+    }
+
+    return this.selectedCameraId() === plan.frontCamera.id ? 'rear' : 'front';
   });
 
   protected readonly toggleCameraLabel = computed(() => {
-    const next = this.nextToggleCamera();
-    if (!next) {
-      return this.i18n.t().bookForm.lookup.switchCamera;
-    }
-    return next.facing === 'front'
-      ? this.i18n.t().bookForm.lookup.switchToFrontCamera
-      : this.i18n.t().bookForm.lookup.switchToRearCamera;
+    const lookup = this.i18n.t().bookForm.lookup;
+    return this.nextToggleFacing() === 'front'
+      ? lookup.switchToFrontCamera
+      : lookup.switchToRearCamera;
   });
 
-  private scannerInstance: Html5Qrcode | null = null;
-  private isCameraRunning = false;
-  private isDestroyed = false;
-  private handlingDetection = false;
+  private destroyed = false;
+  private startToken = 0;
+  private decodeSessionToken = 0;
+  private decodeTimerId: ReturnType<typeof setTimeout> | null = null;
+  private hasEmittedCurrentSession = false;
 
   ngAfterViewInit(): void {
     void this.startCamera();
   }
 
-  protected onToggleCameraFacing(): void {
-    const next = this.nextToggleCamera();
-    if (!next) {
-      return;
-    }
-    void this.startCamera(next.id);
-  }
-
   ngOnDestroy(): void {
-    this.isDestroyed = true;
-    void this.stopCamera(false);
+    this.destroyed = true;
+    this.startToken++;
+    this.stopDecodeLoop();
+    this.detachVideoElement();
+    this.cameraStream.stopStream();
   }
 
-  /**
-   * Lazily loads `html5-qrcode` in a separate async chunk.
-   * Extracted as a protected method so unit tests can mock the dynamic import cleanly.
-   */
-  protected loadScannerLibrary(): Promise<typeof import('html5-qrcode')> {
-    return import('html5-qrcode');
-  }
-
-  protected async startCamera(preferredCameraId?: string): Promise<void> {
-    if (this.isDestroyed) {
-      return;
-    }
-
-    this.handlingDetection = false;
-    this.scannerState.set('starting');
+  /** Starts or restarts the live camera stream, attaches it to `<video>`, and begins decoding. */
+  async startCamera(options?: StartCameraStreamOptions): Promise<void> {
+    const token = ++this.startToken;
+    this.stopDecodeLoop();
+    this.hasEmittedCurrentSession = false;
     this.errorMessage.set(null);
-    this.ignoredNonIsbnHint.set(false);
-
-    await this.stopCamera(false);
+    this.scannerState.set('starting');
 
     try {
-      const lib = await this.loadScannerLibrary();
-      if (this.isDestroyed) {
+      const stream = await this.cameraStream.startStream(options);
+      if (this.destroyed || token !== this.startToken) {
+        if (this.destroyed) {
+          this.cameraStream.stopStream();
+        }
         return;
       }
 
-      if (preferredCameraId) {
-        this.selectedCameraId.set(preferredCameraId);
-      }
-
-      const scanner = this.createScannerInstance(lib);
-      this.scannerInstance = scanner;
-
-      await this.startWithFallbackLadder(scanner, preferredCameraId);
-
-      this.isCameraRunning = true;
-
-      if (this.isDestroyed) {
-        await this.stopCamera(false);
+      const video = this.videoEl()?.nativeElement;
+      if (!video) {
+        this.cameraStream.stopStream();
+        this.scannerState.set('error');
+        this.errorMessage.set(this.i18n.t().bookForm.lookup.cameraUnavailableError);
         return;
       }
 
-      const activeDeviceId = this.getRunningDeviceId(scanner) ?? preferredCameraId ?? null;
-      if (activeDeviceId) {
-        this.selectedCameraId.set(activeDeviceId);
+      video.srcObject = stream;
+      await video.play();
+      await this.waitForVideoReady(video);
+
+      if (this.destroyed || token !== this.startToken) {
+        if (this.destroyed) {
+          this.detachVideoElement();
+          this.cameraStream.stopStream();
+        }
+        return;
       }
 
-      await this.applyContinuousAutofocus(scanner);
-      await this.refreshAvailableCameras();
+      const trackSettings = this.cameraStream.activeTrackSettings();
+      const resolvedDeviceId = trackSettings?.deviceId ?? '';
+      this.selectedCameraId.set(resolvedDeviceId);
+      this.activeFacing.set(this.resolveCurrentFacing(options?.facingMode, resolvedDeviceId));
 
-      if (!this.selectedCameraId() && this.availableCameras().length > 0) {
-        this.selectedCameraId.set(this.availableCameras()[0].id);
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        void this.cameraStream.enhanceActiveTrack(videoTrack);
       }
 
       this.scannerState.set('scanning');
+      this.startDecodeLoop();
     } catch (error: unknown) {
-      await this.stopCamera(false);
-      if (this.isDestroyed) {
+      if (this.destroyed || token !== this.startToken) {
         return;
       }
 
-      const isPermissionError = this.isPermissionDeniedError(error);
+      this.detachVideoElement();
+      this.cameraStream.stopStream();
 
+      if (isPermissionDeniedError(error)) {
+        this.scannerState.set('permission-denied');
+        this.errorMessage.set(this.i18n.t().bookForm.lookup.permissionError);
+        return;
+      }
+
+      this.scannerState.set('error');
       this.errorMessage.set(
-        isPermissionError
-          ? this.i18n.t().bookForm.lookup.permissionError
+        error instanceof CameraStreamError && error.code === 'unavailable'
+          ? this.i18n.t().bookForm.lookup.cameraUnavailableError
           : this.i18n.t().bookForm.lookup.cameraUnavailableError
       );
-      this.scannerState.set(isPermissionError ? 'permission-denied' : 'error');
     }
   }
 
-  protected async stopCamera(updateState = true): Promise<void> {
-    const instance = this.scannerInstance;
-    this.scannerInstance = null;
-
-    if (instance) {
-      if (this.isCameraRunning) {
-        try {
-          await instance.stop();
-        } catch {
-          // Ignore teardown errors when the stream is already inactive.
-        }
-      }
-
-      try {
-        instance.clear();
-      } catch {
-        // Ignore DOM cleanup errors if element is already detached.
-      }
-    }
-
-    this.isCameraRunning = false;
-
-    if (updateState && !this.isDestroyed) {
-      this.scannerState.set('idle');
-    }
+  /** Stops the decode loop, detaches the `<video>` element, and releases all camera tracks. */
+  stopCamera(): void {
+    this.startToken++;
+    this.stopDecodeLoop();
+    this.detachVideoElement();
+    this.cameraStream.stopStream();
+    this.scannerState.set('idle');
   }
 
-  protected async switchCamera(cameraId: string): Promise<void> {
-    if (!cameraId || cameraId === this.selectedCameraId()) {
+  /** Restarts the live camera using default selection preferences. */
+  restartCamera(): void {
+    void this.startCamera();
+  }
+
+  /** Switches between rear and front camera facing modes with one tap. */
+  toggleFacingMode(): void {
+    const nextFacing = this.nextToggleFacing() === 'front' ? 'user' : 'environment';
+    void this.startCamera({ facingMode: nextFacing });
+  }
+
+  /** Switches to an explicit camera device ID from the desktop device selector. */
+  onCameraChange(cameraId: string): void {
+    if (!cameraId) {
       return;
     }
-
-    await this.startCamera(cameraId);
+    this.selectedCameraId.set(cameraId);
+    void this.startCamera({ deviceId: cameraId });
   }
 
+  /** Handles `<select>` change events for switching cameras. */
   protected onCameraSelectChange(event: Event): void {
-    const selectEl = event.target as HTMLSelectElement;
-    if (selectEl.value) {
-      void this.switchCamera(selectEl.value);
+    const select = event.target as HTMLSelectElement | null;
+    if (select?.value) {
+      this.onCameraChange(select.value);
     }
   }
 
-  protected async onFileSelected(event: Event): Promise<void> {
-    const inputEl = event.target as HTMLInputElement;
-    const file = inputEl.files?.[0];
-    inputEl.value = '';
+  /** Toggles the device flashlight/torch when supported by the active video track. */
+  async toggleTorch(): Promise<void> {
+    await this.cameraStream.toggleTorch();
+  }
 
-    if (!file || this.isDestroyed) {
+  /** Decodes a barcode from a user-selected static image file. */
+  async onFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.[0];
+    if (input) {
+      input.value = '';
+    }
+    if (!file) {
       return;
     }
 
-    this.handlingDetection = false;
-    this.scannerState.set('processing-file');
     this.errorMessage.set(null);
-    this.ignoredNonIsbnHint.set(false);
-
-    await this.stopCamera(false);
-
-    let fileScanner: Html5Qrcode | null = null;
+    this.stopDecodeLoop();
+    this.detachVideoElement();
+    this.cameraStream.stopStream();
+    this.scannerState.set('processing-file');
 
     try {
-      const lib = await this.loadScannerLibrary();
-      if (this.isDestroyed) {
+      const result = await this.barcodeDecoder.decodeFromImageFile(file);
+      if (this.destroyed) {
         return;
       }
 
-      fileScanner = this.createScannerInstance(lib);
-      const decodedText = await fileScanner.scanFile(file, false);
-
-      if (this.isDestroyed) {
-        return;
-      }
-
-      if (!isValidIsbn(decodedText)) {
-        this.errorMessage.set(this.i18n.t().bookForm.lookup.invalidBarcodeError);
-        this.scannerState.set('error');
-        return;
-      }
-
-      const normalized = normalizeIsbn(decodedText);
-      if (!normalized) {
-        this.errorMessage.set(this.i18n.t().bookForm.lookup.invalidBarcodeError);
-        this.scannerState.set('error');
-        return;
-      }
-
-      this.scannerState.set('idle');
-      this.isbnDetected.emit(normalized);
-    } catch {
-      if (!this.isDestroyed) {
-        this.errorMessage.set(this.i18n.t().bookForm.lookup.noBarcodeInImageError);
-        this.scannerState.set('error');
-      }
-    } finally {
-      if (fileScanner) {
-        try {
-          fileScanner.clear();
-        } catch {
-          // Ignore DOM cleanup errors.
+      if (result.status === 'isbn') {
+        this.scannerState.set('idle');
+        if (!this.hasEmittedCurrentSession) {
+          this.hasEmittedCurrentSession = true;
+          this.isbnDetected.emit(result.isbn);
         }
+        return;
       }
-    }
-  }
 
-  protected async closeScanner(): Promise<void> {
-    await this.stopCamera();
-    this.closed.emit();
-  }
-
-  private async handleDecodedText(decodedText: string): Promise<void> {
-    if (this.handlingDetection || this.isDestroyed) {
-      return;
-    }
-
-    if (!isValidIsbn(decodedText)) {
-      this.ignoredNonIsbnHint.set(true);
-      return;
-    }
-
-    const normalized = normalizeIsbn(decodedText);
-    if (!normalized) {
-      this.ignoredNonIsbnHint.set(true);
-      return;
-    }
-
-    this.handlingDetection = true;
-    this.ignoredNonIsbnHint.set(false);
-
-    await this.stopCamera();
-    if (!this.isDestroyed) {
-      this.isbnDetected.emit(normalized);
-    }
-  }
-
-  private createScannerInstance(lib: typeof import('html5-qrcode')): Html5Qrcode {
-    const formats = lib.Html5QrcodeSupportedFormats
-      ? [
-          lib.Html5QrcodeSupportedFormats.EAN_13,
-          lib.Html5QrcodeSupportedFormats.EAN_8,
-          lib.Html5QrcodeSupportedFormats.UPC_A,
-          lib.Html5QrcodeSupportedFormats.CODE_128,
-        ]
-      : undefined;
-
-    return formats
-      ? new lib.Html5Qrcode(this.scannerElementId, {
-          verbose: false,
-          formatsToSupport: formats,
-          useBarCodeDetectorIfSupported: true,
-        })
-      : new lib.Html5Qrcode(this.scannerElementId, {
-          verbose: false,
-          useBarCodeDetectorIfSupported: true,
-        });
-  }
-
-  private async startWithFallbackLadder(
-    scanner: Html5Qrcode,
-    preferredCameraId?: string
-  ): Promise<void> {
-    const qrbox = (viewfinderWidth: number, viewfinderHeight: number) => ({
-      width: Math.max(180, Math.min(320, Math.floor(viewfinderWidth * 0.8))),
-      height: Math.max(96, Math.min(160, Math.floor(viewfinderHeight * 0.55))),
-    });
-    const onDecode = (decodedText: string) => {
-      void this.handleDecodedText(decodedText);
-    };
-    const onFrameMiss = () => {
-      // Ignore per-frame decode misses while scanning live video.
-    };
-
-    if (preferredCameraId) {
-      await scanner.start(
-        preferredCameraId,
-        {
-          fps: 10,
-          qrbox,
-          videoConstraints: {
-            deviceId: { exact: preferredCameraId },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-        },
-        onDecode,
-        onFrameMiss
+      this.scannerState.set('error');
+      this.errorMessage.set(
+        result.status === 'invalid-barcode'
+          ? this.i18n.t().bookForm.lookup.invalidBarcodeError
+          : this.i18n.t().bookForm.lookup.noBarcodeInImageError
       );
+    } catch {
+      if (this.destroyed) {
+        return;
+      }
+      this.scannerState.set('error');
+      this.errorMessage.set(this.i18n.t().bookForm.lookup.noBarcodeInImageError);
+    }
+  }
+
+  private startDecodeLoop(): void {
+    this.stopDecodeLoop();
+    const sessionToken = ++this.decodeSessionToken;
+    this.scheduleNextDecode(sessionToken, 0);
+  }
+
+  private stopDecodeLoop(): void {
+    this.decodeSessionToken++;
+    if (this.decodeTimerId !== null) {
+      clearTimeout(this.decodeTimerId);
+      this.decodeTimerId = null;
+    }
+  }
+
+  private scheduleNextDecode(sessionToken: number, delayMs: number): void {
+    if (
+      this.destroyed ||
+      sessionToken !== this.decodeSessionToken ||
+      this.scannerState() !== 'scanning'
+    ) {
       return;
     }
 
-    const attempts: Array<{
-      cameraIdOrConfig: MediaTrackConstraints;
-      videoConstraints?: MediaTrackConstraints;
-    }> = [
-      {
-        cameraIdOrConfig: { facingMode: { ideal: 'environment' } },
-        videoConstraints: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      },
-      {
-        cameraIdOrConfig: { facingMode: 'environment' },
-      },
-      {
-        cameraIdOrConfig: { facingMode: 'user' },
-      },
-    ];
-
-    let lastError: unknown;
-    for (const attempt of attempts) {
-      if (this.isDestroyed) {
-        return;
-      }
-      try {
-        await scanner.start(
-          attempt.cameraIdOrConfig,
-          {
-            fps: 10,
-            qrbox,
-            ...(attempt.videoConstraints ? { videoConstraints: attempt.videoConstraints } : {}),
-          },
-          onDecode,
-          onFrameMiss
-        );
-        return;
-      } catch (error: unknown) {
-        if (this.isPermissionDeniedError(error)) {
-          throw error;
-        }
-        lastError = error;
-      }
-    }
-
-    throw lastError;
+    this.decodeTimerId = setTimeout(() => {
+      this.decodeTimerId = null;
+      void this.runDecodeTick(sessionToken);
+    }, delayMs);
   }
 
-  private getRunningDeviceId(scanner: Html5Qrcode): string | null {
-    try {
-      const settings = scanner.getRunningTrackSettings?.();
-      return typeof settings?.deviceId === 'string' && settings.deviceId.trim().length > 0
-        ? settings.deviceId
-        : null;
-    } catch {
-      return null;
+  private async runDecodeTick(sessionToken: number): Promise<void> {
+    if (
+      this.destroyed ||
+      sessionToken !== this.decodeSessionToken ||
+      this.scannerState() !== 'scanning'
+    ) {
+      return;
     }
-  }
 
-  private async applyContinuousAutofocus(scanner: Html5Qrcode): Promise<void> {
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+      this.scheduleNextDecode(sessionToken, LIVE_DECODE_INTERVAL_MS);
+      return;
+    }
+
+    const video = this.videoEl()?.nativeElement;
+    if (!video) {
+      this.scheduleNextDecode(sessionToken, LIVE_DECODE_INTERVAL_MS);
+      return;
+    }
+
     try {
-      const capabilities = scanner.getRunningTrackCapabilities?.() as
-        (MediaTrackCapabilities & { focusMode?: string[] }) | undefined;
+      const detection = await this.barcodeDecoder.decodeFromVideo(video);
       if (
-        capabilities &&
-        Array.isArray(capabilities.focusMode) &&
-        capabilities.focusMode.includes('continuous')
+        detection &&
+        !this.hasEmittedCurrentSession &&
+        !this.destroyed &&
+        sessionToken === this.decodeSessionToken
       ) {
-        await scanner.applyVideoConstraints({
-          advanced: [{ focusMode: 'continuous' } as MediaTrackConstraintSet],
-        });
-      }
-    } catch {
-      // Ignore unsupported autofocus constraints on devices without continuous focus.
-    }
-  }
-
-  private async refreshAvailableCameras(): Promise<void> {
-    try {
-      if (typeof navigator === 'undefined' || !navigator.mediaDevices?.enumerateDevices) {
+        this.hasEmittedCurrentSession = true;
+        this.stopCamera();
+        this.isbnDetected.emit(detection.normalizedIsbn);
         return;
       }
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      if (!this.isDestroyed) {
-        const lookup = this.i18n.t().bookForm.lookup;
-        this.availableCameras.set(
-          filterAndNormalizeCameras(devices, {
-            rearCamera: lookup.rearCamera,
-            frontCamera: lookup.frontCamera,
-            genericCameraPrefix: lookup.genericCameraPrefix,
-          })
-        );
-      }
     } catch {
-      // Some browsers restrict enumerateDevices until getUserMedia resolves.
+      // Transient frame decode errors are ignored while live scanning continues
+    }
+
+    this.scheduleNextDecode(sessionToken, LIVE_DECODE_INTERVAL_MS);
+  }
+
+  private detachVideoElement(): void {
+    const video = this.videoEl()?.nativeElement;
+    if (video) {
+      video.srcObject = null;
     }
   }
 
-  private isPermissionDeniedError(error: unknown): boolean {
-    const rawName =
-      error instanceof Error
-        ? `${error.name} ${error.message}`.toLowerCase()
-        : String(error ?? '').toLowerCase();
+  private resolveCurrentFacing(
+    requestedFacing: StartCameraStreamOptions['facingMode'],
+    deviceId: string
+  ): 'rear' | 'front' | null {
+    if (requestedFacing === 'user') {
+      return 'front';
+    }
+    if (requestedFacing === 'environment') {
+      return 'rear';
+    }
 
-    return (
-      rawName.includes('notallowed') || rawName.includes('permission') || rawName.includes('denied')
-    );
+    const trackFacing = this.cameraStream.activeTrackSettings()?.facingMode;
+    if (trackFacing === 'user') {
+      return 'front';
+    }
+    if (trackFacing === 'environment') {
+      return 'rear';
+    }
+
+    const matched = this.availableCameras().find((camera) => camera.id === deviceId);
+    if (matched?.facing === 'front' || matched?.facing === 'rear') {
+      return matched.facing;
+    }
+
+    return null;
+  }
+
+  private waitForVideoReady(video: HTMLVideoElement): Promise<void> {
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && video.videoWidth > 0) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const cleanup = () => {
+        video.removeEventListener('loadeddata', onReady);
+        video.removeEventListener('canplay', onReady);
+        video.removeEventListener('playing', onReady);
+        clearTimeout(timeoutId);
+      };
+      const finish = () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        cleanup();
+        resolve();
+      };
+      const onReady = () => {
+        if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && video.videoWidth > 0) {
+          finish();
+        }
+      };
+      const timeoutId = setTimeout(finish, VIDEO_READY_TIMEOUT_MS);
+      video.addEventListener('loadeddata', onReady);
+      video.addEventListener('canplay', onReady);
+      video.addEventListener('playing', onReady);
+    });
   }
 }

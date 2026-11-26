@@ -38,7 +38,7 @@ describe('AboutPage', () => {
     expect(root.textContent).toContain('Privacy & Device Permissions');
     expect(root.textContent).toContain('Legal Notice, License & Attributions');
     expect(root.textContent).toContain('MIT License');
-    expect(root.textContent).toContain('html5-qrcode');
+    expect(root.textContent).toContain('barcode-detector (ZXing-WASM)');
     expect(root.textContent).toContain('Learn and let learn.');
     expect(root.textContent).toContain('Source Code');
     expect(root.textContent).toContain('Personal Website');

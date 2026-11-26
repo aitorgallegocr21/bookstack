@@ -75,7 +75,9 @@ src/
         │   │   ├── book-metadata.schema.ts    # Open Library (Bibkey/Search/Editions), Google Books, Wikidata, Apple Books, Internet Archive & Crossref Zod parsers
         │   │   └── reading-goals.schema.ts    # L1-28: ReadingGoalsSchema
         │   ├── services/
+        │   │   ├── barcode-decoder.service.ts # Hybrid native BarcodeDetector + lazy local ZXing-WASM ponyfill
         │   │   ├── books.service.ts           # L1-133: CRUD + persistence orchestration
+        │   │   ├── camera-stream.service.ts   # Native getUserMedia, preferred rear deviceId memory, progressive autofocus & torch
         │   │   ├── reading-log.service.ts     # L1-98: Session logs + bidirectional page delta sync
         │   │   ├── reading-stats.service.ts   # L1-324: Computed stats, streaks & annual goals progress
         │   │   ├── catalog-filter.service.ts  # L1-377: Omni-search, status/format/rating filters, 7 sorts & view mode state

@@ -1,6 +1,6 @@
-# BookStack Product & Architecture Roadmap (Phases 16–20)
+# BookStack Product & Architecture Roadmap (Phases 16–21)
 
-> **Single Source of Truth for Upcoming Milestones:** This document captures the strategic product vision, architectural boundaries, and functional requirements for **Phases 16 through 20**. For the active sprint index and completed phase archive, see [`docs/TASKS.md`](TASKS.md).
+> **Single Source of Truth for Upcoming Milestones:** This document captures the strategic product vision, architectural boundaries, and functional requirements for **Phases 16 through 21**. For the active sprint index and completed phase archive, see [`docs/TASKS.md`](TASKS.md).
 >
 > **Pre-Phase Protocol:** Before breaking down any phase below into atomic `docs/tasks/phase-XX-<name>/task-X.Y-*.md` specifications, run a focused `/grill-me` alignment pass with the user to incorporate any new details or visual adjustments for that specific phase.
 
@@ -11,16 +11,18 @@
 ```mermaid
 flowchart LR
   P16["Phase 16: Data Health, Year Fix & Confirm Dialogs"] --> P17["Phase 17: Major Visual Overhaul & @theme Design System"]
-  P17 --> P18["Phase 18: Extended Settings, Advanced Mode & Privacy/Crypto"]
-  P18 --> P19["Phase 19: Expanded Analytics, Adaptive Time & Tags/Genres"]
-  P19 --> P20["Phase 20: Integrated eBook Reader & Binary Metadata Engine"]
+  P17 --> P18["Phase 18: Modern Native ISBN Scanner Engine"]
+  P18 --> P19["Phase 19: Extended Settings, Advanced Mode & Privacy/Crypto"]
+  P19 --> P20["Phase 20: Expanded Analytics, Adaptive Time & Tags/Genres"]
+  P20 --> P21["Phase 21: Integrated eBook Reader & Binary Metadata Engine"]
 ```
 
 1. **Why Foundation & Data Hygiene First (`Phase 16`):** Fixes the anomalous year filter defect (`2925`) in `/stats`, enforces temporal sanity bounds across schemas/forms/importers, replaces all native browser `window.confirm()` alerts with an accessible in-app confirmation modal (`ConfirmDialogService` + `<app-confirm-dialog>`), and introduces a Library Data Health Auditor before visual or schema expansions.
-2. **Why the Design System Overhaul Second (`Phase 17`):** Centralizing semantic design tokens (`@theme` in Tailwind CSS v4) and executing the site-wide visual modernization _before_ building multi-tab Extended Settings (`Phase 18`), new Analytics visualizations (`Phase 19`), or the eBook Reader (`Phase 20`) ensures all upcoming views are built directly on the new visual language rather than styled twice.
-3. **Why Extended Settings & Privacy Third (`Phase 18`):** Consolidates user-configurable preferences (including theme/accent tokens from Phase 17, confirmation dialog toggles from Phase 16, strict 100% Offline Mode, metadata provider toggles, `navigator.storage.persist()`, and `AES-GCM` encrypted backups) into a structured, categorized `/settings` hub with an **Advanced Mode**.
-4. **Why Expanded Analytics & Adaptive Time Fourth (`Phase 19`):** Leverages the new design tokens and user preferences to make time/velocity metrics adaptive (hiding `pp/h` and time tabs when no timed sessions exist), introduces book genres/tags (`tags`), annual activity heatmaps, longevity/pacing metrics, and period-over-period comparisons.
-5. **Why the Integrated eBook Reader Fifth (`Phase 20`):** Serves as the flagship long-term evolution. By storing `.epub`/`.pdf` binaries in a dedicated IndexedDB `ObjectStore` (`ebookFiles`), extracting embedded metadata/covers natively in the browser, and auto-logging timed reading sessions from `/reader/:id`, it organically feeds the adaptive time/velocity analytics created in Phase 19 without manual stopwatch friction.
+2. **Why the Design System Overhaul Second (`Phase 17`):** Centralizing semantic design tokens (`@theme` in Tailwind CSS v4) and executing the site-wide visual modernization _before_ building multi-tab Extended Settings (`Phase 19`), new Analytics visualizations (`Phase 20`), or the eBook Reader (`Phase 21`) ensures all upcoming views are built directly on the new visual language rather than styled twice.
+3. **Why Modernizing the Native ISBN Scanner Third (`Phase 18`):** Replaces the unmaintained `html5-qrcode` wrapper with a fast, 100% Local-First native `getUserMedia()` + `BarcodeDetector` / local ZXing-C++ WASM engine, resolving Android multi-lens Camera2 startup delays, cutting bundle weight, and adding flashlight (torch) control before expanding settings and analytics.
+4. **Why Extended Settings & Privacy Fourth (`Phase 19`):** Consolidates user-configurable preferences (including theme/accent tokens from Phase 17, confirmation dialog toggles from Phase 16, strict 100% Offline Mode, metadata provider toggles, `navigator.storage.persist()`, and `AES-GCM` encrypted backups) into a structured, categorized `/settings` hub with an **Advanced Mode**.
+5. **Why Expanded Analytics & Adaptive Time Fifth (`Phase 20`):** Leverages the new design tokens and user preferences to make time/velocity metrics adaptive (hiding `pp/h` and time tabs when no timed sessions exist), introduces book genres/tags (`tags`), annual activity heatmaps, longevity/pacing metrics, and period-over-period comparisons.
+6. **Why the Integrated eBook Reader Sixth (`Phase 21`):** Serves as the flagship long-term evolution. By storing `.epub`/`.pdf` binaries in a dedicated IndexedDB `ObjectStore` (`ebookFiles`), extracting embedded metadata/covers natively in the browser, and auto-logging timed reading sessions from `/reader/:id`, it organically feeds the adaptive time/velocity analytics created in Phase 20 without manual stopwatch friction.
 
 ---
 
@@ -50,8 +52,7 @@ flowchart LR
 
 ### Phase 17: Major Visual Overhaul & Tailwind CSS v4 `@theme` Design System Modernization
 
-- **Status:** Roadmapped
-- **Pre-Phase Note:** _This phase represents a major site-wide aesthetic evolution. Conduct a dedicated interactive specification pass with the user before task breakdown to incorporate all additional custom styling rules and per-page visual refinements._
+- **Status:** Completed ([`docs/tasks/phase-17-visual-overhaul-and-dock-shell/index.md`](tasks/phase-17-visual-overhaul-and-dock-shell/index.md), plus follow-ups 17B–17D)
 - **Primary Goal:** Elevate BookStack's entire UI to a modern, editorial-grade aesthetic while preserving its fast Local-First ergonomics, asymmetric responsive shell, and `320px` mobile parity.
 - **Core Deliverables:**
   1. **Semantic Tailwind CSS v4 `@theme` Token Architecture (`src/styles.css`):**
@@ -68,10 +69,24 @@ flowchart LR
 
 ---
 
-### Phase 18: Extended Categorized Settings (`/settings`), Advanced Mode & Privacy/Crypto Hardening
+### Phase 18: Modern Native ISBN Scanner Engine (`getUserMedia` + `BarcodeDetector` & Local ZXing-WASM)
+
+- **Status:** Completed (`v2.4.0`, [`docs/tasks/phase-18-native-isbn-scanner-engine/index.md`](tasks/phase-18-native-isbn-scanner-engine/index.md))
+- **Primary Goal:** Replace the unmaintained, heavyweight `html5-qrcode` wrapper with a fast, 100% Local-First, offline-capable native camera and barcode scanning engine that opens primary rear lenses in `<500 ms` across multi-camera Android, iOS Safari, Firefox, and desktop browsers.
+- **Core Deliverables:**
+  1. **Hybrid Native `BarcodeDetector` + Local ZXing-C++ WASM Ponyfill (`BarcodeDecoderService`):**
+     - Use hardware-accelerated browser-native `window.BarcodeDetector` (`ean_13`, `ean_8`) on Chrome/Brave/Edge with zero extra JS overhead, and lazy-load `barcode-detector/ponyfill` backed by a locally bundled `assets/wasm/zxing_reader.wasm` (zero CDN dependencies, CSP `'wasm-unsafe-eval'`, offline Service Worker cache) on Safari/Firefox.
+  2. **Native Camera Controller & Device Memory (`CameraStreamService`):**
+     - Own `navigator.mediaDevices.getUserMedia()`, passive `enumerateDevices()`, Camera2 primary-sensor index ranking (`camera 0` / `camera 1`), `localStorage` preferred rear `deviceId` memory for instant repeat startup, short dead-sensor timeouts, progressive continuous autofocus/HD enhancement, and guaranteed `MediaStreamTrack.stop()` cleanup.
+  3. **Modernized `<app-isbn-scanner>` Viewfinder & Flashlight (Torch) Control:**
+     - Native `<video playsinline muted autoplay>` with a sleek Tailwind v4 viewfinder overlay, throttled live scan loop, conditional `>= 44×44px` flashlight/torch toggle button, 1-tap front/rear flip or cleaned desktop `<select>`, and unified static photo upload decoding—removing `html5-qrcode` completely.
+
+---
+
+### Phase 19: Extended Categorized Settings (`/settings`), Advanced Mode & Privacy/Crypto Hardening
 
 - **Status:** Roadmapped
-- **Pre-Phase Note:** _Review with the user at phase start to include any additional fine-grained user preferences discovered during Phase 16 and Phase 17._
+- **Pre-Phase Note:** _Review with the user at phase start to include any additional fine-grained user preferences discovered during Phases 16–18._
 - **Primary Goal:** Transform `/settings` into a comprehensive, well-organized control center separated into thematic sections and an **Advanced Mode**, while hardening local data persistence, network privacy, and backup security.
 - **Core Deliverables:**
   1. **Categorized Settings Architecture:**
@@ -89,7 +104,7 @@ flowchart LR
 
 ---
 
-### Phase 19: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy
+### Phase 20: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy
 
 - **Status:** Roadmapped
 - **Pre-Phase Note:** _Review with the user at phase start to incorporate any additional custom charts or reading habit metrics._
@@ -98,7 +113,7 @@ flowchart LR
   1. **Adaptive Time & Reading Speed (`pp/h`) Disclosure:**
      - When the active period contains zero timed reading sessions (`totalTimeMinutes === 0`)—or when the user disables time tracking in `/settings`—automatically hide reading speed (`pp/h`) and the "Time" velocity chart tab.
      - Dynamically promote high-value non-timed KPIs into the 4-card executive grid (such as **Average Book Rating**, **Average Pages per Completed Book**, or **Active Reading Days**).
-     - Seamlessly reveal time and velocity metrics whenever timed sessions are logged (or automatically recorded by the Phase 20 eBook Reader).
+     - Seamlessly reveal time and velocity metrics whenever timed sessions are logged (or automatically recorded by the Phase 21 eBook Reader).
   2. **Genres & Custom Tags Taxonomy (`Book.tags` / `genres`):**
      - Extend `Book` and `BookSchema` with normalized genres/tags, autocomplete tag chips in Create/Edit modals, catalog filtering by tag, and automatic genre enrichment from the 5 metadata providers.
      - Add a **Genre / Thematic Distribution** visualization and dual Top Authors ranking (by completed books and by total pages read) in `/stats`.
@@ -111,7 +126,7 @@ flowchart LR
 
 ---
 
-### Phase 20 (Long-Term Milestone): Integrated eBook Reader (`/reader/:id`) & Binary Metadata Extractor
+### Phase 21 (Long-Term Milestone): Integrated eBook Reader (`/reader/:id`) & Binary Metadata Extractor
 
 - **Status:** Long-Term Roadmap Milestone
 - **Primary Goal:** Allow users to upload, inspect, and read `.EPUB` (and optional `.PDF`) files directly inside BookStack with 100% client-side metadata extraction, isolated binary storage, and automatic reading progress & session time synchronization.

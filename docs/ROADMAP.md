@@ -106,25 +106,23 @@ flowchart LR
 
 ---
 
-### Phase 20: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy
+### Phase 20: Expanded Analytics Studio (`/stats`), Customizable Widget Layout, Adaptive Time/Velocity Engine & Genres/Tags Taxonomy
 
-- **Status:** Roadmapped
-- **Pre-Phase Note:** _Review with the user at phase start to incorporate any additional custom charts or reading habit metrics._
-- **Primary Goal:** Make time and reading-speed analytics smartly adaptive for users who do not log timed sessions, introduce a flexible Genres/Tags taxonomy, and expand `/stats` with deeper reading habit insights.
+- **Status:** Active (`feat/phase-20-expanded-analytics-studio`, [`docs/tasks/phase-20-expanded-analytics-studio/index.md`](tasks/phase-20-expanded-analytics-studio/index.md))
+- **Primary Goal:** Elevate `/stats` into a flagship, user-customizable **Analytics Studio** with 14 modular Bento widgets, smart adaptive time/velocity disclosure, full end-to-end Genres/Tags (`Book.genre`) taxonomy, deep reading habit & library intelligence, interactive drill-down exploration, and a 100% local Editorial Reading Card PNG export.
 - **Core Deliverables:**
-  1. **Adaptive Time & Reading Speed (`pp/h`) Disclosure:**
-     - When the active period contains zero timed reading sessions (`totalTimeMinutes === 0`)—or when the user disables time tracking in `/settings`—automatically hide reading speed (`pp/h`) and the "Time" velocity chart tab.
-     - Dynamically promote high-value non-timed KPIs into the 4-card executive grid (such as **Average Book Rating**, **Average Pages per Completed Book**, or **Active Reading Days**).
-     - Seamlessly reveal time and velocity metrics whenever timed sessions are logged (or automatically recorded by the Phase 21 eBook Reader).
-  2. **Genres & Custom Tags Taxonomy (`Book.tags` / `genres`):**
-     - Extend `Book` and `BookSchema` with normalized genres/tags, autocomplete tag chips in Create/Edit modals, catalog filtering by tag, and automatic genre enrichment from the 5 metadata providers.
-     - Add a **Genre / Thematic Distribution** visualization and dual Top Authors ranking (by completed books and by total pages read) in `/stats`.
-  3. **Annual Reading Activity Calendar Heatmap:**
-     - GitHub-style 365-day SVG/CSS activity heatmap visualizing daily reading intensity and consistency across the selected year.
-  4. **Book Longevity, Length Distribution & Saga Progress Analytics:**
-     - Average days to finish a book (from `startDate` to `endDate`), book length buckets (Short $< 250\text{p}$, Medium $250\text{–}500\text{p}$, Long $> 500\text{p}$), and saga completion analytics.
-  5. **Period-over-Period Comparisons & All-Time Personal Records:**
-     - Relative delta indicators (`+%` / `-%` vs. previous year/period) and personal milestone cards (longest book read, highest-volume month, all-time longest streak, oldest/newest publication year read).
+  1. **Customizable Modular Bento Studio (`Edit Layout` Mode):**
+     - Register all 14 analytics visualizations as independent, reorderable widgets (`AnalyticsWidgetId`) persisted via `AppPreferencesService` (`analyticsLayout` + Zod `AnalyticsLayoutPreferencesSchema`, synced in backups and resettable in `/settings?tab=catalog`).
+     - Support desktop drag-and-drop reordering, accessible Move Up/Down buttons for mobile/keyboard users, show/hide toggles with a restore tray, `compact` vs. `full` width span toggling, and 3 1-click presets (**Editorial Balanced**, **Minimalist Focus**, **Deep Library & Data**).
+  2. **Adaptive Time & Reading Speed (`pp/h`) Disclosure + Period Deltas:**
+     - When the active period contains zero timed reading sessions (`totalTimeMinutes === 0`)—or when `trackReadingTime` is disabled in `/settings`—automatically hide reading speed (`pp/h`) and the `"Time"` velocity chart tab, dynamically promoting non-timed KPIs (**Average Book Rating**, **Average Pages per Completed Book**, **Active Reading Days**).
+     - Add period-over-period delta badges (`+%` / `-%` vs. previous year/window), Bar vs. Cumulative Area velocity mode with Annual Goal target line, and an **Annual Goal Pace & Year-End Forecast** gauge.
+  3. **Genres & Custom Tags Taxonomy (`Book.genre` End-to-End):**
+     - Expose BookStack's existing `Book.genre` field with pure normalization utilities, `<app-tag-chips-input>` autocomplete in Create/Edit modals, clickable chips in `BookDetailModal`, `/books?genre=` catalog filtering, and a **Genres & Thematic DNA** widget (books, pages, and average rating per genre) plus triple-mode **Top Authors** (Books / Pages / Avg Rating).
+  4. **365-Day Activity Heatmap & Deep Library Intelligence:**
+     - GitHub-style 365-day SVG/CSS activity heatmap using the active brand accent palette, upgraded Weekday vs. Weekend & session depth habits, **Book Length Tiers & Time-to-Finish Longevity**, **Publication Eras & Decades Timeline**, **Reader Critic Profile**, **Sagas & Series Progress Analytics**, and **TBR Backlog Clear-Time Forecast & Top Publishers**.
+  5. **All-Time Hall of Fame, Interactive Drill-Down & Local Reading Card PNG Export:**
+     - Personal milestone cards with miniature book covers and `--book-tint` ambient washes, click-to-inspect **Analytics Drill-Down Modal** across charts and heatmap days, and a zero-dependency client-side Canvas **Editorial Reading Card PNG Exporter**.
 
 ---
 

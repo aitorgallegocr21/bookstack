@@ -8,7 +8,7 @@
 
 ## Active Phase
 
-_None — Ready for Phase 20 planning._
+- [ ] **[Phase 20: Expanded Analytics Studio (`/stats`), Customizable Widget Layout, Adaptive Time/Velocity Engine & Genres/Tags Taxonomy (`v2.6.0`)](tasks/phase-20-expanded-analytics-studio/index.md)** — _Active (`feat/phase-20-expanded-analytics-studio`)_ (14 modular Bento analytics widgets with drag-and-drop & accessible button reordering, show/hide toggles, span sizing, and 3 layout presets persisted in `AppPreferencesService`; adaptive time/velocity disclosure + period-over-period deltas; full `Book.genre` taxonomy with `<app-tag-chips-input>` & `/books?genre=` filtering; 365-day activity heatmap, annual goal pace forecast, Genres DNA, triple-mode Top Authors, Length & Longevity, Publication Eras, Reader Critic Profile, Saga Analytics, TBR clear-time forecast, All-Time Hall of Fame, interactive drill-down modal, and 100% local Canvas Reading Card PNG export).
 
 ---
 
@@ -16,7 +16,6 @@ _None — Ready for Phase 20 planning._
 
 > Full architectural and product specifications for upcoming phases live in [`docs/ROADMAP.md`](ROADMAP.md).
 
-- [ ] **[Phase 20: Expanded Analytics (`/stats`), Adaptive Time/Velocity Engine & Tags/Genres Taxonomy](ROADMAP.md#phase-20-expanded-analytics-stats-adaptive-timevelocity-engine--tagsgenres-taxonomy)** — _Roadmapped_ (Adaptive time/velocity disclosure hiding `pp/h` and Time tabs when no timed sessions exist, `Book.tags` / genres taxonomy with thematic distribution charts, 365-day reading activity heatmap calendar, book longevity & length distribution metrics, period-over-period deltas, and personal all-time records).
 - [ ] **[Phase 21: Integrated eBook Reader (`/reader/:id`) & Binary Metadata Extractor](ROADMAP.md#phase-21-long-term-milestone-integrated-ebook-reader-readerid--binary-metadata-extractor)** — _Long-Term Milestone_ (Isolated IndexedDB `ebookFiles` binary store for `.EPUB`/`.PDF` uploads, 100% browser-native metadata/cover/TOC extraction, lazy-loaded `/reader/:id` view with customizable typography/themes/bookmarks, automatic `currentPage` & timed `ReadingLog` session tracking, and eBook quota manager in `/settings`).
 - [ ] **[Phase 22: Final Hardening, Bundle Budget Optimization, ZIP Security Bounds & Ongoing Backlog](ROADMAP.md#phase-22-final-hardening--ongoing-backlog-bundle-budget-optimization-zip-security-bounds--accumulated-polish)** — _Living Hardening Backlog_ (Initial bundle size reduction & zero-warning `angular.json` budget alignment, `inflateRawBytes()` uncompressed byte caps in `zip-archive.utils.ts` with regression tests, and rolling polish/hardening items accumulated along the way).
 
